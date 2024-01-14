@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="Stylesheet" type="text/css" href="style.css">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+<title>Lecture 1</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+
+<p>
+<code>Go through the codes one by one</code> <a href="https://www.youtube.com/watch?v=S2OFJe73fxA">Youtube link for further learning</a>
+</p>
+
+<ol>
+<li>
+Let us say we have created a code to calculate square of an input number: 
+<pre c++>
+	#include&lt;iostream&gt;
+	int square(int a)
+	{
+	return a*a;
+	}
+	int main()
+	{
+	std::cout&lt;&lt;square(5)&lt;&lt;std::endl;
+	std::cout&lt;&lt;square(5.5)&lt;&lt;std::endl;
+	std::cout&lt;&lt;square(5.5f)&lt;&lt;std::endl;
+	}
+	/*
+	It will generate the output as :
+	25
+	25 
+	25
+	*/
+</pre>
+
+<li>
+ 
+<pre c++>
+	#include&lt;iostream&gt;
+	int square(int a)
+	{
+	return a*a;
+		}
+	int square(double a)
+	{
+	return a*a;
+		}
+	int square(float a)
+	{
+	return a*a;
+	}
+	int main()
+	{
+	std::cout&lt;&lt;square(5)&lt;&lt;std::endl;
+	std::cout&lt;&lt;square(5.5)&lt;&lt;std::endl;
+	std::cout&lt;&lt;square(5.5f)&lt;&lt;std::endl;
+	}
+	/*
+	It will generate the output as :
+	25
+	30 
+	30
+	*/
+</pre>
+
+<li>
+
+<pre c++>
+	#include&lt;iostream&gt;
+	int square(int a)
+	{
+	return a*a;
+		}
+	double square(double a)
+	{
+	return a*a;
+		}
+	float square(float a)
+	{
+	return a*a;
+	}
+	int main()
+	{
+	std::cout&lt;&lt;square(5)&lt;&lt;std::endl;
+	std::cout&lt;&lt;square(5.5)&lt;&lt;std::endl;
+	std::cout&lt;&lt;square(5.5f)&lt;&lt;std::endl;
+	}
+	/*
+	It will generate the output as :
+	25
+	30.25 
+	30.25
+	*/
+</pre>
+
+</ol>
+	
+<p>
+So you see, we can make mistakes if we are dealing with long codes, to avid such mistakes, instead we use idea of templates in c++.
+</p>
+
+<p>
+<span id="-Use of Templates"></span><strong id="Use of Templates">Use of Templates</strong>
+</p>
+<pre c++>
+	#include&lt;iostream&gt;
+	template &lt;typename T&gt;
+	T square(T a)
+	{
+	return a*a;
+	}
+	int main()
+	{
+	std::cout&lt;&lt;square(5)&lt;&lt;std::endl;
+	std::cout&lt;&lt;square(5.5)&lt;&lt;std::endl;
+	std::cout&lt;&lt;square(5.5f)&lt;&lt;std::endl;
+	}
+	/*
+	It will generate the output as :
+	25
+	30.25 
+	30.25
+	*/
+</pre>
+
+<p>
+<code>OR</code>
+</p>
+
+<pre c++>
+	#include&lt;iostream&gt;
+	template &lt;typename T&gt;
+	T square(T a)
+	{
+	return a*a;
+	}
+	int main()
+	{
+	std::cout&lt;&lt;square&lt;int&gt;(5)&lt;&lt;std::endl;
+	std::cout&lt;&lt;square&lt;double&gt;(5.5)&lt;&lt;std::endl;
+	std::cout&lt;&lt;square&lt;float&gt;(5.5f)&lt;&lt;std::endl;
+	}
+	/*
+	It will generate the output as :
+	25
+	30.25 
+	30.25
+	*/
+</pre>
+
+
+<ul>
+<li>
+User of template allows user to avoid copy paste the code, it serves as blueprint for compiler to generate the code itself. To see what is happening visit the <a href="cppinsights.io.html">website</a> . Basically compiler generates the code for us. 
+
+<ul>
+<li>
+compiler is generating the below code:
+<pre c++>
+	#include&lt;iostream&gt;
+	template&lt;typename T&gt;
+	T square(T a)
+	{
+	  return a * a;
+	}
+
+	
+	/* First instantiated from: insights.cpp:10 */
+	#ifdef INSIGHTS_USE_TEMPLATE
+	template&lt;&gt;
+	int square&lt;int&gt;(int a)
+	{
+	  return a * a;
+	}
+	#endif
+	
+	
+	/* First instantiated from: insights.cpp:11 */
+	#ifdef INSIGHTS_USE_TEMPLATE
+	template&lt;&gt;
+	double square&lt;double&gt;(double a)
+	{
+	  return a * a;
+	}
+	#endif
+	
+	
+	/* First instantiated from: insights.cpp:12 */
+	#ifdef INSIGHTS_USE_TEMPLATE
+	template&lt;&gt;
+	float square&lt;float&gt;(float a)
+	{
+	  return a * a;
+	}
+	#endif
+	
+	int main()
+	 {
+	   std::cout.operator&lt;&lt;(square(5)).operator&lt;&lt;(std::endl);
+	   std::cout.operator&lt;&lt;(square(5.5)).operator&lt;&lt;(std::endl);
+	   std::cout.operator&lt;&lt;(square(5.5F)).operator&lt;&lt;(std::endl);
+	   return 0;
+	 }
+ 
+	/*
+	It will generate the output as :
+	25
+	30.25 
+	30.25
+	*/
+	
+</pre>
+
+</ul>
+</ul>
+
+</body>
+</html>

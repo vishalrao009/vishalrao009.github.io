@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="Stylesheet" type="text/css" href="style.css">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+<title>Symanzik Improvement</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+
+<div id="Symanzik Improvement"><h1 id="Symanzik Improvement" class="header"><a href="#Symanzik Improvement">Symanzik Improvement</a></h1></div>
+
+<div id="Symanzik Improvement-Motivation"><h2 id="Motivation" class="header"><a href="#Symanzik Improvement-Motivation">Motivation</a></h2></div>
+
+<ul>
+<li>
+When introducing the QCD action on the lattice we had to discretize the derivative terms that show up in the continuum action. It was pointed out then that any discretization, e.g., symmetric differences for the first derivative in the fermion action, gives rise to discretization eﬀects. Typically the discretization eﬀects are of \(\mathcal{O}(a)\)  for fermions and of \(\mathcal{O}(a^2)\)  for the gauge fields.
+
+<li>
+These disappear only in the continuum limit when the lattice spacing 'a' is sent to zero. Performing the continuum limit is, however, a nontrivial task. As one decreases 'a', the number of lattice points has to increase, such that the physical volume remains constant (ideally one would first send the number of lattice points to infinity before sending a to zero).
+
+<li>
+Thus in a numerical simulation one always works with finite 'a' and the discretization errors have
+	to be dealt with, e.g., by including them in the extrapolation to vanishing a.
+
+</ul>
+<div id="Symanzik Improvement-Solution"><h2 id="Solution" class="header"><a href="#Symanzik Improvement-Solution">Solution</a></h2></div>
+
+<ul>
+<li>
+An elegant way of approaching the problem is a systematical reduction of the discretization errors. We have already mentioned that the discretization we have chosen is not unique. Also other discretizations give rise to the same formal continuum limit.
+
+<li>
+In particular one may combine different terms to obtain a lattice action with reduced discretization eﬀects. Adding, e.g. an extra term to the Wilson fermion action and matching its coefficient appropriately, one can reduce the discretization error from \(\mathcal{O}\)(a) to \(\mathcal{O}(a^{2})\).
+
+<li>
+<u>In a similar way it is possible (and necessary for a full improvement) to reduce also the discretization errors of the observables used.</u>
+
+</ul>
+	
+
+
+<div id="Symanzik Improvement-Solution-A toy example"><h3 id="A toy example" class="header"><a href="#Symanzik Improvement-Solution-A toy example">A toy example</a></h3></div>
+
+<p>
+Let us begin our discussion of improvement with a toy example which already contains most of the steps that will be taken when improving lattice QCD actions.
+</p>
+
+<ul>
+<li>
+We consider the (symmetric) discretization of the derivative f'(x) for some function f(x) of a single real variable x:
+\[
+\frac{f(x+a)-f(x-a)}{2a}=f'(x) + a ^{2}C ^{2}(x) + a ^{4}C ^{4}(x)+ \mathcal{O} (a^ {6})
+\]
+	For dimensions to be equal both sides, we can deduce that the mass dimensions of \(C ^{k}\) must be (K+1). i.e. the length dimensions shall be -(1+k). Note that these \( C ^{k} \) can be identified with higher order derivative terms. Using the Taylor series expansion :
+\[
+f(x+a)=f(x)+af'(x)+\frac{a ^{2}}{2}f''(x)+\frac{a ^{3}}{6}f'''(x)+\mathcal{O}(a^{4})  
+\]
+	we can deduce that the term \( C ^{2}(x)=\frac{f'''(x)}{6} \). 
+
+<li>
+The central idea is to write the discretized version of f'(x). So if we are fine with \(\mathcal{O}(a^{2})\) accuracy then our definition of f'(x) will become : 
+\[
+f'(x) = \frac{f(x+a)-f(x-a)}{2a} + \mathcal{O}(a^{2})    
+\]
+	If we need accuracy upto \( \mathcal{O}(a^{2})\) (or in other words : for improvements of \( \mathcal{O}(a^{2}) \)) , then we need to write the \( C^k (x)\) (in our case \( C ^{2}(x) =\frac{f'''(x)}{6} \)) in terms of \( f(x+a), f(x-a), f(x+2a), f(x-2a) \) i.e.:
+\[
+f'''(x)=\frac{f(x+2a)-2f(x+a)+2f(x-a)-f(x-2a)}{2a ^{3}}
+\]
+
+</ul>
+<p>
+So for improvemnts in order \( \mathcal{O}(a^{2}) \) the discretized version of f'(x) becomes:
+</p>
+\[
+\begin{eqnarray}
+f'(x) = \frac{f(x+a)-f(x-a)}{2a} - (1/6)f'''(x)+\mathcal{O}(a^{4})   \\
+f'(x) = \frac{f(x+a)-f(x-a)}{2a} - \frac{f(x+2a)-2f(x+a)+2f(x-a)-f(x-2a)}{12a ^{3}}+\mathcal{O}(a^{4})  \\
+\end{eqnarray}
+\]
+
+
+<p>
+{{\(              }}\) 
+\(  \)
+$\(  \)$
+\(   )\
+\[    ]\
+</p>
+
+</body>
+</html>
