@@ -1,0 +1,77 @@
+= Header Files in c/c++ =
+
+References:
+1. [[https://chat.openai.com/share/3aa43241-df2f-4f9c-bcb1-3c4c0701ac14|chat_gpt]]
+2. [[https://www.scaler.com/topics/cpp/cpp-header-files/|scalar_cpp_headers]]
+
+----
+
+
+A header file in C or C++ is used to declare functions, variables, constants, and data structures that can be shared across multiple source files (.c or .cpp files). Header files typically have the file extension ".h" and are included at the beginning of source files to provide a common interface to the functions and data structures defined in them. Here's how to write a basic header file:
+
+1. **Create a Header File**:
+
+   Create a new file with a ".h" extension. For example, you can name it "myheader.h."
+
+2. **Header Guard (Include Guard)**:
+
+   To prevent multiple inclusions of the same header file, use header guards. This is essential to avoid redefinition errors. Define a unique identifier for your header file and wrap the entire content of the header file in conditional preprocessor directives. For example:
+
+   {{{c++
+   #ifndef MYHEADER_H
+   #define MYHEADER_H
+
+   // Content of your header file goes here
+
+   #endif // MYHEADER_H
+}}}
+   Choose a unique name for "MYHEADER_H" to avoid collisions with other header files. It's common to use the header file name in uppercase, with underscores instead of spaces.
+
+3. **Add Declarations**:
+
+   Inside your header file, you can add declarations for functions, variables, constants, and data structures. For example:
+
+   {{{c++
+   #ifndef MYHEADER_H
+   #define MYHEADER_H
+
+   // Function declarations
+   int add(int a, int b);
+   void printMessage(const char* message);
+
+   // Constants
+   #define MAX_VALUE 100
+
+   // Structure declaration
+   struct Point {
+       int x;
+       int y;
+   };
+
+   #endif // MYHEADER_H
+}}}
+   The above code includes function prototypes, a constant definition, and a structure declaration.
+
+4. **Include Guards Explained**:
+
+   - The `#ifndef` directive checks if the identifier `MYHEADER_H` has not been defined previously.
+   - The `#define` directive defines `MYHEADER_H`, indicating that the header file is now being included.
+   - The declarations are placed inside the `#ifndef` and `#endif` block.
+   - The `#endif` directive closes the conditional preprocessor block.
+
+5. **Usage**:
+
+   To use the declarations in your header file, include it in your source files using the `#include` directive. For example:
+
+   {{{c++
+   #include "myheader.h"
+
+   int main() {
+       int result = add(5, 3);
+       printMessage("Hello, World!");
+       return 0;
+   }
+}}}
+   You can now use the `add` function, `printMessage` function, `MAX_VALUE` constant, and the `Point` structure in your source files.
+
+By following these steps, you can create a header file that provides a common interface for functions, variables, and data structures that can be used across multiple source files in your C or C++ project.

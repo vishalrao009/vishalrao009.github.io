@@ -1,0 +1,99 @@
+= Contents =
+    - [[#Introduction]]
+        - [[#1. Language Server Protocol (LSP):]]
+        - [[#2. Integration with Neovim:]]
+        - [[#3. Real-time Analysis:]]
+        - [[#4. Error Highlighting:]]
+        - [[#5. Code Completion and Suggestions:]]
+
+= Introduction =
+`clangd` is a language server for C and C++ that provides language features such as code completion, syntax highlighting, and error checking. When integrated with Neovim, it enables real-time code analysis and error highlighting as you type.
+
+Here's a general overview of how `clangd` works in Neovim to find mistakes and provide live feedback:
+
+== 1. Language Server Protocol (LSP): ==
+`clangd` follows the Language Server Protocol, which is a standardized way for language servers to communicate with integrated development environments (IDEs) or text editors. Neovim supports the LSP, allowing it to communicate with `clangd` and receive real-time information about the code.
+
+== 2. Integration with Neovim: ==
+To use `clangd` in Neovim, you need to install a plugin that supports the LSP. A popular choice is the "coc.nvim" plugin, which is a language server client for Neovim. Once installed and configured, `coc.nvim` communicates with `clangd` using the LSP.
+
+== 3. Real-time Analysis: ==
+As you type code in Neovim, `clangd` continuously analyzes the code in the background. It performs tasks such as syntax checking, semantic analysis, and identifying potential issues or mistakes in your code.
+
+== 4. Error Highlighting: ==
+When `clangd` detects an error or a potential mistake in your code, it sends this information to Neovim via the LSP. Neovim then uses this information to highlight the problematic code in real-time, making it easy for you to identify and correct errors as you write code.
+
+== 5. Code Completion and Suggestions: ==
+In addition to error checking, `clangd` provides code completion suggestions based on the context of your code. This can help improve your productivity by offering relevant code snippets and suggestions as you type.
+
+To set up `clangd` with Neovim, you typically need to follow these steps:
+
+1. Install Neovim and a plugin manager (e.g., vim-plug, dein.vim).
+2. Install the "coc.nvim" plugin.
+3. Install `clangd` on your system.
+4. Configure `coc.nvim` to use `clangd` as the language server.
+
+Keep in mind that the specific steps and plugins might vary depending on your Neovim setup and preferences. Always refer to the documentation of the plugins and tools you are using for detailed instructions.
+
+= Clangd Across Header files =
+
+Follow these steps:
+    1. Install clangd system wide on container (for blue onyx use : dnf install clang-tools-extra)
+    2. add the path of `clangd ` to PATH variable in .bashrc file(use: `export PATH=/usr/bin/clangd:$PATH`)
+    3. Enjoy
+    
+
+
+== Here are the general steps to install `clangd` on Rocky Linux: ==
+
+1. Update Package Lists:
+   
+   Open a terminal and make sure your package lists are up-to-date.
+
+   ```bash
+   sudo dnf update
+   ```
+
+2. Install clangd:
+
+   Install the `clangd` package using the `dnf` package manager.
+
+   ```bash
+   sudo dnf install clang-tools-extra
+   ```
+
+   The `clang-tools-extra` package typically includes `clangd` among other tools.
+
+3. Verify Installation:
+
+   After installation, you can verify the presence of `clangd`:
+
+   ```bash
+   clangd --version
+   ```
+
+   This command should display the version of `clangd` installed on your system.
+
+4. Configure Neovim with clangd:
+
+   If you're using Neovim with a plugin manager like vim-plug, you can add the following line to your Neovim configuration file (e.g., `init.vim` or `init.lua`):
+
+   ```vim
+   Plug 'neoclide/coc.nvim', {'branch': 'release'}
+   ```
+
+   Then, open Neovim and run `:PlugInstall` to install the plugin. Follow the additional configuration steps for `coc.nvim` as outlined in the plugin's documentation.
+
+   Ensure that the `clangd` binary is in your system's PATH, or you may need to specify its path in your Neovim configuration.
+
+5. Generate compile_commands.json (if needed):
+
+   If your project uses CMake, you can generate a `compile_commands.json` file with the following command (run in the build directory):
+
+   ```bash
+   cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
+   ```
+
+   This file is used by `clangd` to understand your project's compilation commands.
+
+Please note that package availability and commands may change, and it's always a good idea to check the official documentation or community resources for the most up-to-date information specific to your Rocky Linux version. If there have been changes or updates since my last knowledge update, you might want to refer to the Rocky Linux documentation or community forums.

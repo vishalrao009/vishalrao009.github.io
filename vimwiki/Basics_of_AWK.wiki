@@ -1,0 +1,175 @@
+= Contents =
+  - [[#Basics of AWK]]
+      - [[#Examples of Use]]
+        - [[#printing whole file]]
+        - [[#printing a column of file]]
+        - [[#printing last column]]
+        - [[#printing line with specific 'word']]
+        - [[#printing a specific field with special words]]
+        - [[#priting more than one field]]
+        - [[#printing first column of ls -l]]
+
+= Basics of AWK =
+
+	1. It is mostly used as data extraction and reporting tools like 'sed' and 'grep'. 
+	2. It is domain specific 
+
+					AWK (Aho, Weinberger, and Kernighan) is often considered a domain-specific language (DSL) because it is specifically designed for text processing and manipulation. While it is a powerful and flexible tool, it is tailored to excel in a particular domain: processing and analyzing text data.
+
+		Here are some characteristics of AWK that highlight its domain-specific nature:
+
+=== Examples of Use ===	
+	
+	Certainly! I'll provide hypothetical examples of input data and the expected output for each AWK command. Please note that the actual results would depend on the content of your specific input files.
+
+==== printing whole file ====
+`awk '{print}' filename`
+or 
+`awk '{print $0}' filename`
+
+==== printing a column of file ====
+`awk '{print $2}' filename`
+
+example: `echo "hi there how are you| awk '{print $3}'"` will print : `how`
+
+==== printing last column ====
+`awk '{print $NF}' filename`
+
+==== printing line with specific 'word'====
+`awk '/word/ {print}' filename`
+
+==== printing a specific field with special words ====
+`awk '/word/ {print $2}' filename`
+
+==== priting more than one field ====
+`awk '{pring $1,$2}' filename`
+
+==== printing first column of ls -l ==== 
+`ls -l | awk '{print $1}'`
+
+Fields are seperated by spaces, what if they are not seperated by spaces, what to do then: 
+In such cases we use '-F' to set different delimeter or field seperater. 
+    `awk -F ':'{print $2}'` will set the delimeter to ':' which is the case for files like /etc/passwd
+
+    `awk -F ':' '{print $1,$7}' /etc/passwd` will return the username and the shell they are using in current session. 
+    or
+    `awk -F: '{print $1,$7}' /etc/passwd` will return the username and the shell they are using in current session. 
+
+
+1. **Pattern Matching:** "To find a specific word 'error' in a log_file.txt and return each line which contains word 'error'"
+   - **Input (`log_file.txt`):**
+     `
+     Line 1: This is an error message.
+     Line 2: Successful operation.
+     Line 3: Another error occurred.
+     `
+   - **Command:**
+     `bash
+     awk '/error/ { print }' log_file.txt
+     `
+   - **Output:**
+     `
+     This is an error message.
+     Another error occurred.
+     `
+
+2. **Line/field-Oriented:**
+   - **Input (`data_file.txt`):**
+     `
+     John 25
+     Jane 30
+     Bob 22
+     `
+   - **Command:** 
+     `bash
+     awk '{ print $2 }' data_file.txt 
+     `
+   - **Output:**
+     `
+     25
+     30
+     22
+     `
+
+3. **Text Extraction and Transformation:**
+   - **Input (`/etc/passwd`):**
+     `
+     user1:x:1001:1001:User One:/home/user1:/bin/bash
+     user2:x:1002:1002:User Two:/home/user2:/bin/bash
+     `
+   - **Command:**
+     `bash
+     awk -F: '{ print $1 }' /etc/passwd
+     `
+   - **Output:**
+     `
+     user1
+     user2
+     `
+
+4. **Default Variables:**
+   - **Input (`text_file.txt`):**
+     `
+     Short
+     This line is longer.
+     Another short line.
+     `
+   - **Command:**
+     `bash
+     awk 'length > 10' text_file.txt
+     `
+   - **Output:**
+     `
+     This line is longer.
+     `
+
+5. **Built-in Functions:**
+   - **Input (`fruit_data.txt`):**
+     `
+     apple 5
+     banana 3
+     orange 7
+     `
+   - **Command:**
+     `bash
+     awk '{ gsub(/apple/, "orange", $2); print }' fruit_data.txt
+     `
+   - **Output:**
+     `
+     apple orange
+     banana 3
+     orange 7
+     `
+
+6. **Scripting Features:**
+   - **Input (`data.csv`):**
+     `
+     A 10 100
+     B 15 150
+     A 20 200
+     `
+   - **Command:**
+     `bash
+     awk '$1 == "A" { sum += $3 } END { print sum }' data.csv
+     `
+   - **Output:**
+     `
+     300
+     `
+
+7. **Command-Line Usage:**
+   - **Input (`log_file.txt`):**
+     `
+     Line 1: Successful operation.
+     Line 2: Another successful operation.
+     Line 3: Error in processing.
+     `
+   - **Command:**
+     `bash
+     awk '/success/ { print }' log_file.txt
+     `
+   - **Output:**
+     `
+     Line 1: Successful operation.
+     Line 2: Another successful operation.
+     

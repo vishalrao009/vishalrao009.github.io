@@ -1,0 +1,159 @@
+{{{cpp
+
+
+#include "../simulateqcd.h"
+#include <iostream>
+#include <string>
+#define PREC double
+template<class floatT,size_t HaloDepth>
+struct CalcWilson{
+
+    //Gauge accessor to access the gauge field
+    SU3Accessor<floatT> SU3Accessor;
+    int _length=1;
+    int _height=1;
+
+    //Constructor to initialize all necessary members.
+    CalcWilson(Gaugefield<floatT,true,HaloDepth> &gauge, int &length, int &height) : SU3Accessor(gauge.getAccessor()), _length(length),_height(height){
+    }
+
+__device__ __host__ SU3<floatT> HalfLoop(int &length, int &height,gSite  site,int &mu, int &nu)
+{
+    // we have not taken site variable as reference as if it were take as reference, it will update the values at same memory location
+    SU3<floatT> temp;
+    typedef GIndexer<All, HaloDepth> GInd;
+    temp = SU3Accessor.getLink(GInd::getSiteMu(site, mu));
+    for (int len=1;len<length;len++){
+    site=GInd::site_up(site, mu);
+    temp *= SU3Accessor.getLink(GInd::getSiteMu(site, mu));
+    }
+
+    site=GInd::site_up(site,mu);
+    for (int hei=1;hei<=height;hei++){
+    temp *= SU3Accessor.getLink(GInd::getSiteMu(site, nu));
+    site=GInd::site_up(site,nu);
+    }
+    return temp; 
+ }   
+    //This is the operator that is called inside the Kernel
+    __device__ __host__ floatT operator()(gSite site) {
+
+        /// We need to choose the type of indexer. The first template is the layout of the lattice.
+        typedef GIndexer<All, HaloDepth> GInd;
+        int l=_length;
+        int h=_height;
+        /// Define a SU(3) matrix
+        SU3<floatT> temp1,temp2;
+
+        floatT result = 0;
+        for (int nu = 1; nu < 3; nu++) 
+        {
+            for (int mu = 0; mu < nu; mu++) 
+            {
+                temp1=HalfLoop(l,h,site,mu,nu);
+                temp2=HalfLoop(h,l,site,nu,mu);
+                result+=tr_d(temp1*dagger(temp2));
+                temp1=HalfLoop(h,l,site,mu,nu);
+                temp2=HalfLoop(l,h,site,nu,mu);
+                result+=tr_d(temp1*dagger(temp2));
+        //Return the result
+        //The return value will be stored in the array of the reductionbase at index site.isite.
+            }
+        }
+        return result*0.5;
+        }
+
+};
+//Function to compute the plaquette using the above struct CalcPlaq.
+template<class floatT, size_t HaloDepth>
+floatT WilsonLoop(Gaugefield<floatT,true, HaloDepth> &gauge, LatticeContainer<true,floatT> &redBase, int &l, int &h){
+
+    typedef GIndexer<All,HaloDepth> GInd;
+    const size_t elems = GInd::getLatData().vol4;
+    //Make sure, redBase is large enough
+    redBase.adjustSize(elems);
+
+    redBase.template iterateOverBulk<All, HaloDepth>(CalcWilson<floatT, HaloDepth>(gauge, l,h));
+
+    //Do the final reduction
+    floatT Wloop;
+    redBase.reduce(Wloop, elems);
+
+    //Normalize the result
+    Wloop /= (GInd::getLatData().globalLattice().mult()*9); //3 loops(one averaged loop per plane) times 3 colors.
+    return Wloop;
+}
+//
+//
+int main(int argc, char *argv[]) {
+
+    stdLogger.setVerbosity(DEBUG);
+
+    /// Initialize parameter class. This class can also read parameter from textfiles!
+    LatticeParameters param;
+    /// Initialize the Lattice dimension
+    const int LatDim[] = {32, 32, 32, 8};
+
+    const int NodeDim[] = {1, 1, 1, 1};
+
+    /// Just pass these dimensions to the parameter class
+    param.latDim.set(LatDim);
+    param.nodeDim.set(NodeDim);
+
+    /// Initialize a timer
+    StopWatch<true> timer;
+
+    /// Initialize the CommunicationBase. This class handles the communitation between different Cores/GPU's.
+    CommunicationBase commBase(&argc, &argv, true);
+    commBase.init(param.nodeDim());
+
+    const size_t HaloDepth = 1; //since it is not multi-gpu code
+
+
+    /// highlight the output differently.
+    rootLogger.info("Initialize Lattice");
+    /// Initialize the Indexer on GPU and CPU.
+    initIndexer(HaloDepth,param,commBase);
+    typedef GIndexer<All,HaloDepth> GInd;
+
+
+    rootLogger.info("Initialize Gaugefield");
+    Gaugefield<PREC, true,HaloDepth> gauge(commBase);
+
+    typedef double floatT;
+    GaugeAction<floatT, true, HaloDepth, R18> gaugeaction(gauge);
+    /// Initialize gaugefield with unity-matrices.
+    gauge.one();
+
+    /// Initialize LatticeContainer. This is in principle the "array", where the values of the plaquette are
+    /// stored which are summed up in the end
+    LatticeContainer<true,PREC> redBase(commBase);
+    /// We need to tell the Reductionbase how large our Array will be
+    redBase.adjustSize(GInd::getLatData().vol4);
+    int eqm_point=150;
+    int last_point=1150;
+    //sscanf(argv[1], "%d", &length);
+    //sscanf(argv[2], "%d", &height);
+    for (int i=eqm_point; i<=last_point;i+=10)
+        {
+            rootLogger.info("Read configuration");
+            gauge.readconf_nersc("/root/project1/build_SIMULATeQCD/applications/try_20_output_dir/before_eqm/node0/l328f21b6285m0039185m0783706a_0."+std::to_string((i)));
+            gauge.updateAll();
+            const int Ns= LatDim[0];
+            for (int length=1; length<Ns; length++)
+            {      
+                for (int height=length; height<Ns; height++)
+                {
+                    PREC Wloop = 0;
+                    timer.start();
+                    /// compute plaquette
+                    Wloop = WilsonLoop<PREC,HaloDepth>(gauge, redBase, length,height );
+                    printf("Length= %d,\tHeight= %d\tWilson Loop: %1.15e\n",length, height,Wloop);
+                    /* rootLogger.info("Reduced Rectangle from rhmc : " ,  gaugeaction.rectangle()); */
+                    /* rootLogger.info("Reduced plaquette from rhmc : " ,  gaugeaction.plaquette()); */
+                }
+            }
+
+        }
+    return 0;
+}}}}
