@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="Stylesheet" type="text/css" href="style.css">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+<title>gaugeFixing</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+
+<div id="gaugeFixing"><h1 id="gaugeFixing" class="header"><a href="#gaugeFixing">gaugeFixing</a></h1></div>
+
+<p>
+Fix the gauge of a configuration to the Coulomb or Landau gauge. Can optionally measure various gauge construcs at the end. 
+</p>
+
+<<<<<<< HEAD
+=======
+<pre cpp>
+/*
+ * main_gaugeFixing.cpp
+ *
+ * D. Clarke
+ *
+ * GPU code to fix a configuration to the Coulomb gauge. Computes average, singlet, and octet Polyakov loop correlations
+ * as well as Wilson line correlators. This does not work for multiGPU, because it is hard to find a way to calculate
+ * correlations on multiGPU.
+ *
+ * For the Polyakov loop correlations, this program uses functions defined in the header file. There are more general
+ * functions to measure such correlators in ../math/correlators.h, but these functions are slower because they call a
+ * kernel for each type of correlation, rather than one kernel to compute three.
+ *
+ */
+
+#include "../modules/gaugeFixing/gfix.h"
+#include "../modules/observables/polyakovLoop.h"
+#include "../modules/gaugeFixing/polyakovLoopCorrelator.h"
+#include "../modules/observables/wilsonLineCorrelator.h"
+
+#define PREC double
+
+template&lt;class floatT&gt;
+struct gfixParam : LatticeParameters {
+    Parameter&lt;floatT&gt;      gtolerance;
+    Parameter&lt;int,1&gt;       maxgfsteps;
+    Parameter&lt;int,1&gt;       numunit;
+    Parameter&lt;std::string&gt; cml;
+    Parameter&lt;std::string&gt; cms;
+    Parameter&lt;std::string&gt; measurements_dir;
+    Parameter&lt;std::string&gt; SavedConfName;
+    Parameter&lt;bool&gt;        PolyakovLoopCorr;
+    Parameter&lt;bool&gt;        WilsonLineCorr;
+    Parameter&lt;bool&gt;        SaveConfig;
+
+    gfixParam() {
+        addDefault (gtolerance,"gtolerance",1e-6);
+        addDefault (maxgfsteps,"maxgfsteps",1000);
+        addDefault (numunit   ,"numunit"   ,20);
+        addOptional(cml       ,"mlight");
+        addOptional(cms       ,"mstrange");
+        addDefault(PolyakovLoopCorr, "PolyakovLoopCorr", false);
+        addDefault(WilsonLineCorr  , "WilsonLineCorr"  , false);
+        addDefault(SaveConfig      , "SaveConfig"      , false);
+        add(measurements_dir, "measurements_dir");
+        add(SavedConfName   , "SavedConfName");
+    }
+};
+
+
+int main(int argc, char *argv[]) {
+
+    stdLogger.setVerbosity(INFO);
+    const size_t HaloDepth  = 0;
+
+    /// Read in parameters and initialize communication base.
+    rootLogger.info("Initialization");
+    CommunicationBase commBase(&amp;argc, &amp;argv);
+    gfixParam&lt;PREC&gt; param;
+    param.readfile(commBase, "../parameter/applications/gaugeFixing.param", argc, argv);
+    commBase.init(param.nodeDim());
+    initIndexer(HaloDepth,param,commBase);
+    typedef GIndexer&lt;All,HaloDepth&gt; GInd;
+    const int  ngfstepMAX = param.maxgfsteps();
+    const int  nunit      = param.numunit();
+    const PREC gtol       = param.gtolerance();
+
+    StopWatch&lt;true&gt; timer;
+    int        ngfstep = 0;          /// # of gauge fixing steps
+    PREC       gftheta = 1e10;       /// gauge fixing theta
+    PREC       act1    = 1.0;        /// gauge fix action before OR update
+    PREC       act2    = 1.0;        /// gauge fix action after OR update
+    Gaugefield&lt;PREC,true,HaloDepth&gt; gauge(commBase);        /// gauge field
+    GaugeFixing&lt;PREC,true,HaloDepth&gt; GFixing(gauge);        /// gauge fixing class
+    CorrelatorTools&lt;PREC,true,HaloDepth&gt; Corrs;             /// general correlator class
+    PolyakovLoopCorrelator&lt;PREC,true,HaloDepth&gt; PLC(gauge); /// class for Polyakov loop correlators
+    PolyakovLoop&lt;PREC,true,HaloDepth&gt; ploopClass(gauge);    /// class for measuring Polyakov loops
+    WilsonLineCorrelator&lt;PREC,true,HaloDepth&gt; WLC(gauge);   /// class for Polyakov loop correlators
+
+    ///prepare output file
+    std::stringstream plcfilename,wlcfilename,cbeta,cstream;
+    plcfilename &lt;&lt; param.measurements_dir() &lt;&lt; "plc_l" &lt;&lt; param.latDim[0] &lt;&lt; param.latDim[3] &lt;&lt; "f21";
+    wlcfilename &lt;&lt; param.measurements_dir() &lt;&lt; "wlc_l" &lt;&lt; param.latDim[0] &lt;&lt; param.latDim[3] &lt;&lt; "f21";
+
+    if (param.beta.isSet()) {
+        cbeta&lt;&lt;std::setw(4)&lt;&lt;(int)(1000*param.beta());
+        plcfilename&lt;&lt;"b"&lt;&lt;cbeta.str();
+        wlcfilename&lt;&lt;"b"&lt;&lt;cbeta.str();
+    }
+    if (param.cml.isSet()) {
+        plcfilename &lt;&lt; "m" &lt;&lt; param.cml();
+        wlcfilename &lt;&lt; "m" &lt;&lt; param.cml();
+    }
+    if (param.cms.isSet()) {
+        plcfilename &lt;&lt; "m" &lt;&lt; param.cms();
+        wlcfilename &lt;&lt; "m" &lt;&lt; param.cms();
+    }
+    if (param.streamName.isSet()) {
+        cstream.fill('0');
+        cstream &lt;&lt; std::setw(3) &lt;&lt; param.streamName();
+        plcfilename &lt;&lt; "a_" &lt;&lt; cstream.str();
+        wlcfilename &lt;&lt; "a_" &lt;&lt; cstream.str();
+    }
+    if (param.confnumber.isSet()) {
+        plcfilename &lt;&lt; "." &lt;&lt; param.confnumber();
+        wlcfilename &lt;&lt; "." &lt;&lt; param.confnumber();
+    }
+    plcfilename &lt;&lt; ".d";
+    wlcfilename &lt;&lt; ".d";
+
+    std::ofstream plcresultfile;
+    if ( param.PolyakovLoopCorr() ) {
+        plcresultfile.open(plcfilename.str());
+        rootLogger.info("PolyakovLoopCorr OUTPUT TO FILE: " ,  plcfilename.str());
+    }
+
+    std::ofstream wlcresultfile;
+    if ( param.WilsonLineCorr() ) {
+        wlcresultfile.open(wlcfilename.str());
+        rootLogger.info("WilsonLineCorr OUTPUT TO FILE: " ,  wlcfilename.str());
+    }
+
+    /// Read the configuration. Remember a halo exchange is needed every time the gauge field changes.
+    rootLogger.info("Read configuration");
+    gauge.readconf_nersc(param.GaugefileName());
+    gauge.updateAll();
+
+    /// Measure the Polyakov loop and report to user.
+    COMPLEX(PREC) ploop = ploopClass.getPolyakovLoop();
+    rootLogger.info("# POLYAKOV LOOP :: " ,  ploop);
+
+    /// ----------------------------------------------------------------------------------------------------GAUGE FIXING
+    rootLogger.info("GAUGE FIXING...");
+    if (commBase.MyRank()==0) std::cout &lt;&lt; "\nngfstep\t  act\t         act diff\ttheta\n";
+    timer.start();
+
+    while ( (ngfstep&lt;ngfstepMAX) &amp;&amp; (gftheta&gt;gtol) ) {
+        /// Compute starting GF functional and update the lattice.
+        act1=GFixing.getAction();
+        GFixing.gaugefixOR();
+        /// Due to the nature of the update, we have to re-unitarize every so often.
+        if ( (ngfstep%nunit) == 0 ) {
+            gauge.su3latunitarize();
+        }
+        /// Compute GF functional difference, compute theta, and report to user.
+        act2   =GFixing.getAction();
+        gftheta=GFixing.getTheta();
+        if (commBase.MyRank()==0) {
+            std::cout &lt;&lt; std::setw(7) &lt;&lt; ngfstep &lt;&lt; "  " &lt;&lt; std::setw(13) &lt;&lt; std::scientific &lt;&lt; act2
+                                                 &lt;&lt; "  " &lt;&lt; std::setw(13) &lt;&lt; std::scientific &lt;&lt; fabs(act2-act1)
+                                                 &lt;&lt; "  " &lt;&lt; std::setw(13) &lt;&lt; std::scientific &lt;&lt; gftheta &lt;&lt; std::endl;
+        }
+        ngfstep+=1;
+    }
+
+    /// Final reunitarization.
+    gauge.su3latunitarize();
+
+    /// Report time to user.
+    timer.stop();
+    if (commBase.MyRank()==0) std::cout &lt;&lt; "\n";
+    rootLogger.info("Time to gauge fix: " ,  timer);
+
+    /// Optionally save configuration.
+    if ( param.SaveConfig() ) gauge.writeconf_nersc(param.SavedConfName(), 2, 2);
+
+    /// ---------------------------------------------------------------------------------------POLYAKOV LOOP CORRELATORS
+    if ( param.PolyakovLoopCorr() ) {
+        rootLogger.info("CALCULATING POLYAKOVLOOP CORRELATORS...");
+        timer.start();
+        std::ofstream plcresultfile;
+        plcresultfile.open(plcfilename.str());
+        const int distmax=Corrs.distmax;
+        const int pvol3=Corrs.pvol3;
+        std::vector&lt;PREC&gt; vec_plca(distmax);
+        std::vector&lt;PREC&gt; vec_plc1(distmax);
+        std::vector&lt;PREC&gt; vec_plc8(distmax);
+        std::vector&lt;int&gt;  vec_factor(distmax);
+        std::vector&lt;int&gt;  vec_weight(pvol3);
+        Corrs.getFactorArray(vec_factor,vec_weight);
+
+        if (commBase.MyRank()==0) plcresultfile &lt;&lt; "#  r**2\t  plca\t         plc1\t        plc8\n";
+
+        rootLogger.info("the rank is:" ,  commBase.MyRank());
+
+        /// Calculation of Polyakov loop correlators.
+        PLC.PLCtoArrays(vec_plca, vec_plc1, vec_plc8, vec_factor, vec_weight, true);
+
+        /// Write final results to output file.
+        for (int dx=0 ; dx&lt;distmax ; dx++) {
+            if (vec_factor[dx]&gt;0) {
+                if (commBase.MyRank()==0) {
+                    plcresultfile &lt;&lt; std::setw(7) &lt;&lt; dx
+                                  &lt;&lt; "  " &lt;&lt; std::setw(13) &lt;&lt; std::scientific &lt;&lt; vec_plca[dx]
+                                  &lt;&lt; "  " &lt;&lt; std::setw(13) &lt;&lt; std::scientific &lt;&lt; vec_plc1[dx]
+                                  &lt;&lt; "  " &lt;&lt; std::setw(13) &lt;&lt; std::scientific &lt;&lt; vec_plc8[dx] &lt;&lt; std::endl;
+                }
+            }
+        }
+        plcresultfile.close();
+        rootLogger.info("POLYAKOVLOOP CORRELATORS MEASURED");
+        timer.stop();
+        rootLogger.info("Time to measure polyakovloop correlations: " ,  timer);
+    }
+
+    /// -----------------------------------------------------------------------------------------WILSON LINE CORRELATORS
+    if ( param.WilsonLineCorr() ) {
+        rootLogger.info("CALCULATING WILSONLINE CORRELATORS...");
+        timer.start();
+        std::ofstream wlcresultfile;
+        wlcresultfile.open(wlcfilename.str());
+        const int distmax=Corrs.distmax;
+        const int pvol3=Corrs.pvol3;
+        std::vector&lt;PREC&gt; vec_wlca_full(distmax*param.latDim[3]);
+        std::vector&lt;PREC&gt; vec_wlc1_full(distmax*param.latDim[3]);
+        std::vector&lt;PREC&gt; vec_wlc8_full(distmax*param.latDim[3]);
+        std::vector&lt;int&gt;  vec_factor(distmax);
+        std::vector&lt;int&gt;  vec_weight(pvol3);
+        Corrs.getFactorArray(vec_factor,vec_weight);
+
+        if (commBase.MyRank()==0) wlcresultfile &lt;&lt; "#  r**2\t   dtau\t  wlca\t         wlc1\t        wlc8\n";
+
+        rootLogger.info("the rank is:" ,  commBase.MyRank());
+
+        /// Calculation of wilsonline correlators.
+        WLC.WLCtoArrays(vec_wlca_full, vec_wlc1_full, vec_wlc8_full, vec_factor, vec_weight, true);
+
+        /// Write final results to output file.
+        for (int dtau=1; dtau&lt;=param.latDim[3];dtau++) {
+            for (int dx=0 ; dx&lt;distmax ; dx++) {
+                if (vec_factor[dx]&gt;0) {
+                    if (commBase.MyRank()==0) {
+                        wlcresultfile &lt;&lt; std::setw(7) &lt;&lt; dx &lt;&lt; "\t    " &lt;&lt; dtau
+                                      &lt;&lt; "  " &lt;&lt; std::setw(13) &lt;&lt; std::scientific &lt;&lt; vec_wlca_full[(dtau-1)*distmax+dx]
+                                      &lt;&lt; "  " &lt;&lt; std::setw(13) &lt;&lt; std::scientific &lt;&lt; vec_wlc1_full[(dtau-1)*distmax+dx]
+                                      &lt;&lt; "  " &lt;&lt; std::setw(13) &lt;&lt; std::scientific &lt;&lt; vec_wlc8_full[(dtau-1)*distmax+dx] &lt;&lt; std::endl;
+                    }
+                }
+            }
+        }
+        wlcresultfile.close();
+        rootLogger.info("WILSONLINE CORRELATORS MEASURED");
+        timer.stop();
+        rootLogger.info("Time to measure wilsonline correlations: " ,  timer);
+    }
+
+    return 0;
+}
+
+
+
+
+</pre>
+
+>>>>>>> 2904699173a3df19832f964dadd368eb278e34b3
+</body>
+</html>

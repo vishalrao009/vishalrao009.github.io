@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="Stylesheet" type="text/css" href="style.css">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+<title>pass by value, references, and pointers.</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+
+<div id="Pass by value, pass by reference, pass by pointers."><h1 id="Pass by value, pass by reference, pass by pointers." class="header"><a href="#Pass by value, pass by reference, pass by pointers.">Pass by value, pass by reference, pass by pointers.</a></h1></div>
+
+<div id="Pass by value, pass by reference, pass by pointers.-Pass by value"><h2 id="Pass by value" class="header"><a href="#Pass by value, pass by reference, pass by pointers.-Pass by value">Pass by value</a></h2></div>
+<ul>
+<li>
+By default c++ pass by value. i.e. values are copied to function parameters.
+
+<li>
+Pass by value just copies the data to parameter variable: look at code below
+<pre c++>
+	#include&lt;iostream&gt;
+	void change_var(int a)
+	{
+	a++;
+	}
+	void main()
+	{
+	int x=20;
+	std::cout&lt;&lt;change_var(x)&lt;&lt;x; //here value 20 is copied in parameter a and is incremented. the changes will be only made in parameter 'a' and not in variable 'x', it will generate output as : 21 20
+	}
+</pre>
+
+</ul>
+<div id="Pass by value, pass by reference, pass by pointers.-Pass by reference"><h2 id="Pass by reference" class="header"><a href="#Pass by value, pass by reference, pass by pointers.-Pass by reference">Pass by reference</a></h2></div>
+<ul>
+<li>
+pass by reference will change the data globally just like pass by pointer.
+
+<li>
+have a look at code to understand.
+<pre c++>
+	#include&lt;iostream&gt;
+	void change_var(int &amp;a) //here a is an reference to variable 'x'
+	{
+	a++;
+	}
+	void main()
+	{
+	int x=20;
+	std::cout&lt;&lt;change_var(x)&lt;&lt;x; //here value 20 is in x, and x is referenced by parameter/alias 'a'. the changes will be made in parameter 'a' and in variable 'x', it will generate output as : 21 21
+	}
+</pre>
+
+</ul>
+	
+
+<div id="Pass by value, pass by reference, pass by pointers.-Pass by pointers"><h2 id="Pass by pointers" class="header"><a href="#Pass by value, pass by reference, pass by pointers.-Pass by pointers">Pass by pointers</a></h2></div>
+
+<ul>
+<li>
+Pass by pointers will also change the data globally. It is suggested to use pass by reference over pointers.
+
+<li>
+have a look at the code:
+<pre c++>
+	#include&lt;iostream&gt;
+	void change_var(int *a) //here a is an pointer to variable 'x' and a stores memory address of varialbe x. 
+	{
+		*a++; //we need to dereference the pointer to access its value. 'a' holds the address and *a has its value.
+	}
+	void main()
+	{
+	int x=20;
+	std::cout&lt;&lt;change_var(&amp;x)&lt;&lt;x; //here value 20 is in x, and x is referenced by parameter/alias 'a'. the changes will be made in parameter 'a' and in variable 'x', it will generate output as : 21 21
+	}
+</pre>
+
+</ul>
+
+</body>
+</html>
