@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="Stylesheet" type="text/css" href="../style.css">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+<title>functions.py</title>
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+
+<pre python>
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+def filtering(input_file_address,destination_file_address,keyword):
+    """
+    This function takes input file, and stores each line which contains the keyword
+    """
+    with open(input_file_address, "r") as readfile1:
+        content=readfile1.readlines()
+        with open(destination_file_address,"w") as writefile:
+            for i in range(0, len(content)):
+                if (content[i].find(keyword)!=-1):
+                    writefile.write(content[i])
+def filtering_list(input_list,keyword):
+    """
+    This function takes input list, and stores each line which contains the keyword
+    """
+    out_list=[]
+    for element in input_list:
+        if (element.find(keyword)!=-1):
+            out_list.append(element)
+    return out_list
+
+
+def advanced_filtering(input_file,output_file,keyword):
+    """
+    this function just writes the value of quantity with name keyword in output file
+    """
+    with open(input_file,"r") as readfile:
+        line_list=readfile.readlines()
+        with open(output_file,"w") as writefile:
+            for i in range(0, len(line_list)):
+                if (line_list[i].find(keyword)!=-1):
+                    writefile.write(line_list[i][line_list[i].find(keyword)+len(keyword):])
+
+def advanced_filtering_list(input_list,keyword):
+    """
+    this function just writes the value of quantity with name keyword in output file
+    """
+    output_list=[]
+    for i in range(0, len(input_list)):
+        start_index=str(input_list[i]).find(keyword)
+        if (start_index!=-1):
+            # print ((input_list[i][start_index+len(keyword):]))
+            output_list.append(float(input_list[i][start_index+len(keyword):]))
+    return output_list
+
+def accepted_filtering(inputfile,outputfile,keyword):
+    """
+    This function will be able to generate the measurements which are accepted in output file,
+    here keyword we will be using while calling the function is : Update accepted
+    For further use, the output file shall be used for advanced filtering
+    , Since there are 28 rows of data for each measurement, we will have number 28 use in loop somewhere.
+    """
+    with open(inputfile,"r") as readfile:
+        line_list=readfile.readlines()
+        with open(outputfile,"w") as writefile:
+            for i in range(0,len(line_list)):
+                index=line_list[i].find(keyword)
+                if (index!=-1):
+                    for j in range(0,28):
+                        writefile.write(line_list[i+j])
+                    i+=28
+
+def accepted_filtering_list(input_list,keyword):
+    """
+    This function will be able to generate the measurements which are accepted in output file,
+    here keyword we will be using while calling the function is : Update accepted
+    For further use, the output file shall be used for advanced filtering
+    , Since there are 28 rows of data for each measurement, we will have number 28 use in loop somewhere.
+    """
+    output_list=[]
+    for i in range(0,len(input_list)):
+        index=input_list[i].find(keyword)
+        if (index!=-1):
+            for j in range(0,29):
+                output_list.append(input_list[(i-1)+j])
+    return output_list
+
+def chiral_condensate_mean(input_file,output_file):
+    """
+    This function calculates the mean of 10 numbers which are generated from advanced_filtering function
+    """
+    with open(input_file, "r") as readfile:
+        content_list=readfile.readlines();
+        index=0
+        with open(output_file,"w") as writefile:
+            for i in range(0,int(len(content_list)/10)):
+                total=0
+                for j in range(index,index+10):
+                    total+=float(content_list[j])
+                index+=10
+                writefile.write(str(round(total/10,9)))
+                writefile.write("\n")
+
+def chiral_condensate_mean_list(input_list):
+    """
+    This function calculates the mean of 10 numbers which are generated from advanced_filtering function.
+    """
+    index=0
+    output_list=[]
+    for i in range(0,int(len(input_list)/10)):
+        total=0
+        for j in range(index,index+10):
+            total+=float(input_list[j])
+        index+=10
+        output_list.append(round(total/10,9))
+    return output_list
+
+def acceptance_ratio(inputfile):
+    """This function calcuates and returns the acceptance ratio"""
+    # print("from acceptance_ratio",inputfile)
+    n_accepted=0
+    n_declined=0
+    with open(inputfile,"r") as readfile:
+        content_list=readfile.readlines()
+    i=0
+    while(i&lt;len(content_list)-3):
+        element=content_list[i]
+        if (element.find("Update accepted!")!=-1):
+            n_accepted+=1
+            i+=3
+        elif (element.find("Update declined!")!=-1):
+            n_declined+=1
+            i+=3
+        else:
+            i+=1
+    ratio=n_accepted/(n_declined+n_accepted)
+    # print(ratio)
+    return ratio
+
+def acceptance_ratio_list(input_list):
+    """This function calcuates and returns the acceptance ratio"""
+    # print("from acceptance_ratio",inputfile)
+    n_accepted=0
+    n_declined=0
+    i=0
+    while(i&lt;len(input_list)-3):
+        element=input_list[i]
+        if (element.find("Update accepted!")!=-1):
+            n_accepted+=1
+            i+=3
+        elif (element.find("Update declined!")!=-1):
+            n_declined+=1
+            i+=3
+        else:
+            i+=1
+    ratio=n_accepted/(n_declined+n_accepted)
+    # print(ratio)
+    return ratio
+
+
+
+def clean_list_float(list_item):
+    """This function turns string list to float"""
+    desired_list=[]
+    for element in list_item:
+        desired_list.append(float(element))
+    return desired_list
+
+def clean_list_int(list_item):
+    """This function turns string elements of list to integer"""
+    desired_list=[]
+    for element in list_item:
+        desired_list.append(int(element))
+    return desired_list
+
+
+def plot_fun(file1,file2,color):
+    """Plots fil1 vs file2 on x and y axis respectively and store them on destination_directory"""
+    with open(file1,"r") as readfile1:
+        with open(file2,"r") as readfile2:
+            file1_list=clean_list_int(readfile1.readlines())
+            file2_list=clean_list_float(readfile2.readlines())
+    plt.figure()
+    plt.plot(file1_list,file2_list,color,label=file2)
+    plt.legend()
+    plt.xlabel("Measurement index / Time")
+    plt.ylabel(file2)
+    path=file2+".png"
+    plt.savefig(path) #destination_dir shall contain '/' in end
+    plt.clf()
+    plt.close()
+    # plt.show()
+
+def plot_fun_list(list1,list2,color,path_to_save,list_2_label_name,lim_list=[],correlation_time="none"):
+    """Plots list1 vs list2 on x and y axis respectively and store them on destination_directory"""
+    plt.figure()
+    if correlation_time=="none":
+        plt.plot(list1,list2,color,label=path_to_save)
+    elif correlation_time!="none":
+        plt.plot(list1,list2,color,label=f"correlation time: {correlation_time}")
+    if len(lim_list)!=0:           # we will set limits only if provided
+        plt.xlim(lim_list[0],lim_list[1])
+    plt.legend()
+    plt.xlabel("Measurement index / Time")
+    plt.ylabel(list_2_label_name)
+    plt.savefig(path_to_save) #destination_dir shall contain '/' in end
+    plt.clf()
+    plt.close()
+
+def mean_list(input_list):
+    """ this function is expected to return the mean, standard deviation about mean of input list """
+    total=0
+    for element in input_list:
+        total+=float(element)
+    mean=total/len(input_list)
+    return mean
+
+def mean_file(input_file):
+    """ this function is expected to return the mean, standard deviation about mean of input file containing only numbers in a column"""
+    with open(input_file,"r") as readfile:
+        file_content_list=readfile.readlines()
+        return mean_list(file_content_list)
+
+def standard_deviation_list(input_list):
+    """Calculates the standard deviation given input file"""
+    total=0
+    mean=mean_list(input_list)
+    for element in input_list:
+        total+=(float(element)-mean)**2
+    var=total/len(input_list)
+    std_deviation=var**0.5
+    return std_deviation
+
+def standard_deviation_file(input_file):
+    """Calculates the standard deviation given input file"""
+    total=0
+    with open(input_file,"r") as readfile:
+        file_content_list=readfile.readlines()
+    return standard_deviation_list(file_content_list)
+
+
+
+import os
+def get_file_names(directory_path,file_type):
+    # Check if the provided path is a directory
+    if not os.path.isdir(directory_path):
+        print(f"{directory_path} is not a valid directory.")
+        return
+    # Get a list of all files in the directory
+    files = os.listdir(directory_path)
+    # Filter out directories (if any)
+    text_files = [file for file in files if file.endswith(file_type)]
+    if file_type=="gauge":
+        text_files = [file for file in files if file.startswith("l") and file[-1].isdigit()]
+    elif file_type=='rand':
+        text_files = [file for file in files if file.startswith("rand") and file[-1].isdigit()]
+    return text_files
+
+
+import os
+import subprocess
+
+def create_directory(directory_path):
+    # Check if the directory already exists
+    if os.path.exists(directory_path):
+        print(f"Directory '{directory_path}' already exists. Skipping creation.")
+        return
+
+    try:
+        # Create the directory at the specified path
+        os.makedirs(directory_path)
+        print(f"Directory '{directory_path}' created successfully.")
+    except OSError as e:
+        print(f"Error creating directory '{directory_path}': {e}")
+
+# Example usage:
+# new_directory_path = "/path/to/your/new_directory"
+# create_directory(new_directory_path)
+
+# Run a subprocess command (e.g., ls) without creating the directory again
+# subprocess.run(["ls", new_directory_path])
+
+
+def run_shell_command(command):
+     # Run the shell command
+     result = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+     # result.wait()
+     if result.returncode == 0:
+        print(f"{command} completed successfully")
+     else:
+        print(f"{command} failed with {result.stderr}")
+
+
+def add_directoryNames(file_names_list,dir_path):
+    new_list=[]
+    for i in range(len(file_names_list)):
+        new_list.append(dir_path+file_names_list[i])
+    return new_list
+
+def find_block_size(list_sample,a,b):
+    """returns the size of list between a and b"""
+    count=0
+    for element in list_sample:
+        if element&lt;=b and element&gt;=a:
+            count+=1
+    return count
+
+
+def uncorrelate(input_file_accepted,measurement_index_accepted,output_file,autocorrelation_time):
+    """this function supposed to take input as all measurement file_combined/ or nodewise which contains only accepted measurements, and return the file with mean of blocks(where blocksize is determined by autocorrelation_time)
+The idea is to take all accepted measurements and rather than just take measurement at tau,2tau, 3tau....we make blocks of all accepted measurement and find mean of each blocks and save them with final data points which then can be used to find total estimate of observable and error estimation. Here block size is determined by autocorrelation_time, i.e. for the time interval of autocorrelation_time let us say we have 3 accepted measurements then we just make a data point with mean of the block and the time to be average of time instants of boundary of block.
+for chi_ud the input_file_accepted = chi_ud_mean_list
+for plaquette : the input_file_accepted = plaquette_accepted.txt
+measurement index will help in finding the data points in a block
+"""
+    tau=autocorrelation_time
+    with open(input_file_accepted, "r") as readfile:
+        input_file_content_list=readfile.readlines()
+    with open(measurement_index_accepted,"r") as readfile:
+        measurement_index_content_list=readfile.readlines()
+    mean_block=[]
+    initial_element_list=[]
+    final_element_list=[]
+    block_list=[]
+    for i in range(int(measurement_index_content_list[0]),int(measurement_index_content_list[-1])+1,tau):
+        initial_element_list.append(i)
+    for i in range(int(measurement_index_content_list[0])-1+tau,int(measurement_index_content_list[-1])+1,tau):
+        final_element_list.append(i)
+    if final_element_list[-1]!=int(measurement_index_content_list[-1]):
+        final_element_list.append(int(measurement_index_content_list[-1]))
+    for i in range(len(final_element_list)):
+        block_list.append(find_block_size(measurement_index_content_list,initial_element_list[i],final_element_list[i]))
+    # now block size list is ready
+
+def remove_zeros(input_list):
+    output_list=[]
+    for value in input_list:
+        if value!=0:
+            output_list.append(value)
+    return output_list
+
+
+
+def uncorrelate_list(input_list_accepted,measurement_index_accepted,autocorrelation_time):
+    """this function supposed to take input as all measurement file_combined/ or nodewise which contains only accepted measurements, and return the file with mean of blocks(where blocksize is determined by autocorrelation_time)
+The idea is to take all accepted measurements and rather than just take measurement at tau,2tau, 3tau....we make blocks of all accepted measurement and find mean of each blocks and save them with final data points which then can be used to find total estimate of observable and error estimation. Here block size is determined by autocorrelation_time, i.e. for the time interval of autocorrelation_time let us say we have 3 accepted measurements then we just make a data point with mean of the block and the time to be average of time instants of boundary of block.
+for chi_ud the input_file_accepted = chi_ud_mean_list
+for plaquette : the input_file_accepted = plaquette_accepted.txt
+measurement index will help in finding the data points in a block
+"""
+    tau=autocorrelation_time
+    mean_block_list=[]
+    initial_element_list=[]
+    final_element_list=[]
+    block_list=[]
+    for i in range(int(measurement_index_accepted[0]),int(measurement_index_accepted[-1])+1,tau):
+        initial_element_list.append(i)
+    for i in range(int(measurement_index_accepted[0])+tau-1,int(measurement_index_accepted[-1])+1,tau):
+        final_element_list.append(i)
+    if final_element_list[-1]!=int(measurement_index_accepted[-1]):
+        final_element_list.append(int(measurement_index_accepted[-1]))
+    for i in range(len(final_element_list)):
+        block_list.append(find_block_size(measurement_index_accepted,initial_element_list[i],final_element_list[i]))
+    size=len(block_list)
+    i=0
+    while(i&lt;size):
+        while (len(input_list_accepted[:block_list[i]])==0):
+            final_element_list[i]=0 # we shall remove the time and data for which there are no measurements in a given block 
+            i+=1
+            if i==size:
+                break
+        if i&gt;=size:
+            break
+        mean_block_list.append(mean_list(input_list_accepted[:block_list[i]]))
+        input_list_accepted=input_list_accepted[block_list[i]:]
+        i+=1
+    return block_list,remove_zeros(final_element_list),mean_block_list
+
+def correlation_time(measurement_list):
+    """this function accepts the measurement list (including declined ones.) and returns the autocorrelation_time.The autocorrelation_time time is calculated from time t=0 and step size=1, once calculated you can add the autocorrelation_time to measurement index"""
+    import math
+    # Access the value of e
+    e_value = math.e
+    chi_list=[]
+    time=[]
+    # print(measurement_list)
+    for t in range(len(measurement_list)):
+        # print(t,measurement_list[t])
+        s=0.0
+        s1=0
+        s2=0
+        factor=(1/(len(measurement_list)-t))
+        for i in range(len(measurement_list)-t):
+            s+=measurement_list[i]*measurement_list[i+t]
+            s1+=measurement_list[i]
+            s2+=measurement_list[i+t]
+        chi_list.append(factor*(s-factor*s1*s2))
+        time.append(t)
+
+    #normalising autocorrelation_function
+    chi_list=[element/chi_list[0] for element in chi_list]
+    for i in range(len(chi_list)):
+        if (chi_list[i]&lt;=(chi_list[0]/e_value)):
+            return i,chi_list,time
+
+
+def jackknife(measurement_list):
+    """this function will take input as measurement list (which are accepted and are refined on intervals of autocorrelation_time) and returns the standard deviation calculated from jackknife method."""
+    diff=0
+    for i in range(len(measurement_list)):
+        diff+=(mean_list(measurement_list[:i]+measurement_list[i+1:])-mean_list(measurement_list))**2
+    return diff**.5
+
+
+def randomise_list(sample_list):
+    """this function will return the len(sample_list) numbers as list which are randomly choosen (repetition is allowed) """
+    import random
+    randomised_list=[]
+    for i in range(len(sample_list)):
+        rand_number=random.randint(0,len(sample_list)-1)
+        randomised_list.append(sample_list[rand_number])
+    return randomised_list
+
+
+
+def bootstrap(measurement_list):
+    """this function returns bootstrap error"""
+    mean_bootstrap=[]
+    squared_mean=[]
+    for i in range(1000):
+        randomise_list_data=randomise_list(measurement_list)
+        mean_bootstrap.append(mean_list(randomise_list_data))
+        squared_mean.append(mean_list(randomise_list_data))
+
+    bootstrap_deviation = (mean_list([element**2 for element in squared_mean]) - mean_list(mean_bootstrap)**2)**0.5
+    return  bootstrap_deviation
+
+
+
+def correct_measurement_index(input_list_measurement,number_of_all_measurements,number_of_nodes):
+    """when we combine the output of individual nodes, the measurement index don't get updated, it repeats itself, so we shall add the length of measurement to next measurement index"""
+    output_list=[]
+    initial_element=int(input_list_measurement[0])
+    for j in range(number_of_nodes):
+        for i in range(number_of_all_measurements):
+            output_list.append(j*int(number_of_all_measurements)+(int(input_list_measurement[i])))
+    return output_list
+
+def individual_node_plots(dir_path,input_file_list,generated_files_dir):
+    """this function does all the analysis for finding mean, generating plot per node for chi_ud, chi_s and plaquette observable , the first parameter is directory path of all node file outputs of rhmc, second parameter is list of those all .txt files of individual nodes, the third parameter is string (a name for all new plots and files to be saved), this function does not make use of autocorrelation_function , this function assumes uncorrelation between all data points"""
+    accepted_file_list=[]
+    acceptance_ratio_list=[]
+    advanced_filtering_list_ud=[]
+    advanced_filtering_list_s=[]
+    plaquette_node_filelist=[]
+    chi_ud_mean_list=[]
+    chi_s_mean_list=[]
+    measurement_index_accepted=[]
+    input_file_list_new=add_directoryNames(input_file_list,dir_path)
+    for i in range(len(input_file_list_new)):
+        outputfilename=(dir_path+generated_files_dir+'/'+input_file_list[i])[:-4]+"_accepted.txt"
+        accepted_filtering(input_file_list_new[i],outputfilename,"Update accepted")
+        accepted_file_list.append(outputfilename) # creating file for each _accepted MEASUREMENT
+        acceptance_ratio_list.append(acceptance_ratio(input_file_list_new[i]))
+# once the accepted files are generated we can use advanced_filtering to make files with chi_ud, chi_s, Plaquette
+
+    for accepted_file in accepted_file_list:
+        advanced_filtering(accepted_file,accepted_file[:-4]+"_chi_ud.txt","CHI_UD = ")
+        advanced_filtering(accepted_file,accepted_file[:-4]+"_chi_s.txt","CHI_S = ")
+        advanced_filtering(accepted_file,accepted_file[:-4]+"_plaquette.txt","Plaquette = ")
+        advanced_filtering(accepted_file,accepted_file[:-4]+"_index.txt","MEASUREMENT: ")
+# writing the list
+        advanced_filtering_list_ud.append(accepted_file[:-4]+"_chi_ud.txt")
+        advanced_filtering_list_s.append(accepted_file[:-4]+"_chi_s.txt")
+        plaquette_node_filelist.append(accepted_file[:-4]+"_plaquette.txt")
+        measurement_index_accepted.append(accepted_file[:-4]+"_index.txt")
+# once the advanced_filtering has been done we will create the files for mean of light and strange quarks
+    for element in advanced_filtering_list_s:
+        chiral_condensate_mean(element,element[:-4]+"_mean.txt")
+        chi_s_mean_list.append(element[:-4]+"_mean.txt")
+    for element in advanced_filtering_list_ud:
+        chiral_condensate_mean(element,element[:-4]+"_mean.txt")
+        chi_ud_mean_list.append(element[:-4]+"_mean.txt")
+# Now the mean files have been generated, I can now proceed to generate plots and save them
+    with open(dir_path+generated_files_dir+"/"+"THE_RESULT.txt","a") as writefile:
+        writefile.write("\n\n\n\nfile_name\t\tMean_chi_ud\t\tStandard Deviation\t\tAcceptance Ratio\n")
+        for i in range(0,len(input_file_list)):
+            plot_fun(measurement_index_accepted[i],chi_ud_mean_list[i],'r')
+            writefile.write((input_file_list[i])+"\t\t"+str(round((mean_file(chi_ud_mean_list[i])),7))+"\t\t"+str(round((standard_deviation_file(chi_ud_mean_list[i])),7))+"\t\t"+str(acceptance_ratio_list[i])+"\n")
+        writefile.write("\n\nfile_name\t\tMean_chi_s\t\tStandard Deviation\t\tAcceptance Ratio\n")
+        for i in range(0,len(input_file_list)):
+            plot_fun(measurement_index_accepted[i],chi_s_mean_list[i],'g')
+            writefile.write((input_file_list[i])+"\t\t"+str(round((mean_file(chi_s_mean_list[i])),7))+"\t\t"+str(round((standard_deviation_file(chi_s_mean_list[i])),7))+"\t\t"+str(acceptance_ratio_list[i])+"\n")
+        writefile.write("\n\nfile_name\t\tMean_plaquette\t\tStandard Deviation\t\tAcceptance Ratio\n")
+        for i in range(0,len(input_file_list)):
+            writefile.write((input_file_list[i])+"\t\t"+str(round((mean_file(plaquette_node_filelist[i])),7))+"\t\t"+str(round((standard_deviation_file(plaquette_node_filelist[i])),7))+"\t\t"+str(acceptance_ratio_list[i])+"\n")
+            plot_fun(measurement_index_accepted[i],plaquette_node_filelist[i],'o')
+
+
+
+def calculation(dir_path,file_names_list,generated_files_dir,equilibration_flag=0):
+    """this function will handle all things in terms of lists and calculates expactation value of observables of rhmc(which are chi_ud, chi_s, plaquette), this function will also save the respective plots of quantity with respect to monte carlo time, we will find correlation_time and find mean and standard deviation of the observable"""
+    # let us first access the file names list which are added with directory path
+    file_names=add_directoryNames(file_names_list,dir_path)
+    mean_master_list_chi_ud=[]
+    mean_master_list_chi_s=[]
+    mean_master_list_plaquette=[]
+    mean_master_list_delta_h=[]
+    mean_master_list_polyakov=[]
+    mean_master_list_s_G=[]
+
+    std_deviation_master_list_chi_ud=[]
+    std_deviation_master_list_chi_s=[]
+    std_deviation_master_list_plaquette=[]
+    std_deviation_master_list_delta_h=[]
+    std_deviation_master_list_polyakov=[]
+    std_deviation_master_list_s_G=[]
+
+    jackknife_master_list_chi_ud=[]
+    jackknife_master_list_chi_s=[]
+    jackknife_master_list_plaquette=[]
+    jackknife_master_list_delta_h=[]
+    jackknife_master_list_polyakov=[]
+    jackknife_master_list_s_G=[]
+
+    bootstrap_master_list_chi_ud=[]
+    bootstrap_master_list_chi_s=[]
+    bootstrap_master_list_plaquette=[]
+    bootstrap_master_list_delta_h=[]
+    bootstrap_master_list_polyakov=[]
+    bootstrap_master_list_s_G=[]
+
+    chi_ud_corr_time_master=[]
+    chi_s_corr_time_master=[]
+    delta_h_corr_time_master=[]
+    plaquette_corr_time_master=[]
+    polyakov_corr_time_master=[]
+    s_G_corr_time_master=[]
+    # since we will be only storing the plots in generated files directory, let us leave that for a moment
+    # we shall calculate the correlation time for each node(gpu) file
+    # first we shall calculate correlation time for plaquette, we have to include all measurements including declined ones. 
+    for index in range(len(file_names)):
+        with open(file_names[index],"r") as readfile:
+            # let us define the sublist for all perticular files.We shall append these nodewise sublists to master list for each calculation.
+            initial_content=readfile.readlines()
+            delta_h_value_all=advanced_filtering_list(initial_content,"Delta H = ")
+            plaquette_value_all=advanced_filtering_list(initial_content,"Plaquette = ")
+            rectangle_value_all=advanced_filtering_list(initial_content,"Rectangle = ")
+            polyakov_loop_value_all=advanced_filtering_list(initial_content,"Polyakov Loop = ") # it will return (real, imaginary)
+            # print(plaquette_value_all)
+            plaquette_corr_time,corr_fun_plaquette,time_plaquette=correlation_time(plaquette_value_all)
+            delta_h_corr_time,corr_fun_delta_h,time_delta_h=correlation_time(delta_h_value_all)
+            rectangle_corr_time,corr_fun_rectangle,time_rectangle=correlation_time(rectangle_value_all)
+            polyakov_corr_time,corr_fun_polyakov_loop,time_polyakov_loop=correlation_time(polyakov_loop_value_all)
+            # to calculate correlation time using chi_ud and chi_s, we shall first store the mean of all accepted and rejected monte carlo measurements 
+            chi_ud_all=advanced_filtering_list(initial_content,"CHI_UD = ")
+            chi_s_all=advanced_filtering_list(initial_content,"CHI_S = ")
+            chi_ud_all_mean_ten=chiral_condensate_mean_list(chi_ud_all)
+            chi_s_all_mean_ten=chiral_condensate_mean_list(chi_s_all)
+            # now we have the data for mean for all measurements including declined ones, we shall invoke the function to calculate the correlation time. 
+            chi_ud_corr_time,corr_fun_ud,time_ud=correlation_time(chi_ud_all_mean_ten)
+            chi_s_corr_time,corr_fun_s,time_s=correlation_time(chi_s_all_mean_ten)
+            # now we have the correlation time calculated, we shall use that time to take independent measurements. Let me choose the chi_ud_corr_time as correlation time. we shall now filter the accepted measurements in that time interval. Rather than just ignoring these data points which lies between tau and 2 tau, we shall take the mean of all data points which lie in time interval of tau.  
+            if equilibration_flag==0:
+                tau=1
+            else:
+                 tau=chi_s_corr_time
+            # let us save the plots of autocorrelation function
+            save_fig_path_dir=(dir_path+generated_files_dir+"/"+file_names_list[index])
+            lim_list=[0,50]
+            plot_fun_list(time_plaquette,corr_fun_plaquette,'b',save_fig_path_dir+"autocorrelation_function_plaquette.png","Plaquette",lim_list,plaquette_corr_time)
+            plot_fun_list(time_delta_h,corr_fun_delta_h,'m',save_fig_path_dir+"autocorrelation_function_delta_h.png","delta_h",lim_list,delta_h_corr_time)
+            plot_fun_list(time_ud,corr_fun_ud,'r',save_fig_path_dir+"autocorrelation_function_chi_ud.png","CHI_UD",lim_list,chi_ud_corr_time)
+            plot_fun_list(time_s,corr_fun_s,'g',save_fig_path_dir+"autocorrelation_function_chi_s.png","Plaquette",lim_list,chi_s_corr_time)
+            chi_ud_corr_time_master.append(chi_ud_corr_time)
+            chi_s_corr_time_master.append(chi_s_corr_time)
+            delta_h_corr_time_master.append(delta_h_corr_time)
+            plaquette_corr_time_master.append(plaquette_corr_time)
+
+            # we shall now use the accepted measurements mean list and generate the list 
+            accepted_list=accepted_filtering_list(initial_content,"Update accepted")
+            #once we have accepted data, we can do advanced filtering and find mean list of 10.
+            if equilibration_flag==0:
+                accepted_list=initial_content
+            chi_ud_accepted_list=advanced_filtering_list(accepted_list,"CHI_UD = ")
+            chi_s_accepted_list=advanced_filtering_list(accepted_list,"CHI_S = ")
+            measurement_index_accepted=advanced_filtering_list(accepted_list,"MEASUREMENT: ")
+            if file_names_list[index]=="combined.txt":
+                measurement_index_accepted=correct_measurement_index(measurement_index_accepted,int(len(measurement_index_accepted)/(len(file_names_list)-1)),len(file_names_list)-1)
+                # we had to substract 1 as it also contains the combined.txt file , and we just want number of nodes
+            #finding mean list of 10
+            chi_ud_accepted_mean_list=chiral_condensate_mean_list(chi_ud_accepted_list)
+            chi_s_accepted_mean_list=chiral_condensate_mean_list(chi_s_accepted_list)
+            plaquette_accepted_list=advanced_filtering_list(accepted_list,"Plaquette = ")
+            delta_h_accepted_list=advanced_filtering_list(accepted_list,"Delta H = ")
+            #now we have all the accepted data, we just have to find mean of all data inside blocks of interval tau
+            # so we need a function which takes a list, tau, and returns list with sublist with blocksize.
+            # we have such function named uncorrelate_list which will take input_list_accepted, measurement_index_accepted and correlation_time and return the time index list and mean block list
+            block_size_chi_ud_accepted,time_list_chi_ud_accepted,chi_ud_block_mean=uncorrelate_list(chi_ud_accepted_mean_list,measurement_index_accepted,tau)
+            block_size_chi_s_accepted,time_list_chi_s_accepted,chi_s_block_mean=uncorrelate_list(chi_s_accepted_mean_list,measurement_index_accepted,tau)
+            block_size_plaquette_accepted,time_list_plaquette_accepted,plaquette_block_mean=uncorrelate_list(plaquette_accepted_list,measurement_index_accepted,tau)
+            block_size_delta_h_accepted,time_list_delta_h_accepted,delta_h_block_mean=uncorrelate_list(delta_h_accepted_list,measurement_index_accepted,tau)
+            if (len(chi_s_block_mean)!=len(time_list_chi_s_accepted)) and (len(chi_ud_block_mean)!=len(time_list_chi_ud_accepted)) and (len(plaquette_block_mean)!=len(time_list_plaquette_accepted)):
+                print("something went wrong in finding uncorrelate_list function")
+            plot_fun_list(time_list_chi_ud_accepted,chi_ud_block_mean,'r',save_fig_path_dir+"_CHI_UD.png","CHI_UD")
+            plot_fun_list(time_list_chi_s_accepted,chi_s_block_mean,'g',save_fig_path_dir+"_CHI_S.png","CHI_S")
+            plot_fun_list(time_list_plaquette_accepted,plaquette_block_mean,'b',save_fig_path_dir+"_plaquette.png","Plaquette")
+            plot_fun_list(time_list_delta_h_accepted,delta_h_block_mean,'m',save_fig_path_dir+"_delta_h.png","delta_h")
+
+            # Plots have been saved, let us write the mean, standard deviation and write it to some result_list file
+            mean_master_list_chi_ud.append(mean_list(chi_ud_block_mean))
+            mean_master_list_chi_s.append(mean_list(chi_s_block_mean))
+            mean_master_list_plaquette.append(mean_list(plaquette_block_mean))
+            mean_master_list_delta_h.append(mean_list(delta_h_block_mean))
+            std_deviation_master_list_chi_ud.append(standard_deviation_list(chi_ud_block_mean))
+            std_deviation_master_list_chi_s.append(standard_deviation_list(chi_s_block_mean))
+            std_deviation_master_list_plaquette.append(standard_deviation_list(plaquette_block_mean))
+            std_deviation_master_list_delta_h.append(standard_deviation_list(delta_h_block_mean))
+            jackknife_master_list_chi_ud.append(jackknife(chi_ud_block_mean))
+            jackknife_master_list_chi_s.append(jackknife(chi_s_block_mean))
+            jackknife_master_list_plaquette.append(jackknife(plaquette_block_mean))
+            jackknife_master_list_delta_h.append(jackknife(delta_h_block_mean))
+
+            bootstrap_master_list_chi_ud.append(bootstrap(chi_ud_block_mean))
+            bootstrap_master_list_chi_s.append(bootstrap(chi_s_block_mean))
+            bootstrap_master_list_plaquette.append(bootstrap(plaquette_block_mean))
+            bootstrap_master_list_delta_h.append(bootstrap(delta_h_block_mean))
+
+
+    # we shall write the results in a single file
+    results=dir_path+generated_files_dir+"/"+"THE_RESULT_list_all.txt"
+    with open(results,'w') as writefile:
+        writefile.write("File names\t\tMean_CHI_UD\t\tStd deviation\t\tJackknife\t\tBootstrap\t\tcorrelation time\n")
+        for i in range(len(mean_master_list_chi_ud)):
+            writefile.write(file_names_list[i]+"\t\t"+str(round((mean_master_list_chi_ud[i]),6))+"\t\t"+str(round((std_deviation_master_list_chi_ud[i]),6))+"\t\t  "+str(round((jackknife_master_list_chi_ud[i]),6))+"\t\t  "+str(round((bootstrap_master_list_chi_ud[i]),6))+"\t\t"+str(chi_ud_corr_time_master[i])+"\n")
+        writefile.write("\n\n\n")
+        writefile.write("File names\t\tMean_CHI_S\t\tStd deviation\t\tJackknife\t\tBootstrap\t\tcorrelation time\n")
+        for i in range(len(mean_master_list_chi_s)):
+            writefile.write(file_names_list[i]+"\t\t"+str(round((mean_master_list_chi_s[i]),6))+"\t\t"+str(round((std_deviation_master_list_chi_s[i]),6))+"\t\t  "+str(round((jackknife_master_list_chi_s[i]),6))+"\t\t  "+str(round((bootstrap_master_list_chi_s[i]),6))+"\t\t"+str(chi_s_corr_time_master[i])+"\n")
+        writefile.write("\n\n\n")
+        writefile.write("File names \t\tMean_Plaquett\t\tStd deviation\t\tJackknife\t\tBootstrap\t\tcorrelation time\n")
+        for i in range(len(mean_master_list_plaquette)):
+            writefile.write(file_names_list[i]+"\t\t"+str(round((mean_master_list_plaquette[i]),6))+"\t\t"+str(round((std_deviation_master_list_plaquette[i]),6))+"\t\t  "+str(round((jackknife_master_list_plaquette[i]),6))+"\t\t  "+str(round((bootstrap_master_list_plaquette[i]),6))+"\t\t"+str(plaquette_corr_time_master[i])+"\n")
+        writefile.write("\n\n\n")
+        writefile.write("File names \t\tMean_Delta_H\t\tStd deviation\t\tJackknife\t\tBootstrap\t\tcorrelation time\n")
+        for i in range(len(mean_master_list_delta_h)):
+            writefile.write(file_names_list[i]+"\t\t"+str(round((mean_master_list_delta_h[i]),6))+"\t\t"+str(round((std_deviation_master_list_delta_h[i]),6))+"\t\t  "+str(round((jackknife_master_list_delta_h[i]),6))+"\t\t  "+str(round((bootstrap_master_list_delta_h[i]),6))+"\t\t"+str(delta_h_corr_time_master[i])+"\n")
+# let us just print the content to terminal
+    with open(results,"r") as readfile:
+        for line in readfile:
+            print(line,end='')
+
+
+def time_capture(input_list):
+    """this function is supposed to filter out the time after date from the output of ls -la command"""
+    output_list_day=[]
+    output_list_hour=[]
+    output_list_min=[]
+    for line in input_list:
+        index=line.find("Dec")
+        output_list_day.append(''.join(list(input_list)[index+4:6+index]))
+        output_list_hour.append(''.join(list(input_list)[index+7:9+index]))
+        output_list_min.append(''.join(list(input_list)[index+10:12+index]))
+    return output_list_day,output_list_hour,output_list_min
+
+def check_presence_list(number,list_item):
+    """this function checks if a number is present in list or not"""
+    count=0
+    for item in list_item:
+        if item==number:
+            count+=1
+    if count&gt;0:
+        return 1
+    else:
+        return 0
+
+
+def generate_rhmc_param(conf_dir_list,node_initial,node_final,dir_path,standard_rhmc_param_list,rat_file_address,beta,factor,n_s,n_t,conf_nr=0,no_updates=200,always_acc=1):
+    # the default values are to achieve equilibration, if equilibration does not happen in 200 configuration, try doing it again with conf_nr=200, no_updates=400 or more, always_acc=1.
+    """This function is supposed to create the rhmc parameter files for each node, given the parameter list in order"""
+    """
+    an example parameter file
+
+Lattice = 24 24 24 6
+Nodes   = 1 1 1 1
+mass_ud = 0.0039185
+mass_s  = 0.0783706
+beta    = 6.285
+no_pf   = 1
+step_size  = 0.05
+no_md      = 20
+no_step_sf = 5
+no_sw      = 10
+residue   = 1e-12
+cgMax      = 6500
+always_acc = 0
+rat_file   = /root/project1/SIMULATeQCD/src/tools/rational_approx/output_try15.rat
+rand_flag   = 1
+rand_file   = 18Dec_conf/node0/randl246f21b6285m0039185m0783706a_0.
+seed        = 1029
+load_conf   = 2
+gauge_file  = 18Dec_conf/node0/l246f21b6285m0039185m0783706a_0.
+conf_nr=100
+no_updates  = 1000             #total 1000 accept-reject will be made
+write_every = 10             # write every 10th accept-reject process
+
+#typically people choose step_size x no_md=1
+# step size for strange quark integration is 1/5 of step_size, and step size for gauge configuration update is 1/10 of step size for strange quark integration.
+# total step size =1 for light quark, strange quark and gauge fields. , such no_updates of steps will be made. """
+    m_s,m_ud=masses_calculation(beta,factor)
+    gauge_file_address_list=[]
+    rand_file_address_list=[]
+    for i in range(node_initial,node_final+1,1):
+        special_string=naming_configurations(standard_rhmc_param_list,n_s,n_t,beta,factor,i)
+        gauge_file_address_list.append(conf_dir_list[i]+special_string)
+        rand_file_address_list.append(conf_dir_list[i]+"rand"+special_string)
+
+    #if equilibration has not achieved and we are starting from scratch 
+    if conf_nr==0:
+        load_conf=0
+    else:
+        load_conf=2
+    #if equilibration has achieved for first time and we need configuration for further situation
+    rhmc_param_file_names=[]
+    for j in range(node_initial,node_final+1,1):
+        param_file_name=dir_path+'rhmc_param_'+str(j)+'.param'
+        rhmc_param_file_names.append(param_file_name)
+        with open(param_file_name,'w') as wf:
+            for i in range(len(standard_rhmc_param_list)):
+                index_to_be_printed=[0,2,3,4,12,16,17,19,20,13,15,18]
+                if check_presence_list(i,index_to_be_printed):
+                    if i==0:
+                        wf.write("Lattice = "+(str(n_s)+" ")*3+str(n_t)+"\n")
+                    elif i==12:
+                        wf.write("always_acc = "+str(always_acc)+"\n")
+                    elif i==2:
+                        wf.write("mass_ud = "+str(m_ud)+"\n")
+                    elif i==3:
+                        wf.write("mass_s = "+str(m_s)+"\n")
+                    elif i==4:
+                        wf.write("beta = "+str(beta)+"\n")
+
+                    elif i==16:
+                        wf.write("seed = "+"1"+str(j)+"29"+"\n")
+                    elif i==17:
+                        wf.write("load_conf = "+str(load_conf)+"\n")
+                    elif i==19:
+                        wf.write("conf_nr = "+str(conf_nr)+"\n")
+                    elif i==20:
+                        wf.write("no_updates = "+str(no_updates)+"\n")
+                    elif i==13:
+                        wf.write("rat_file = "+rat_file_address+"\n")
+                    elif i==15:
+                        wf.write("rand_file = "+rand_file_address_list[j]+"\n")
+                    elif i==18:
+                        wf.write("gauge_file = "+gauge_file_address_list[j]+"\n")
+
+                else:
+                    wf.write(standard_rhmc_param_list[i]+"\n")
+    return rhmc_param_file_names
+
+#below some functions are taken from latticetools
+import numpy as np
+pi = np.pi
+def exp(x):
+  return np.exp(x)
+
+
+def beta_func(beta):
+  b0 = 9/(16 * pi * pi)
+  b1 = 1/(4. * pi ** 4.0)
+
+  fb = (10.0 * b0)/beta
+  fb = fb ** (-b1/(2.0 * b0 * b0))
+  fb = fb * exp(-beta/(20.0 * b0))
+  return fb
+
+
+def a_div_r1_2014(beta):
+  c0=43.1
+  c2=343236
+  d2=5514
+  return (c0*beta_func(beta) + c2*(10/beta)*beta_func(beta)**3) / \
+          (1 + d2*(10/beta)*beta_func(beta)**2)
+
+
+def r1_times_ms_2014(beta):
+  mRGI = 0.2609
+  m1  =  35600.
+  m2  = -21760.
+  m3  =  2.67e07
+  dm1 =  2420
+
+  b0 = 9.0/(16.0 * pi * pi)
+  binv10 = 10.0/beta
+  fb = beta_func(beta) * beta_func(beta)
+
+  ms = 1.0 + binv10 * fb * (m1 + m2 * binv10 + m3 * fb)
+  ms = ms/(1.0 + dm1 * fb * binv10)
+  ms = ms * mRGI * (20.0 * b0/beta) ** (4./9.)
+  return ms
+
+
+def a_times_ms_2014(beta):
+  return r1_times_ms_2014(beta) * a_div_r1_2014(beta)
+
+def masses_calculation(beta_input,factor):
+    """this function returns the quark masses given the beta value and factor by which light quark masses are lighter than strange quark mass """
+    m_s=round(a_times_ms_2014(beta_input),7)
+    m_ud=round(a_times_ms_2014(beta_input)/factor,7)
+    return m_s,m_ud
+
+def create_rat_inputfile(m_s,m_ud,output_path,standard_input_list):
+    """this function is supposed to generate input.dat file for creating rational approximation output file, """
+    # step one is to create the input.dat file at location output_path
+    m_prec=m_s
+    with open(output_path,'w') as writefile:
+        for i in range(len(standard_input_list)):
+            index_to_be_printed=[5,8,14,15,18]
+            if check_presence_list(i,index_to_be_printed):
+                if i==5:
+                    writefile.write(str(m_s)+"\n")
+                elif i==8:
+                    writefile.write(str(m_s*m_s)+"\n")
+                elif i==14:
+                    writefile.write(str(m_prec)+"\n")
+                elif i==15:
+                    writefile.write(str(m_ud)+"\n")
+                elif i==18:
+                    writefile.write(str(m_ud**2)+"\n")
+            else:
+                writefile.write(standard_input_list[i]+"\n")
+
+def generate_rat_outputfile(input_file_address,output_file_address):
+    import os
+    os.chdir("/root/project1/SIMULATeQCD/src/tools/rational_approx/")
+    run_shell_command("./ratApprox "+input_file_address+" &gt; "+output_file_address)
+
+def naming_configurations(standard_rhmc_param_list,n_s,n_t,beta,factor,node_number):
+    """this function shall return the string of type l246f21b6285m0039185m0783706a_0."""
+    outputstring='l'
+    outputstring+=str(n_s)+str(n_t)
+    outputstring+='f21'
+    outputstring+='b'+str(int(1000*beta))
+    m_s,m_ud=masses_calculation(beta,factor)
+    outputstring+='m'+str(int(10000000*m_ud)).zfill(7)
+    outputstring+='m'+str(int(10000000*m_s)).zfill(7)
+    outputstring+='a_'+str(node_number)+"."
+
+    return outputstring
+def run_rhmc_bash(parameter_file_address_list,rhmc_output_address_list,executable_dir,node_initial,node_final,conf_nr):
+    import os
+    os.chdir(executable_dir)
+    if conf_nr==0:
+        mode_of_writing=" &gt; "
+    else:
+        mode_of_writing=' &gt;&gt; '
+    for i in range(node_initial,node_final+1,1):
+        run_shell_command("export CUDA_VISIBLE_DEVICES="+str(i)+";./rhmc "+parameter_file_address_list[i]+mode_of_writing+rhmc_output_address_list[i]+" &amp;")
+
+
+
+############################run_rhmc function##########################
+
+
+def run_rhmc(n_s,n_t,beta,factor,try_number,standard_rat_input_list,standard_rhmc_param_list,node_initial, node_final,equilibration_flag=0,conf_nr=0,no_updates=200,always_acc=1):
+    """this program shall run ./rhmc for equilibration"""
+    #let us create a directory where all output.txt, configurations, rhmc parameters, rational approximation files will be stored
+    #m_s=factor*m_ud
+    #here node is gpu node
+    executable_dir="/root/project1/build_SIMULATeQCD/applications/"
+    result_dir="/root/project1/build_SIMULATeQCD/applications/try_"+str(try_number)+"_output_dir/"
+    create_directory(result_dir)
+    result_dir_before_eqm=result_dir+"before_eqm/"
+    create_directory(result_dir_before_eqm)
+    if equilibration_flag==0:
+        #step 1: to find quark masses
+        m_s,m_ud=masses_calculation(beta,factor)
+        #step 2: generate input file for rational file approximation 
+        path_ratApprox_input=result_dir+"Input_ratApprox_try"+str(try_number)+".dat"
+        path_ratApprox_output=result_dir+"Output_ratApprox_try"+str(try_number)+".rat"
+        if conf_nr==0:
+            create_rat_inputfile(m_s,m_ud,path_ratApprox_input,standard_rat_input_list)
+            # generate the rational file approximation 
+            generate_rat_outputfile(path_ratApprox_input,path_ratApprox_output)
+        rhmc_output_address=[]
+        rhmc_param_dir=result_dir_before_eqm
+        conf_dir_list=[]
+        for i in range(node_initial,node_final+1,1):
+            conf_dir=result_dir_before_eqm+"node"+str(i)+"/"
+            rhmc_output_address.append(conf_dir+"try_"+str(try_number)+"_node_"+str(i)+"_before_eqm.txt")
+            conf_dir_list.append(conf_dir)
+            create_directory(conf_dir)
+        parameter_file_name_list=generate_rhmc_param(conf_dir_list,node_initial,node_final,rhmc_param_dir,standard_rhmc_param_list,path_ratApprox_output,beta,factor,n_s,n_t,conf_nr,no_updates,always_acc)
+        run_rhmc_bash(parameter_file_name_list,rhmc_output_address,executable_dir,node_initial,node_final,conf_nr)
+        #now create the directory of gauge configurations and rand_file_addresses
+        #copy-pasting some file address below for which equilibration has achieved
+
+
+    else:
+        result_dir_after_eqm=result_dir+"after_eqm/"
+        create_directory(result_dir_after_eqm)
+        path_ratApprox_input=result_dir+"Input_ratApprox_try"+str(try_number)+".dat"
+        path_ratApprox_output=result_dir+"Output_ratApprox_try"+str(try_number)+".rat"
+        rhmc_param_dir=result_dir
+        rhmc_output_address_list=[]
+        conf_dir_list=[]
+        os.chdir(result_dir+"before_eqm/node0/")
+        run_shell_command("ls l"+str(n_s)+str(n_t)+"* &gt; conf_gauge.txt")
+        os.chdir(result_dir+"before_eqm/node0/")
+        run_shell_command("ls randl"+str(n_s)+str(n_t)+"* &gt; conf_rand.txt")
+        with open(result_dir+"before_eqm/node0/conf_gauge.txt",'r') as readfile:
+            gauge_file_address_list_before_eqm=readfile.readlines()
+        with open(result_dir+"before_eqm/node0/conf_rand.txt",'r') as readfile:
+            rand_file_address_list_before_eqm=readfile.readlines()
+        gauge_file_address_list_before_eqm=[line.rstrip('\n') for line in gauge_file_address_list_before_eqm]
+        rand_file_address_list_before_eqm=[line.rstrip('\n') for line in rand_file_address_list_before_eqm]
+        for i in range(len(gauge_file_address_list_before_eqm)):
+            index_of_dot_gauge=gauge_file_address_list_before_eqm[i].find(".")
+            index_of_underscore_gauge=gauge_file_address_list_before_eqm[i].find("_")
+            index_of_dot_rand=rand_file_address_list_before_eqm[i].find(".")
+            index_of_underscore_rand=rand_file_address_list_before_eqm[i].find("_")
+            # just concating the string to get the number
+            configuration_number_gauge=int(gauge_file_address_list_before_eqm[i][index_of_dot_gauge+1:])
+            configuration_number_rand=int(rand_file_address_list_before_eqm[i][index_of_dot_rand+1:])
+            if conf_nr==configuration_number_gauge:
+                index_of_last_conf=i
+            if conf_nr==configuration_number_rand:
+                index_of_last_rand=i
+        for i in range(node_initial,node_final+1,1):
+            conf_dir=result_dir_after_eqm+"node"+str(i)+"/"
+            conf_dir_list.append(conf_dir)
+            create_directory(conf_dir)
+            rhmc_output_address_list.append(conf_dir+"node"+str(i)+"_output.txt")
+            # let us copy the conf_nr file from before_eqm to each node of after eqm
+            run_shell_command("cp "+result_dir+"before_eqm/node0/"+gauge_file_address_list_before_eqm[index_of_last_conf]+" "+conf_dir)
+            run_shell_command("cp "+result_dir+"before_eqm/node0/"+rand_file_address_list_before_eqm[index_of_last_rand]+" "+conf_dir)
+            initial_copied_gauge_file=gauge_file_address_list_before_eqm[index_of_last_conf]
+            initial_copied_rand_file=rand_file_address_list_before_eqm[index_of_last_rand]
+            renamed_gauge_file=initial_copied_gauge_file[:index_of_underscore_gauge+1]+str(i)+initial_copied_gauge_file[index_of_dot_gauge:]
+            renamed_rand_file=initial_copied_rand_file[:index_of_underscore_rand+1]+str(i)+initial_copied_rand_file[index_of_dot_rand:]
+            os.chdir(conf_dir)
+            if i!=0:
+                run_shell_command("mv "+initial_copied_gauge_file+" "+renamed_gauge_file)
+                os.chdir(conf_dir)
+                run_shell_command("mv "+initial_copied_rand_file+" "+renamed_rand_file)
+
+        parameter_file_name_list=generate_rhmc_param(conf_dir_list,node_initial,node_final,rhmc_param_dir,standard_rhmc_param_list,path_ratApprox_output,beta,factor,n_s,n_t,conf_nr,no_updates,always_acc)
+
+        #now we have generated the rhmc files, we can simply go to executable directory and run ./rhmc paramter_file &gt; output_file.txt ; after setting export CUDA_VISIBLE_DEVICES=node_number
+        run_rhmc_bash(parameter_file_name_list,rhmc_output_address_list,executable_dir,node_initial,node_final,conf_nr)
+
+
+
+def symanzik_gluon_action(plaquette_per_measurement,n_s,n_t,beta,rectangle_per_measurement):
+    """this function is supposed to return the calculation of gluon action with symanzik improvements"""
+    # the plaquette value at one measurement is averaged over all plaquettes i.e. sum over x and mu, now we assume that at each x for each mu, nu, ={1,2,3,4}, we have the plaquette with value plaquette_at_one_measurement
+    n_c=3 # number of flavors
+    total_S_G=0
+    plaquettes_per_site=6
+    a=1
+    volume=((n_s*a)**3)*(n_t*a)
+    for x in range(n_s-1):
+        for y in range(n_s-1):
+            for z in range(n_s-1):
+                for t in range(n_t-1):
+                    total_S_G+=(5/3)*plaquettes_per_site*((1-(1/n_c)*plaquette_per_measurement)+(1/6)*(1-(1/(2*n_c))*rectangle_per_measurement))
+    total_S_G*=beta
+    total_s_G=total_S_G/volume
+    return total_s_G
+
+
+
+</pre>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script type="text/javascript">
+    document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+</script>
+</body>
+</html>

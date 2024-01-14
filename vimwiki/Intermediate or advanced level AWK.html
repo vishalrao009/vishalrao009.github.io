@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="Stylesheet" type="text/css" href="style.css">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+<title>Intermediate or advanced level AWK</title>
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+
+<div id="Contents" class="toc"><h1 id="Contents" class="header"><a href="#Contents">Contents</a></h1></div>
+<ul>
+<li>
+<a href="Intermediate or advanced level AWK.html#Introduction">#Introduction</a>
+
+<ul>
+<li>
+<a href="Intermediate or advanced level AWK.html#Pattern">#Pattern</a>
+
+<li>
+<a href="Intermediate or advanced level AWK.html#Actions">#Actions</a>
+
+</ul>
+<li>
+<a href="Intermediate or advanced level AWK.html#Basics of AWK">#Basics of AWK</a>
+
+<ul>
+<li>
+<a href="Intermediate or advanced level AWK.html#variables in awk">#variables in awk</a>
+
+<li>
+<a href="Intermediate or advanced level AWK.html#Search Strings">#Search Strings</a>
+
+<li>
+<a href="Intermediate or advanced level AWK.html#If ..else..If Conditionals">#If ..else..If Conditionals</a>
+
+<li>
+<a href="Intermediate or advanced level AWK.html#For Loop">#For Loop</a>
+
+<li>
+<a href="Intermediate or advanced level AWK.html#while loop">#while loop</a>
+
+<li>
+<a href="Intermediate or advanced level AWK.html#Examples">#Examples</a>
+
+<li>
+<a href="Intermediate or advanced level AWK.html#Special variables">#Special variables</a>
+
+</ul>
+</ul>
+<div id="Introduction"><h1 id="Introduction" class="header"><a href="#Introduction">Introduction</a></h1></div>
+
+<ul>
+<li>
+It is data processing language. 
+
+<li>
+Everything is broken down into two parts: <code>Patterns </code>and <code> Actions</code>
+
+</ul>
+	
+<div id="Introduction-Pattern"><h2 id="Pattern" class="header"><a href="#Introduction-Pattern">Pattern</a></h2></div>
+<p>
+		Patterns are like regex patterns, searching for some text. 
+</p>
+		
+
+
+<div id="Introduction-Actions"><h2 id="Actions" class="header"><a href="#Introduction-Actions">Actions</a></h2></div>
+<p>
+		Actions describe what you would like to do with the searched patterns. Maybe you want to print the line containing patterns, or do something else (changing first letter of each word, maybe you want to reverse the word). Anything we do to the data, we call that <code>Action</code>
+</p>
+
+
+<p>
+We will be following the <code>gawk</code> i.e. gnu-AWK, <a href="https://www.gnu.org/software/gawk/manual/gawk.html">https://www.gnu.org/software/gawk/manual/gawk.html</a>
+</p>
+
+<p>
+Such commands are explained in <a href="https://www.youtube.com/watch?v=2eX0scAsYJk&amp;list=PLliiFsGGwgjT1nNYpehFTpUR3or_GOZfe&amp;index=3">this link</a>
+</p>
+
+
+<div id="Basics of AWK"><h1 id="Basics of AWK" class="header"><a href="#Basics of AWK">Basics of AWK</a></h1></div>
+
+<p>
+General awk command is <code>awk 'pattern {action}' inputfile</code>
+If we wrote a program in awk named as program.awk then we can use it on some file. 
+	<code>awk -f program.awk inputfile</code>
+</p>
+	
+<ol>
+<li>
+Printing hello world will require no input file:
+		<code>awk 'BEGIN {print "hello world"}'</code>
+			or
+		<code>awk 'BEGIN {print "hello world"}' inputfile</code>
+	both will print same, as <code>BEGIN</code> will execute the code before start of each file. So it does not need any file. 
+
+<li>
+The following code <code>awk 'BEGIN {print "hello world"} {print "hi there"}' inputfile</code>
+		will print :
+		hello world
+		hi there
+		hi there
+		hi there
+		..
+		..
+		..
+		.. 
+		It will print "hi there" for each line of input file. 
+
+<li>
+The following code <code>awk 'BEGIN {print "hello world"} {print "hi there"} END{print"ending line"}' inputfile</code>
+		will print :
+		hello world
+		hi there
+		hi there
+		hi there
+		..
+		..
+		..
+		.. 
+		It will print "hi there" for each line of input file. 
+		..
+		ending line <code>it will print the 'ending line' after each line as printed</code>
+
+<li>
+The following code <code>awk BEGIN {print"this will print before first line of input file"} {print"here are some actions for each line of input file"} END{print"here I can add something as : program ended successfully (it require no input file just like begin )"}</code>
+
+<li>
+If we don't use any pattern then action applies to each line:
+	<code>awk '{print"this action in curly braces will print for each line of input file"}' inputfile</code>
+
+<li>
+we can write the program in awk: 
+<pre awk>
+		BEGIN
+		{
+		print "this will print even if we don't give any input file"
+		}
+
+		{print "This printing action will be applied on each line of inputfile"}
+		END{print"This will be printed after each line of file has gone through some action above, i.e. it also does not require any input file "}
+
+</pre>
+		use <code>awk -f program.awk inputfile</code> to see the action.
+		or we can make the program.awk an executable like that of a.out, or bash. by including awk shebang : 
+<pre awk>
+		#!/bin/awk
+		BEGIN
+		{
+		print "this will print even if we don't give any input file"
+		}
+
+		{print "This printing action will be applied on each line of inputfile"}
+		END{print"This will be printed after each line of file has gone through some action above, i.e. it also does not require any input file "}
+
+</pre>
+
+</ol>
+<div id="Basics of AWK-variables in awk"><h2 id="variables in awk" class="header"><a href="#Basics of AWK-variables in awk">variables in awk</a></h2></div>
+
+<ul>
+<li>
+In just one line expression we can use <code>awk -v var='hi there' '{print var}' inputfile</code>
+	 will print : hi there (for each line of input file)
+
+<li>
+<code>awk -v var='10' '{print ""var""}' inputfile</code> will print 10 for each line of input file.
+
+<li>
+<code>awk -v var='10' '{print "var"}' inputfile</code> will just print 'var' for each line of input file.
+
+</ul>
+<p>
+Using variables in awk scripts:
+</p>
+<pre awk>
+BEGIN {print "hi there"}
+{var=10
+print var
+}
+END {print "End of script"}
+</pre>
+
+<div id="Basics of AWK-Search Strings"><h2 id="Search Strings" class="header"><a href="#Basics of AWK-Search Strings">Search Strings</a></h2></div>
+
+<p>
+Search strings is regex statement, which allows us to select lines/words. 
+</p>
+<ul>
+<li>
+For example to find 'word' in input file and print each line ; we use <code>awk '/word/ {print}' filename</code> or we can simply use: <code>awk '/word/' inputfile</code>
+
+<li>
+we can pass multiple regex for searching; <code>awk '/word/ {print} /e/ {print}' inputfile</code>
+		Above will print each line which have letter 'e' and word 'word'
+
+<li>
+<u> For using multiple regex we can't use just patterns, we need at least one action for first pattern. <code>awk '/word/ /word2/' inputfile</code> won't work.</u>
+
+</ul>
+<div id="Basics of AWK-If ..else..If Conditionals"><h2 id="If ..else..If Conditionals" class="header"><a href="#Basics of AWK-If ..else..If Conditionals">If ..else..If Conditionals</a></h2></div>
+<ol>
+<li>
+To print each line with length&gt;50 (having more than 50 characters) we use <code>awk  'length()&gt;50 {print} inputfile'</code>
+<pre awk>
+	if (length($0)&gt;max){ max= length($0)}
+	else if (length($0)==max){print "Equal"}
+	else {print "less"}
+	END {print "maximum length is " max}
+</pre>
+
+</ol>
+<div id="Basics of AWK-For Loop"><h2 id="For Loop" class="header"><a href="#Basics of AWK-For Loop">For Loop</a></h2></div>
+
+<pre awk>
+	 BEGIN {
+	 for(i=0;i&lt;9;i++)
+		 {
+		 print rand()
+		 }
+		 }
+</pre>
+
+<div id="Basics of AWK-while loop"><h2 id="while loop" class="header"><a href="#Basics of AWK-while loop">while loop</a></h2></div>
+<pre awk>
+
+#!/bin/awk -f
+#
+# i will start from 1 by default
+BEGIN {
+while (i&lt;10) {
+		print i 
+	i++}
+	}
+
+</pre>
+
+<div id="Basics of AWK-Examples"><h2 id="Examples" class="header"><a href="#Basics of AWK-Examples">Examples</a></h2></div>
+
+<ol>
+<li>
+Let us say that we want to print out the total bytes added to files of directory in  December month. Note that <code>ls -l</code> print out the 
+<pre bash>
+root@virat:~/phd_work/programs/awk$ ls -la
+.rwxr-xr-x 156 root 24 Dec 13:22 conditionals.awk
+.rwxr-xr-x  72 root 24 Dec 13:26 for_loop.awk
+.rw-r--r-- 812 root 24 Dec 06:02 output_program1.txt
+.rwxr-xr-x 190 root 24 Dec 06:12 program1.awk
+.rw-r--r-- 517 root 24 Dec 06:01 readme.md
+.rwxr-xr-x  93 root 24 Dec 12:48 variables.awk
+.rwxr-xr-x  87 root 24 Dec 13:32 while_loop.awk
+</pre>
+
+</ol>
+	
+<p>
+	The second field contains number of bytes, 5th filed contains the month. We can write 
+<code>ls -l | awk '/Dec/ {x+=$2} END {print "number of bytes added is " x} inputfile</code>
+or
+<code>ls -l | awk '\(5=="Dec" {x+=\)2} END {print "number of bytes added is " x} inputfile</code>
+</p>
+
+
+<div id="Basics of AWK-Special variables"><h2 id="Special variables" class="header"><a href="#Basics of AWK-Special variables">Special variables</a></h2></div>
+
+<ol>
+<li>
+NF : Number of fields (maximum field number)
+			<code>awk 'NF&gt;0' inputfile</code> will print each line which has at least one field(it will remove an empty line)
+
+<li>
+NR : Number of Records: or current line number $NR is not valid, it must contain a value NR=3, or NR=4. 
+			to print out the lines which are evenly numbered:
+			<code>awk 'NF%2==0' inputfile</code>
+			to print out total number of lines : 
+			<code>awk 'END {print NR}' inputfile</code>
+
+<li>
+To print nth line of file use: <code>awk 'FNR==n {print; exit}' filename</code>
+
+<li>
+You can use the <code>awk</code> command to count the number of lines in a file that contain a specific keyword, such as 'CHI_S = '. Here's an example:
+		 <code>awk '/CHI_S = / { count++ } END { print count }' your_file.txt</code>
+		Replace <code>your_file.txt</code> with the actual path to your file.
+
+</ol>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script type="text/javascript">
+    document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+</script>
+</body>
+</html>
