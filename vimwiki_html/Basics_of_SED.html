@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="Stylesheet" type="text/css" href="style.css">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+<title>Basics_of_SED</title>
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+
+<div id="Basics of SED"><h1 id="Basics of SED" class="header"><a href="#Basics of SED">Basics of SED</a></h1></div>
+
+<ol>
+<li>
+Used to filter and modify text (since SED is Stream EDitor)
+
+<li>
+It is just like searching for a text and replacing it within vim. To replace the text with 'sed' we simply use: 
+<pre><code><code>sed 's/old_text/new_text/' filename</code>
+
+But filename itself will not get modified, it will just show the file with replacements. To make changes to file, we use
+<code>sed -i 's/old_text/new_text/' filename</code>
+</code></pre>
+
+<li>
+The above does work with different delimeters ('/','.',' ','|')
+<pre><code>i.e. we will get correct answer with 
+<code>sed -i 's old_text new_text ' filename</code>
+<code>sed -i 's|old_text|new_text|' filename</code>
+<code>sed -i 's.old_text.new_text.' filename</code>
+We can use these delimeters when old_text which is to be replaced itself contains other delimeter ('/').
+in that case if we want to replace '/etc' with nothing we will use:  <code>sed -i './etc..' filename</code>
+in that case if we want to replace '/etc' with nothing we will use:  <code>sed -i '|/etc||' filename</code>
+in that case if we want to replace '/etc' with nothing we will use:  <code>sed -i './etc..' filename</code>
+
+</ol>
+</code></pre>
+	
+<p>
+	<u>A special character which followes letter 's' becomes the delimeter.</u>
+</p>
+
+<p>
+example: <code>echo hi there | sed 's/hi/hello/'</code> will print : <code>hello there</code>
+</p>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script type="text/javascript">
+    document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+</script>
+</body>
+</html>
+
