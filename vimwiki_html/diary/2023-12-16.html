@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="Stylesheet" type="text/css" href="../style.css">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+<title>2023-12-16</title>
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+
+
+<div id="Try14 Preconditioning mass variation effects"><h1 id="Try14 Preconditioning mass variation effects" class="header"><a href="#Try14 Preconditioning mass variation effects">Try14 Preconditioning mass variation effects</a></h1></div>
+
+<p>
+In this try, I would like to see how time_to_take_each next measurements are affected with preconditioning mass parameter(this is used to generate rational approximation file)
+</p>
+
+<p>
+Preconditioning mass is used to optimize the speed up of generating successive measurements. 
+</p>
+
+<div id="Try14 Preconditioning mass variation effects-Input.dat files"><h2 id="Input.dat files" class="header"><a href="#Try14 Preconditioning mass variation effects-Input.dat files">Input.dat files</a></h2></div>
+<ol>
+<li>
+<a href="input1_for_precoditioningmass.dat.html">input1_for_precoditioningmass.dat</a>
+
+<li>
+<a href="input2_for_precoditioningmass.dat.html">input2_for_precoditioningmass.dat</a>
+
+<li>
+<a href="input3_for_precoditioningmass.dat.html">input3_for_precoditioningmass.dat</a>
+
+<li>
+<a href="input4_for_precoditioningmass.dat.html">input4_for_precoditioningmass.dat</a>
+
+</ol>
+	
+
+<div id="Try14 Preconditioning mass variation effects-objective"><h2 id="objective" class="header"><a href="#Try14 Preconditioning mass variation effects-objective">objective</a></h2></div>
+<p>
+Objective is to find how the consecutive time to write gauge configuration (using RHMC) changes with preconditioning mass. 
+</p>
+
+
+<div id="Try14 Preconditioning mass variation effects-Results"><h2 id="Results" class="header"><a href="#Try14 Preconditioning mass variation effects-Results">Results</a></h2></div>
+
+<table>
+<thead>
+<tr>
+<th>
+Time (TTRAJ) for trajectory without IO
+</th>
+<th>
+preconditioning mass
+</th>
+<th>
+TTRAJ before equilibrium
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+92.175s
+</td>
+<td>
+0.0089026
+</td>
+<td>
+85.83s
+</td>
+</tr>
+<tr>
+<td>
+4min 36.735s
+</td>
+<td>
+0.0150824 (sqrt(m_l*m_s))
+</td>
+<td>
+80.994s
+</td>
+</tr>
+<tr>
+<td>
+3min 35.697s
+</td>
+<td>
+0.0406366
+</td>
+<td>
+62.367s
+</td>
+</tr>
+<tr>
+<td>
+2min 8.755s
+</td>
+<td>
+0.0783706 (m_s)
+</td>
+<td>
+53.474s
+</td>
+</tr>
+</tbody>
+</table>
+
+<div id="Try14 Preconditioning mass variation effects-Results-Results of observables"><h3 id="Results of observables" class="header"><a href="#Try14 Preconditioning mass variation effects-Results-Results of observables">Results of observables</a></h3></div>
+
+<ul>
+<li>
+It seems like the Mean of observables except plaquette depends on preconditioning mass. 
+			Analysis for individual nodes has started: 
+
+</ul>
+<p>
+File names		Mean_CHI_UD		Std deviation		Jackknife		correlation time
+try14_3.txt		0.013398		0.001877		  0.000564		6
+try14_0.txt		0.060803		0.006816		  0.002261		10
+try14_2.txt		0.023729		0.003117		  0.000831		2
+combined.txt		0.036159		0.019003		  0.016457		225
+try14_1.txt		0.058389		0.004554		  0.000929		1
+</p>
+
+
+
+<p>
+File names		Mean_CHI_S		Std deviation		Jackknife		correlation time
+try14_3.txt		0.199118		0.002388		  0.000717		16
+try14_0.txt		0.227148		0.003808		  0.001263		19
+try14_2.txt		0.211872		0.002507		  0.000669		12
+combined.txt		0.214412		0.011292		  0.009779		232
+try14_1.txt		0.226985		0.001725		  0.000352		5
+</p>
+
+
+
+<p>
+File names 		Mean_Plaquett		Std deviation		Jackknife		correlation time
+try14_3.txt		0.534419		0.000169		  5.1e-05		2
+try14_0.txt		0.532475		0.000378		  0.000125		6
+try14_2.txt		0.533355		0.000315		  8.4e-05		4
+combined.txt		0.533333		0.000767		  0.000664		182
+try14_1.txt		0.532622		0.000449		  9.2e-05		4
+</p>
+
+
+
+<p>
+File names 		Mean_Delta_H		Std deviation		Jackknife		correlation time
+try14_3.txt		-0.054457		0.126774		  0.038091		1
+try14_0.txt		-0.006931		0.066023		  0.021898		1
+try14_2.txt		-0.028758		0.122742		  0.032731		1
+combined.txt		-0.012666		0.024772		  0.021453		1
+try14_1.txt		0.054631		0.302814		  0.061762		1
+</p>
+
+<div id="Try14 Preconditioning mass variation effects-Conclusion"><h2 id="Conclusion" class="header"><a href="#Try14 Preconditioning mass variation effects-Conclusion">Conclusion</a></h2></div>
+<ol>
+<li>
+We need to set m_s (mass of strange quark) as preconditioning mass, as it turns out that the program ratApprox is not utilising the preconditioning mass concept. If we use preconditioning mass then we shall have to find product of  {psf1}{psf2}{psf3} and hence, we shall require 3x3=9 such functions(3 functions are required to calculated for rhmc, which are HB, acceptance rate and molecular dynamics, for each of these 3 functions we need to find rational approximation ; i.e. to represent each of these in form of p(x)/q(x), and thus we need 9 such rational approximation(if we use m_prec), with each rational approximation we require 2 set of coefficients (1 for denominator and 1 for numerator; which can be of degree 14 or 12)) .but with use of preconditioning mass we see that output.rat just finds 6x2=12 total_functions (for numerator and denominator of 6 functions), instead of 9 functions.
+
+<li>
+follow try15 for further progress. 
+
+<ul>
+<li>
+<a href="2023-12-18.html">Try15 More observables and m_prec=m_s</a>
+
+</ul>
+</ol>
+<div id="Try14 Preconditioning mass variation effects-Remarks"><h2 id="Remarks" class="header"><a href="#Try14 Preconditioning mass variation effects-Remarks">Remarks</a></h2></div>
+
+<ol>
+<li>
+The values of chi_ud, chi_s shall further be devided from factor of 4 as defined in <a href="https://arxiv.org/pdf/1111.1710.pdf">definations</a>
+
+<li>
+find more papers like this: 
+
+<ol>
+<li>
+<a href="https://arxiv.org/pdf/1407.6387.pdf">https://arxiv.org/pdf/1407.6387.pdf</a>
+
+<li>
+<a href="https://arxiv.org/pdf/1004.0342.pdf">https://arxiv.org/pdf/1004.0342.pdf</a>
+
+<li>
+<a href="https://arxiv.org/pdf/hep-lat/0107019.pdf">https://arxiv.org/pdf/hep-lat/0107019.pdf</a>
+
+</ol>
+</ol>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script type="text/javascript">
+    document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+</script>
+</body>
+</html>
+
