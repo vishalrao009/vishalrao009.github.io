@@ -1,0 +1,189 @@
+`Go through the codes one by one` [[https://www.youtube.com/watch?v=S2OFJe73fxA|Youtube link for further learning]]
+
+1. Let us say we have created a code to calculate square of an input number: 
+
+	{{{cpp
+	#include<iostream>
+	int square(int a)
+	{
+	return a*a;
+	}
+	int main()
+	{
+	std::cout<<square(5)<<std::endl;
+	std::cout<<square(5.5)<<std::endl;
+	std::cout<<square(5.5f)<<std::endl;
+	}
+	/*
+	It will generate the output as :
+	25
+	25 
+	25
+	*/
+	}}}
+
+
+
+2.  
+{{{cpp
+	#include<iostream>
+	int square(int a)
+	{
+	return a*a;
+		}
+	int square(double a)
+	{
+	return a*a;
+		}
+	int square(float a)
+	{
+	return a*a;
+	}
+	int main()
+	{
+	std::cout<<square(5)<<std::endl;
+	std::cout<<square(5.5)<<std::endl;
+	std::cout<<square(5.5f)<<std::endl;
+	}
+	/*
+	It will generate the output as :
+	25
+	30 
+	30
+	*/
+	}}}
+
+3. 
+{{{cpp
+	#include<iostream>
+	int square(int a)
+	{
+	return a*a;
+		}
+	double square(double a)
+	{
+	return a*a;
+		}
+	float square(float a)
+	{
+	return a*a;
+	}
+	int main()
+	{
+	std::cout<<square(5)<<std::endl;
+	std::cout<<square(5.5)<<std::endl;
+	std::cout<<square(5.5f)<<std::endl;
+	}
+	/*
+	It will generate the output as :
+	25
+	30.25 
+	30.25
+	*/
+	}}}
+	
+So you see, we can make mistakes if we are dealing with long codes, to avid such mistakes, instead we use idea of templates in c++.
+
+*Use of Templates*
+{{{cpp
+	#include<iostream>
+	template <typename T>
+	T square(T a)
+	{
+	return a*a;
+	}
+	int main()
+	{
+	std::cout<<square(5)<<std::endl;
+	std::cout<<square(5.5)<<std::endl;
+	std::cout<<square(5.5f)<<std::endl;
+	}
+	/*
+	It will generate the output as :
+	25
+	30.25 
+	30.25
+	*/
+	}}}
+
+`OR`
+
+{{{cpp
+	#include<iostream>
+	template <typename T>
+	T square(T a)
+	{
+	return a*a;
+	}
+	int main()
+	{
+	std::cout<<square<int>(5)<<std::endl;
+	std::cout<<square<double>(5.5)<<std::endl;
+	std::cout<<square<float>(5.5f)<<std::endl;
+	}
+	/*
+	It will generate the output as :
+	25
+	30.25 
+	30.25
+	*/
+	}}}
+
+
+* User of template allows user to avoid copy paste the code, it serves as blueprint for compiler to generate the code itself. To see what is happening visit the [[cppinsights.io|website]] . Basically compiler generates the code for us. 
+	- compiler is generating the below code:
+	{{{cpp
+	#include<iostream>
+	template<typename T>
+	T square(T a)
+	{
+	  return a * a;
+	}
+
+	
+	/* First instantiated from: insights.cpp:10 */
+	#ifdef INSIGHTS_USE_TEMPLATE
+	template<>
+	int square<int>(int a)
+	{
+	  return a * a;
+	}
+	#endif
+	
+	
+	/* First instantiated from: insights.cpp:11 */
+	#ifdef INSIGHTS_USE_TEMPLATE
+	template<>
+	double square<double>(double a)
+	{
+	  return a * a;
+	}
+	#endif
+	
+	
+	/* First instantiated from: insights.cpp:12 */
+	#ifdef INSIGHTS_USE_TEMPLATE
+	template<>
+	float square<float>(float a)
+	{
+	  return a * a;
+	}
+	#endif
+	
+	int main()
+	 {
+	   std::cout.operator<<(square(5)).operator<<(std::endl);
+	   std::cout.operator<<(square(5.5)).operator<<(std::endl);
+	   std::cout.operator<<(square(5.5F)).operator<<(std::endl);
+	   return 0;
+	 }
+ 
+	/*
+	It will generate the output as :
+	25
+	30.25 
+	30.25
+	*/
+	
+	}}}
+	

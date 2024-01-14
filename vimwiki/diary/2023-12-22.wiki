@@ -1,0 +1,39 @@
+= Try 16 {using Automation} =
+
+== Objective ==
+
+In this tryout, we will try to calculate more observables like <$s_{G}$>, <$L_{Bar}$>(which is mean Polyakov loop), we will do the following to achieve that, I will do so by help of RHMC.py which is at "/root/phd_work/programs/python/my_analysis_tools/RHMC.py". 
+
+
+== Using_RHMC.py ==
+	After realising that I was making error somewhere in the whole process, I made a function named as run_rhmc(), in my_analysis_tools/functions.py. This function generates rational file approximation input file, create ratApprox_output_try_16, creates try_16_output_dir, and store all parameter files, configurations, results there. Just see the program at :
+	a) [[functions.py]]
+	b) [[RHMC.py]]
+	
+	* All you need to do is to tune parameters in RHMC.py program.
+
+== procedure ==
+	1. We shall first find quark masses for beta=6.285, use m_s/m_l=20; and use these masses to generate rational approximation files using m_prec=0 for psf2 and m_prec=m_s for psf1.  
+	2. Use the rationa approximation file into RHMC parameter file and start generating the gauge configuration with always_acc=1, rand_flag=0, load_conf=0, conf_nr=0. generate 200 gauge configurations and find equilibrium point.Make sure that you create ratinput.dat file with correct quark masses and $\lambda_{min}$ .
+	3. Use the equilibrium gauge file and random file for each node, and take 1000 measurements. (use always_acc=0, load_conf=2, rand_flag=0, and provide different seeds for generating random numbers, and provide the path to the gauge file and random file, and provide conf_nr=equilibriumfilenumber(example: 100)) 
+	4. Once taken the measurements, find the required observables.
+	
+	
+== files ==
+	1. [[ratApprox_input_try_16]]
+	2. [[ratApprox_output_try_16]]
+	3. [[parameter_files_try_16]]
+
+== Results ==
+
+1. Results of <s_G> not matching with that of [[https://arxiv.org/pdf/1407.6387.pdf|EOS_paper]]
+2. I need to remove the analysis for combined.txt, i.e. remove the creation of combined.txt in '/root/phd_work/programs/python/my_analysis_tools/node_run_analysis.py'
+3. The remaining results are :  [[Try_16_rhmc_results]] 
+4. 
+
+
+
+
+
+
+

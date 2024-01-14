@@ -1,0 +1,38 @@
+= Contents =
+    - [[#Introduction]]
+        - [[#Example]]
+
+= Introduction =
+
+In C++, you cannot directly create template structures, but you can create template classes that mimic the behavior of structures. Templates in C++ are primarily designed for classes and functions, but you can use them to achieve similar functionality for structures by using template classes.
+
+Here's an example of how you might create a template class that behaves like a structure:
+
+== Example == 
+{{{cpp
+#include <iostream>
+
+template <typename T>
+class MyStruct {
+public:
+    T data1;
+    T data2;
+
+    MyStruct(T val1, T val2) : data1(val1), data2(val2) {} // it is simple way of initialising data1=val1 and data2=val2, in this case {} will be empty as its role has been done by initialising list.
+
+    void display() {
+        std::cout << "Data 1: " << data1 << ", Data 2: " << data2 << std::endl;
+    }
+};
+
+int main() {
+    MyStruct<int> intStruct(42, 77);
+    intStruct.display();
+
+    MyStruct<double> doubleStruct(3.14, 2.718);
+    doubleStruct.display();
+
+    return 0;
+}
+
+}}}

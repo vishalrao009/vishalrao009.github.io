@@ -1,0 +1,43 @@
+= Rectangle calculation =
+    - [[#Calculating Rectangle]]
+        - [[#Objective]]
+        - [[#steps]]
+        - [[#Observations]]
+
+= Calculating Rectangle = 
+
+== Objective ==
+
+We are trying to make a program which calculates the correct value of wilson loop. For that we are trying to modify the program at /root/project1/SIMULATeQCD/src/examples/main_plaquette.cpp.
+
+== steps ==
+1. We first aim to check that if the program is correctly finding Plaquette values or not, we will have to then check it agains the calculated value of Plaquette by 'rhmc.cpp' application. It was found that it was calculating correct results for Plaquette. You can find the function present in rhmc to find Plaquette and Rectangle and probably for wilson loop (which is not written there and just marked as "????")
+2. We shall try to modify the code of Plaquette for ractangle and see that if value matches with that of 'rhmc.app' calculations. 
+3. We shall pass the gauge configurations of '/root/try_16_output_dir/after_eqm/node0/l246f21b6285m0039185m0783706a_0.250' : below are result of plaquette, rectangle and polyakov loop.
+
+	# [2023-12-22 12:37:25] INFO: MEASUREMENT: 250
+	# [2023-12-22 12:37:25] INFO: Polyakov Loop = (0.0218122,-0.000403277)
+	# [2023-12-22 12:37:25] INFO: Plaquette = 0.534679
+	# [2023-12-22 12:37:25] INFO: Rectangle = 0.290657
+
+== Observations ==
+
+1. The program '/root/project1/SIMULATeQCD/src/examples/main_plaquette.cpp' calculates the sum of all 6 plaquettes at a site, and iterate it over whole lattice using `iterateOverBulk` method , moreover it is normalized by total number of plaquettes which can be achieved by deviding whole result to volume(volume for a=1 is exactly same as number of sites) x 18 using `plaq /= (GInd::getLatData().globalLattice().mult()*18);`. Here the factor of 18 comes from 3 colors and 6 plaquettes at each site. 
+
+2. <u>Plaquette and rev_plaquette, or rectangle and rev_rectangle provide same result</u>
+I tried to calculate the rectangle `result += tr_d(SU3Accessor.template getLinkPath<All, HaloDepth>(site, mu,mu, nu, Back(mu),Back(mu), Back(nu)));` and rev_rectangle i.e. `result += tr_d(SU3Accessor.template getLinkPath<All, HaloDepth>(site, mu,mu, Back(nu), Back(mu),Back(mu), nu));` for just one rectangle, and they both provides same result.
+
+		{{{cpp
+
+		for (int nu = 1; nu < 2; nu++) { //nu<2 ensures we are only calculating plaquette in m=0, nu=1 plane., normalization will only involve volume*6 rather than volume*36 for rectangle
+					for (int mu = 0; mu < nu; mu++) {
+						result += tr_d(SU3Accessor.template getLinkPath<All, HaloDepth>(site, mu,mu, Back(nu), Back(mu),Back(mu), nu));
+			   return result;
+			}
+		};
+
+		}}}
+		
+		 
+3. I am trying different codes of calculating Rectangle, and showing its results:
+		1. [[rec1]]

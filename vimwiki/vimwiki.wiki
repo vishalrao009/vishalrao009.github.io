@@ -1,0 +1,113 @@
+=vimwiki=
+
+
+== Reference ==
+	1. https://vimawesome.com/plugin/vimwiki-the-lucky-one
+	2. [[vimwiki_cheat_sheet]]
+
+To open the index file stored in /home/vishal/vimwiki/ just use the keybinding <leader>ww, for us the leader is just a comma (declared in init.vim)
+
+use the following editor commands to get help with vimwiki packages
+    * :h vimwiki
+    * :h vimwiki-todo
+    * :h vimwiki-local-mappings
+The last two editor commands are redundent, they can be found in :h vimwiki editor command. 
+
+
+----
+%%the above ---- will crate a line in html web page.and this line will not show up in html web page in browser. 
+
+To create a link, type a word, go to that word in normal mode and hit enter. Use tab and shift+tab to navitgate through the links forward and backwards respectively. Once hiting enter into links, you can type what I wrote here, no need to save it using :w or <leader>w (which I mapped in my init.vim file), hit backspace to go back to links(backspace automatically quits and saves the wiki files). 
+ 
+To enter into link: simply use tab/shift-tab, to navigate and hit enter key. Don't double click the links to open them.
+
+before you use <leader>whh, use ":VimwikiAll2HTML" to convert all links to html and display the html using <leader>whh or :Vimwiki2HTML.
+
+To have local file links use: 
+[[file:/home/vishal/path/to/file.pdf]]
+
+To rename the links, use <leader>wr 
+
+To make a heading write any word, go to normal mode and press '=', again and again to get the required headings or subheadings, you may press '-' to get rid of more number of '=' signs. 
+
+= html_wiki =
+*To set the browser use :  xdg-settings set default-url-scheme-handler file google-chrome.desktop* command in terminal. 
+
+* To generate correponding html page of present wiki page use '<leader>oh', and to go to that html page use '<leader>ht', to get back to same wiki page use '<leader>wk'
+* To convert all wiki pages to html use '<leader>ah'
+* To have math function working, make sure you place that mathjax code below <head> of html page. use snippet 'latex' and press enter to do that.
+
+
+== vimwiki-math ==
+5.8. Mathematical formulae                              *vimwiki-syntax-math*
+
+Mathematical formulae are highlighted, and can be rendered in HTML using the
+powerful open source display engine MathJax (https://www.mathjax.org/).
+
+There are three supported syntaxes, which are inline, block display and
+block environment.
+
+Inline math is for short formulae within text. It is enclosed by single
+dollar signs, e.g.:
+ $ \sum_i a_i^2 = 1 $
+
+Block display creates a centered formula with some spacing before and after
+it. It must start with a line including only {{$, then an arbitrary number
+of mathematical text are allowed, and it must end with a line including only
+}}$.
+E.g.:
+ {{$
+ \sum_i a_i^2
+ =
+ 1
+ }}$
+*you can use \[ ..]\ without spaces from left, it works, look at [[HISQ]]*
+Note: no matter how many lines are used in the text file, the HTML will
+compress it to one line only.
+
+Block environment is similar to block display, but is able to use specific
+LaTeX environments, such as 'align'. The syntax is the same as for block
+display, except for the first line which is {{$%environment%.
+E.g.:
+ {{$%align%
+ \sum_i a_i^2 &= 1 + 1 \\
+ &= 2.
+ }}$
+
+Similar compression rules for the HTML page hold (as MathJax interprets the
+LaTeX code).
+
+Note: the highlighting in Vim is automatic. For the rendering in HTML, you
+have two alternative options:
+
+1. installing MathJax locally (Recommended: faster, no internet required).
+Choose a folder on your hard drive and save MathJax in it. Then add to your
+HTML template the following line:
+
+<script type="text/javascript" src="<mathjax_folder>/es5/tex-chtml.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+where <mathjax_folder> is the folder on your HD, as a relative path to the
+template folder. For instance, a sensible folder structure could be:
+
+- wiki
+  - text
+  - html
+  - templates
+  - mathjax
+
+In this case, <mathjax_folder> would be "../mathjax" (without quotes).
+
+2. Loading MathJax from a CDN-server (needs internet connection).
+Add to your HTML template the following lines:
+
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+
+== Multiple_wiki ==
+use <leader>ws to select from multiple wikis, or
+	1. use <leader> ww : _for default wiki 1_
+	2. use <leader> w1 : for _wiki 1_
+	3. use <leader> w2 : for _wiki 2_
+
+

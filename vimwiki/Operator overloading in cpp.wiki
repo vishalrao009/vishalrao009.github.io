@@ -1,0 +1,95 @@
+= Operator overloading in cpp =
+
+
+== References ==
+-[[https://www.youtube.com/watch?v=BnMnozsSPmw|codebeauty]] 
+
+
+-------
+
+== Definition ==
+In cpp we can create spatial type of functions called as Operator functions and we use those Operator functions in order to defiine how a certain Operator will behave with specific data type. 
+
+	{{{cpp
+	#include<iostream>
+	#include<string.h>
+	using namespace std;
+	struct youtubechannel{
+		string name;
+		int Subscribercount; //members of structure are public by default, whereas memberes of class are private by default.
+
+		youtubechannel(string name_owner, int Subscribercount_ofchannel)
+		{
+			name=name_owner;
+			Subscribercount=Subscribercount_ofchannel;
+		}
+		
+
+	};
+	ostream& operator<<(ostream& COUT,youtubechannel& ytchannel){
+		COUT<<"NAME: "<<ytchannel.Name<<endl;
+		COUT<<"Subsribers count :"<<ytchannel.Subscribercount<<endl;
+		return COUT;
+	}
+
+	int main()
+	{ 
+     //assume that we have a class and have instantiated some members of that class(objects), and we would like to add the price of two cars. "car1+car2", operator overloading will then define how to add the price of the two objects. 	
+	youtubechannel yt1 = youtubechannel("physics",55500);
+	//if we use std::cout<<yt1; will not work as for that we have to overlead this insertion operator. once we have made the function named operator(), we can use it 
+	cout<<yt1<<endl; //this will print the Name and subscribers count. as described in operator function.
+	youtubechannel yt2=youtubechannel("coding",54566);
+	cout<<yt2<<endl; // will work but below won't untill we change the return type of operator() to ostream , now below shall also work fine.
+	cout<<yt1<<yt2;
+	// we can also call the operator<<() function like normal functions 
+	operator<<(cout,yt1);
+	operator<<(cout,yt2);  //these will also work fine
+	
+
+	return 0;
+
+	}
+
+
+
+	}}}
+	
+
+
+== operator overloading of algebric/logical operators ==
+{{{cpp
+#include<iostream>
+#include<string.h>
+#include<list>
+struct youtubechannel{
+		string name;
+		int Subscribercount; //members of structure are public by default, whereas memberes of class are private by default.
+
+		youtubechannel(string name_owner, int Subscribercount_ofchannel)
+		{
+			name=name_owner;
+			Subscribercount=Subscribercount_ofchannel;
+		}
+		
+
+	};
+struct mycollection{
+	list<youtubechannel>mychannels;
+
+	void operator+=(youtubechannel& channel){
+		this->mychannels.push_back(channel);
+	}
+
+
+	};
+
+
+
+
+
+
+
+
+
+
+}}}

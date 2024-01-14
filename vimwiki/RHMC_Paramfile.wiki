@@ -1,0 +1,112 @@
+= Parameter file for RHMC =
+
+== Crucial changes to the parameter file ==
+	1. The simulation takes a long time for light quark masses (lighter the mass, more time it takes)
+	2. In any given lattice qcd calcuations we have value of beta(2N_c/g.g, i.e. beta is inverse gauge coupling) as input parameter, from "/root/AnalysisToolBox/latqcdtools" we can find the value of 
+			i) lattice spacing (a) {from latqcdtools/scale_hisq.py}
+			ii) temperature (by calculating (1/(a.N_t)){from scale_hisq.py}
+			iii) strange quark mass (m_s) {from ms.py program} {this is very much needed, since the masses of quarks are not fixed(since individual quarks are never seen, their mass depend on renormalisation scheme) we have to tune m_s, m_u,m_d such that we get the correct pion(or any hadron) mass }
+			iv) m_ud (since we have found the strange quark mass we can just devide the m_s/27 to get the light quark masses, we do so as in minimal substraction scheme the masses of light quarks are 27 times lighter than strange qurk mass), all of these things are handled in "/root/AnalysisToolBox/latqcdtools/ms.py"
+	3. Next we can take small lattice if our goal is just learning (in this way we can just generate configurations quickly)
+	4. Basically the program will calculate some number and on basis of that number it will either accept or reject the update in configuration of gauge field, strange field, and light qurk fields. In total program will run *no_md* (number of molecular dynamics) steps, in each such molecular dynamics/monte carlo step, the strange quark gets updated *no_step_sf* times and for each such strange quark updates, the gauge configuration gets updated *no_sw* times. So in summary program will undergo *no_md. no_step_sf . no_sw* gauge update steps{i.e no_md light quark steps, no_md.no_step_sf strange quark steps, and no_md.no_step_sf.no_sw gauge steps} and after each 20 such light quark steps/molecular dynamics steps, it will either accpet or reject the configuration, and it will write the *write_every*th such update to some nersc file (either accepted or rejected).
+			Example: 
+			no_md=20, no_step_sf=5, no_sw=10, no_updates=33, write_every=11,
+			This will generate the total of 20x5x10=1000 trial gauge update steps(20 light quark trial update, 20x5=100 strange quark trial updates), after each such 20 light quark steps (or 1000 gauge trial updates, or 100 strange quark trial steps) the trial update will undergo the accept-reject function. Basically 33 such total update steps will be performed and each step will be under accept/reject condition, out of which program will save every 11th such accept reject step into some NERSC file as per specified by path.
+	5. It is always adviced to first thermalise / wait for thermal equilibrium to occur (which can be tasted by measuring the slowest thermalising obsrevable (which is mostly chiral condensate for up and down quarks/light qurks)) , to find the gauge configurations after thermal equilibrium, we just use always_acc=1 (i.e. always accept the configuration for all cases before equilibrium) and we start with (load_conf=0(i.e. to start the gauge configuration with unit matrices)) and then once we find the equilibrium point(measurement number) we can use nearby saved NERSC configuration to start with (now load_conf=2) for actual measurement of observable and provide the configuration number to begin with using(conf_nr). 
+	6.[[Generating_ratinal_approximation_file_for_RHMC]]
+	
+
+
+
+== Steps to do calculation ==
+1. use always_acc=1 to thermalise, and find the gauge configuration of thermal equilibrium. In order to do this simulation also we have to set the quark masses from "latqcdtools/ms.py" , use beta and it will output quark masses. 
+2. once you have found the equilibrium gauge configuration , you can set load_conf=2 to begin with that configuration number (conf_nr) and set rand_flag=1 to use the last saved random number file. In this step you generate more gauge configurations, in fact by giving different seeds you can generate more gauge configurations on all nodes of gpu,(as all other will generate from same configuration but since seed is different the configurations will be different.)
+3. once you have obtained the equilibrium gauge configuration and have made measurements multiple times, you can estimate the observable.
+
+
+
+
+#
+# rhmc.param
+#
+# Parameter file for RHMC runs with HISQ.
+#
+#      Lattice: Nx Ny Nz Nt
+#        Nodes: Number of nodes per direction
+#      mass_ud: Light quark mass , these are renormalisation scheme dependent, current masses are calculated from minimal substraction scheme. lattice methods are also one way to set the cut off/ and provide the quark masses, the hadron's masses(proton mass, pion mass) are renormalisation scheme independent and so we use those to set the scale. 
+#       mass_s: Strange quark mass
+#        no_pf: Number of pseudo-fermion fields
+#         beta: it is inverse gauge coupling (2N/g.g), it is purely function of scale(a), beta vs lattice spacing(a) is kind of like exponential decay graph.
+#
+#    step_size: step size of trajectory
+#        no_md: number of steps of trajectory (md-molecular dynamics)
+#   no_step_sf: number of steps of strange quark integration
+#        no_sw: number of steps of gauge integration
+#      residue: residue for inversions
+#        cgMax: max cg steps for multi mass solver
+#   always_acc: always accept configuration in Metropolis
+#     rat_file: rational approximation input file
+#
+#    rand_flag: new random numbers(0)/read in random numbers(1)
+#    rand_file: file name for random numbers and infos (random number file)
+#         seed: myseed to start generating the random numbers.
+#    load_conf: flag_load (0=identity, 1=random, 2=getconf)
+#   gauge_file: prefix for the gauge configuration's file name to be generated
+#      conf_nr: configuration number of first configuration to begin with
+#   no_updates: number of updates , number of configurations to be accepted/rejected (or it is total number of accept-reject operations)
+#  write_every: write out configuration every
+#
+Lattice = 48 48 48 8
+Nodes   = 1 1 1 1
+mass_ud = 0.0009875
+mass_s  =  0.0790
+beta    =  6.285
+no_pf   = 1
+
+#step_size  = 0.07142857
+##step_size  = 0.2
+##no_md      = 1
+#no_md      = 14
+#no_step_sf = 5
+##no_sw      = 1
+#no_sw      = 5             # for every 5 such updates in strange quark configuration, light quark gets updated one time.
+#cgMax      = 20000
+#always_acc = 0
+#rat_file   = ../parameter/sample_eo.rat
+
+step_size  = 0.05
+no_md      = 20
+no_step_sf = 5
+no_sw      = 10
+residue   = 1e-12
+cgMax      = 6500
+always_acc = 0
+rat_file   = ../parameter/sample_eo.rat
+
+
+rand_flag   = 1
+rand_file   = conf_30nov/randl488f21b6285m0009875m0790a_019.
+seed        = 1338
+load_conf   = 2
+gauge_file  = conf_30nov/l488f21b6285m0009875m0790a_019.
+#conf_nr    = 995    # this was for l388f21b6285m0009875m0790a_019 file to reach thermal equilibrium and do testing. 
+
+conf_nr=297                  # it will write gauge_files with names l488f21b6285m0009875m0790a_019.297 , l488f21b6285m0009875m0790a_019.308, l488f21b6285m0009875m0790a_019.318
+no_updates  = 33             #total 33 accept-reject will be made
+write_every = 11             # write every 11th accept-reject process
+
+
+
+
+# actaully random numbers are not that random here, here we have some algorithm to calculate the random number, which will generate the same sequence of random numbers provided we start with same seed. 
+
+# so we have to set rand_flag=2 in order to start from the last seed. 
+# we shall also change the value of seed, which will result in different sequence of random numbers. 
+
+
+# also we can change load_conf=2 once we have reached the thermal equilibrium. 
+
+# ideally we shall use always_acc=1 before we reach the thermal equilibrium and use always_acc=0 after we reach the equilibrium.
+
+# 
+
