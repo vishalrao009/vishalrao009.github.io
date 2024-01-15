@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="../style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>2023-12-22</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg'); /* Replace 'path/to/your/image.jpg' with the actual path to your image file */
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0; /* Remove default body margin for full coverage */
+            padding: 0; /* Remove default body padding for full coverage */
+            font-family: Arial, sans-serif; /* Optional: set a font for the content */
+        }
+    </style>
+</head>
+<body>
+    
+<div id="Try 16 {using Automation}"><h1 id="Try 16 {using Automation}" class="header"><a href="#Try 16 {using Automation}">Try 16 {using Automation}</a></h1></div>
+
+<div id="Try 16 {using Automation}-Objective"><h2 id="Objective" class="header"><a href="#Try 16 {using Automation}-Objective">Objective</a></h2></div>
+
+<p>
+In this tryout, we will try to calculate more observables like &lt;\(s_{G}\)&gt;, &lt;\(L_{Bar}\)&gt;(which is mean Polyakov loop), we will do the following to achieve that, I will do so by help of RHMC.py which is at "/root/phd_work/programs/python/my_analysis_tools/RHMC.py". 
+</p>
+
+
+<div id="Try 16 {using Automation}-Using_RHMC.py"><h2 id="Using_RHMC.py" class="header"><a href="#Try 16 {using Automation}-Using_RHMC.py">Using_RHMC.py</a></h2></div>
+<p>
+	After realising that I was making error somewhere in the whole process, I made a function named as run_rhmc(), in my_analysis_tools/functions.py. This function generates rational file approximation input file, create ratApprox_output_try_16, creates try_16_output_dir, and store all parameter files, configurations, results there. Just see the program at :
+</p>
+<ol>
+<li>
+<a href="functions.py.html">functions.py</a>
+
+<li>
+<a href="RHMC.py.html">RHMC.py</a>
+
+</ol>
+	
+<ul>
+<li>
+All you need to do is to tune parameters in RHMC.py program.
+
+</ul>
+<div id="Try 16 {using Automation}-procedure"><h2 id="procedure" class="header"><a href="#Try 16 {using Automation}-procedure">procedure</a></h2></div>
+<ol>
+<li>
+We shall first find quark masses for beta=6.285, use m_s/m_l=20; and use these masses to generate rational approximation files using m_prec=0 for psf2 and m_prec=m_s for psf1.  
+
+<li>
+Use the rationa approximation file into RHMC parameter file and start generating the gauge configuration with always_acc=1, rand_flag=0, load_conf=0, conf_nr=0. generate 200 gauge configurations and find equilibrium point.Make sure that you create ratinput.dat file with correct quark masses and \(\lambda_{min}\) .
+
+<li>
+Use the equilibrium gauge file and random file for each node, and take 1000 measurements. (use always_acc=0, load_conf=2, rand_flag=0, and provide different seeds for generating random numbers, and provide the path to the gauge file and random file, and provide conf_nr=equilibriumfilenumber(example: 100)) 
+
+<li>
+Once taken the measurements, find the required observables.
+
+</ol>
+	
+	
+<div id="Try 16 {using Automation}-files"><h2 id="files" class="header"><a href="#Try 16 {using Automation}-files">files</a></h2></div>
+<ol>
+<li>
+<a href="ratApprox_input_try_16.html">ratApprox_input_try_16</a>
+
+<li>
+<a href="ratApprox_output_try_16.html">ratApprox_output_try_16</a>
+
+<li>
+<a href="parameter_files_try_16.html">parameter_files_try_16</a>
+
+</ol>
+<div id="Try 16 {using Automation}-Results"><h2 id="Results" class="header"><a href="#Try 16 {using Automation}-Results">Results</a></h2></div>
+
+<ol>
+<li>
+Results of &lt;s_G&gt; not matching with that of <a href="https://arxiv.org/pdf/1407.6387.pdf">EOS_paper</a>
+
+<li>
+I need to remove the analysis for combined.txt, i.e. remove the creation of combined.txt in '/root/phd_work/programs/python/my_analysis_tools/node_run_analysis.py'
+
+<li>
+The remaining results are :  <a href="Try_16_rhmc_results.html">Try_16_rhmc_results</a> 
+
+<li>
+
+</ol>
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+

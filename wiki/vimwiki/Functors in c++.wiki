@@ -1,0 +1,123 @@
+= Contents =
+    - [[#References]]
+        - [[#]]
+    - [[#Introduction]]
+        - [[#Example without templates]]
+        - [[#Example with templates]]
+        - [[#Anonymous objects]]
+
+= References =
+ 1. https://www.youtube.com/watch?v=6otobPdNFz4 
+ 2. https://www.youtube.com/watch?v=BnMnozsSPmw
+ 
+
+
+-------------------------------------------------------------------------------------------------------------------------
+= Introduction =
+Functors are objects constructed out of functions. OR . It is function with some state. 
+
+We will be able to call the objects as functions.
+
+
+== Example without templates ==
+{{{cpp
+
+#include <iostream>
+#include <string.h>
+
+struct Value{
+	int m_result{0};
+	float m_result2{0.0};
+
+	int operator()(int newResult){
+		m_result=newResult;
+		return newResult;
+	}
+	float operator()(float newResult2){
+		m_result2=newResult2;
+		return newResult2;
+	}
+
+
+};
+
+int main(int argc, char *argv[])
+{
+	Value v;
+	v(52);
+	v(335);  // or we can just use v(33.45f);
+	std::cout<<v.m_result<<std::endl<<v.m_result2<<std::endl;
+	///In this way we can store results in varialbes m_result and m_result2 by just calling functors or using objects as functions. It is one of use of functors.
+	j
+	return 0;
+}
+}}}
+
+
+== Example with templates ==
+
+{{{cpp
+#include <iostream>
+#include <string.h>
+template <class T1, class T2>
+struct Value{
+	T1 m_result{0};
+	T2 m_result2{0.0};
+
+	T1 operator()(T1 newResult){
+		m_result=newResult;
+		return newResult;
+	}
+	T2 operator()(T2 newResult2){
+		m_result2=newResult2;
+		return newResult2;
+	}
+
+
+};
+
+int main(int argc, char *argv[])
+{
+	Value<int, double> v;
+	v(52);
+	v(33.45);  // or we can just use v(33.45f);
+	std::cout<<v.m_result<<std::endl<<v.m_result2<<std::endl;
+	/* std::cout<<Value<int, double>(52)<<std::endl; */
+	///In this way we can store results in varialbes m_result and m_result2 by just calling functors or using objects as functions. It is one of use of functors.
+	return 0;
+}
+}}}
+
+== Anonymous objects ==
+{{{cpp
+#include <iostream>
+
+class MyClass {
+public:
+    int value;
+
+    MyClass(int val) : value(val) {
+        std::cout << "Constructor called with value: " << value << std::endl;
+    }
+
+    ~MyClass() {
+        std::cout << "Destructor called for value: " << value << std::endl;
+    }
+};
+
+int main() {
+    // Creating and using an anonymous object
+    int result = MyClass(42).value;
+
+    std::cout << "Result: " << result << std::endl;
+
+    // Anonymous objects in expressions
+    int sum = MyClass(10).value + MyClass(20).value;
+
+    std::cout << "Sum: " << sum << std::endl;
+
+    return 0;
+}
+
+
+}}}
