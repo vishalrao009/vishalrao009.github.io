@@ -1,0 +1,24 @@
+= Basics of SED =
+
+1. Used to filter and modify text (since SED is Stream EDitor)
+2. It is just like searching for a text and replacing it within vim. To replace the text with 'sed' we simply use: 
+					`sed 's/old_text/new_text/' filename`
+					
+					But filename itself will not get modified, it will just show the file with replacements. To make changes to file, we use
+					`sed -i 's/old_text/new_text/' filename`
+3. The above does work with different delimeters ('/','.',' ','|')
+					i.e. we will get correct answer with 
+					`sed -i 's old_text new_text ' filename`
+					`sed -i 's|old_text|new_text|' filename`
+					`sed -i 's.old_text.new_text.' filename`
+			 We can use these delimeters when old_text which is to be replaced itself contains other delimeter ('/').
+	     in that case if we want to replace '/etc' with nothing we will use:  `sed -i './etc..' filename`
+	     in that case if we want to replace '/etc' with nothing we will use:  `sed -i '|/etc||' filename`
+	     in that case if we want to replace '/etc' with nothing we will use:  `sed -i './etc..' filename`
+	
+	<u>A special character which followes letter 's' becomes the delimeter.</u>
+
+example: `echo hi there | sed 's/hi/hello/'` will print : `hello there`
+
+
+

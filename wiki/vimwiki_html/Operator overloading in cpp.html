@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>Operator overloading in cpp</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg'); /* Replace 'path/to/your/image.jpg' with the actual path to your image file */
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0; /* Remove default body margin for full coverage */
+            padding: 0; /* Remove default body padding for full coverage */
+            font-family: Arial, sans-serif; /* Optional: set a font for the content */
+        }
+    </style>
+</head>
+<body>
+    
+<div id="Operator overloading in cpp"><h1 id="Operator overloading in cpp" class="header"><a href="#Operator overloading in cpp">Operator overloading in cpp</a></h1></div>
+
+
+<div id="Operator overloading in cpp-References"><h2 id="References" class="header"><a href="#Operator overloading in cpp-References">References</a></h2></div>
+<p>
+-<a href="https://www.youtube.com/watch?v=BnMnozsSPmw">codebeauty</a> 
+</p>
+
+
+<hr />
+
+<div id="Operator overloading in cpp-Definition"><h2 id="Definition" class="header"><a href="#Operator overloading in cpp-Definition">Definition</a></h2></div>
+<p>
+In cpp we can create spatial type of functions called as Operator functions and we use those Operator functions in order to defiine how a certain Operator will behave with specific data type. 
+</p>
+
+<pre cpp>
+	#include&lt;iostream&gt;
+	#include&lt;string.h&gt;
+	using namespace std;
+	struct youtubechannel{
+		string name;
+		int Subscribercount; //members of structure are public by default, whereas memberes of class are private by default.
+
+		youtubechannel(string name_owner, int Subscribercount_ofchannel)
+		{
+			name=name_owner;
+			Subscribercount=Subscribercount_ofchannel;
+		}
+		
+
+	};
+	ostream&amp; operator&lt;&lt;(ostream&amp; COUT,youtubechannel&amp; ytchannel){
+		COUT&lt;&lt;"NAME: "&lt;&lt;ytchannel.Name&lt;&lt;endl;
+		COUT&lt;&lt;"Subsribers count :"&lt;&lt;ytchannel.Subscribercount&lt;&lt;endl;
+		return COUT;
+	}
+
+	int main()
+	{ 
+     //assume that we have a class and have instantiated some members of that class(objects), and we would like to add the price of two cars. "car1+car2", operator overloading will then define how to add the price of the two objects. 	
+	youtubechannel yt1 = youtubechannel("physics",55500);
+	//if we use std::cout&lt;&lt;yt1; will not work as for that we have to overlead this insertion operator. once we have made the function named operator(), we can use it 
+	cout&lt;&lt;yt1&lt;&lt;endl; //this will print the Name and subscribers count. as described in operator function.
+	youtubechannel yt2=youtubechannel("coding",54566);
+	cout&lt;&lt;yt2&lt;&lt;endl; // will work but below won't untill we change the return type of operator() to ostream , now below shall also work fine.
+	cout&lt;&lt;yt1&lt;&lt;yt2;
+	// we can also call the operator&lt;&lt;() function like normal functions 
+	operator&lt;&lt;(cout,yt1);
+	operator&lt;&lt;(cout,yt2);  //these will also work fine
+	
+
+	return 0;
+
+	}
+
+
+
+</pre>
+	
+
+
+<div id="Operator overloading in cpp-operator overloading of algebric/logical operators"><h2 id="operator overloading of algebric/logical operators" class="header"><a href="#Operator overloading in cpp-operator overloading of algebric/logical operators">operator overloading of algebric/logical operators</a></h2></div>
+<pre cpp>
+#include&lt;iostream&gt;
+#include&lt;string.h&gt;
+#include&lt;list&gt;
+struct youtubechannel{
+		string name;
+		int Subscribercount; //members of structure are public by default, whereas memberes of class are private by default.
+
+		youtubechannel(string name_owner, int Subscribercount_ofchannel)
+		{
+			name=name_owner;
+			Subscribercount=Subscribercount_ofchannel;
+		}
+		
+
+	};
+struct mycollection{
+	list&lt;youtubechannel&gt;mychannels;
+
+	void operator+=(youtubechannel&amp; channel){
+		this-&gt;mychannels.push_back(channel);
+	}
+
+
+	};
+
+
+
+
+
+
+
+
+
+
+</pre>
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+

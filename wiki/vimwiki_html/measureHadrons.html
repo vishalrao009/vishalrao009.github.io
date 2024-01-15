@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>measureHadrons</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg'); /* Replace 'path/to/your/image.jpg' with the actual path to your image file */
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0; /* Remove default body margin for full coverage */
+            padding: 0; /* Remove default body padding for full coverage */
+            font-family: Arial, sans-serif; /* Optional: set a font for the content */
+        }
+    </style>
+</head>
+<body>
+    
+<pre cpp>
+
+/*
+ * main_measureHadrons.cpp
+ *
+ * Luis Altenkort, 6 Jan 2021
+ *
+ * Main application for measuring hadronic correlators.
+ *
+ */
+
+#include "../simulateqcd.h"
+#include "../modules/measureHadrons/measureHadrons.h"
+
+#define USE_GPU true
+#if SINGLEPREC
+#define PREC float
+#else
+#define PREC double
+#endif
+
+int main(int argc, char *argv[]) {
+    try {
+        stdLogger.setVerbosity(TRACE);
+
+        CommunicationBase commBase(&amp;argc, &amp;argv);
+        measureHadronsParam&lt;PREC&gt; lp;
+        lp.readfile(commBase, "../parameter/tests/measureHadronsTest.param", argc, argv);
+        commBase.init(lp.nodeDim());
+        lp.check_for_nonsense();
+
+        const size_t HaloDepth = 2; //! reason: HISQ Dslash
+        const size_t HaloDepthSpin = 4; //! reason: HISQ Dslash
+        const size_t NStacks = 1; //TODO add support for multiple sources at the same time i.e. nstacks&gt;1
+
+        initIndexer(HaloDepth, lp, commBase);
+
+        Gaugefield&lt;PREC, USE_GPU, HaloDepth&gt; gauge(commBase);
+        if (lp.use_unit_conf()){
+            rootLogger.info("Using unit configuration for tests/benchmarks");
+            gauge.one();
+        } else {
+            rootLogger.info("Read configuration");
+            gauge.readconf_nersc(lp.GaugefileName());
+        }
+        gauge.updateAll();
+
+        //! Check plaquette
+        GaugeAction&lt;PREC, USE_GPU, HaloDepth&gt; gAction(gauge);
+        PREC plaq;
+        plaq = gAction.plaquette();
+        rootLogger.info("plaquette: " ,  plaq);
+
+        {
+            measureHadrons&lt;PREC, USE_GPU, HaloDepth, HaloDepthSpin, Even, NStacks, R18&gt; mesons(commBase, lp, gauge);
+            mesons.compute_HISQ_correlators();
+            mesons.write_correlators_to_file();
+        }
+
+        //!Additional features we want to have:
+        //TODO create a test routine that checks if the program works for all possible parameters on a small configuration
+        //     using results from the BielefeldGPUCode as a reference
+        //TODO add the option for multiple sources (maybe first one after another and then in parallel using stacked
+        // spinorfields and multiRHS inverter?)
+        //TODO add an option to choose the boundary conditions for the fermions (?)
+    }
+
+    catch (const std::runtime_error &amp;error) {
+        return -1;
+    }
+    return 0;
+}
+
+
+</pre>
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+

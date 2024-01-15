@@ -1,0 +1,53 @@
+= Pass by value, pass by reference, pass by pointers. =
+
+== Pass by value ==
+	* By default c++ pass by value. i.e. values are copied to function parameters.
+	* Pass by value just copies the data to parameter variable: look at code below
+	{{{cpp
+	#include<iostream>
+	void change_var(int a)
+	{
+	a++;
+	}
+	void main()
+	{
+	int x=20;
+	std::cout<<change_var(x)<<x; //here value 20 is copied in parameter a and is incremented. the changes will be only made in parameter 'a' and not in variable 'x', it will generate output as : 21 20
+	}
+	}}}
+
+== Pass by reference ==
+        * pass by reference will change the data globally just like pass by pointer.
+	* have a look at code to understand.
+	{{{cpp
+	#include<iostream>
+	void change_var(int &a) //here a is an reference to variable 'x'
+	{
+	a++;
+	}
+	void main()
+	{
+	int x=20;
+	std::cout<<change_var(x)<<x; //here value 20 is in x, and x is referenced by parameter/alias 'a'. the changes will be made in parameter 'a' and in variable 'x', it will generate output as : 21 21
+	}
+	}}}
+	
+
+== Pass by pointers ==
+
+	* Pass by pointers will also change the data globally. It is suggested to use pass by reference over pointers.
+	* have a look at the code:
+	{{{cpp
+	#include<iostream>
+	void change_var(int *a) //here a is an pointer to variable 'x' and a stores memory address of varialbe x. 
+	{
+		*a++; //we need to dereference the pointer to access its value. 'a' holds the address and *a has its value.
+	}
+	void main()
+	{
+	int x=20;
+	std::cout<<change_var(&x)<<x; //here value 20 is in x, and x is referenced by parameter/alias 'a'. the changes will be made in parameter 'a' and in variable 'x', it will generate output as : 21 21
+	}
+	}}}
+	
+

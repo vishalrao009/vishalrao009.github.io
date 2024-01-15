@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="../style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>rec1</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg'); /* Replace 'path/to/your/image.jpg' with the actual path to your image file */
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0; /* Remove default body margin for full coverage */
+            padding: 0; /* Remove default body padding for full coverage */
+            font-family: Arial, sans-serif; /* Optional: set a font for the content */
+        }
+    </style>
+</head>
+<body>
+    
+<div id="Contents" class="toc"><h1 id="Contents" class="header"><a href="#Contents">Contents</a></h1></div>
+<ul>
+<li>
+<a href="rec1.html#Codes">#Codes</a>
+
+<ul>
+<li>
+<a href="rec1.html#code1">#code1</a>
+
+<ul>
+<li>
+<a href="rec1.html#result1">#result1</a>
+
+</ul>
+<li>
+<a href="rec1.html#code2">#code2</a>
+
+<ul>
+<li>
+<a href="rec1.html#result2">#result2</a>
+
+</ul>
+<li>
+<a href="rec1.html#code3">#code3</a>
+
+<ul>
+<li>
+<a href="rec1.html#result3">#result3</a>
+
+</ul>
+<li>
+<a href="rec1.html#code4">#code4</a>
+
+<ul>
+<li>
+<a href="rec1.html#result4">#result4</a>
+
+</ul>
+<li>
+<a href="rec1.html#code5">#code5</a>
+
+<ul>
+<li>
+<a href="rec1.html#result5">#result5</a>
+
+</ul>
+<li>
+<a href="rec1.html#code6">#code6</a>
+
+<ul>
+<li>
+<a href="rec1.html#result6">#result6</a>
+
+</ul>
+<li>
+<a href="rec1.html#code7">#code7</a>
+
+<ul>
+<li>
+<a href="rec1.html#result6">#result6</a>
+
+</ul>
+<li>
+<a href="rec1.html#code8">#code8</a>
+
+<ul>
+<li>
+<a href="rec1.html#result8">#result8</a>
+
+</ul>
+</ul>
+</ul>
+<div id="Codes"><h1 id="Codes" class="header"><a href="#Codes">Codes</a></h1></div>
+
+
+<div id="Codes-code1"><h2 id="code1" class="header"><a href="#Codes-code1">code1</a></h2></div>
+<pre cpp>
+
+SU3&lt;floatT&gt; temp;
+gSite site1;
+site1=GInd::site_up(site,mu);
+temp = SU3Accessor.template getLinkPath&lt;All, HaloDepth&gt;(site1,mu, nu,Back(mu), Back(mu), Back(nu));
+temp += SU3Accessor.template getLinkPath&lt;All, HaloDepth&gt;(site1,nu, nu,Back(mu), Back(nu), Back(nu));
+result += tr_d(temp,SU3Accessor.getLink(GInd::getSiteMu(site, mu)));
+
+</pre>
+
+<div id="Codes-code1-result1"><h3 id="result1" class="header"><a href="#Codes-code1-result1">result1</a></h3></div>
+<p>
+Reduced Rectangle is: 0.139255
+</p>
+
+<div id="Codes-code2"><h2 id="code2" class="header"><a href="#Codes-code2">code2</a></h2></div>
+<pre cpp>
+
+SU3&lt;floatT&gt; temp;
+temp = SU3Accessor.template getLinkPath&lt;All, HaloDepth&gt;(site,mu,mu, nu,Back(mu), Back(mu), Back(nu));
+temp += SU3Accessor.template getLinkPath&lt;All, HaloDepth&gt;(site,mu,nu, nu,Back(mu), Back(nu), Back(nu));
+result += tr_d(temp);
+
+</pre>
+
+<div id="Codes-code2-result2"><h3 id="result2" class="header"><a href="#Codes-code2-result2">result2</a></h3></div>
+<p>
+Reduced Rectangle is :269532
+</p>
+
+<div id="Codes-code3"><h2 id="code3" class="header"><a href="#Codes-code3">code3</a></h2></div>
+<pre cpp>
+
+SU3&lt;floatT&gt; temp;
+SU3&lt;floatT&gt; link;
+gSite site1;
+site1=GInd::site_up(site,mu);
+temp = SU3Accessor.template getLinkPath&lt;All, HaloDepth&gt;(site1,mu, nu,Back(mu), Back(mu), Back(nu));
+temp += SU3Accessor.template getLinkPath&lt;All, HaloDepth&gt;(site1,nu, nu,Back(mu), Back(nu), Back(nu));
+link=SU3Accessor.getLink(GInd::getSiteMu(site, mu));
+result += tr_d(temp,link);
+
+</pre>
+
+<div id="Codes-code3-result3"><h3 id="result3" class="header"><a href="#Codes-code3-result3">result3</a></h3></div>
+<p>
+Reduced Rectangle is: 0.139255
+</p>
+
+<div id="Codes-code4"><h2 id="code4" class="header"><a href="#Codes-code4">code4</a></h2></div>
+<pre cpp>
+
+SU3&lt;floatT&gt; temp;
+SU3&lt;floatT&gt; link;
+gSite site1;
+site1=GInd::site_up(site,mu);
+temp = SU3Accessor.template getLinkPath&lt;All, HaloDepth&gt;(site1,mu, nu,Back(mu), Back(mu), Back(nu));
+temp += SU3Accessor.template getLinkPath&lt;All, HaloDepth&gt;(site1,nu, nu,Back(mu), Back(nu), Back(nu));
+link=SU3Accessor.getLink(GInd::getSiteMu(site, mu));
+link=dagger(link);
+result += tr_d(temp,link);
+
+</pre>
+
+<div id="Codes-code4-result4"><h3 id="result4" class="header"><a href="#Codes-code4-result4">result4</a></h3></div>
+<p>
+Reduced Rectangle is: 0.000282382
+</p>
+
+
+
+<div id="Codes-code5"><h2 id="code5" class="header"><a href="#Codes-code5">code5</a></h2></div>
+
+<pre cpp>
+
+SU3&lt;floatT&gt; temp;
+gSite site1;
+gSite site2;
+gSite site3;
+gSite site4;
+gSite site5;
+gSite site6;
+gSite site8;
+site1=site;
+site2=GInd::site_up(site1,mu);
+site3=GInd::site_up(site2,mu);
+site4=GInd::site_up(site3,nu);
+site5=GInd::site_up(site2,nu);
+site6=GInd::site_up(site1,nu);
+site8=GInd::site_up(site6,nu);
+//temp=SU3Accessor.getLink(GInd::getSiteMu(site1,mu))*SU3Accessor.getLink(GInd::getSiteMu(site2,mu))*SU3Accessor.getLink(GInd::getSiteMu(site3,nu))*dagger(SU3Accessor.getLink(GInd::getSiteMu(site5,mu)))*dagger(SU3Accessor.getLink(GInd::getSiteMu(site6,mu)))*dagger(SU3Accessor.getLink(GInd::getSiteMu(site,nu)));
+
+temp=SU3Accessor.getLink(GInd::getSiteMu(site1,mu))
+    *SU3Accessor.getLink(GInd::getSiteMu(site2,mu))
+    *SU3Accessor.getLink(GInd::getSiteMu(site3,nu))
+    *dagger(SU3Accessor.getLink(GInd::getSiteMu(site5,mu)))
+    *dagger(SU3Accessor.getLink(GInd::getSiteMu(site6,mu)))
+    *dagger(SU3Accessor.getLink(GInd::getSiteMu(site,nu)));
+
+temp += SU3Accessor.getLink(GInd::getSiteMu(site1,mu))*SU3Accessor.getLink(GInd::getSiteMu(site2,nu))*SU3Accessor.getLink(GInd::getSiteMu(site5,nu))*dagger(SU3Accessor.getLink(GInd::getSiteMu(site8,mu)))*dagger(SU3Accessor.getLink(GInd::getSiteMu(site6,nu)))*dagger(SU3Accessor.getLink(GInd::getSiteMu(site,nu)));
+result +=tr_d(temp);
+</pre>
+
+<div id="Codes-code5-result5"><h3 id="result5" class="header"><a href="#Codes-code5-result5">result5</a></h3></div>
+<p>
+Reduced Rectangle is: 0.269532
+</p>
+
+
+<div id="Codes-code6"><h2 id="code6" class="header"><a href="#Codes-code6">code6</a></h2></div>
+
+<pre cpp>
+
+SU3&lt;floatT&gt; temp;
+gSite site1;
+gSite site2;
+gSite site3;
+gSite site4;
+gSite site5;
+gSite site6;
+gSite site8;
+site1=site;
+site2=GInd::site_up(site1,mu);
+site3=GInd::site_up(site2,mu);
+site4=GInd::site_up(site3,nu);
+site5=GInd::site_up(site2,nu);
+site6=GInd::site_up(site1,nu);
+site8=GInd::site_up(site6,nu);
+temp=SU3Accessor.getLink(GInd::getSiteMu(site1,mu))*SU3Accessor.getLink(GInd::getSiteMu(site2,mu))*SU3Accessor.getLink(GInd::getSiteMu(site3,nu))*(SU3Accessor.getLinkDagger(GInd::getSiteMu(site5,mu)))*(SU3Accessor.getLinkDagger(GInd::getSiteMu(site6,mu)))*SU3Accessor.getLinkDagger(GInd::getSiteMu(site,nu));
+
+temp += SU3Accessor.getLink(GInd::getSiteMu(site1,mu))*SU3Accessor.getLink(GInd::getSiteMu(site2,nu))*SU3Accessor.getLink(GInd::getSiteMu(site5,nu))*(SU3Accessor.getLinkDagger(GInd::getSiteMu(site8,mu)))*(SU3Accessor.getLinkDagger(GInd::getSiteMu(site6,nu)))*(SU3Accessor.getLinkDagger(GInd::getSiteMu(site,nu)));
+result +=tr_d(temp);
+</pre>
+
+<div id="Codes-code6-result6"><h3 id="result6" class="header"><a href="#Codes-code6-result6">result6</a></h3></div>
+<p>
+Reduced Rectangle is: 0.269532
+</p>
+
+
+
+<div id="Codes-code7"><h2 id="code7" class="header"><a href="#Codes-code7">code7</a></h2></div>
+<p>
+I am copying the code of calculating ractangle from rhmc.cpp 
+</p>
+<pre cpp>
+
+temp = SU3Accessor.getLink(GInd::getSiteMu(GInd::site_up(site, mu), mu) )
+                        * SU3Accessor.getLink(GInd::getSiteMu(GInd::site_2up(site, mu), nu) )
+                        * SU3Accessor.getLinkDagger(GInd::getSiteMu(GInd::site_up_up(site, mu, nu), mu))
+                        * SU3Accessor.getLinkDagger(GInd::getSiteMu(GInd::site_up(site, nu), mu))
+                        * SU3Accessor.getLinkDagger(GInd::getSiteMu(site, nu));
+                temp += SU3Accessor.getLink(GInd::getSiteMu(GInd::site_up(site, mu), nu) )
+                         * SU3Accessor.getLink(GInd::getSiteMu(GInd::site_up_up(site, mu, nu), nu) )
+                         * SU3Accessor.getLinkDagger(GInd::getSiteMu(GInd::site_2up(site, nu), mu))
+                         * SU3Accessor.getLinkDagger(GInd::getSiteMu(GInd::site_up(site, nu), nu))
+                         * SU3Accessor.getLinkDagger(GInd::getSiteMu(site, nu));
+
+                result += tr_d(SU3Accessor.getLink(GInd::getSiteMu(site, mu)), temp);
+</pre>
+
+<div id="Codes-code7-result6"><h3 id="result6" class="header"><a href="#Codes-code7-result6">result6</a></h3></div>
+<p>
+Reduced Rectangle is: 0.269532
+</p>
+
+<p>
+<span id="Codes-code7-result6-Remarks"></span><strong id="Remarks">Remarks</strong>
+</p>
+<ol>
+<li>
+In rhmc calcuations they inherited frm gAcc, rather than from SU3Accessor class.
+
+</ol>
+<div id="Codes-code8"><h2 id="code8" class="header"><a href="#Codes-code8">code8</a></h2></div>
+<p>
+I am copying the code of calculating ractangle from rhmc.cpp 
+</p>
+<pre cpp>
+
+temp = gAcc.getLink(GInd::getSiteMu(GInd::site_up(site, mu), mu) )
+                        * gAcc.getLink(GInd::getSiteMu(GInd::site_2up(site, mu), nu) )
+                        * gAcc.getLinkDagger(GInd::getSiteMu(GInd::site_up_up(site, mu, nu), mu))
+                        * gAcc.getLinkDagger(GInd::getSiteMu(GInd::site_up(site, nu), mu))
+                        * gAcc.getLinkDagger(GInd::getSiteMu(site, nu));
+                temp += gAcc.getLink(GInd::getSiteMu(GInd::site_up(site, mu), nu) )
+                         * gAcc.getLink(GInd::getSiteMu(GInd::site_up_up(site, mu, nu), nu) )
+                         * gAcc.getLinkDagger(GInd::getSiteMu(GInd::site_2up(site, nu), mu))
+                         * gAcc.getLinkDagger(GInd::getSiteMu(GInd::site_up(site, nu), nu))
+                         * gAcc.getLinkDagger(GInd::getSiteMu(site, nu));
+
+                result += tr_d(gAcc.getLink(GInd::getSiteMu(site, mu)), temp);
+</pre>
+
+<p>
+I have tried adding more parameter while defining template structure. 
+</p>
+
+<pre cpp>
+
+#include "../simulateqcd.h"
+#include &lt;string&gt;
+
+#define PREC double
+
+template&lt;class floatT, bool onDevice,size_t HaloDepth, CompressionType comp&gt;
+struct CalcPlaq{
+
+    //Gauge accessor to access the gauge field
+    /* SU3Accessor&lt;floatT&gt; SU3Accessor; */
+    SU3Accessor&lt;floatT,comp&gt; gAcc;
+
+    //Constructor to initialize all necessary members.
+    CalcPlaq(Gaugefield&lt;floatT,true,HaloDepth,comp&gt; &amp;gauge) : gAcc(gauge.getAccessor()){
+    }
+
+    //This is the operator that is called inside the Kernel
+    __device__ __host__ floatT operator()(gSite site) {
+
+        /// We need to choose the type of indexer. The first template is the layout of the lattice.
+        typedef GIndexer&lt;All, HaloDepth&gt; GInd;
+
+        /// Define a SU(3) matrix
+        SU3&lt;floatT&gt; temp;
+        SU3&lt;floatT&gt; link;
+
+        floatT result = 0;
+        /// loop through all directions which are needed by the four link variables in the plaquette
+        for (int nu = 1; nu &lt; 4; nu++) {
+            for (int mu = 0; mu &lt; nu; mu++) {
+              temp = gAcc.getLink(GInd::getSiteMu(GInd::site_up(site, mu), mu) )
+                        * gAcc.getLink(GInd::getSiteMu(GInd::site_2up(site, mu), nu) )
+                        * gAcc.getLinkDagger(GInd::getSiteMu(GInd::site_up_up(site, mu, nu), mu))
+                        * gAcc.getLinkDagger(GInd::getSiteMu(GInd::site_up(site, nu), mu))
+                        * gAcc.getLinkDagger(GInd::getSiteMu(site, nu));
+                temp += gAcc.getLink(GInd::getSiteMu(GInd::site_up(site, mu), nu) )
+                         * gAcc.getLink(GInd::getSiteMu(GInd::site_up_up(site, mu, nu), nu) )
+                         * gAcc.getLinkDagger(GInd::getSiteMu(GInd::site_2up(site, nu), mu))
+                         * gAcc.getLinkDagger(GInd::getSiteMu(GInd::site_up(site, nu), nu))
+                         * gAcc.getLinkDagger(GInd::getSiteMu(site, nu));
+
+                result += tr_d(gAcc.getLink(GInd::getSiteMu(site, mu)), temp);
+            }
+        }
+
+        return result*0.5;
+    }
+};
+
+
+//Function to compute the plaquette using the above struct CalcPlaq.
+template&lt;class floatT, size_t HaloDepth,CompressionType comp&gt;
+floatT gPlaq(Gaugefield&lt;floatT,true, HaloDepth,comp&gt; &amp;gauge, LatticeContainer&lt;true,floatT&gt; &amp;redBase){
+
+    typedef GIndexer&lt;All,HaloDepth&gt; GInd;
+    const size_t elems = GInd::getLatData().vol4;
+    std::cout &lt;&lt; "Total number of sites are : "&lt;&lt;elems&lt;&lt; std::endl;
+    //Make sure, redBase is large enough
+    redBase.adjustSize(elems);
+
+   redBase.template iterateOverBulk&lt;All, HaloDepth&gt;(CalcPlaq&lt;floatT,true,HaloDepth,comp&gt;(gauge));
+
+    //Do the final reduction
+    floatT plaq;
+    redBase.reduce(plaq, elems);
+
+    //Normalize the result
+    plaq /= (GInd::getLatData().globalLattice().mult()*18);
+    return plaq;
+}
+
+
+int main(int argc, char *argv[]) {
+
+    stdLogger.setVerbosity(DEBUG);
+
+    /// Initialize parameter class. This class can also read parameter from textfiles!
+    LatticeParameters param;
+
+    /// Initialize the Lattice dimension
+    /* const int LatDim[] = {24, 24, 20, 20}; */
+    const int LatDim[] = {24, 24, 24, 6};
+
+    const int NodeDim[] = {1, 1, 1, 1};
+
+    /// Just pass these dimensions to the parameter class
+    param.latDim.set(LatDim);
+    param.nodeDim.set(NodeDim);
+
+    /// Initialize a timer
+    StopWatch&lt;true&gt; timer;
+
+    /// Initialize the CommunicationBase. This class handles the communitation between different Cores/GPU's.
+    CommunicationBase commBase(&amp;argc, &amp;argv, true);
+    commBase.init(param.nodeDim()); //it will print node dimension 
+
+    /// Set the HaloDepth. It should be a constant values, since this value should be passed as an non-type template
+    /// parameter to each kernel.
+    const size_t HaloDepth = 1;
+
+
+    // Initialize the Indexer on GPU and CPU.
+    initIndexer(HaloDepth,param,commBase);
+    typedef GIndexer&lt;All,HaloDepth&gt; GInd;
+
+
+    /// Initialize the Gaugefield. Basically, this object holds all SU(3)-matrices of the gaugefield.
+    /// The second template parameter determines whether the gaugefield should be stored on GPU or CPU but this will
+    /// be changed in the future ...
+    rootLogger.info("Initialize Gaugefield");
+    Gaugefield&lt;PREC, true,HaloDepth&gt; gauge(commBase);
+
+    /// Initialize gaugefield with unity-matrices.
+    gauge.one();
+
+    /// Initialize LatticeContainer. This is in principle the "array", where the values of the plaquette are
+    /// stored which are summed up in the end
+    LatticeContainer&lt;true,PREC&gt; redBase(commBase);
+    /// We need to tell the Reductionbase how large our Array will be
+    redBase.adjustSize(GInd::getLatData().vol4);
+    grnd_state&lt;false&gt; h_rand;
+    grnd_state&lt;true&gt; d_rand;
+
+    h_rand.make_rng_state(1337); // 1337 is random number generator seed 
+    d_rand = h_rand;
+
+//let me write a program to find it for all gague files:stored at "/root/try_16_output_dir/after_eqm/node0/l246f21b6285m0039185m0783706a_0.") starting from 200. in seperation of 10.
+    /// Read a configuration from hard drive.
+    /// I am incluiding the for loop to do it for all files
+    for (int i=250; i&lt;=250;i+=10)
+    {
+        rootLogger.info("Reading Gauge Configuration");
+        gauge.readconf_nersc("/root/try_16_output_dir/after_eqm/node0/l246f21b6285m0039185m0783706a_0."+std::to_string(i));
+        /* gauge.random(d_rand.state); */
+        /// start timer...
+        timer.start();
+        /// define variable where the plaquette should be stored.
+        PREC plaq = 0;
+
+        /// Exchange Halos before calculating the plaquette! , it gives nan values if we don't exchange halos.
+        gauge.updateAll();
+
+        timer.start();
+        /// compute plaquette
+        plaq = gPlaq&lt;PREC,HaloDepth&gt;(gauge, redBase);
+        /// stop timer and print time
+        timer.stop();
+        rootLogger.info("Time for operators " ,  timer);
+        rootLogger.info("Reduced Rectangle is: " ,  plaq);
+        /* rootLogger.info("Reduced Plaquette is: " ,  plaq); */
+}
+    return 0;
+}
+
+
+</pre>
+<div id="Codes-code8-result8"><h3 id="result8" class="header"><a href="#Codes-code8-result8">result8</a></h3></div>
+<p>
+Reduced Rectangle is: 0.269532
+</p>
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+

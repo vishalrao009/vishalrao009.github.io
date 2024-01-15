@@ -1,0 +1,32 @@
+=Design_strategy=
+
+SIMULATeQCD is multi-GPU, multi-node, lattice code written using c++17 and utilising the object oriented paradigm(OOP), and modern c++17 features. 
+
+A major difference between SIMULATeQCD and its predecessors is the design(organisation of levels), which allowes physicist to write production codes without advanced knowledge of c++17 (i.e. without having to understand [[Low_level_implementation]])
+
+==Modules, classes, back end==
+
+[[Physics_modules]] are the highest level of organisation, the codes written using modules mimics mathematical formula and short descriptive english language. These modules utilize [[classes]] which sits at intermediate level, and these classes are themselves inherited from classes of [[back_end]] which are at lowest organisation level. 
+
+===Folder structure of SIMULATeQCD===
+
+The folder contains:
+	1. [[docs]]
+	2. [[docs_src]]
+	3. [[parameter]]
+	4. [[podman_build]]
+	5. [[scripts]]
+	6. [[src]]
+	7. [[test_conf]]
+	8. some files
+	
+*Applications*
+SIMULATeQCD has readymade executables also called as [[applications]], which can be used as starting pint for new code/project; since they have already been used extensively for prodcution in various physics objects. 
+
+
+
+[[Testing_and_Profiling]]
+SIMULATeQCD is constantly being expanded and improved by physicists working in multiple places of the code and it is utmost importance that physics results and modules remain stable under these changes. To help check and protect agains bugs the SIMULATeQCD has large suite of test as well as some profilers. The merging into main branch only happens after all executables compile and all test pass(merging is required when we want to contribute to the code). Changes to lower level of code requires no significant loss in performance, for which profilers are used. 
+Also when new feature is implemented, testing script is required to provide, testing strategy vary depending on feature to be implemented, but they include comparision to old code; comparision to analytic results; performing calculation in antoher independent way; a link by link check against trusted configurations.
+
+
