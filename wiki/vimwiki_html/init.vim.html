@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>init.vim</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        /* Optional: Add styling to the content if needed */
+        #content {
+            /* Example styling for the content */
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+
+
+
+<div id="init.vim"><h1 id="init.vim" class="header"><a href="#init.vim">init.vim</a></h1></div>
+
+<pre vim>
+
+" To add comments add one double quotes and a space:
+set ttyfast  " to fast scrolling of hjkl
+set wrap linebreak nolist
+set encoding=utf-8
+" set mouse=a
+set scrolloff=6
+set relativenumber
+" set tabstop=4
+" set shiftwidth=4
+set clipboard+=unnamedplus
+call plug#begin()
+"let me see 
+"to delete a Plug just delete it from here and call :PlugClean
+Plug 'https://github.com/vim-airline/vim-airline' 
+Plug 'nvim-lua/plenary.nvim' 
+" Plug 'makerj/vim-pdf' 
+Plug 'mhinz/vim-startify'
+"below two plug-in are for vim snippets, add the plugs, install the
+"plugs and then just install coc-snippets via :CocInstall coc-snippets 
+Plug 'SirVer/UltiSnips'
+Plug 'vimwiki/vimwiki'
+Plug 'honza/vim-snippets'
+Plug 'sheerun/vim-polyglot'
+Plug 'jbyuki/quickmath.nvim'
+Plug 'azabiong/vim-highlighter'
+Plug 'jiangmiao/auto-pairs'
+" Plug 'nvim-orgmode/orgmode'
+Plug 'nvim-neorg/neorg'
+"to change welcome screen of neovim
+" Plug 'https://github.com/nvimdev/dashboard-nvim'
+Plug 'junegunn/fzf', { 'do': { -&gt; fzf#install() } }
+Plug 'nvim-telescope/telescope.nvim' 
+Plug 'gpanders/vim-medieval'
+Plug 'https://github.com/BurntSushi/ripgrep' 
+Plug 'https://github.com/sharkdp/fd'
+Plug 'https://github.com/jiangmiao/auto-pairs'
+Plug 'https://github.com/preservim/nerdtree' "use PlugInstall if not installed, then use :NERDtree, :NERDTreefocus and enjoy
+Plug 'https://github.com/tpope/vim-commentary' " used to put comments via gcc
+Plug 'https://github.com/tpope/vim-surround' "used to see status
+Plug 'https://github.com/ap/vim-css-color' " CSS Color Preview
+Plug 'https://github.com/rafi/awesome-vim-colorschemes' " Retro Scheme
+Plug 'https://github.com/neoclide/coc.nvim'  " Auto Completion
+Plug 'https://github.com/preservim/tagbar' "press f8 to see
+Plug 'https://github.com/tc50cal/vim-terminal' " Vim Terminal
+" Plug 'https://github.com/terryma/vim-multiple-cursors' " CTRL + N for multiple cursors
+Plug 'morhetz/gruvbox'
+"above plugin are copied from NeuralNine youtube channel creator:
+"https://github.com/NeuralNine/config-files/blob/master/init.vim
+Plug 'https://github.com/kassio/neoterm'
+Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+" Add this line to your vimrc
+Plug 'https://github.com/lervag/vimtex' 
+Plug 'xuhdev/vim-latex-live-preview', { 'for': 'tex' }
+Plug 'duane9/nvim-rg' " it is dependency for live_grep. 
+Plug 'https://github.com/ryanoasis/vim-devicons' " Developer Icons: always load this plug in the end. 
+
+call plug#end()
+" let us define a keybinding to the vim commands written by me. 
+nnoremap &lt;leader&gt;h :e ~/phd_work/programs/vim/vim_commands.txt&lt;CR&gt;
+nnoremap &lt;leader&gt;sc :setlocal spell spelllang=en_us&lt;CR&gt;
+"below lines are added for cuda 
+au BufNewFile,BufRead *.cu set filetype=cuda
+au BufNewFile,BufRead *.cuh set filetype=cuda
+let mapleader=","
+" set my mapleader to ',' if you want to know more about mapleader enter :h mapleader in Vim
+inoremap jk &lt;Esc&gt;
+let file_type = &amp;filetype
+let filepath = expand('%:p')
+let filename = expand('%:t:r')
+
+if file_type == 'vim'
+nnoremap &lt;leader&gt;c :w&lt;CR&gt;:source $MYVIMRC&lt;CR&gt;
+elseif file_type == 'c'
+nnoremap &lt;leader&gt;c :w&lt;CR&gt;:!gcc &lt;C-R&gt;=filepath&lt;CR&gt; -o %:t:r &lt;CR&gt;:T bash&lt;CR&gt;&lt;CR&gt;i
+"&amp;&amp; time ./a.out&lt;CR&gt;
+elseif file_type == 'cpp'
+nnoremap &lt;leader&gt;c :w&lt;CR&gt;:!g++ &lt;C-R&gt;=filepath&lt;CR&gt; -o %:t:r &lt;CR&gt;:T bash&lt;CR&gt;&lt;CR&gt;i
+"&amp;&amp; time ./a.out&lt;CR&gt;
+elseif file_type == 'cuda'
+nnoremap &lt;leader&gt;c :w&lt;CR&gt;:!nvcc &lt;C-R&gt;=filepath&lt;CR&gt; -o %:t:r &lt;CR&gt;:T bash&lt;CR&gt;&lt;CR&gt;i
+"&amp;&amp; time ./a.out&lt;CR&gt;
+elseif file_type == 'python'
+nnoremap &lt;leader&gt;c :w&lt;CR&gt;:!python &lt;C-R&gt;=filepath&lt;CR&gt;&lt;CR&gt;i:T bash&lt;CR&gt;&lt;CR&gt;i
+endif
+"it turns out that to quickly open files we shall not execute init.vim each
+"time, so I am calling the sourcing of init.vim only when we want to
+"execute the code. 
+
+" autocmd BufEnter *.c,*.cpp,*.cu,*.py if file_type ==# 'c' || file_type ==# 'cpp' || file_type ==# 'cuda' || file_type ==# 'python' | source $MYVIMRC | endif
+" 
+" The above commented auto reload did not work, it was 
+"
+" Your other custom mappings and configurations
+"
+
+" Autocommand to reload the configuration when a new buffer is loaded
+" Auto-reload Vim configuration when switching between specific filetypes
+
+" Other settings and configurations
+
+
+"&lt;CR&gt; is used to press enter
+" &lt;C-R&gt;= is used to insert the value of an expression. In this case, it's used to insert the value of g:current_file.
+
+
+" please don't put space after the &lt;esc&gt; keyword above # to enter into normal mode just press jk in insert mode. 
+" to run the cuda program after editing, just write the 'Rc' short for goto
+" normal mode and run cuda.
+"
+"
+" hi Normal ctermbg=16
+set t_Co=256
+" the above command is equivalent to ctrl+t to toggle NERDtree. 
+nnoremap &lt;C-f&gt; :NERDTreeFocus&lt;CR&gt;
+nnoremap &lt;C-n&gt; :NERDTree&lt;CR&gt;
+nnoremap &lt;C-t&gt; :NERDTreeToggle&lt;CR&gt;
+" leader means "\" 
+
+
+" I use below configuration for open and edit and reload my dot vimrc file:
+
+
+nnoremap &lt;leader&gt;fg &lt;cmd&gt;Telescope live_grep&lt;cr&gt;
+nnoremap &lt;leader&gt;ft :Telescope find_files&lt;CR&gt;
+nnoremap &lt;leader&gt;fzf :FZF&lt;CR&gt;
+" nnoremap &lt;leader&gt;tz :TerminalVSplit zsh&lt;CR&gt;&lt;CR&gt;
+"I am not using telescope for the moment and have setting fuzzyfinder which
+"is triggered by keys 'fzf' in normal mode. you can uncomment telescope
+"command to use that too. 
+" nnoremap &lt;leader&gt;tv :TerminalVSplit bash&lt;CR&gt;&lt;CR&gt;
+" nnoremap &lt;leader&gt;t  :T bash&lt;CR&gt;&lt;CR&gt;i
+" nnoremap &lt;leader&gt;th :TerminalSplit bash&lt;CR&gt;&lt;CR&gt;
+nnoremap &lt;leader&gt;z :suspend&lt;CR&gt; 
+nnoremap &lt;leader&gt;ff :NERDTreeToggle&lt;CR&gt;
+nnoremap &lt;leader&gt;nt :NERDTree&lt;CR&gt;
+nnoremap &lt;leader&gt;vm :vsp $MYVIMRC&lt;CR&gt;
+" Open my vimrc file in vertical tab whenever I pressed ,vm
+nnoremap &lt;leader&gt;sv :w&lt;CR&gt;:source $MYVIMRC&lt;CR&gt;
+tnoremap &lt;leader&gt;q &lt;C-\&gt;&lt;C-d&gt;
+" Reload my vimrc file whenever I pressed ,sv and we will go to normal mode,
+" then source our vim file, and get back to insert mode.
+nnoremap &lt;leader&gt;ss :w!&lt;CR&gt;   
+" Save my current file with ,w instead of typing :w every time.
+nnoremap&lt;leader&gt;q :q!&lt;CR&gt;
+" to quit my file with ,q rather than with :q
+nnoremap&lt;leader&gt;wq :wq!&lt;CR&gt;
+" to save and quit the current fiile with ,wq rather than with :wq 
+" 3&lt;leader&gt;tl will clear neoterm-3, use comma and tl to get terminal, insert
+" commands and once done, hit exit enter,
+" one alternative to use terminal after code is to use ctrl+z or set
+" keybinding to ctrl+z to pause vim and play in terminal and use fg+enter to
+" get back to where we were in vim.
+" let NERDTreeShowHidden=1
+"To toggle between hidden files, use shift+i for the nerdtree. 
+"
+"the above command is set to show the hidden items of the directory
+" :source $MYVIMRC
+"
+"
+" let g:python3_host_prog = '/usr/bin/python'
+" let g:python3_host_prog = '/Users/vishalrao/.pyenv/versions/3.9.10/bin/python3'
+" uncomment the upper line for use in macOS.
+
+let g:loaded_ruby_provider = 0
+"
+"
+set background =dark
+" :colorscheme PaperColor
+" :colorscheme deus 
+" :colorscheme nord 
+" :colorscheme hybrid_material 
+" :colorscheme molokayo 
+" :colorscheme molokai  
+" :colorscheme happy_hacking 
+" :colorscheme materialbox 
+" :colorscheme gotham 
+:colorscheme gruvbox
+
+" let g:NERDTreeDirArrowExpandable="+"
+" let g:NERDTreeDirArrowCollapsible="~"
+nnoremap &lt;C-l&gt; :call CocActionAsync('jumpDefinition')&lt;CR&gt;
+
+nmap &lt;F8&gt; :TagbarToggle&lt;CR&gt;
+:set completeopt-=preview " For No Previews
+let g:airline_powerline_fonts = 1
+
+if !exists('g:airline_symbols')
+    let g:airline_symbols = {}
+endif
+" airline symbols
+ let g:airline_left_sep = ''
+ let g:airline_left_alt_sep = ''
+ let g:airline_right_sep = ''
+ let g:airline_right_alt_sep = ''
+ let g:airline_symbols.branch = ''
+ let g:airline_symbols.readonly = ''
+ let g:airline_symbols.linenr = ''
+
+"inoremap &lt;expr&gt; &lt;Tab&gt; pumvisible() ? coc#_select_confirm() : "&lt;Tab&gt;
+
+
+" visit this url to learn about all plugins https://vimawesome.com/plugin/surround-vim
+"  to cornto normal mode just press jj in insert mode.  ect the colorscnto normal mode just press jj in insert mode.   eme colors i am pasting below the code
+"
+"************************************LATEX SECTION OF init.vim***************************************
+" Define a keybinding to open the snippets folder
+nnoremap &lt;leader&gt;sp :e ~/.local/share/nvim/plugged/vim-snippets/snippets&lt;CR&gt;
+
+nnoremap &lt;leader&gt;up :e ~/.local/share/nvim/plugged/vim-snippets/UltiSnips&lt;CR&gt;
+nnoremap &lt;leader&gt;uu :UltiSnipsEdit&lt;CR&gt;
+nnoremap &lt;leader&gt;p :LLPStartPreview &lt;CR&gt;
+" This is necessary for VimTeX to load properly. The indent is optional.
+" Note that most plugin managers will do this automatically.
+filetype plugin indent on
+
+let g:vimtex_view_method = 'zathura'
+" This enables Vim's and neovim's syntax-related features. Without this, some
+" VimTeX features will not work (see :help vimtex-requirements" for more
+" info).
+syntax enable
+
+" Viewer options: One may configure the viewer either by specifying a built-in
+" viewer method:
+
+let g:vimtex_view_general_viewer = 'evince'
+let g:vimtex_view_general_options = '--unique file:@pdf\#src:@line@tex'
+
+" VimTeX uses latexmk as the default compiler backend. If you use it, which is
+" strongly recommended, you probably don't need to configure anything. If you
+" want another compiler backend, you can change it as follows. The list of
+" supported backends and further explanation is provided in the documentation,
+" see :help vimtex-compiler".
+let g:vimtex_compiler_method = 'latexrun'
+
+
+" Most VimTeX mappings rely on localleader and this can be changed with the
+" following line. The default is usually fine and is the symbol \.
+let maplocalleader = ","
+
+" let g:livepreview_cursorhold_recompile = 0
+autocmd Filetype tex setl updatetime=1
+let g:livepreview_previewer = 'evince'
+
+
+" ***********************************COC.NVIM******************************
+
+" May need for Vim (not Neovim) since coc.nvim calculates byte offset by count
+" utf-8 byte sequence
+set encoding=utf-8
+" Some servers have issues with backup files, see #649
+set nobackup
+set nowritebackup
+
+" Having longer updatetime (default is 4000 ms = 4s) leads to noticeable
+" delays and poor user experience
+set updatetime=300
+
+" Always show the signcolumn, otherwise it would shift the text each time
+" diagnostics appear/become resolved
+set signcolumn=yes
+
+" Use tab for trigger completion with characters ahead and navigate
+" NOTE: There's always complete item selected by default, you may want to enable
+" no select by `"suggest.noselect": true` in your configuration file
+" NOTE: Use command ':verbose imap &lt;tab&gt;' to make sure tab is not mapped by
+" other plugin before putting this into your config
+inoremap &lt;silent&gt;&lt;expr&gt; &lt;TAB&gt;
+      \ coc#pum#visible() ? coc#pum#next(1) :
+      \ CheckBackspace() ? "\&lt;Tab&gt;" :
+      \ coc#refresh()
+inoremap &lt;expr&gt;&lt;S-TAB&gt; coc#pum#visible() ? coc#pum#prev(1) : "\&lt;C-h&gt;"
+" Make &lt;CR&gt; to accept selected completion item or notify coc.nvim to format
+" &lt;C-g&gt;u breaks current undo, please make your own choice
+inoremap &lt;silent&gt;&lt;expr&gt; &lt;CR&gt; coc#pum#visible() ? coc#pum#confirm()
+                              \: "\&lt;C-g&gt;u\&lt;CR&gt;\&lt;c-r&gt;=coc#on_enter()\&lt;CR&gt;"
+
+function! CheckBackspace() abort
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~# '\s'
+endfunction
+
+" Use &lt;c-space&gt; to trigger completion
+if has('nvim')
+  inoremap &lt;silent&gt;&lt;expr&gt; &lt;c-space&gt; coc#refresh()
+else
+  inoremap &lt;silent&gt;&lt;expr&gt; &lt;c-@&gt; coc#refresh()
+endif
+
+" Use `[g` and `]g` to navigate diagnostics
+" Use `:CocDiagnostics` to get all diagnostics of current buffer in location list
+nmap &lt;silent&gt; [g &lt;Plug&gt;(coc-diagnostic-prev)
+nmap &lt;silent&gt; ]g &lt;Plug&gt;(coc-diagnostic-next)
+
+" GoTo code navigation
+nmap &lt;silent&gt; gd &lt;Plug&gt;(coc-definition)
+nmap &lt;silent&gt; gy &lt;Plug&gt;(coc-type-definition)
+nmap &lt;silent&gt; gi &lt;Plug&gt;(coc-implementation)
+nmap &lt;silent&gt; gr &lt;Plug&gt;(coc-references)
+
+" Use K to show documentation in preview window
+nnoremap &lt;silent&gt; K :call ShowDocumentation()&lt;CR&gt;
+
+function! ShowDocumentation()
+  if CocAction('hasProvider', 'hover')
+    call CocActionAsync('doHover')
+  else
+    call feedkeys('K', 'in')
+  endif
+endfunction
+
+" Highlight the symbol and its references when holding the cursor
+"autocmd CursorHold * silent call CocActionAsync('highlight')
+
+" Symbol renaming
+nmap &lt;leader&gt;rn &lt;Plug&gt;(coc-rename)
+
+" Formatting selected code
+xmap &lt;leader&gt;f  &lt;Plug&gt;(coc-format-selected)
+nmap &lt;leader&gt;f  &lt;Plug&gt;(coc-format-selected)
+
+augroup mygroup
+  autocmd!
+  " Setup formatexpr specified filetype(s)
+  autocmd FileType typescript,json setl formatexpr=CocAction('formatSelected')
+  " Update signature help on jump placeholder
+  autocmd User CocJumpPlaceholder call CocActionAsync('showSignatureHelp')
+augroup end
+
+" Applying code actions to the selected code block
+" Example: `&lt;leader&gt;aap` for current paragraph
+xmap &lt;leader&gt;a  &lt;Plug&gt;(coc-codeaction-selected)
+nmap &lt;leader&gt;a  &lt;Plug&gt;(coc-codeaction-selected)
+
+" Remap keys for applying code actions at the cursor position
+nmap &lt;leader&gt;ac  &lt;Plug&gt;(coc-codeaction-cursor)
+" Remap keys for apply code actions affect whole buffer
+nmap &lt;leader&gt;as  &lt;Plug&gt;(coc-codeaction-source)
+" Apply the most preferred quickfix action to fix diagnostic on the current line
+nmap &lt;leader&gt;xf  &lt;Plug&gt;(coc-fix-current)
+
+" Remap keys for applying refactor code actions
+nmap &lt;silent&gt; &lt;leader&gt;re &lt;Plug&gt;(coc-codeaction-refactor)
+xmap &lt;silent&gt; &lt;leader&gt;r  &lt;Plug&gt;(coc-codeaction-refactor-selected)
+nmap &lt;silent&gt; &lt;leader&gt;r  &lt;Plug&gt;(coc-codeaction-refactor-selected)
+
+" Run the Code Lens action on the current line
+nmap &lt;leader&gt;rl  &lt;Plug&gt;(coc-codelens-action)
+
+" Map function and class text objects
+" NOTE: Requires 'textDocument.documentSymbol' support from the language server
+xmap if &lt;Plug&gt;(coc-funcobj-i)
+omap if &lt;Plug&gt;(coc-funcobj-i)
+xmap af &lt;Plug&gt;(coc-funcobj-a)
+omap af &lt;Plug&gt;(coc-funcobj-a)
+xmap ic &lt;Plug&gt;(coc-classobj-i)
+omap ic &lt;Plug&gt;(coc-classobj-i)
+xmap ac &lt;Plug&gt;(coc-classobj-a)
+omap ac &lt;Plug&gt;(coc-classobj-a)
+
+" Remap &lt;C-f&gt; and &lt;C-b&gt; to scroll float windows/popups
+if has('nvim-0.4.0') || has('patch-8.2.0750')
+  nnoremap &lt;silent&gt;&lt;nowait&gt;&lt;expr&gt; &lt;C-f&gt; coc#float#has_scroll() ? coc#float#scroll(1) : "\&lt;C-f&gt;"
+  nnoremap &lt;silent&gt;&lt;nowait&gt;&lt;expr&gt; &lt;C-b&gt; coc#float#has_scroll() ? coc#float#scroll(0) : "\&lt;C-b&gt;"
+  inoremap &lt;silent&gt;&lt;nowait&gt;&lt;expr&gt; &lt;C-f&gt; coc#float#has_scroll() ? "\&lt;c-r&gt;=coc#float#scroll(1)\&lt;cr&gt;" : "\&lt;Right&gt;"
+  inoremap &lt;silent&gt;&lt;nowait&gt;&lt;expr&gt; &lt;C-b&gt; coc#float#has_scroll() ? "\&lt;c-r&gt;=coc#float#scroll(0)\&lt;cr&gt;" : "\&lt;Left&gt;"
+  vnoremap &lt;silent&gt;&lt;nowait&gt;&lt;expr&gt; &lt;C-f&gt; coc#float#has_scroll() ? coc#float#scroll(1) : "\&lt;C-f&gt;"
+  vnoremap &lt;silent&gt;&lt;nowait&gt;&lt;expr&gt; &lt;C-b&gt; coc#float#has_scroll() ? coc#float#scroll(0) : "\&lt;C-b&gt;"
+endif
+
+" Use CTRL-S for selections ranges
+" Requires 'textDocument/selectionRange' support of language server
+nmap &lt;silent&gt; &lt;C-s&gt; &lt;Plug&gt;(coc-range-select)
+xmap &lt;silent&gt; &lt;C-s&gt; &lt;Plug&gt;(coc-range-select)
+
+" Add `:Format` command to format current buffer
+command! -nargs=0 Format :call CocActionAsync('format')
+
+" Add `:Fold` command to fold current buffer
+command! -nargs=? Fold :call     CocAction('fold', &lt;f-args&gt;)
+
+" Add `:OR` command for organize imports of the current buffer
+command! -nargs=0 OR   :call     CocActionAsync('runCommand', 'editor.action.organizeImport')
+
+" Add (Neo)Vim's native statusline support
+" NOTE: Please see `:h coc-status` for integrations with external plugins that
+" provide custom statusline: lightline.vim, vim-airline
+set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
+
+" Mappings for CoCList
+" Show all diagnostics
+nnoremap &lt;silent&gt;&lt;nowait&gt; &lt;space&gt;a  :&lt;C-u&gt;CocList diagnostics&lt;cr&gt;
+" Manage extensions
+nnoremap &lt;silent&gt;&lt;nowait&gt; &lt;space&gt;e  :&lt;C-u&gt;CocList extensions&lt;cr&gt;
+" Show commands
+nnoremap &lt;silent&gt;&lt;nowait&gt; &lt;space&gt;c  :&lt;C-u&gt;CocList commands&lt;cr&gt;
+" Find symbol of current document
+nnoremap &lt;silent&gt;&lt;nowait&gt; &lt;space&gt;o  :&lt;C-u&gt;CocList outline&lt;cr&gt;
+" Search workspace symbols
+nnoremap &lt;silent&gt;&lt;nowait&gt; &lt;space&gt;s  :&lt;C-u&gt;CocList -I symbols&lt;cr&gt;
+" Do default action for next item
+nnoremap &lt;silent&gt;&lt;nowait&gt; &lt;space&gt;j  :&lt;C-u&gt;CocNext&lt;CR&gt;
+" Do default action for previous item
+nnoremap &lt;silent&gt;&lt;nowait&gt; &lt;space&gt;k  :&lt;C-u&gt;CocPrev&lt;CR&gt;
+" Resume latest coc list
+nnoremap &lt;silent&gt;&lt;nowait&gt; &lt;space&gt;p  :&lt;C-u&gt;CocListResume&lt;CR&gt;
+
+
+
+"******************VIM-SNIPPETS and UltiSnips**************
+" For example, I use the following configuration:
+" let g:UltiSnipsSnippetDirectories = ['~/.local/share/nvim/plugged/vim-snippets/UltiSnips', '~/.local/share/nvim/plugged/vim-snippets/snippets']
+
+
+"I tried to trigger the placeholder back and forth but seems like the only
+"default one are working which are ctrl+j and ctrl+k. 
+
+
+
+augroup AutoSaveTeX
+  autocmd!
+  autocmd BufEnter,BufLeave *.tex,*.bib silent! wall
+augroup END
+
+
+" **********for vimwiki ************
+" au filetype vimwiki silent! iunmap &lt;buffer&gt; &lt;Tab&gt;
+let g:vimwiki_listsyms = '✗○◐●✓'
+" wimwiki always save it automatically, no need to put these.
+" Enable auto-saving
+" autocmd BufWinEnter *.wiki :set autowrite
+" autocmd BufWritePost *.wiki :wa
+" Auto-save every 5 minutes (adjust the time to your preference)
+" autocmd CursorHold,CursorHoldI *.wiki :wa
+"
+
+" let g:vimwiki_list = [wiki1,wiki2]
+" use &lt;leader&gt;ws to select the wiki.I am just going to make one wiki. 
+let vimwiki={'path': '~/phd_work/notes/vimwiki/','path_html': '~/vishalrao009.github.io/wiki/vimwiki_html/', 'syntax': 'default', 'ext': '.wiki', 'html_header':'~/vishalrao009.github.io/wiki/vimwiki_html/header.html', 'html_footer':'~/vishalrao009.github.io/wiki/vimwiki_html/footer.html','template_path': '~/vishalrao009.github.io/wiki/templates/','template_default': 'default_colored','template_ext': '.html'}
+
+let SIMULATeQCD={'path': '~/phd_work/notes/SIMULATeQCD/docs/','path_html': '~/vishalrao009.github.io/wiki/SIMULATeQCD_html/', 'syntax': 'default', 'ext': '.wiki', 'html_header':'~/vishalrao009.github.io/wiki/SIMULATeQCD_html/header.html', 'html_footer':'~/vishalrao009.github.io/wiki/SIMULATeQCD_html/footer.html','template_path':'~/vishalrao009.github.io/wiki/templates','template_default':'default_colored','template_ext':'.html'}
+
+let obsidian={'path': '~/obsidian/', 'path_html': '~/vishalrao009.github.io/wiki/obsidian_html/','syntax': 'default', 'ext': '.wiki', 'html_header':'~/vishalrao009.github.io/wiki/obsidian_html/header.html', 'html_footer':'~/vishalrao009.github.io/wiki/obsidian_html/footer.html','template_path':'~/vishalrao009.github.io/wiki/templates','template_default':'default_colored','template_ext':'.html'}
+
+let vimwiki.nested_syntaxes = {'python': 'python', 'c++': 'cpp'}
+let g:vimwiki_list=[vimwiki,SIMULATeQCD,obsidian]
+
+"use &lt;leader&gt;ws to select from multiple wiki 
+" let g:vimwiki_html_header = '~/phd_work/notes/vimwiki_html'
+" let g:vimwiki_html_footer = '~/phd_work/notes/vimwiki_html'
+nnoremap &lt;leader&gt;w1 :VimwikiIndex&lt;CR&gt; 
+nnoremap &lt;leader&gt;w2 :VimwikiIndex 2&lt;CR&gt;
+nnoremap &lt;leader&gt;w3 :VimwikiIndex 3&lt;CR&gt;
+"use :h :VimwikiIndex for above commands.
+" Vimwiki Header Colors
+
+
+" hi VimwikiHeader1 guifg=#FF0000
+" hi VimwikiHeader2 guifg=#00FF00
+" hi VimwikiHeader3 guifg=#0000FF
+" hi VimwikiHeader4 guifg=#FF00FF
+" hi VimwikiHeader5 guifg=#00FFFF
+" hi VimwikiHeader6 guifg=#FFFF00
+
+" hi link VimwikiHeader1 pandocBlockQuoteLeader1
+" hi link VimwikiHeader2 pandocBlockQuoteLeader2
+" hi link VimwikiHeader3 pandocBlockQuoteLeader3
+" hi link VimwikiHeader4 pandocBlockQuoteLeader4
+" hi link VimwikiHeader5 pandocBlockQuoteLeader5
+" hi link VimwikiHeader6 pandocBlockQuoteLeader6
+
+" au BufEnter *.wiki :syntax sync fromstart
+au filetype vimwiki silent! iunmap &lt;buffer&gt; &lt;cr&gt;
+" au filetype vimwiki silent! iunmap &lt;buffer&gt; &lt;tab&gt;
+" nnoremap &lt;leader&gt;ut :au filetype vimwiki silent! iunmap &lt;buffer&gt;
+"above command will remove the auto creation of bullets and todo and other
+"task in vimwiki
+nnoremap &lt;leader&gt;ch :noh&lt;CR&gt;
+nnoremap &lt;leader&gt;oh :Vimwiki2HTML&lt;CR&gt;
+nnoremap &lt;leader&gt;ah :VimwikiAll2HTML&lt;CR&gt;
+let g:vimwiki_current_file = expand('%:t:r')
+nnoremap &lt;leader&gt;ht :w&lt;CR&gt;:source $MYVIMRC&lt;CR&gt;:e ~/vishalrao009.github.io/wiki/vimwiki_html/&lt;C-R&gt;=g:vimwiki_current_file&lt;CR&gt;.html&lt;CR&gt;
+nnoremap &lt;leader&gt;wk :w&lt;CR&gt;:source $MYVIMRC&lt;CR&gt;:e ~/vishalrao009.github.io/wiki/vimwiki/&lt;C-R&gt;=g:vimwiki_current_file&lt;CR&gt;.wiki&lt;CR&gt;
+
+" shortcut for creating tabs in neovim
+nnoremap &lt;leader&gt;nt :tabnew&lt;CR&gt;
+nnoremap &lt;leader&gt;ct :tabclose&lt;CR&gt;
+nnoremap &lt;leader&gt;l :tabnext&lt;CR&gt;
+nnoremap &lt;leader&gt;hh :tabprevious&lt;CR&gt;
+"set ultisnips: see documentation here (:h coc-snippets) 
+" let g:coc_snippet_next="&lt;tab&gt;"                                            
+" let g:coc_snippet_previous="&lt;s-tab&gt;"
+" " au FileType vimwiki syntax enable
+
+function! InsideMathZone()
+  for id in synstack(line("."), col("."))
+    if synIDattr(id, "name") == "textSnipTEX" || synIDattr(id,"name")=="VimwikiMath"
+      return 1
+    endif
+  endfor
+  return 0
+endfunction
+
+nnoremap &lt;F1&gt; &lt;Cmd&gt;echo synIDattr(synID(line("."), col("."), 1), "name")&lt;CR&gt;
+
+"mapping ctags
+nnoremap &lt;leader&gt;j &lt;C-]&gt;
+nnoremap &lt;leader&gt;b &lt;C-T&gt;
+let g:medieval_langs = ['python=python3', 'ruby', 'cpp',  'sh', 'console=bash']
+
+" Set ultisnips triggers
+let g:UltiSnipsExpandTrigger="&lt;tab&gt;"                                            
+let g:UltiSnipsJumpForwardTrigger="&lt;tab&gt;"                                       
+let g:UltiSnipsJumpBackwardTrigger="&lt;s-tab&gt;"    
+let g:vimwiki_use_calendar=1
+
+"for vim-highlighter Default key mappings: f Enter, f Backspace, f Ctrl+L, f Tab and t Enter
+let HiSet   = 'f&lt;CR&gt;'
+let HiErase = 'f&lt;BS&gt;'
+let HiClear = 'f&lt;C-L&gt;'
+let HiFind  = 'f&lt;Tab&gt;'
+let HiSetSL = 't&lt;CR&gt;'
+autocmd VimEnter * normal! zz
+nnoremap &lt;leader&gt;dm :set background=dark&lt;CR&gt;:colorscheme gruvbox&lt;CR&gt;
+nnoremap &lt;leader&gt;nm :set background=light&lt;CR&gt;:colorscheme morning&lt;CR&gt;
+"to remove the relative numbers 
+nnoremap &lt;leader&gt;no :set mouse=i&lt;CR&gt;:setlocal nonumber norelativenumber&lt;CR&gt;
+
+" Set bold and colored highlight for vimwikiHeader1
+highlight vimwikiHeader1 ctermfg=red cterm=bold
+
+" Set bold and colored highlight for vimwikiHeader2
+highlight vimwikiHeader2 ctermfg=green cterm=bold
+
+" Set bold and colored highlight for vimwikiHeader3
+highlight vimwikiHeader3 ctermfg=blue cterm=bold
+
+" Set bold and colored highlight for vimwikiHeader4
+highlight vimwikiHeader4 ctermfg=yellow cterm=bold
+
+" Set bold and colored highlight for vimwikiHeader5
+highlight vimwikiHeader5 ctermfg=magenta cterm=bold
+
+" Set bold and colored highlight for vimwikiHeader6
+highlight vimwikiHeader6 ctermfg=cyan cterm=bold
+
+
+
+
+</pre>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+
