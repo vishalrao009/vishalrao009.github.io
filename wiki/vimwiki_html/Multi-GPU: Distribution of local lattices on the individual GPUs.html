@@ -55,21 +55,21 @@ Multi-GPU: Distribution of local lattices on the individual GPUs
 
 </ul>
 <p>
-To work with multiple devices, SIMULATeQCD splits a lattice into multiple
-sublattices, with partitioning possible along any of the four Euclidean
-space-time directions. Each sublattice is given to a single GPU. In addition to
-holding a field restricted to that sublattice, which we call the bulk,
-the GPU holds a copy of that field from the borders of the neighboring
-sublattices--we call these copies the halo. A schematic drawing
-of the exchange of halos between different GPUs is shown below.
+To work with multiple devices, SIMULATeQCD splits a lattice into multiple<br />
+sublattices, with partitioning possible along any of the four Euclidean<br />
+space-time directions. Each sublattice is given to a single GPU. In addition to<br />
+holding a field restricted to that sublattice, which we call the bulk,<br />
+the GPU holds a copy of that field from the borders of the neighboring<br />
+sublattices--we call these copies the halo. A schematic drawing<br />
+of the exchange of halos between different GPUs is shown below.<br />
 </p>
 
 <p>
-<img src="../../../phd_work/notes/images/haloStructure.png" />
+<img src="../../../phd_work/notes/images/haloStructure.png" /><br />
 </p>
 
 <p>
-If we consider a lattice of size <code>Nx*Ny*Nz*Nt</code>, each GPU has a local Lattice of size
+If we consider a lattice of size <code>Nx*Ny*Nz*Nt</code>, each GPU has a local Lattice of size<br />
 </p>
 
 <pre cpp>
@@ -77,10 +77,10 @@ If we consider a lattice of size <code>Nx*Ny*Nz*Nt</code>, each GPU has a local 
 </pre>
 
 <p>
-where <code>N_sub = N/Cores_i</code> with <code>i=x,y,z,t</code>.
-For example if we have a lattice of size \(32^3\times 8\) and we split the lattice in x direction with
-<code>halo_depth=1</code>, both GPU's will have a local lattice size of \(18\times 34\times 34\times 10\).
-This can be accomplished with:
+where <code>N_sub = N/Cores_i</code> with <code>i=x,y,z,t</code>.<br />
+For example if we have a lattice of size \(32^3\times 8\) and we split the lattice in x direction with<br />
+<code>halo_depth=1</code>, both GPU's will have a local lattice size of \(18\times 34\times 34\times 10\).<br />
+This can be accomplished with:<br />
 </p>
 
 <pre cpp>
@@ -89,7 +89,7 @@ const int NodeDim[] = {2, 1, 1, 1};
 </pre>
 
 <p>
-When using P2P, for a lattice with size e.g. \(120^3 \times 30\), it is best (=lowest overall memory consumption) to split the lattice like this:
+When using P2P, for a lattice with size e.g. \(120^3 \times 30\), it is best (=lowest overall memory consumption) to split the lattice like this:<br />
 </p>
 
 <ol>

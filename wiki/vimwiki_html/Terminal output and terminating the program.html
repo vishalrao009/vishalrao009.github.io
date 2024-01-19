@@ -50,15 +50,15 @@
 <div id="Terminal output &amp; terminating the program"><h1 id="Terminal output &amp; terminating the program" class="header"><a href="#Terminal output &amp; terminating the program">Terminal output &amp; terminating the program</a></h1></div>
 
 <p>
-Instead of using <code>printf</code> or <code>std::cout</code>, we use a custom <code>Logger</code> class to print statements in a nicely formatted way.
-There are two global instances of the class <code>Logger</code> that are automatically created when you include files of the base that include <code>logging.h</code>. (This is automatically included in <code>SIMULATeQCD.h</code>.)
-These two classes are called <code>stdLogger</code> and <code>rootLogger</code>.
+Instead of using <code>printf</code> or <code>std::cout</code>, we use a custom <code>Logger</code> class to print statements in a nicely formatted way.<br />
+There are two global instances of the class <code>Logger</code> that are automatically created when you include files of the base that include <code>logging.h</code>. (This is automatically included in <code>SIMULATeQCD.h</code>.)<br />
+These two classes are called <code>stdLogger</code> and <code>rootLogger</code>.<br />
 </p>
 
 <div id="Terminal output &amp; terminating the program-Printing a statement"><h2 id="Printing a statement" class="header justcenter"><a href="#Terminal output &amp; terminating the program-Printing a statement">Printing a statement</a></h2></div>
 
 <p>
-This is accomplished through
+This is accomplished through<br />
 </p>
 <pre cpp>
 
@@ -66,35 +66,35 @@ rootLogger.info("Some information about the currently running program.");
 </pre>
 
 <p>
-This will output the statement *<span id="Terminal output &amp; terminating the program-Printing a statement-on the root process only"></span><strong id="on the root process only">on the root process only</strong>* in a nicely formatted way with time stamp and also append a newline (no more <code>std::endl</code> or \n's that clutter the code).
-If you want to output something from every process you can use <code>stdLogger</code>.
+This will output the statement *<span id="Terminal output &amp; terminating the program-Printing a statement-on the root process only"></span><strong id="on the root process only">on the root process only</strong>* in a nicely formatted way with time stamp and also append a newline (no more <code>std::endl</code> or \n's that clutter the code).<br />
+If you want to output something from every process you can use <code>stdLogger</code>.<br />
 </p>
 
 <p>
-These are some of the different Logger levels you can choose from:
+These are some of the different Logger levels you can choose from:<br />
 </p>
 <pre cpp>
 alloc(), debug(), info(), warn(), error(), fatal()
 </pre>
 <p>
-The output level can be set by calling
+The output level can be set by calling<br />
 </p>
 <pre cpp>
 rootLogger.setVerbosity(LOGLEVEL)
 </pre>
 <p>
-where <code>LOGLEVEL</code> must be one of these levels:
+where <code>LOGLEVEL</code> must be one of these levels:<br />
 </p>
 <pre cpp>
 ALL, ALLOC, TRACE, DEBUG, INFO, WARN, ERROR, FATAL, OFF
 </pre>
 <p>
-All levels to the left of the selected level are not printed.
+All levels to the left of the selected level are not printed.<br />
 </p>
 
 <p>
-For the message, you can pass *<span id="Terminal output &amp; terminating the program-Printing a statement-as many arguments of any type"></span><strong id="as many arguments of any type">as many arguments of any type</strong>* to it as you want as long as their stream operator <code>&lt;&lt;</code> is overloaded.
-For example:
+For the message, you can pass *<span id="Terminal output &amp; terminating the program-Printing a statement-as many arguments of any type"></span><strong id="as many arguments of any type">as many arguments of any type</strong>* to it as you want as long as their stream operator <code>&lt;&lt;</code> is overloaded.<br />
+For example:<br />
 </p>
 <pre cpp>
 int x = 5;
@@ -104,7 +104,7 @@ rootLogger.warn("This will work", x, msg, y, "and print just fine"));
 </pre>
 
 <p>
-The <code>stringFunctions.h</code> header offers additional convenience function, e.g.:
+The <code>stringFunctions.h</code> header offers additional convenience function, e.g.:<br />
 </p>
 
 <pre cpp>
@@ -123,16 +123,16 @@ std::string str2 = sjoin(a, " ", b, COLORS::red, " 123 ", COLORS::reset, c);
 <div id="Terminal output &amp; terminating the program-When to use Logger.error()"><h2 id="When to use Logger.error()" class="header justcenter"><a href="#Terminal output &amp; terminating the program-When to use Logger.error()">When to use Logger.error()</a></h2></div>
 
 <p>
-Use this when *<span id="Terminal output &amp; terminating the program-When to use Logger.error()-something goes wrong that can work in principle"></span><strong id="something goes wrong that can work in principle">something goes wrong that can work in principle</strong>* but the *<span id="Terminal output &amp; terminating the program-When to use Logger.error()-program can still continue"></span><strong id="program can still continue">program can still continue</strong>* and no runtime exception has to be thrown.
-For example, if one subroutine of a test gives the wrong results, but others after it may still be correct,
-it makes sense to use <code>error</code>.
+Use this when *<span id="Terminal output &amp; terminating the program-When to use Logger.error()-something goes wrong that can work in principle"></span><strong id="something goes wrong that can work in principle">something goes wrong that can work in principle</strong>* but the *<span id="Terminal output &amp; terminating the program-When to use Logger.error()-program can still continue"></span><strong id="program can still continue">program can still continue</strong>* and no runtime exception has to be thrown.<br />
+For example, if one subroutine of a test gives the wrong results, but others after it may still be correct,<br />
+it makes sense to use <code>error</code>.<br />
 </p>
 
 
 <div id="Terminal output &amp; terminating the program-Terminating the program in case of error"><h2 id="Terminating the program in case of error" class="header justcenter"><a href="#Terminal output &amp; terminating the program-Terminating the program in case of error">Terminating the program in case of error</a></h2></div>
 
 <p>
-The way to close your program at runtime because of an error is
+The way to close your program at runtime because of an error is<br />
 </p>
 
 <pre cpp>
@@ -140,8 +140,8 @@ throw std::runtime_error(stdLogger.fatal("Put", "your", "error message here"));
 </pre>
 
 <p>
-This will call rootLogger.fatal() and write out the error message, then <code>throw std::runtime_error</code>.
-In your main, you should use something like this to catch any runtime errors and close the program in a clean way:
+This will call rootLogger.fatal() and write out the error message, then <code>throw std::runtime_error</code>.<br />
+In your main, you should use something like this to catch any runtime errors and close the program in a clean way:<br />
 </p>
 <pre cpp>
 int main(int argc, char *argv[]) {
