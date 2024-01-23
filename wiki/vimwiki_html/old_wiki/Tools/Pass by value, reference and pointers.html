@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>Pass by value, reference and pointers</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+<div id="Pass by value, pass by reference, pass by pointers."><h1 id="Pass by value, pass by reference, pass by pointers." class="header"><a href="#Pass by value, pass by reference, pass by pointers.">Pass by value, pass by reference, pass by pointers.</a></h1></div>
+
+<div id="Pass by value, pass by reference, pass by pointers.-Pass by value"><h2 id="Pass by value" class="header"><a href="#Pass by value, pass by reference, pass by pointers.-Pass by value">Pass by value</a></h2></div>
+<ul>
+<li>
+By default c++ pass by value. i.e. values are copied to function parameters.
+
+<li>
+Pass by value just copies the data to parameter variable: look at code below
+<pre cpp>
+	#include&lt;iostream&gt;
+	void change_var(int a)
+	{
+	a++;
+	}
+	void main()
+	{
+	int x=20;
+	std::cout&lt;&lt;change_var(x)&lt;&lt;x; //here value 20 is copied in parameter a and is incremented. the changes will be only made in parameter 'a' and not in variable 'x', it will generate output as : 21 20
+	}
+</pre>
+
+</ul>
+<div id="Pass by value, pass by reference, pass by pointers.-Pass by reference"><h2 id="Pass by reference" class="header"><a href="#Pass by value, pass by reference, pass by pointers.-Pass by reference">Pass by reference</a></h2></div>
+<ul>
+<li>
+pass by reference will change the data globally just like pass by pointer.
+
+</ul>
+<li>
+have a look at code to understand.
+<pre cpp>
+	#include&lt;iostream&gt;
+	void change_var(int &amp;a) //here a is an reference to variable 'x'
+	{
+	a++;
+	}
+	void main()
+	{
+	int x=20;
+	std::cout&lt;&lt;change_var(x)&lt;&lt;x; //here value 20 is in x, and x is referenced by parameter/alias 'a'. the changes will be made in parameter 'a' and in variable 'x', it will generate output as : 21 21
+	}
+</pre>
+
+	
+
+<div id="Pass by value, pass by reference, pass by pointers.-Pass by pointers"><h2 id="Pass by pointers" class="header"><a href="#Pass by value, pass by reference, pass by pointers.-Pass by pointers">Pass by pointers</a></h2></div>
+
+<ul>
+<li>
+Pass by pointers will also change the data globally. It is suggested to use pass by reference over pointers.
+
+<li>
+have a look at the code:
+<pre cpp>
+	#include&lt;iostream&gt;
+	void change_var(int *a) //here a is an pointer to variable 'x' and a stores memory address of varialbe x. 
+	{
+		*a++; //we need to dereference the pointer to access its value. 'a' holds the address and *a has its value.
+	}
+	void main()
+	{
+	int x=20;
+	std::cout&lt;&lt;change_var(&amp;x)&lt;&lt;x; //here value 20 is in x, and x is referenced by parameter/alias 'a'. the changes will be made in parameter 'a' and in variable 'x', it will generate output as : 21 21
+	}
+</pre>
+
+</ul>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+

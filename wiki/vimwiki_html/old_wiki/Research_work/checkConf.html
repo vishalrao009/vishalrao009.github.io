@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>checkConf</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+<pre cpp>
+
+#include "../simulateqcd.h"
+
+struct CheckParams : LatticeParameters {
+    Parameter&lt;std::string&gt; prec;
+
+    CheckParams() {
+        addDefault(prec, "prec", std::string("double"));
+    }
+};
+
+template&lt;class floatT, bool onDevice, size_t HaloDepth, CompressionType comp=R18&gt;
+struct do_check_unitarity
+{
+    explicit do_check_unitarity(Gaugefield&lt;floatT,onDevice,HaloDepth,comp&gt; &amp;gauge) : gAcc(gauge.getAccessor()) {};
+    SU3Accessor&lt;floatT, comp&gt; gAcc;
+    __device__ __host__ floatT operator()(gSite site){
+        typedef GIndexer&lt;All,HaloDepth&gt; GInd;
+        floatT ret=0.0;
+        for (size_t mu = 0; mu &lt; 4; ++mu)
+        {
+            gSiteMu siteM = GInd::getSiteMu(site, mu);
+            ret += tr_d(gAcc.getLinkDagger(siteM)*gAcc.getLink(siteM));
+        }
+        return ret/4.0;
+    }
+};
+
+template &lt;class floatT, bool onDevice, size_t HaloDepth&gt;
+void check_unitarity(Gaugefield&lt;floatT,onDevice,HaloDepth&gt; &amp;gauge)
+{
+    LatticeContainer&lt;onDevice,floatT&gt; unitarity(gauge.getComm());
+    const size_t elems = GIndexer&lt;All,HaloDepth&gt;::getLatData().vol4;
+    unitarity.adjustSize(elems);
+    unitarity.template iterateOverBulk&lt;All, HaloDepth&gt;(do_check_unitarity&lt;floatT, onDevice, HaloDepth&gt;(gauge));
+    floatT unit_norm;
+    unitarity.reduce(unit_norm, elems);
+    unit_norm /= static_cast&lt;floatT&gt;(GIndexer&lt;All,HaloDepth&gt;::getLatData().globvol4);
+    rootLogger.info("Average unitarity norm &lt;Tr(U^+U)&gt;=" , std::fixed, std::setprecision(std::numeric_limits&lt;floatT&gt;::digits10 + 1),  unit_norm);
+    if (!isApproximatelyEqual(unit_norm, static_cast&lt;floatT&gt;(3.0))){
+        throw std::runtime_error(rootLogger.fatal("&lt;Tr(U^+U)&gt; != 3"));
+    }
+}
+
+template&lt;typename floatT, size_t HaloDepth&gt;
+void CheckConf(CommunicationBase &amp;commBase, const std::string&amp; format, std::string Gaugefile){
+    Gaugefield&lt;floatT, false, HaloDepth&gt; gauge(commBase);
+    /// Read in:
+    if (format == "nersc") {
+        gauge.readconf_nersc(Gaugefile);
+    } else if (format == "ildg") {
+        gauge.readconf_ildg(Gaugefile);
+    } else if (format == "milc") {
+        gauge.readconf_milc(Gaugefile); 
+    } else if (format == "openqcd") {
+        gauge.readconf_openqcd(Gaugefile);
+    } else {
+        throw (std::runtime_error(rootLogger.fatal("Invalid specification for format ", format)));
+    }
+    check_unitarity&lt;floatT,false,HaloDepth&gt;(gauge);
+
+    GaugeAction&lt;floatT, false, HaloDepth&gt; gaugeAction(gauge);
+    floatT plaq = gaugeAction.plaquette();
+    rootLogger.info("Plaquette = ", plaq);
+    if ( (plaq &gt; 1.0) || (plaq &lt; 0.0) ) {
+        throw std::runtime_error(rootLogger.fatal("Plaquette should not be negative or larger than 1."));
+    }
+}
+
+
+int main(int argc, char *argv[]) {
+
+    try {
+        stdLogger.setVerbosity(INFO);
+        const size_t HaloDepth = 0;
+
+        CheckParams param;
+        param.nodeDim.set({1,1,1,1});
+        CommunicationBase commBase(&amp;argc, &amp;argv);
+
+        param.readfile(commBase, "../parameter/applications/checkConf.param", argc, argv);
+
+        commBase.init(param.nodeDim());
+        initIndexer(HaloDepth, param, commBase);
+
+        if (param.prec() == "single"){
+            CheckConf&lt;float, HaloDepth&gt;(commBase, param.format(), param.GaugefileName());
+        } else if (param.prec() == "double") {
+            CheckConf&lt;double, HaloDepth&gt;(commBase, param.format(), param.GaugefileName());
+        } else {
+            throw (std::runtime_error(rootLogger.fatal("Invalid specification for prec ", param.prec())));
+        }
+
+    }
+    catch (const std::runtime_error &amp;error) {
+        return 1;
+    }
+    rootLogger.info("Gaugefile seems to be fine.");
+    return 0;
+}
+
+
+</pre>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+

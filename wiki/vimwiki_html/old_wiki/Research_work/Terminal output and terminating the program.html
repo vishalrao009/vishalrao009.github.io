@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>Terminal output and terminating the program</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+<div id="Terminal output &amp; terminating the program"><h1 id="Terminal output &amp; terminating the program" class="header"><a href="#Terminal output &amp; terminating the program">Terminal output &amp; terminating the program</a></h1></div>
+
+<p>
+Instead of using <code>printf</code> or <code>std::cout</code>, we use a custom <code>Logger</code> class to print statements in a nicely formatted way.<br />
+There are two global instances of the class <code>Logger</code> that are automatically created when you include files of the base that include <code>logging.h</code>. (This is automatically included in <code>SIMULATeQCD.h</code>.)<br />
+These two classes are called <code>stdLogger</code> and <code>rootLogger</code>.<br />
+</p>
+
+<div id="Terminal output &amp; terminating the program-Printing a statement"><h2 id="Printing a statement" class="header justcenter"><a href="#Terminal output &amp; terminating the program-Printing a statement">Printing a statement</a></h2></div>
+
+<p>
+This is accomplished through<br />
+</p>
+<pre cpp>
+
+rootLogger.info("Some information about the currently running program.");
+</pre>
+
+<p>
+This will output the statement *<span id="Terminal output &amp; terminating the program-Printing a statement-on the root process only"></span><strong id="on the root process only">on the root process only</strong>* in a nicely formatted way with time stamp and also append a newline (no more <code>std::endl</code> or \n's that clutter the code).<br />
+If you want to output something from every process you can use <code>stdLogger</code>.<br />
+</p>
+
+<p>
+These are some of the different Logger levels you can choose from:<br />
+</p>
+<pre cpp>
+alloc(), debug(), info(), warn(), error(), fatal()
+</pre>
+<p>
+The output level can be set by calling<br />
+</p>
+<pre cpp>
+rootLogger.setVerbosity(LOGLEVEL)
+</pre>
+<p>
+where <code>LOGLEVEL</code> must be one of these levels:<br />
+</p>
+<pre cpp>
+ALL, ALLOC, TRACE, DEBUG, INFO, WARN, ERROR, FATAL, OFF
+</pre>
+<p>
+All levels to the left of the selected level are not printed.<br />
+</p>
+
+<p>
+For the message, you can pass *<span id="Terminal output &amp; terminating the program-Printing a statement-as many arguments of any type"></span><strong id="as many arguments of any type">as many arguments of any type</strong>* to it as you want as long as their stream operator <code>&lt;&lt;</code> is overloaded.<br />
+For example:<br />
+</p>
+<pre cpp>
+int x = 5;
+float y = 10.2;
+std::string msg = "test";
+rootLogger.warn("This will work", x, msg, y, "and print just fine"));
+</pre>
+
+<p>
+The <code>stringFunctions.h</code> header offers additional convenience function, e.g.:<br />
+</p>
+
+<pre cpp>
+cpp
+int a = 2;
+double b = 0.00251;
+std::string c = "test";
+
+std::string str1 = sformat("%.3f, %g %s %.2e", 1.23, 0.001, c, b);
+std::string str2 = sjoin(a, " ", b, COLORS::red, " 123 ", COLORS::reset, c);
+// Result of str1 and str2 is:
+// str1 = "1.230, 0.001 test 2.51e-03"
+// str2 = "2 0.00251 123 test"
+</pre>
+
+<div id="Terminal output &amp; terminating the program-When to use Logger.error()"><h2 id="When to use Logger.error()" class="header justcenter"><a href="#Terminal output &amp; terminating the program-When to use Logger.error()">When to use Logger.error()</a></h2></div>
+
+<p>
+Use this when *<span id="Terminal output &amp; terminating the program-When to use Logger.error()-something goes wrong that can work in principle"></span><strong id="something goes wrong that can work in principle">something goes wrong that can work in principle</strong>* but the *<span id="Terminal output &amp; terminating the program-When to use Logger.error()-program can still continue"></span><strong id="program can still continue">program can still continue</strong>* and no runtime exception has to be thrown.<br />
+For example, if one subroutine of a test gives the wrong results, but others after it may still be correct,<br />
+it makes sense to use <code>error</code>.<br />
+</p>
+
+
+<div id="Terminal output &amp; terminating the program-Terminating the program in case of error"><h2 id="Terminating the program in case of error" class="header justcenter"><a href="#Terminal output &amp; terminating the program-Terminating the program in case of error">Terminating the program in case of error</a></h2></div>
+
+<p>
+The way to close your program at runtime because of an error is<br />
+</p>
+
+<pre cpp>
+throw std::runtime_error(stdLogger.fatal("Put", "your", "error message here"));
+</pre>
+
+<p>
+This will call rootLogger.fatal() and write out the error message, then <code>throw std::runtime_error</code>.<br />
+In your main, you should use something like this to catch any runtime errors and close the program in a clean way:<br />
+</p>
+<pre cpp>
+int main(int argc, char *argv[]) {
+    try {
+        &lt;CONTENT OF YOUR MAIN HERE&gt;
+    }
+    catch (const std::runtime_error &amp;error) {
+        return 1;
+    }
+    return 0;
+}
+
+</pre>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+
