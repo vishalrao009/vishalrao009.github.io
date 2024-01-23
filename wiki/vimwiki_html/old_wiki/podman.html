@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>podman</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+
+<div id="Containers"><h1 id="Containers" class="header"><a href="#Containers">Containers</a></h1></div>
+
+<p>
+There are two major Containers used, docker and podman. Docker however require root access, but podman does not. We can install any Operating system image using the command:<br />
+</p>
+<pre><code><code>docker/podman pull Os_image_name</code>
+</code></pre>
+
+<p>
+once it is installed, we will start the image by following command:<br />
+Running a container without mounting any directory:<br />
+</p>
+<pre><code><code>podman run -d -t --name rocky9.2 rockylinux/rockylinux:9.2</code>
+</code></pre>
+
+<p>
+here rocky9.2 can be any name you assign to image rockylinux:9.2<br />
+once it runs, we can see the processes using the command<br />
+</p>
+<pre><code><code>podman ps</code>
+</code></pre>
+<p>
+and run the command<br />
+<code>                                podman exec -it rocky9.2 bash </code><br />
+</p>
+
+<div id="Containers-Try the following commands"><h2 id="Try the following commands" class="header"><a href="#Containers-Try the following commands">Try the following commands</a></h2></div>
+<p>
+```<br />
+</p>
+
+<ol>
+<li>
+podman images (to see list of all pulled images)
+
+<li>
+podman stop rocky9.2  ( to stop the container from running )
+
+<li>
+podman start rocky9.2 ( to start it once again_)
+
+</ol>
+<p>
+```<br />
+</p>
+<div id="Containers-Mounting and unmounting"><h2 id="Mounting and unmounting" class="header justcenter"><a href="#Containers-Mounting and unmounting">Mounting and unmounting</a></h2></div>
+
+<p>
+To run a container with mounted host directories using Podman, you can use the <code>-v</code> or <code>--volume</code> option to create bind mounts. Bind mounts allow you to link directories on your host system to directories inside the container. Here's how you can do it:<br />
+</p>
+
+<p>
+```bash<br />
+podman run -it --name my-container -v /path/to/host/directory:/path/in/container IMAGE_NAME<br />
+```<br />
+</p>
+
+<ul>
+<li>
+<code>-it</code>: This runs the container in interactive mode with a terminal.
+
+<li>
+<code>--name my-container</code>: You can give the container a name of your choice.
+
+<li>
+<code>-v /path/to/host/directory:/path/in/container</code>: This is where the bind mount is defined. Replace <code>/path/to/host/directory</code> with the absolute path to the directory on your host system that you want to mount and <code>/path/in/container</code> with the path within the container where you want to mount it.
+
+<li>
+<code>IMAGE_NAME</code>: This is the name of the container image you want to run.
+
+</ul>
+<p>
+For example, if you want to mount a directory named <code>my_data</code> located in your home directory on the host to the <code>/data</code> directory in the container, you can run:<br />
+</p>
+
+<p>
+```bash<br />
+podman run -it --name my-container -v ~/my_data:/data my-image<br />
+```<br />
+</p>
+
+<p>
+Once the container is running with the bind mount, any changes made to the <code>/data</code> directory inside the container will be reflected in the <code>~/my_data</code> directory on your host system, and vice versa. This allows for easy sharing of files and data between the host and the container.<br />
+</p>
+
+
+
+
+
+
+<div id="Containers-:Tried:"><h2 id=":Tried:" class="header"><a href="#Containers-:Tried:"><span id="Containers-:Tried:-Tried"></span><span class="tag" id="Tried">Tried</span></a></h2></div>
+
+<p>
+Here I have installed rockylinux 9.2 image and made an container named as virat, I have mounted the /home/vishal of host to /home/vishal of container. <br />
+</p>
+
+<p>
+To exit form container, simply type "exit" and hit enter. <br />
+</p>
+
+<p>
+To enter again the intereactive bash shell to the container, simply use the alias created , just type "virat" and hit enter in command prompt. You can check it. <br />
+</p>
+
+<p>
+To unmount the directories, use : <code>podman stop rockybalboa</code><br />
+</p>
+
+<p>
+to restart, use : <code>podman start virat &amp;&amp; virat </code><br />
+</p>
+
+
+<p>
+To list all containers, use "podman ps -a", use <br />
+</p>
+<pre><code>
+<code>podman rm container_name.</code>
+</code></pre>
+
+<p>
+To remove the images: first we have to stop container <code>podman stop container_name</code> and then remove the container by <code>podman rm container_name</code>, and then only we can remove the images by <code>podman rmi image_name</code>. <br />
+</p>
+
+
+<ul>
+<li>
+Backup the container
+
+</ul>
+<p>
+<a href="https://medium.com/analytics-vidhya/backup-export-docker-image-easily-4f6970d225a6#:~:text=Backup%20the%20Container%20and%20Restore,used%20to%20launch%20another%20container.">https://medium.com/analytics-vidhya/backup-export-docker-image-easily-4f6970d225a6#:~:text=Backup%20the%20Container%20and%20Restore,used%20to%20launch%20another%20container.</a><br />
+</p>
+
+
+<div id="Containers-Making images from commited containers"><h2 id="Making images from commited containers" class="header justcenter"><a href="#Containers-Making images from commited containers">Making images from commited containers</a></h2></div>
+<p>
+the below command will create an updated image:<br />
+</p>
+
+<p>
+<code>    podman commit container_name image_name</code><br />
+</p>
+ 
+<p>
+To save to .tar file and download it to local system or transfer to some ssd drive, we can :<br />
+</p>
+<pre><code>
+</code></pre>
+<p>
+<code>    podman save -o output.tar image1 image2 ...</code><br />
+</p>
+
+ 
+<p>
+To load the image from the .tar file on another system, you can use the podman load command:<br />
+</p>
+
+<p>
+<code>    podman load -i image_name.tar </code><br />
+</p>
+
+<div id="Containers-To add gpu to runtime:"><h2 id="To add gpu to runtime:" class="header justcenter"><a href="#Containers-To add gpu to runtime:">To add gpu to runtime:</a></h2></div>
+<p>
+<a href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/cdi-support.html">https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/cdi-support.html</a><br />
+</p>
+
+<p>
+follow above or simply execute the below command:<br />
+</p>
+
+<p>
+<code>    podman run -d -t --device nvidia.com/gpu=all  --security-opt=label=disable --name sachin cuda_virat:latest </code><br />
+</p>
+
+<p>
+In above command, -d means run in background, -t means tty support, --name is nickname for container and cuda_virat:latest is name of image we commited by:<br />
+</p>
+<pre><code>
+</code></pre>
+<p>
+<code>    podman commit cuda_vira virat</code><br />
+</p>
+
+
+<div id="Containers-To add gpu to runtime:-To add all gpu and have graphic access"><h3 id="To add all gpu and have graphic access" class="header justcenter"><a href="#Containers-To add gpu to runtime:-To add all gpu and have graphic access">To add all gpu and have graphic access</a></h3></div>
+<pre><code><code>podman run -d -t --device nvidia.com/gpu=all --security-opt=label=disable -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix --net=host --name virat cuda_vim:latest</code>
+</code></pre>
+
+<ul>
+<li>
+To add all gpu(--device nvidia.com/gpu=all --security-opt=label=disable)
+
+<li>
+To have graphic access (--net=host -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix) + (use podman cp ~/.Xauthority CONTAINER_name:/root/.Xauthority)
+
+<li>
+
+ == After restarting cluster , containers are gone, == 
+
+<li>
+to get back them, use 
+
+<ol>
+<li>
+nvidia-smi 
+
+<li>
+podman start container_name
+
+<li>
+use "loginctl enable-linger username" or "loginctl enable-linger" to keep the gpu/background jobs running. 
+
+</ol>
+</ul>
+<div id="Containers-To add gpu to runtime:-Below is from chatgpt(have not yet tried by me):"><h3 id="Below is from chatgpt(have not yet tried by me):" class="header"><a href="#Containers-To add gpu to runtime:-Below is from chatgpt(have not yet tried by me):">Below is from chatgpt(have not yet tried by me):</a></h3></div>
+<p>
+In the context of Podman containers on a server, the concept of user sessions and lingering is typically associated with the host system rather than individual containers. Containers are isolated environments that run on the host, and their lifecycle is managed by the container runtime (such as Podman or Docker).<br />
+</p>
+
+<p>
+If you want certain processes or services to continue running even when the user logs out of the host system, you generally need to manage that at the host level, not within the container. The container itself doesn't have direct control over the host's user sessions.<br />
+</p>
+
+<p>
+If you have specific processes or services within a Podman container that you want to keep running persistently, you may want to consider approaches such as:<br />
+</p>
+
+<ol>
+<li>
+*<span id="Containers-To add gpu to runtime:-Below is from chatgpt(have not yet tried by me):-Run the Container in the Background:"></span><strong id="Run the Container in the Background:">Run the Container in the Background:</strong>*
+   When you start a container with Podman, you can use the <code>-d</code> option to run it in the background. This allows the container to continue running even after the terminal session is closed.
+   ```bash
+   podman run -d your_image
+   ```
+
+<li>
+*<span id="Containers-To add gpu to runtime:-Below is from chatgpt(have not yet tried by me):-Use Systemd Service:"></span><strong id="Use Systemd Service:">Use Systemd Service:</strong>*
+   You can create a systemd service on the host system that manages the lifecycle of your container. This allows you to start, stop, and manage the container as a system service.
+   Create a systemd service file, for example, <code>mycontainer.service</code>:
+   ```ini
+   [Unit]
+   Description=My Container
+   [Service]
+   ExecStart=/usr/bin/podman run your_image
+   Restart=always
+   User=your_username
+   Group=your_groupname
+   [Install]
+   WantedBy=default.target
+   ```
+   Adjust the <code>ExecStart</code>, <code>User</code>, and <code>Group</code> parameters according to your setup. Then, enable and start the service:
+   ```bash
+   sudo cp mycontainer.service /etc/systemd/system/
+   sudo systemctl enable mycontainer.service
+   sudo systemctl start mycontainer.service
+   ```
+
+</ol>
+<p>
+Remember that these approaches are host-centric. If you need more fine-grained control within the container itself, you may need to manage the processes or services directly within the container using tools appropriate for your containerized application.<br />
+</p>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+
