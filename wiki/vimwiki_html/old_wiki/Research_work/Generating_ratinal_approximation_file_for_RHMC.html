@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>Generating_ratinal_approximation_file_for_RHMC</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+
+<div id="Generating Rational approximation file"><h1 id="Generating Rational approximation file" class="header"><a href="#Generating Rational approximation file">Generating Rational approximation file</a></h1></div>
+
+
+
+<ul>
+<li>
+These files are specific to quark masses. to generate these follow the instructions : <a href="https://latticeqcd.github.io/SIMULATeQCD/03_applications/rhmc.html">https://latticeqcd.github.io/SIMULATeQCD/03_applications/rhmc.html</a> 
+
+<ul>
+<li>
+A tool to generate rational approximation files written by K. Clark
+	can be found in <code>SIMULATeQCD/src/tools/rational_approx</code>. One can find a document
+	<code>explainRatApprox.pdf</code> by Q. Yuan explaining the idea behind the rational 
+	approximation for the fermion determinant, as well as some of the following
+	notation. The makefile <code>makeRatApprox</code> will compile the executable <code>ratApprox</code>,
+	which will generate you a rational approximation file for use with the 
+	rhmc of SIMULATeQCD.  You can call it with
+	```shell
+	ratApprox input.dat out.rational 
+	```
+	The input file <code>input.dat</code> should be structured as
+	```C
+	npff        // Number of pseudo-fermion flavors
+	y1
+	y2
+	mprec       // Pre-conditioner mass (reduces the condition number in CG)
+	mq
+	order1
+	order2
+	lambda_low
+	lambda_high
+	precision
+
+</ul>
+<li>
+exampleInput.dat
+
+</ul>
+<pre><code>
+</code></pre>
+<p>
+			2<br />
+</p>
+
+<p>
+			3<br />
+			0<br />
+			0<br />
+			0.0652<br />
+			14<br />
+			12<br />
+			0.004251039999999999<br />
+			5.0<br />
+			50<br />
+</p>
+
+<p>
+			2<br />
+			-2<br />
+			0.0652<br />
+			0.00241<br />
+			14<br />
+			12<br />
+			5.8080999999999995e-06<br />
+			5.0<br />
+			160<br />
+</p>
+
+<div id="Generating Rational approximation file-example"><h2 id="example" class="header"><a href="#Generating Rational approximation file-example">example</a></h2></div>
+
+<p>
+2        # number of pseudo fermion flavours<br />
+</p>
+
+<ul>
+<li>
+parameters for psf1(light quark pseudo fermion determinant)
+
+</ul>
+<p>
+3              #y1<br />
+0             # y2<br />
+0                # preconditioning mass for strange quark determinant<br />
+0.0783706         # m_s (strange quark mass) (m_quark)<br />
+14<br />
+12<br />
+0.00614195094436        # (m_s)^{2}<br />
+5.0                   # \(\lambda_{max}\)   <br />
+50           # precision<br />
+</p>
+
+
+<ul>
+<li>
+parameters for psf1(light quark pseudo fermion determinant)
+
+</ul>
+<p>
+2                  # y1<br />
+-2                        # y2<br />
+0.01508242900218416        # preconditioning mass (sqrt(m_l * m_s))<br />
+0.0029026             # light quark mass (m_l)<br />
+14               # order 1<br />
+12                # order2 <br />
+8.42508676e-06        # light quark mass squared<br />
+5.0                    # \(\lambda_{max}\)<br />
+160                   # precision<br />
+</p>
+
+
+<div id="Generating Rational approximation file-Dependence of maximum error in rational approximation on different parameters"><h2 id="Dependence of maximum error in rational approximation on different parameters" class="header"><a href="#Generating Rational approximation file-Dependence of maximum error in rational approximation on different parameters">Dependence of maximum error in rational approximation on different parameters</a></h2></div>
+
+<p>
+<span id="Generating Rational approximation file-Dependence of maximum error in rational approximation on different parameters-The pdf at SIMULATeQCD/src/tools/rational_approx/explainRatApprox.pdf will have the below findings using plots"></span><strong id="The pdf at SIMULATeQCD/src/tools/rational_approx/explainRatApprox.pdf will have the below findings using plots">The pdf at SIMULATeQCD/src/tools/rational_approx/explainRatApprox.pdf will have the below findings using plots</strong><br />
+</p>
+
+<ul>
+<li>
+The error decreases linearly with respect to increase in degree of polynomial to be used for ratinal approximation.
+
+<li>
+The error remains constant with respect to increase in precision for a chosen degree of polynomial.
+
+<li>
+The error increases a bit for given degree of polynomial if we increase the ratio \(\frac{m_{s}}{m_{l}}\)
+
+</ul>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+
