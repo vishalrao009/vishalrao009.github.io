@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>Multi-GPU: Distribution of local lattices on the individual GPUs</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+<div id="Multi-GPU: Distribution of local lattices on the individual GPUs"><h1 id="Multi-GPU: Distribution of local lattices on the individual GPUs" class="header"><a href="#Multi-GPU: Distribution of local lattices on the individual GPUs">Multi-GPU: Distribution of local lattices on the individual GPUs</a></h1></div>
+
+<ul>
+<li>
+Multi-GPU: Distribution of local lattices on the individual GPUs
+
+</ul>
+<p>
+To work with multiple devices, SIMULATeQCD splits a lattice into multiple<br />
+sublattices, with partitioning possible along any of the four Euclidean<br />
+space-time directions. Each sublattice is given to a single GPU. In addition to<br />
+holding a field restricted to that sublattice, which we call the bulk,<br />
+the GPU holds a copy of that field from the borders of the neighboring<br />
+sublattices--we call these copies the halo. A schematic drawing<br />
+of the exchange of halos between different GPUs is shown below.<br />
+</p>
+
+<p>
+<img src="../../../../phd_work/notes/vimwiki/images/haloStructure.png" /><br />
+</p>
+
+<p>
+If we consider a lattice of size <code>Nx*Ny*Nz*Nt</code>, each GPU has a local Lattice of size<br />
+</p>
+
+<pre cpp>
+(Nx_sub+2*Halo_depth) *(Ny_sub+2*Halo_depth) * (Nz_sub+2*Halo_depth) * (Nt_sub+2*Halo_depth),
+</pre>
+
+<p>
+where <code>N_sub = N/Cores_i</code> with <code>i=x,y,z,t</code>.<br />
+For example if we have a lattice of size \(32^3\times 8\) and we split the lattice in x direction with<br />
+<code>halo_depth=1</code>, both GPU's will have a local lattice size of \(18\times 34\times 34\times 10\).<br />
+This can be accomplished with:<br />
+</p>
+
+<pre cpp>
+const int LatDim[] = {32, 32, 32, 8};
+const int NodeDim[] = {2, 1, 1, 1};
+</pre>
+
+<p>
+When using P2P, for a lattice with size e.g. \(120^3 \times 30\), it is best (=lowest overall memory consumption) to split the lattice like this:<br />
+</p>
+
+<ol>
+<li>
+GPU: 1 1 1 1, Size per GPU:  28476.5625 MiB
+
+<li>
+GPUs: 2 1 1 1 or 1 2 1 1 or 1 1 2 1, Size per GPU: 18509.765625 MiB
+
+<li>
+GPUs: 4 1 1 1 or 1 4 1 1 or 1 1 4 1, Size per GPU:  11390.625 MiB
+
+<li>
+GPUs: 1 2 4 1 or 1 4 2 1 or 2 1 4 1 or 2 4 1 1 or 4 1 2 1 or 4 2 1 1, Size per GPU: 6976.7578125 MiB
+
+</ol>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+

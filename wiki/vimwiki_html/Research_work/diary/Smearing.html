@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="../style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>Smearing</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+<div id="Contents" class="toc"><h1 id="Contents" class="header"><a href="#Contents">Contents</a></h1></div>
+<ul>
+<li>
+<a href="Smearing.html#Lattice artifacts, smearing">#Lattice artifacts, smearing</a>
+
+<ul>
+<li>
+<a href="Smearing.html#Introduction">#Introduction</a>
+
+<li>
+<a href="Smearing.html#UV to IR">#UV to IR</a>
+
+<li>
+<a href="Smearing.html#kinds of smearing techniques">#kinds of smearing techniques</a>
+
+<ul>
+<li>
+<a href="Smearing.html#APE Smearing:">#APE Smearing:</a>
+
+<li>
+<a href="Smearing.html#HYP (Hypercubic) Smearing:">#HYP (Hypercubic) Smearing:</a>
+
+<li>
+<a href="Smearing.html#Gaussian Smearing:">#Gaussian Smearing:</a>
+
+<li>
+<a href="Smearing.html#Wuppertal Smearing:">#Wuppertal Smearing:</a>
+
+<li>
+<a href="Smearing.html#Jacobi Smearing:">#Jacobi Smearing:</a>
+
+<li>
+<a href="Smearing.html#Stout Smearing:">#Stout Smearing:</a>
+
+<li>
+<a href="Smearing.html#APE-style Variants:">#APE-style Variants:</a>
+
+<li>
+<a href="Smearing.html#Exponential Smearing:">#Exponential Smearing:</a>
+
+</ul>
+</ul>
+</ul>
+<div id="Lattice artifacts, smearing"><h1 id="Lattice artifacts, smearing" class="header"><a href="#Lattice artifacts, smearing">Lattice artifacts, smearing</a></h1></div>
+
+<div id="Lattice artifacts, smearing-Introduction"><h2 id="Introduction" class="header"><a href="#Lattice artifacts, smearing-Introduction">Introduction</a></h2></div>
+
+<p>
+In this talk we discussed about the process of smearing out the gauge configurations, technically speaking we don't change the original configurations (as doing so will result in changing probability distribution on which original gauge configurations were generated ) (we just change the way we observe the measurable/correlators). <br />
+</p>
+
+<p>
+Smearing involves averaging the link with 3 link staples, averaging(link + linkof(plaq-link)). In this way our links become fat links, and we thus have less distance for correlators to calculate. To find correlators for bigger distance we need larger lattice, or we can just use wilson flow equation to go from UV to IR. <br />
+</p>
+
+
+<p>
+<code>So for project of string tension we have to do smearing to gauge fields (technically we need to change how we measure wilson loop), in continumm limit this will give us original wilson loop. </code><br />
+</p>
+
+<p>
+These are all done to improve the signal to noise ratio (or to get better signal), In below link you can see that the wilson loop value for some node of gpu (try20 ,l32f21b6285), we get average value less then the actual value. i.e. signal is lost in fluctuations. To get rid of it we follow the technique of smearing. <br />
+</p>
+
+<p>
+<a href="Need for smearing_calculations.html">Need for smearing_calculations</a><br />
+</p>
+<div id="Lattice artifacts, smearing-UV to IR"><h2 id="UV to IR" class="header"><a href="#Lattice artifacts, smearing-UV to IR">UV to IR</a></h2></div>
+
+<p>
+lattice QCD action= Actual QCD action + a(some terms) + a^2 (some terms) + .............<br />
+</p>
+
+<p>
+In limit a(lattice spacing) --&gt; 0, Lattice QCD describes continumm QCD. That happens at very small value of 'a'.  Lattice QCD is like UV cut off. (at very high momentum or small lenght scales we put some cut off), and continumm QCD is like IR (Infra Red limit cut off).  <br />
+</p>
+
+<p>
+Wilson flow is differential equation of gauge configurations/fields in fictitious time which takes configurations/field from UV to IR (continumm limit of LQCD or QCD). <br />
+</p>
+
+<div id="Lattice artifacts, smearing-kinds of smearing techniques"><h2 id="kinds of smearing techniques" class="header"><a href="#Lattice artifacts, smearing-kinds of smearing techniques">kinds of smearing techniques</a></h2></div>
+
+<p>
+In lattice QCD, smearing techniques are employed to improve the behavior of the quark and gluon fields on the lattice. These techniques help to reduce the impact of discretization artifacts and enhance the signal-to-noise ratio in numerical simulations. Here are some commonly used smearing techniques in lattice QCD:<br />
+</p>
+
+<div id="Lattice artifacts, smearing-kinds of smearing techniques-APE Smearing:"><h3 id="APE Smearing:" class="header"><a href="#Lattice artifacts, smearing-kinds of smearing techniques-APE Smearing:">APE Smearing:</a></h3></div>
+
+<p>
+APE (Averaged Plaquette Ensemble) smearing involves replacing the link variables on the lattice with a combination of the original links and the average of neighboring links. It is a local smearing technique that helps to reduce lattice artifacts and improve the signal for physical observables.<br />
+</p>
+
+<div id="Lattice artifacts, smearing-kinds of smearing techniques-HYP (Hypercubic) Smearing:"><h3 id="HYP (Hypercubic) Smearing:" class="header"><a href="#Lattice artifacts, smearing-kinds of smearing techniques-HYP (Hypercubic) Smearing:">HYP (Hypercubic) Smearing:</a></h3></div>
+<p>
+HYP smearing is a non-abelian smearing technique that involves replacing link variables with a linear combination of the original link and its staples (plaquettes sharing a common link). HYP smearing is known for its ability to enhance the ground-state signal.<br />
+</p>
+
+<div id="Lattice artifacts, smearing-kinds of smearing techniques-Gaussian Smearing:"><h3 id="Gaussian Smearing:" class="header"><a href="#Lattice artifacts, smearing-kinds of smearing techniques-Gaussian Smearing:">Gaussian Smearing:</a></h3></div>
+<p>
+Gaussian smearing involves convolving the gauge field configurations with a Gaussian function. It is a non-local smearing technique that helps to enhance the ground-state signal and reduce contamination from excited states.<br />
+</p>
+
+<div id="Lattice artifacts, smearing-kinds of smearing techniques-Wuppertal Smearing:"><h3 id="Wuppertal Smearing:" class="header"><a href="#Lattice artifacts, smearing-kinds of smearing techniques-Wuppertal Smearing:">Wuppertal Smearing:</a></h3></div>
+<p>
+Wuppertal smearing is a non-abelian smearing technique similar to APE smearing, but it employs a different smearing function. It is designed to suppress high-frequency noise and improve the signal for physical observables.<br />
+</p>
+
+<div id="Lattice artifacts, smearing-kinds of smearing techniques-Jacobi Smearing:"><h3 id="Jacobi Smearing:" class="header"><a href="#Lattice artifacts, smearing-kinds of smearing techniques-Jacobi Smearing:">Jacobi Smearing:</a></h3></div>
+<p>
+Jacobi smearing involves applying multiple iterations of a Jacobi-type relaxation procedure to the gauge links. It is a non-local technique that can be used to improve the signal-to-noise ratio.<br />
+</p>
+
+<div id="Lattice artifacts, smearing-kinds of smearing techniques-Stout Smearing:"><h3 id="Stout Smearing:" class="header"><a href="#Lattice artifacts, smearing-kinds of smearing techniques-Stout Smearing:">Stout Smearing:</a></h3></div>
+<p>
+Stout smearing is a non-abelian smearing technique that involves replacing the link variables with a combination of the original link and a staple term. It is designed to reduce lattice artifacts and enhance the signal for physical observables.<br />
+</p>
+
+<div id="Lattice artifacts, smearing-kinds of smearing techniques-APE-style Variants:"><h3 id="APE-style Variants:" class="header"><a href="#Lattice artifacts, smearing-kinds of smearing techniques-APE-style Variants:">APE-style Variants:</a></h3></div>
+<p>
+There are various APE-style variants, including improved versions of APE smearing with modified smearing functions or additional parameters to optimize the performance.<br />
+</p>
+
+<div id="Lattice artifacts, smearing-kinds of smearing techniques-Exponential Smearing:"><h3 id="Exponential Smearing:" class="header"><a href="#Lattice artifacts, smearing-kinds of smearing techniques-Exponential Smearing:">Exponential Smearing:</a></h3></div>
+<p>
+Exponential smearing involves replacing the gauge links with an exponential of the original links. It is another non-local smearing technique used to reduce lattice artifacts.<br />
+These smearing techniques aim to improve the ground-state signal and reduce contamination from excited states in lattice QCD simulations. The choice of smearing technique often depends on the specific observables being studied and the desired properties of the gauge field configurations<br />
+</p>
+
+
+<div id="Serching for QCD critical points:"><h1 id="Serching for QCD critical points:" class="header"><a href="#Serching for QCD critical points:">Serching for QCD critical points:</a></h1></div>
+<p>
+QCD critical point is conjecture critical point happens at real chemical potential.<br />
+</p>
+
+<div id="Serching for QCD critical points:-Introduction:"><h2 id="Introduction:" class="header"><a href="#Serching for QCD critical points:-Introduction:">Introduction:</a></h2></div>
+
+<ol>
+<li>
+we are finding critical point for real chemical potential. some observales diverge at critical point(critical point is 2nd order phase transition), in going from left to right (on real chemical potential), we see that transition shifts from crossover to higher order to second order and to first order. 
+
+</ol>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+

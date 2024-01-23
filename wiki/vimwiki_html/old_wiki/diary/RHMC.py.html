@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="../style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>RHMC.py</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+<div id="RHMC.py"><h1 id="RHMC.py" class="header"><a href="#RHMC.py">RHMC.py</a></h1></div>
+
+<pre python>
+
+from functions import run_rhmc
+standard_inputfile_ratApprox="""2
+
+3
+0
+0
+0.0783706
+14
+12
+0.00614195094436
+5.0
+50
+
+2
+-2
+0.0783706
+0.0039185
+14
+12
+8.42508676e-06
+5.0
+160"""
+standard_ratApprox_list=standard_inputfile_ratApprox.splitlines()
+
+# to generate rhmc parameter files given value of beta, quark masses , number of lattice sites
+param_string="""Lattice = 24 24 24 6
+Nodes   = 1 1 1 1
+mass_ud = 0.0039185
+mass_s  = 0.0783706
+beta    = 6.285
+no_pf   = 1
+step_size  = 0.05
+no_md      = 20
+no_step_sf = 5
+no_sw      = 10
+residue   = 1e-12
+cgMax      = 6500
+always_acc = 0
+rat_file   = /root/project1/SIMULATeQCD/src/tools/rational_approx/output_try15.rat
+rand_flag   = 0
+rand_file   = 18Dec_conf/node0/randl246f21b6285m0039185m0783706a_0.
+seed        = 1029
+load_conf   = 2
+gauge_file  = 18Dec_conf/node0/l246f21b6285m0039185m0783706a_0.
+conf_nr=100
+no_updates  = 1000
+write_every = 10             """
+param_list=param_string.splitlines()
+
+
+# the following is mostly used parameters after equilibration
+n_s=24
+n_t=6
+beta=6.285
+factor=20
+try_number=16
+node_initial=0
+node_final=9
+equilibration_flag=1
+conf_nr=200
+no_updates=1000
+always_acc=0
+# run_rhmc(24,6,6.285,20,16,standard_ratApprox_list,param_list,0,0,0,200,300,0)
+
+run_rhmc(n_s,n_t,beta,factor,try_number,standard_ratApprox_list,param_list,node_initial,node_final,equilibration_flag,conf_nr,no_updates,always_acc)
+
+
+</pre>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+
