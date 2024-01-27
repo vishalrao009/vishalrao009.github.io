@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="../style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>2024-01-25</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/old_wiki.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+<div id="Story of Lattice QCD"><h1 id="Story of Lattice QCD" class="header"><a href="#Story of Lattice QCD">Story of Lattice QCD</a></h1></div>
+
+<p>
+We start with some action on lattice. Generally, we begin with <a href="HISQ action.html">HISQ action</a>. Note that action have 3 coupling constants, which are inverse gauge coupling(\(\beta\),and quark masses(\(m_{l},m_{u},m_{d}\))). <br />
+</p>
+
+<p>
+Any observables calculation will include these bare coupling constants(directly or indirectly), we can measure the observables from experiments and tune these bare coupling to match the experimental results. More correctly we just have to tune one quark mass(for 2+1 flavour QCD), as light and heavy quark masses are related with some constraints like \(m_{l}=m_{u}=\frac{1}{27} \) this ratio is found from experimental results for quark masses.<br />
+</p>
+
+<div id="Story of Lattice QCD-Calculation"><h2 id="Calculation" class="header"><a href="#Story of Lattice QCD-Calculation">Calculation</a></h2></div>
+
+<p>
+Let us say we would like to measure state quark potential (which is potential between pair of heavy(infinitely massive) quark and anti-quark pair) from lattice simulations. We follow these steps:<br />
+</p>
+<ol>
+<li>
+We put the fields on lattice, with lattice spacing 'a'. We want to calculate the observables for a given temperature. To introduce the idea of temperature, we do <a href="wick rotation.html">wick rotation</a> and work in <a href="euclidean-space.html">euclidean-space</a> time. 
+
+<ul>
+<li>
+Any finite temperature quantum field theory is effectively 3d statistical system , which can be seen in following arguments. 
+
+<ol>
+<li>
+We define \(\beta=a_{\tau}N_{\tau}=1/T\), for \(T\neq 0\), in the thermodynamic limit (at large distance and time scales)) since on lattice we take \(N_{\tau}\le 4 N_{\sigma}\), the temporal extent is very small, we say it is effectively one dimension less.   
+
+</ol>
+</ul>
+</ol>
+	
+<ol>
+<li>
+Once we have the action on lattice, we generate the gauge configurations and quark field configurations. For static quark potential we need to calculate the <a href="Wilson loop.html">Wilson loop</a>, which only require the measurements on gauge configurations only.  
+
+<li>
+From the Wilson loop we will calculate the <a href="static quark potential.html">static quark potential</a>, which on lattice can't provide any units, which will be just some numbers. To have meaning we make the number dimensionless and say that \(a V(R)=some_number_calculated_on_lattice\), so the potential V(R), becomes  \(V(R)=some_number_calculated_on_lattice/a(lattice spacing)\). 
+
+<li>
+As the temperature increases, gauge coupling decreases, and inverse gauge coupling (\(\beta\)) increases. 
+
+<li>
+Also with rise in temperature for fixed \(N_{\tau}\), the lattice spacing decreases(\(a=\frac{1}{n_{\tau}.T}\)). 
+
+<li>
+We will find the quark masses for a given \(\beta\)(inverse gauge coupling), and generate the gauge configurations using RHMC. 
+
+<li>
+Once generated we will calculate the spatial potential (which won't be v(R) but a.v(R)). To get the lattice spacing 'a', we will use the value of \(r_{1}\), which is found from <a href="experimental analysis of static quark potential.html">experimental analysis of static quark potential</a>. We will find value of a/r1 from given beta<a href="a(beta(inverse gauge coupling)).html">a(beta(inverse gauge coupling))</a>. To get lattice spacing \(a=r1*a_div_r1(beta)\), where value of r1=0.3157fm.  
+
+<li>
+After calculating the lattice spacing for each beta, we can simply use it to find the static quark potential \(V(R)=some_number_calculated_on_lattice* lattice spacing\). 
+
+<li>
+Quantity we measure on lattice will be \(a^{-d} Q=Q_calculated_on_lattice\) where d is mass dimensions of quantity 'Q', as the number \(a^{-d}Q\), will be a dimensionless number. Since we know the lattice spacing at each inverse gauge coupling \(\beta\) (from some experimental results), we can find the experimental value of quantity 'Q' (which just will be = \(\frac{Q_calculated_on_lattice}{a^{-d}} \)).  
+
+</ol>
+<div id="Story of Lattice QCD-Some points"><h2 id="Some points" class="header"><a href="#Story of Lattice QCD-Some points">Some points</a></h2></div>
+<p>
+Note that values of \(r_{0}=0.469fm,r_{1}=0.3157fm\) which are experimentally calculated, are beta(inverse gauge coupling independent). <br />
+On lattice however for each beta(inverse gauge coupling), we will get different value of r1 and r0, because on lattice r1 is actually equals to r1/a (a dimensionless number or in lattice units), and this dependence comes from \(\beta\) dependence of lattice spacing. <br />
+</p>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+

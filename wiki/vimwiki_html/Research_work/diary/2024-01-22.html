@@ -13,7 +13,7 @@
 
     <style>
         body {
-            background-image: url('../Images/parchment.jpg');
+            background-image: url('../Images/old_wiki.jpg');
             background-size: cover;
             background-repeat: no-repeat;
             background-attachment: fixed;
@@ -50,14 +50,54 @@
 <div id="Variation of lattice spacing with Smearing"><h1 id="Variation of lattice spacing with Smearing" class="header"><a href="#Variation of lattice spacing with Smearing">Variation of lattice spacing with Smearing</a></h1></div>
 
 <p>
-The value of Wilson loop defines static potential, compare the plots with fixed length , see how the value of Wilson loop is varying with smearing. The Wilson loop must be same for fixed length(as it is observable). You will find that the smearing steps decrease lattice spacing. <br />
+ The value of Wilson loop defines static potential, compare the plots with fixed length , see how the value of Wilson loop is varying with smearing. The Wilson loop must be same for fixed length(as Wilson Loop is observable). You will find that the smearing steps decrease lattice spacing, and calculate the new lattice spacing after each smearing step. <br />
 </p>
 
-<div id="Find corresponding $\beta$ values for HISQ action from that of $P_4$ action."><h1 id="Find corresponding $\beta$ values for HISQ action from that of $P_4$ action." class="header"><a href="#Find corresponding $\beta$ values for HISQ action from that of $P_4$ action.">Find corresponding \(\beta\) values for HISQ action from that of \(P_4\) action.</a></h1></div>
+<div id="Find corresponding $\beta$(gauge coupling (dimensionless/unitless)) values for HISQ action from that of $P_4$ action."><h1 id="Find corresponding $\beta$(gauge coupling (dimensionless/unitless)) values for HISQ action from that of $P_4$ action." class="header"><a href="#Find corresponding $\beta$(gauge coupling (dimensionless/unitless)) values for HISQ action from that of $P_4$ action.">Find corresponding \(\beta\)(gauge coupling (dimensionless/unitless)) values for HISQ action from that of \(P_4\) action.</a></h1></div>
+<p>
+The the definition of \(\beta\) (inverse gauge coupling) depends upon the action used.<br />
+</p>
+
 <p>
 Below, the values for P4 action and \(N_{\tau}=8\) is given. <br />
-We first will find temperature for corresponding beta for P4 action, from temperature we can find the lattice spacing of P4 action. Once we found the lattice spacing for P4 action, we can just find beta for HISQ action.<br />
+We know that the inverse temperature \(\beta\) is related to lattice spacing and temperature in following way:<br />
 </p>
+\[
+	\beta = a_{\tau}.N_{\tau} = \frac{1}{T} \\
+\]
+
+<p>
+we have one more beta (gauge coupling (\(\beta=2N_{c}/g^{2}\))), we identify that with absence of any units or dimensions. <br />
+</p>
+
+<p>
+Our aim is to calculate the \(\beta\) (gauge coupling) of HISQ from corresponding \(\beta\) values of P4 gauge action.<br />
+We will do that in following manner:<br />
+</p>
+<ol>
+<li>
+Find lattice spacing \(a_{\tau}\) for corresponding \(\beta\)(gauge coupling). Which can be found by using the function a_div_r1_2014(beta_input) from ms.py of AnalysisToolBox.
+<pre python>
+	a/r1=a_div_r1_2014(beta_input)
+	# we know that r1=0.3157 fm, so we can find lattice spacing a
+	a=0.3157 fm * a/r1
+	T=(1/(a*n_t)*197.7) #MeV, Here the factor 197.7 can be find at [[conversion of units]].
+</pre>
+
+<li>
+Use above relation to find the corresponding temperature(T) = \(\frac{1}{a_{\tau}.N_{\tau}}\)
+
+<li>
+Once we found the temperature, we can find lattice spacing for any \(N_{\tau}\).
+
+<li>
+from the lattice spacing we have to guess the inverse gauge coupling for HISQ and find the closest value of a. Which is found at <a href="scales_hisq.py.html">scales_hisq.py</a>. Or find the inverse function of a=f(\(\beta\)), i.e. \(\beta=f^{-1}(a)\).
+
+<li>
+Note that lattice spacing depends on action and the inverse gauge coupling. Once we change the action (P4 or hisq), the whole analysis has to be done again. 
+
+</ol>
+	
 
 <table>
 <thead>
@@ -66,10 +106,10 @@ We first will find temperature for corresponding beta for P4 action, from temper
 \(\beta_{P4}\)
 </th>
 <th>
-T
+\(a_{p4}\)   in fm
 </th>
 <th>
-\(a_{P4}\)
+T(MeV)
 </th>
 <th>
 \(\beta_{HISQ}\)
@@ -79,72 +119,114 @@ T
 <tbody>
 <tr>
 <td>
-&nbsp;
+3.53
 </td>
 <td>
-&nbsp;
+0.12933716702207762
 </td>
 <td>
-&nbsp;
+191.07036723466828
 </td>
 <td>
-&nbsp;
-</td>
-</tr>
-<tr>
-<td>
-&nbsp;
-</td>
-<td>
-&nbsp;
-</td>
-<td>
-&nbsp;
-</td>
-<td>
-&nbsp;
+5.88
 </td>
 </tr>
 <tr>
 <td>
-&nbsp;
+3.57
 </td>
 <td>
-&nbsp;
+0.11663534132654599
 </td>
 <td>
-&nbsp;
+211.87831851764366
 </td>
 <td>
-&nbsp;
-</td>
-</tr>
-<tr>
-<td>
-&nbsp;
-</td>
-<td>
-&nbsp;
-</td>
-<td>
-&nbsp;
-</td>
-<td>
-&nbsp;
+5.975
 </td>
 </tr>
 <tr>
 <td>
-&nbsp;
+3.585
 </td>
 <td>
-&nbsp;
+0.11249240092955154
 </td>
 <td>
-&nbsp;
+219.68150555766184
 </td>
 <td>
-&nbsp;
+6.01
+</td>
+</tr>
+<tr>
+<td>
+3.76
+</td>
+<td>
+0.07841014722354198
+</td>
+<td>
+315.16966712926006
+</td>
+<td>
+6.34
+</td>
+</tr>
+<tr>
+<td>
+3.82
+</td>
+<td>
+0.07033094944455437
+</td>
+<td>
+351.37446878180106
+</td>
+<td>
+6.435
+</td>
+</tr>
+<tr>
+<td>
+3.92
+</td>
+<td>
+0.0592236517369858
+</td>
+<td>
+417.27416792448065
+</td>
+<td>
+6.595
+</td>
+</tr>
+<tr>
+<td>
+4.00
+</td>
+<td>
+0.05193808031732161
+</td>
+<td>
+475.8069579972184
+</td>
+<td>
+6.71
+</td>
+</tr>
+<tr>
+<td>
+4.08
+</td>
+<td>
+0.04573994551368463
+</td>
+<td>
+540.2826724532594
+</td>
+<td>
+6.83
 </td>
 </tr>
 </tbody>

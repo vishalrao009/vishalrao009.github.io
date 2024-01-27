@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="../style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>cpp_bresenham.cpp</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/old_wiki.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+<pre cpp>
+
+#include &lt;cstdint&gt;
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+using std::vector;
+using std::cout;
+using std::endl;
+
+std::vector&lt;std::vector&lt;int&gt;&gt; bresenham(int x0,int y0,int x1,int y1)
+{
+    std::vector&lt;std::vector&lt;int&gt;&gt; v;
+    std::vector&lt;int&gt; x_values;
+    std::vector&lt;int&gt; y_values;
+    int dx=x1-x0;
+    int dy=y1-y0;
+    int swap_flag=0;
+    if (dy&gt;dx){
+        int c=x1;
+        x1=y1;
+        y1=c;
+
+        int d=x0;
+        x0=y0;
+        y0=d;
+    dx=x1-x0;
+    dy=y1-y0;
+    swap_flag=1;
+    }
+    int p=2*dy-dx;
+    int x=x0;
+    int y=y0;
+    x_values.push_back(x);
+    y_values.push_back(y);
+    int i=0;
+    do {
+        if (p&lt;0) {
+            x+=1;
+            p+=2*dy;
+        }
+        else{
+            x+=1;
+            y+=1;
+            p+=2*(dy-dx);
+        }
+        /* cout&lt;&lt;x&lt;&lt;" "&lt;&lt;y&lt;&lt;std::endl; */
+        x_values.push_back(x);
+        y_values.push_back(y);
+        i+=1;
+    } while (i&lt;dx);
+    if(swap_flag==1){
+    v.push_back(y_values);
+    v.push_back(x_values);
+    }
+    else{
+    v.push_back(x_values);
+    v.push_back(y_values);
+    }
+    return v;
+}
+
+
+
+int main()
+{
+    std::vector&lt;std::vector&lt;int&gt;&gt; v=bresenham(0,0,5,3);
+    cout&lt;&lt;"number of rows are"&lt;&lt;v.size()&lt;&lt;endl;
+    cout&lt;&lt;"numbers of column are"&lt;&lt;v[1].size()&lt;&lt;endl;
+    for(int i=0;i&lt;v.size();i++)
+    {
+        for(int j=0;j&lt;v[i].size();j++)
+        {
+            std::cout&lt;&lt;v[i][j]&lt;&lt;" ";
+        }
+        std::cout&lt;&lt;std::endl;
+    }
+
+}
+
+
+</pre>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+

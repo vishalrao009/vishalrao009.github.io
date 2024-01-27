@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="../style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>scales_hisq.py</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/old_wiki.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+<pre python>
+
+import numpy as np
+def beta_func(beta):
+    nf=3
+    b0=(11-2*nf/3)/(4*np.pi)**2
+    b1=(102-38*nf/3)/(4*np.pi)**4
+    return (b0*10/beta)**(-b1/(2*b0**2))*np.exp(-beta/(20*b0))
+
+
+
+#https://arxiv.org/pdf/1111.1710.pdf
+def a_times_fk_2012(beta): # a*fk
+    c0fk=7.65667
+    c2fk=32911.0
+    d2fk=2388.0
+    return (c0fk*beta_func(beta)+c2fk*10./beta*beta_func(beta)**3)/ \
+            (1+d2fk*10./beta*beta_func(beta)**2)
+
+#below function was improvement in finding the coefficients for functional dependence of lattice spacing on inverse gauge coupling (beta)
+#https://arxiv.org/pdf/1407.6387.pdf
+#Fit by Peter Petreczky in mail at 25/01/2018
+def a_times_fk_2014(beta): # a*fk
+    c0fk = 7.49415
+    c2fk = 46049
+    d2fk = 3671
+    return (c0fk*beta_func(beta)+c2fk*10./beta*beta_func(beta)**3)/ \
+            (1+d2fk*10./beta*beta_func(beta)**2)
+
+
+#https://arxiv.org/pdf/1407.6387.pdf
+def a_div_r1_2014(beta):
+    c0=43.1
+    c2=343236
+    d2=5514
+    return (c0*beta_func(beta) + c2*(10/beta)*beta_func(beta)**3) / \
+            (1 + d2*(10/beta)*beta_func(beta)**2)
+
+#below 3 functions are for p4fat3 action, ref: https://arxiv.org/pdf/0710.0354.pdf
+def R_2(beta):
+    b0,b1=9/(16*np.pi**2),1/(4*np.pi**4)
+    return np.exp(-beta/(12*b0))*((6*b0/beta)**(-(b1/(2*b0*b0))))
+
+def a_cap(beta):
+    return R_2(beta)/R_2(3.4)
+
+def r0_div_a_p4fat3(beta):
+    e_r,f_r,a_r,b_r,c_r,d_r=-1.682,0.823,13.250,-1.201,0.054,0.406
+    numerator=1+e_r*a_cap(beta)**2+f_r*a_cap(beta)**4
+    denominator=a_r*R_2(beta)*(1+b_r*a_cap(beta)**2+c_r*a_cap(beta)**4+d_r*a_cap(beta)**6)
+    r0_cap=numerator/denominator
+    return r0_cap
+
+beta_p4=[3.53,3.57,3.585,3.76,3.82,3.92,4.00,4.08]
+# we will use a_div_r1_2014(beta) function to calculate the value of lattice spacing for each beta.
+lattice_spacing_fm_in=[]
+r0=0.469 #r0 in real world is beta independent and is 0.469fm
+for beta_in in beta_p4:
+    lattice_spacing_fm_in.append(r0/r0_div_a_p4fat3(beta_in))
+temperature_MeV=[]
+N_t_in=8
+for a in lattice_spacing_fm_in:
+    temperature_MeV.append(197.7/(a*N_t_in))
+#from temperature we can find lattice spacing for any N_t
+N_t_out=8
+lattice_spacing_fm_out=[]
+for temp in temperature_MeV:
+    lattice_spacing_fm_out.append(197.7/(temp*N_t_out))
+
+print("lattice spacing in fm for p4 action and n_t=8",lattice_spacing_fm_in)
+print("corresponding temp in MeV is :",temperature_MeV)
+
+#now for these lattice spacing we have to guess beta. 
+fKexpnew=156.17/197.7*np.sqrt(2) #true fKexpnew = 156.17MeV, to change that to fm^{-1}, we use 1 MeV ^{-1} =197.7fm 
+
+# we shall guess beta and increase by small amount to see if we are getting closer to lattice_spacing_fm_out for each beta_in
+def find_beta(a,beta_guess):
+    a_out=a_times_fk_2014(beta_guess)/fKexpnew
+    error=a-a_out
+    new_error=a-a_times_fk_2014(beta_guess+0.005)/fKexpnew
+    while(abs(error)&gt;=0.005):
+        if abs(new_error)&lt;abs(error):
+            beta_guess+=0.005
+            beta_guess=round(beta_guess,4)
+            new_error=a-a_times_fk_2014(beta_guess)/fKexpnew
+            error=new_error
+            new_error=a-a_times_fk_2014(beta_guess+0.005)/fKexpnew
+        else:
+            beta_guess-=0.005
+            beta_guess=round(beta_guess,4)
+            new_error=a-a_times_fk_2014(beta_guess)/fKexpnew
+            error=new_error
+            new_error=a-a_times_fk_2014(beta_guess-0.005)/fKexpnew
+    return beta_guess
+beta_hisq=[]
+for a_hisq in lattice_spacing_fm_out:
+    beta_hisq.append(find_beta(a_hisq,5.00))# got the initial guess from plotting a_times_fk_2014(beta)
+print("Beta(inverse gauge coupling for p4)",beta_p4)
+print("Beta(inverse gauge coupling for hisq)",beta_hisq)
+
+# for plotting a_times_fk_2014, I did:
+
+x=np.linspace(0.05,5,1000)
+y=a_times_fk_2012(x)/fKexpnew
+import matplotlib.pyplot as plt
+plt.plot(x,y,label="a(beta)")
+plt.xlabel("beta")
+plt.ylabel("lattice spacing")
+plt.legend()
+# plt.show()
+
+
+
+
+</pre>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+

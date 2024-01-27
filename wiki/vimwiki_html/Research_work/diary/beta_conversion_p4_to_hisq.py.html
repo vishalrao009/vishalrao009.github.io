@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="../style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>beta_conversion_p4_to_hisq.py</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/old_wiki.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+<pre python>
+def R_2(beta):
+    b0,b1=9/(16*np.pi*np.pi),1/(4*np.pi*np.pi)
+    return np.exp(-beta/(12*b0))*((6*b0/beta)**(-(b1/(2*b0*b0))))
+
+def a_cap(beta):
+    return R_2(beta)/3.4
+
+def r0_div_a_p4fat3(beta):
+    e_r,f_r,a_r,b_r,c_r,d_r=-1.682,0.823,13.250,-1.201,0.054,0.406
+    numerator=1+e_r*a_cap(beta)**2+f_r*a_cap(beta)**4
+    denominator=a_r*R_2(beta)*(1+b_r*a_cap(beta)**2+c_r*a_cap(beta)**4+d_r*a_cap(beta)**6)
+    r0_cap=numerator/denominator
+    return r0_cap
+
+beta_list=[3.53,3.57,3.585,3.76,3.82,3.92,4.00,4.08]
+# we will use a_div_r1_2014(beta) function to calculate the value of lattice spacing for each beta.
+lattice_spacing_fm_in=[]
+r0=0.469 #r0 in real world is beta independent and is 0.469fm
+for beta_in in beta_list:
+    lattice_spacing_fm_in.append(r0/r0_div_a_p4fat3(beta_in))
+temperature_MeV=[]
+N_t_in=8
+for a in lattice_spacing_fm_in:
+    temperature_MeV.append(197.7/(a*N_t_in))
+#from temperature we can find lattice spacing for any N_t
+N_t_out=8
+lattice_spacing_fm_out=[]
+for temp in temperature_MeV:
+    lattice_spacing_fm_out.append(197.7/(temp*N_t_out))
+
+print(lattice_spacing_fm_in)
+print(temperature_MeV)
+print(lattice_spacing_fm_out)
+
+#now for these lattice spacing we have to guess beta. 
+fKexpnew=156.1/np.sqrt(2)
+
+# we shall guess beta and increase by small amount to see if we are getting closer to lattice_spacing_fm_out for each beta_in
+# def find_beta(a):
+#     error=2
+#     while(error&gt;=0.005):
+#         a_out=a_times_fk_2014(beta_guess)/156.1
+#         error=a-a_out
+#         if error&lt;0:
+#             beta_guess+=0.5
+
+a_out=a_times_fk_2014(0.56)/fKexpnew
+print(a_out)
+
+
+
+
+</pre>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+
