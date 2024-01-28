@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>More about (void**)%title%a</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+<div id="Introduction"><h1 id="Introduction" class="header"><a href="#Introduction">Introduction</a></h1></div>
+<p>
+In C and C++, <code>void*</code> is a generic pointer type that can be used to hold the address of any data type. It is often used in situations where the type of the data being pointed to is not known at compile time. The <code>void**</code> type is a pointer to a <code>void*</code>, and it's commonly used when dealing with pointer-to-pointer scenarios.<br />
+</p>
+
+<div id="Introduction-Let's break down `void**`:"><h2 id="Let's break down `void**`:" class="header"><a href="#Introduction-Let's break down `void**`:">Let's break down <code>void**</code>:</a></h2></div>
+
+<ul>
+<li>
+<code>void*</code>: This is a pointer that can hold the address of any data type. It lacks type information, making it a generic pointer. For example, you can assign the address of an integer, a float, or any other type to a <code>void*</code> pointer.
+
+<li>
+<code>void**</code>: This is not a valid type in C or C++. <code>void**</code> is a pointer to a <code>void*</code>. It means that the value stored in a <code>void**</code> is expected to be the address of a <code>void*</code>.
+
+</ul>
+<p>
+Now, let's consider your specific example:<br />
+</p>
+
+<p>
+```cpp<br />
+cudaMalloc((void**)&amp;d, sizeof(int));<br />
+```<br />
+</p>
+
+<ul>
+<li>
+<code>&amp;d</code>: This takes the address of the pointer variable <code>d</code>.
+
+<li>
+<code>(void**)&amp;d</code>: It typecasts the address of <code>d</code> to <code>(void**)</code>, which is the type expected by <code>cudaMalloc</code>. This is necessary because <code>cudaMalloc</code> expects a <code>void**</code> as its first argument to store the allocated memory's address.
+
+</ul>
+<p>
+So, the <code>void**</code> in this context is used to allow <code>cudaMalloc</code> to modify the value of the pointer <code>d</code>. After the call to <code>cudaMalloc</code>, the memory address where the allocated space resides is stored in the variable <code>d</code>. This allocated memory can then be used for GPU computations or data transfers.<br />
+</p>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+
