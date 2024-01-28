@@ -118,7 +118,21 @@ operators in cpp: &lt;&lt; and &gt;&gt; are example of operators.
     </div>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
     <script type="text/javascript">
-        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+        document.addEventListener('DOMContentLoaded', (event) => {
+            document.querySelectorAll('pre code').forEach((block) => {
+                // Highlight code block
+                hljs.highlightBlock(block);
+
+                // Execute code block if it has a class 'execute'
+                if (block.classList.contains('execute')) {
+                    try {
+                        eval(block.textContent);
+                    } catch (error) {
+                        console.error('Error executing code:', error);
+                    }
+                }
+            });
+        });
     </script>
 </body>
 </html>
