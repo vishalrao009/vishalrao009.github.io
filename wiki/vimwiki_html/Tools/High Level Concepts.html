@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>High Level Concepts</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+
+<div id="Introduction"><h1 id="Introduction" class="header"><a href="#Introduction">Introduction</a></h1></div>
+
+<div id="Introduction-Extreme computational power of GPU"><h2 id="Extreme computational power of GPU" class="header"><a href="#Introduction-Extreme computational power of GPU">Extreme computational power of GPU</a></h2></div>
+
+<p>
+The main reason to use GPU is the computational power that it offers. There are two major advantages of using GPU over CPU.<br />
+</p>
+<ol>
+<li>
+Computational Throughput
+
+<li>
+Extremely High Memory Bandwidth
+
+</ol>
+<p>
+GPU are designed for Compute Intensive Highly parallel computation.<br />
+Therefore more transistors are used for data processing rather than data caching in advanced control logic.<br />
+</p>
+
+<div id="Introduction-Difference between CPU and GPU"><h2 id="Difference between CPU and GPU" class="header"><a href="#Introduction-Difference between CPU and GPU">Difference between CPU and GPU</a></h2></div>
+
+<p>
+CPU are designed to minimize latency, therefore majority of silicon area is dedicated to :<br />
+</p>
+<ul>
+<li>
+Advanced Control logic
+
+<li>
+Large cache
+
+</ul>
+<li>
+CPU are very good at running serial programs. 
+
+<p>
+Whereas The GPU are designed to maximize throughput, therefore majority of silicon area is dedicated to :<br />
+</p>
+<ul>
+<li>
+Massive number of cores(ALU)
+
+<li>
+GPU are used for data parallel computations(since a single kernel or function is to be calculated on large data elements, there is lower requirement for sophisticated control logic and hence lower cache)
+
+</ul>
+<div id="Introduction-How to utilize massive number of CUDA cores?"><h2 id="How to utilize massive number of CUDA cores?" class="header"><a href="#Introduction-How to utilize massive number of CUDA cores?">How to utilize massive number of CUDA cores?</a></h2></div>
+
+<p>
+In order to utilize the GPU, the parts of program which can be parallelized must be decomposed into large number of threads, that can run concurrently. In CUDA, these threads are defined by special functions called as kernels(kernels are functions which are called on device(GPU)). <br />
+</p>
+
+<p>
+Execution of kernel is called, launching a kernel. When we launch a kernel, kernel is executed as set of threads. Each thread is mapped to a single CUDA cores(each core can run 32 threads concurrently). <br />
+</p>
+
+<div id="Introduction-Concepts and terms"><h2 id="Concepts and terms" class="header"><a href="#Introduction-Concepts and terms">Concepts and terms</a></h2></div>
+
+<p>
+Two main concepts are CPU and GPU. We use the following terminology : <br />
+</p>
+<ol>
+<li>
+Host : CPU + It's on chip memory
+
+<li>
+Device : GPU + It's dedicated DRAM 
+
+</ol>
+	
+<p>
+Often programs contains the both parts : serial and parallel computations. We will run serial programs on CPU and parallel program code (kernel) on GPU. Using both CPU and GPU together is often termed as <span id="Introduction-Concepts and terms-Heterogeneous Parallel Programming"></span><strong id="Heterogeneous Parallel Programming">Heterogeneous Parallel Programming</strong>.<br />
+</p>
+
+<p>
+This is where CUDA comes in, as CUDA is 'Heterogeneous parallel programming Language', designed specifically for NVIDIA GPUs.  <br />
+</p>
+
+<p>
+CUDA is simply C with set of extensions. In CUDA programming model host is in control of the program. Host and device communicate via PCI bus. PCI bus is very slow relative to host and device, thus increasing cost of exchange of data between the CPU and GPU. Therefore the only portions of the code which are executed on device are those which are massively parallel.<br />
+</p>
+
+<div id="Introduction-Concepts and terms-Concept of thread"><h3 id="Concept of thread" class="header"><a href="#Introduction-Concepts and terms-Concept of thread">Concept of thread</a></h3></div>
+
+<p>
+Kernels gets executed as a set of parallel threads. CUDA is designed to execute thousands of threads(114,688 threads per core). <br />
+</p>
+
+<p>
+CUDA threads execute in a SIMD(Single Instruction Multiple Data) fashion. But for NVIDIA GPUs SIMD is basically SIMT (Single Instruction Multiple Thread).<br />
+</p>
+
+<p>
+Note that, the threads don't finish the task at same rate, since they acts upon different data sets, so time can be little different.<br />
+</p>
+
+<div id="Introduction-Organisation of Threads"><h2 id="Organisation of Threads" class="header"><a href="#Introduction-Organisation of Threads">Organisation of Threads</a></h2></div>
+
+<p>
+In order to organise threads on each cores, CUDA uses hierarchy in threads. There are three levels of hierarchy. <br />
+</p>
+
+<ul>
+<li>
+Threads: At lowest level of hierarchy, we have threads.  Kernels execute as a set of threads. 
+
+<li>
+Blocks: Threads are grouped into Blocks.
+
+<li>
+Grids: Blocks are grouped into grids. These are at highest level of hierarchy. The entire kernel launch is mapped to one grid, which is mapped to corresponding part of GPU and its memory. In summary, one kernel is executed as one grid, which is mapped to part or whole of device. 
+
+</ul>
+<p>
+In short, Threads \(\in\) Blocks \(\in\) Grid.<br />
+</p>
+
+<div id="Introduction-Dimension of Grids and Blocks"><h2 id="Dimension of Grids and Blocks" class="header"><a href="#Introduction-Dimension of Grids and Blocks">Dimension of Grids and Blocks</a></h2></div>
+
+<p>
+Grids can be 1d, 2d and 3d.  <br />
+</p>
+
+<p>
+Imagine having 1d grid, with 4 blocks (4 x 1). Each block can be 1d, 2d and 3d thread arrangements. <br />
+</p>
+
+<p>
+If blocks are 2d with dimension (4 x 5; 4 thread in x and 5 threads in y), where threads are elements of (5 x 4) matrix. In total we will have 20 threads per block, and for such 4 blocks we will have 80 threads.<br />
+</p>
+
+<p>
+Detailed discussion can be found at <a href="Indexing Threads within Grids and Blocks.html">Indexing Threads within Grids and Blocks</a><br />
+</p>
+
+<p>
+Upon launching such kernel with this grid, a total of 80 threads will be executed concurrently.<br />
+</p>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+

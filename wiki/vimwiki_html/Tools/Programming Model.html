@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>Programming Model</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+<div id="Introduction"><h1 id="Introduction" class="header"><a href="#Introduction">Introduction</a></h1></div>
+
+<ol>
+<li>
+Host controls the entire flow of the program.
+
+</ol>
+<p>
+Let us look at how the program flow looks like:<br />
+</p>
+
+<pre cpp>
+#include&lt;iostream&gt;
+
+int main()
+{
+//host code
+
+//do some Sequential stuff (execution on CPU)
+
+//launch kernel for parallel tasks.(execution on GPU)
+Kernel_0&lt;&lt;&lt;grid_size,block_size&gt;&gt;&gt;(arg1,arg2 , .., argN);
+
+
+//note that the CPU does not wait for device to finish the kernel_0 execution, one has to tell the compiler to do so. 
+//do some Sequential stuff
+
+
+//do more Sequential stuff (execution on CPU)
+
+//Launch another kernel1 
+Kernel_1&lt;&lt;&lt;grid_size1,block_size1&gt;&gt;&gt;(arg1,arg2...);
+//do some Sequential stuff without waiting unless told to do so.
+
+return 0;
+}
+</pre>
+
+<div id="Introduction-Kernel launch syntax"><h2 id="Kernel launch syntax" class="header"><a href="#Introduction-Kernel launch syntax">Kernel launch syntax</a></h2></div>
+
+<p>
+Kernel launch syntax: <br />
+</p>
+
+<pre cpp>
+kernel_name&lt;&lt;&lt;grid_size,block_size&gt;&gt;&gt;(arg1,arg2, ..);
+</pre>
+
+<p>
+Note that we must specify the grid size(which defines the organisation of blocks within the grid), and the block size(which defines organisation of threads within the block). <br />
+</p>
+
+<p>
+The blocks and grid dimensions are given be variables of CUDA data structures already defined by the name "dim3".<br />
+</p>
+
+<ul>
+<li>
+dim3 is data structure of CUDA, which will store integer values for respective objects.
+
+</ul>
+<p>
+Example: <br />
+</p>
+<pre cpp>
+	dim3 grid_size(x,y,z); //x number of blocks in x direction, y number of blocks in y direction, and z number of blocks in z direction. 
+	dim3 block_size(x,y,z);//x number of threads in x direction, y number of threads in y direction, and z number of threads in z direction. 
+</pre>
+
+<p>
+The default values are (1,1,1), i.e. 1 block in x, 1 block in y and 1 block in z direction.<br />
+For block_size=(1,1,1), it will represent, 1 thread in x, 1 thread in y, and one thread in z direction.<br />
+</p>
+
+
+<div id="Introduction-Kernel launch syntax-Kernel Launch"><h3 id="Kernel Launch" class="header"><a href="#Introduction-Kernel launch syntax-Kernel Launch">Kernel Launch</a></h3></div>
+<p>
+Once grid and block dimensions are specified, kernel can be launched by following methods.<br />
+</p>
+
+<pre cpp>
+int main()
+{
+dim3 grid_size(4,3); //in total there will be 12 blocks
+dim3 block_size(5,5); //each 12 blocks will have 5 threads in x and 5 threads in y direction.
+kernel&lt;&lt;&lt;grid_size,block_size&gt;&gt;&gt;(arg1,arg2); // this is how we launch the kernel.
+}
+
+
+</pre>
+
+<div id="Introduction-CUDA program flow"><h2 id="CUDA program flow" class="header"><a href="#Introduction-CUDA program flow">CUDA program flow</a></h2></div>
+
+<p>
+Host and device are in different memory regions. In order to operate on any data inside a kernel, we first need to allocate memory on device, then we copy the data from host to device, we then launch the kernel, in the end we copy the data back from device to host. <br />
+</p>
+
+<p>
+It can be seen as following algorithm:<br />
+</p>
+
+<pre cpp>
+int main()
+{
+//some Sequential code
+
+//Allocate memory on device
+cudaMalloc();
+
+//copy data from host to device
+cudaMemcpy();
+
+//launch kernel
+kernel&lt;&lt;&lt;grid_dim,block_dim&gt;&gt;&gt;(arg1,arg2);
+
+//some Sequential stuff (meanwhile, if there is any)
+
+//copy data from device to host
+cudaMemcpy();
+}
+
+</pre>
+
+
+<div id="Introduction-CUDA program flow-Memory Allocating and copying"><h3 id="Memory Allocating and copying" class="header"><a href="#Introduction-CUDA program flow-Memory Allocating and copying">Memory Allocating and copying</a></h3></div>
+
+<p>
+Allocating memory in CUDA is analogous to C, recall that in C we use :<br />
+</p>
+<ul>
+<li>
+Allocate memory in C: malloc();
+
+<li>
+De-allocate memory in C: free();
+
+</ul>
+<p>
+To allocate memory in CUDA, we use : <br />
+</p>
+<ul>
+<li>
+cudaMalloc(Location, SIZE);
+
+<ol>
+<li>
+Location: memory location on device to allocate memory(it is an address in GPU memory)
+
+<li>
+2nd argument : Number of bytes to allocate.
+
+</ol>
+</ul>
+	
+<p>
+To De-allocate memory in CUDA: <br />
+</p>
+<ul>
+<li>
+cudaFree();
+
+</ul>
+<p>
+To transfer data between source and device, we use: <br />
+</p>
+
+<pre cpp>
+cudaMemcpy(destination, source, numBytes, direciton);`
+</pre>
+
+<p>
+Here the arguments are: <br />
+</p>
+<ol>
+<li>
+destination: It is pointer to address of the destination in which data is copied to.
+
+<li>
+source: It is pointer to address of the data which is being copied
+
+<li>
+numBytes: It is size of the data in bytes being copied. {numBytes= N x sizeof(type)}
+
+<li>
+direction : It takes one the two: 
+
+<ol>
+<li>
+cudaMemcpyHostToDevice
+
+<li>
+cudaMemcpyDeviceToHost
+
+</ol>
+</ol>
+		
+
+<div id="Introduction-CUDA program flow-Memory Allocating and copying-Example Program"><h4 id="Example Program" class="header"><a href="#Introduction-CUDA program flow-Memory Allocating and copying-Example Program">Example Program</a></h4></div>
+<pre cpp>
+int main()
+
+{
+//first step is to declare the pointer variables which points to address of data/variables on host and device, to differentiate the host varaibles from device variables, we use the following convention. 
+
+int *h_a, *d_a;
+int number_of_integers=100;
+for (int i=0;i&lt;100;i++)
+{
+h[i]=i; //we can use pointers as array, for more find links below.
+}
+//here d_a is pointer variable which will hold address of all variables on the device.
+
+//Allocate memory on device
+cudaMalloc((void**)&amp;d_a,number_of_integers *sizeof(int)); // 
+
+//copy the data from host to device
+cudaMemcpy(d_a,h_a,number_of_integers*sizeof(int), cudaMemcpyHostToDevice);
+
+//define grid and block dimensions
+dim3 grid_size(1);
+dim3 block_size(100);
+
+//launch the kernel
+kernel&lt;&lt;&lt;grid_size,block_size&gt;&gt;&gt;(arg1,arg2);
+
+//copy the results back to host from device
+cudaMemcpy(h_a,d_a,number_of_integers*sizeof(int), cudaMemcpyDeviceToHost);
+
+//deallocate memory
+cudaFree(d_a);
+free(h_a);
+return 0;
+}
+
+</pre>
+<p>
+Some useful links:<br />
+</p>
+<ol>
+<li>
+<a href="(void**)&amp;d_a.html">(void**)&amp;d_a</a>
+
+<li>
+<a href="using pointer as array.html">using pointer as array</a>
+
+</ol>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+
