@@ -116,24 +116,24 @@ operators in cpp: &lt;&lt; and &gt;&gt; are example of operators.
 </pre>
 
     </div>
+    <button onclick="runCode()">Run Code</button>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
     <script type="text/javascript">
-        document.addEventListener('DOMContentLoaded', (event) => {
-            document.querySelectorAll('pre code').forEach((block) => {
-                // Highlight code block
-                hljs.highlightBlock(block);
-
-                // Execute code block if it has a class 'execute'
-                if (block.classList.contains('execute')) {
-                    try {
-                        eval(block.textContent);
-                    } catch (error) {
-                        console.error('Error executing code:', error);
-                    }
+        function runCode() {
+            document.querySelectorAll('pre code.execute').forEach((block) => {
+                try {
+                    // Evaluate and execute the code block
+                    eval(block.textContent);
+                } catch (error) {
+                    console.error('Error executing code:', error);
                 }
             });
+        }
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            // Highlight code blocks
+            hljs.highlightAll();
         });
     </script>
 </body>
-</html>
 
