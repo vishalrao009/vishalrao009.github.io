@@ -32,17 +32,6 @@
             background-color: rgba(255, 255, 255, 0.5);
         }
 
-        #output {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            background-color: #f9f9f9;
-        }
-
-        iframe {
-            display: none; /* Hide the iframe initially */
-        }
-
         /* Mobile Styles */
         @media only screen and (max-width: 600px) {
             body {
@@ -127,46 +116,9 @@ operators in cpp: &lt;&lt; and &gt;&gt; are example of operators.
 </pre>
 
     </div>
-    <button onclick="runCode()">Run Code</button>
-    <div id="output"></div>
-    <iframe id="codeRunner"></iframe>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
     <script type="text/javascript">
-        function runCode() {
-            var outputDiv = document.getElementById('output');
-            outputDiv.innerHTML = ''; // Clear previous output
-
-            document.querySelectorAll('pre code.execute').forEach((block) => {
-                try {
-                    // Create an iframe to execute the code
-                    var iframe = document.getElementById('codeRunner');
-                    var iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
-
-                    // Write the code to the iframe and execute
-                    iframeDocument.open();
-                    iframeDocument.write('<script>' + block.textContent + '</script>');
-                    iframeDocument.close();
-
-                    // Get the result from the iframe
-                    var result = iframe.contentWindow.result;
-
-                    // Display the result in the output area
-                    var resultParagraph = document.createElement('p');
-                    resultParagraph.textContent = 'Output: ' + result;
-                    outputDiv.appendChild(resultParagraph);
-                } catch (error) {
-                    console.error('Error executing code:', error);
-                    var errorParagraph = document.createElement('p');
-                    errorParagraph.textContent = 'Error: ' + error;
-                    outputDiv.appendChild(errorParagraph);
-                }
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', (event) => {
-            // Highlight code blocks
-            hljs.highlightAll();
-        });
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
     </script>
 </body>
 </html>
