@@ -39,6 +39,10 @@
             background-color: #f9f9f9;
         }
 
+        iframe {
+            display: none; /* Hide the iframe initially */
+        }
+
         /* Mobile Styles */
         @media only screen and (max-width: 600px) {
             body {
@@ -57,6 +61,7 @@
     </div>
     <button onclick="runCode()">Run Code</button>
     <div id="output"></div>
+    <iframe id="codeRunner"></iframe>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
     <script type="text/javascript">
         function runCode() {
@@ -65,9 +70,18 @@
 
             document.querySelectorAll('pre code.execute').forEach((block) => {
                 try {
-                    // Evaluate and execute the code block
-                    var result = new Function(block.textContent)();
-                    
+                    // Create an iframe to execute the code
+                    var iframe = document.getElementById('codeRunner');
+                    var iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+
+                    // Write the code to the iframe and execute
+                    iframeDocument.open();
+                    iframeDocument.write('<script>' + block.textContent + '</script>');
+                    iframeDocument.close();
+
+                    // Get the result from the iframe
+                    var result = iframe.contentWindow.result;
+
                     // Display the result in the output area
                     var resultParagraph = document.createElement('p');
                     resultParagraph.textContent = 'Output: ' + result;
