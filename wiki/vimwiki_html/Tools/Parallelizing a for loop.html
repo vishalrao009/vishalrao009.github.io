@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>Parallelizing a for loop</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+<div id="Parallelizing a for loop"><h1 id="Parallelizing a for loop" class="header"><a href="#Parallelizing a for loop">Parallelizing a for loop</a></h1></div>
+
+<div id="Parallelizing a for loop-Introduction"><h2 id="Introduction" class="header"><a href="#Parallelizing a for loop-Introduction">Introduction</a></h2></div>
+<p>
+Let us try to demonstrate using some example where a task can be parallelized. <br />
+Before that let us see syntax of kernel definition.<br />
+</p>
+<div id="Parallelizing a for loop-Introduction-Syntax of kernel definition"><h3 id="Syntax of kernel definition" class="header"><a href="#Parallelizing a for loop-Introduction-Syntax of kernel definition">Syntax of kernel definition</a></h3></div>
+<pre cpp>
+__global__ void copy_fun(int *data_out, int *data_in) //__global__ keyword is declaration specifier which tells the compiler to execute the kernel only on device(GPU). Kernels called from host, never return a value, so the return type must be void. Variables operated on kernel must be passed by pointers. (as it can't return the output to CPU directly). 
+{
+// the simplest kernel would be to just copy the 0th element of the array:
+data_out[0]=data_in[0];
+//this kernel would be executed for each thread.
+
+}
+
+int main()
+{
+int N=1000000000;
+dim3 grid_size(1); //grid with just 1 block in x direction.
+dim3 block_size(N); //N threads in that one block.
+
+int *h_data, *d_data;
+
+//let us say that we have some array of 1000000000, numbers. and we want to increse the each element of the array with value 1. Now for cpu this program just takes the following for loop
+
+for (int i=0; i&lt;N; i++)
+{
+	h_data[i]+=1;
+}
+
+//now the above problem can be parallelized.
+
+}
+
+
+</pre>
+
+
+<p>
+<span id="Parallelizing a for loop-Introduction-Syntax of kernel definition-Let us see some examples where task can be parallelized."></span><strong id="Let us see some examples where task can be parallelized.">Let us see some examples where task can be parallelized.</strong><br />
+</p>
+
+<div id="Parallelizing a for loop-Example 1."><h2 id="Example 1." class="header"><a href="#Parallelizing a for loop-Example 1.">Example 1.</a></h2></div>
+
+<p>
+Task: Modifying each element of the array. <br />
+</p>
+
+<div id="Parallelizing a for loop-Example 1.-CPU code"><h3 id="CPU code" class="header"><a href="#Parallelizing a for loop-Example 1.-CPU code">CPU code</a></h3></div>
+<pre cpp>
+#include&lt;iostream&gt;
+#include&lt;vector&gt;
+using std::vector;
+
+void modify_vec(int *p, int N)
+{
+for (int i=0;i&lt;N;i++)
+{
+p[i]*=2; //let us say we are multiplying each element by 2.
+}
+}
+
+int main()
+{
+
+int N=1000000000;
+int arr[N]; //declaring array of size N
+
+for(int i=0;i&lt;N;i++)
+{
+arr[i]=i;
+}
+
+modify_vec(&amp;arr[0],N);
+for (int i=0;i&lt;N;i++)
+{
+std::cout&lt;&lt;i&lt;&lt;std::endl;
+}
+
+return 0;
+}
+
+</pre>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+
