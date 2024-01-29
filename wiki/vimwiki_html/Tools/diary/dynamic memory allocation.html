@@ -165,9 +165,7 @@ Assign the resulting pointer to the variable <code>dynamicArray</code>, which is
 In C++, dynamic memory allocation is done using operators <code>new</code> and <code>delete</code> (or <code>malloc</code> and <code>free</code>, but the former is more commonly used). Dynamic memory allocation allows you to allocate memory at runtime, and it is especially useful when you don't know the size of the data you need until your program is running. Here's a basic overview:<br />
 </p>
 
-<p>
-### Allocation with <code>new</code>:<br />
-</p>
+<div id="Introduction-Dynamic memory allocation in C++-Allocation with `new`:"><h3 id="Allocation with `new`:" class="header"><a href="#Introduction-Dynamic memory allocation in C++-Allocation with `new`:">Allocation with <code>new</code>:</a></h3></div>
 
 <pre cpp>
 #include &lt;iostream&gt;
@@ -189,108 +187,81 @@ int main() {
 }
 </pre>
 
-<p>
-### Array Allocation with <code>new</code>:<br />
-</p>
+<div id="Introduction-Dynamic memory allocation in C++-Array Allocation with `new`:"><h3 id="Array Allocation with `new`:" class="header"><a href="#Introduction-Dynamic memory allocation in C++-Array Allocation with `new`:">Array Allocation with <code>new</code>:</a></h3></div>
 
-<p>
-```cpp<br />
-#include &lt;iostream&gt;<br />
-</p>
+<pre cppcpp>
+#include &lt;iostream&gt;
 
-<p>
-int main() {<br />
-</p>
-<pre><code>// Allocate memory for an array of integers
-int* dynamicArray = new int[5];
-</code></pre>
-<pre><code>// Assign values to the allocated array
-for (int i = 0; i &lt; 5; ++i) {
-dynamicArray[i] = i * 10;
+int main() {
+    // Allocate memory for an array of integers
+    int* dynamicArray = new int[5];
+
+    // Assign values to the allocated array
+    for (int i = 0; i &lt; 5; ++i) {
+        dynamicArray[i] = i * 10;
+    }
+
+    // Use the allocated array
+    for (int i = 0; i &lt; 5; ++i) {
+        std::cout &lt;&lt; "Element " &lt;&lt; i &lt;&lt; ": " &lt;&lt; dynamicArray[i] &lt;&lt; std::endl;
+    }
+
+    // Don't forget to free the allocated array when done
+    delete[] dynamicArray;
+
+    return 0;
 }
-</code></pre>
-<pre><code>// Use the allocated array
-for (int i = 0; i &lt; 5; ++i) {
-std::cout &lt;&lt; "Element " &lt;&lt; i &lt;&lt; ": " &lt;&lt; dynamicArray[i] &lt;&lt; std::endl;
+</pre>
+
+<div id="Introduction-Dynamic memory allocation in C++-Allocation with `malloc` and `free`:"><h3 id="Allocation with `malloc` and `free`:" class="header"><a href="#Introduction-Dynamic memory allocation in C++-Allocation with `malloc` and `free`:">Allocation with <code>malloc</code> and <code>free</code>:</a></h3></div>
+
+<pre cpp>
+#include &lt;iostream&gt;
+#include &lt;cstdlib&gt;
+
+int main() {
+    // Allocate memory for an integer
+    int* dynamicInt = static_cast&lt;int*&gt;(malloc(sizeof(int)));
+
+    // Assign a value to the allocated memory
+    *dynamicInt = 42;
+
+    // Use the allocated memory
+    std::cout &lt;&lt; "Dynamic Integer: " &lt;&lt; *dynamicInt &lt;&lt; std::endl;
+
+    // Don't forget to free the allocated memory when done
+    free(dynamicInt);
+
+    return 0;
 }
-</code></pre>
-<pre><code>// Don't forget to free the allocated array when done
-delete[] dynamicArray;
-</code></pre>
-<pre><code>return 0;
-</code></pre>
-<p>
-}<br />
-```<br />
-</p>
+</pre>
 
-<p>
-### Allocation with <code>malloc</code> and <code>free</code>:<br />
-</p>
+<div id="Introduction-Dynamic memory allocation in C++-Array Allocation with `malloc` and `free`:"><h3 id="Array Allocation with `malloc` and `free`:" class="header"><a href="#Introduction-Dynamic memory allocation in C++-Array Allocation with `malloc` and `free`:">Array Allocation with <code>malloc</code> and <code>free</code>:</a></h3></div>
 
-<p>
-```cpp<br />
-#include &lt;iostream&gt;<br />
-#include &lt;cstdlib&gt;<br />
-</p>
+<pre cpp>
+#include &lt;iostream&gt;
+#include &lt;cstdlib&gt;
 
-<p>
-int main() {<br />
-</p>
-<pre><code>// Allocate memory for an integer
-int* dynamicInt = static_cast&lt;int*&gt;(malloc(sizeof(int)));
-</code></pre>
-<pre><code>// Assign a value to the allocated memory
-*dynamicInt = 42;
-</code></pre>
-<pre><code>// Use the allocated memory
-std::cout &lt;&lt; "Dynamic Integer: " &lt;&lt; *dynamicInt &lt;&lt; std::endl;
-</code></pre>
-<pre><code>// Don't forget to free the allocated memory when done
-free(dynamicInt);
-</code></pre>
-<pre><code>return 0;
-</code></pre>
-<p>
-}<br />
-```<br />
-</p>
+int main() {
+    // Allocate memory for an array of integers
+    int* dynamicArray = static_cast&lt;int*&gt;(malloc(5 * sizeof(int)));
 
-<p>
-### Array Allocation with <code>malloc</code> and <code>free</code>:<br />
-</p>
+    // Assign values to the allocated array
+    for (int i = 0; i &lt; 5; ++i) {
+        dynamicArray[i] = i * 10;
+    }
 
-<p>
-```cpp<br />
-#include &lt;iostream&gt;<br />
-#include &lt;cstdlib&gt;<br />
-</p>
+    // Use the allocated array
+    for (int i = 0; i &lt; 5; ++i) {
+        std::cout &lt;&lt; "Element " &lt;&lt; i &lt;&lt; ": " &lt;&lt; dynamicArray[i] &lt;&lt; std::endl;
+    }
 
-<p>
-int main() {<br />
-</p>
-<pre><code>// Allocate memory for an array of integers
-int* dynamicArray = static_cast&lt;int*&gt;(malloc(5 * sizeof(int)));
-</code></pre>
-<pre><code>// Assign values to the allocated array
-for (int i = 0; i &lt; 5; ++i) {
-dynamicArray[i] = i * 10;
+    // Don't forget to free the allocated array when done
+    free(dynamicArray);
+
+    return 0;
 }
-</code></pre>
-<pre><code>// Use the allocated array
-for (int i = 0; i &lt; 5; ++i) {
-std::cout &lt;&lt; "Element " &lt;&lt; i &lt;&lt; ": " &lt;&lt; dynamicArray[i] &lt;&lt; std::endl;
-}
-</code></pre>
-<pre><code>// Don't forget to free the allocated array when done
-free(dynamicArray);
-</code></pre>
-<pre><code>return 0;
-</code></pre>
-<p>
-}<br />
-```<br />
-</p>
+</pre>
 
 <p>
 In both cases (<code>new</code>/<code>delete</code> and <code>malloc</code>/<code>free</code>), it's important to free the memory when you're done using it to avoid memory leaks. Using <code>new</code> and <code>delete</code> is generally preferred in C++ due to better type safety and constructors/destructors invocation. If you're using <code>new</code>, you should use <code>delete</code>, and if you're using <code>new[]</code>, you should use <code>delete[]</code>. Similarly, if you're using <code>malloc</code>, you should use <code>free</code>. Mixing them can lead to undefined behavior.<br />
