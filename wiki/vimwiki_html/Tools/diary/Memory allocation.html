@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="../style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>Memory allocation</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+<div id="Introduction"><h1 id="Introduction" class="header"><a href="#Introduction">Introduction</a></h1></div>
+<p>
+Stack memory and heap memory are two types of memory used by computer programs for different purposes. They differ in terms of allocation, deallocation, and scope. <br />
+</p>
+
+<div id="Introduction-1. Stack Memory"><h2 id="1. Stack Memory" class="header"><a href="#Introduction-1. Stack Memory">1. Stack Memory</a></h2></div>
+
+<div id="Introduction-1. Stack Memory-1. Automatic Memory Allocation:"><h3 id="1. Automatic Memory Allocation:" class="header"><a href="#Introduction-1. Stack Memory-1. Automatic Memory Allocation:">1. Automatic Memory Allocation:</a></h3></div>
+<ul>
+<li>
+Stack memory is used for local variables and function call information.
+
+<li>
+Memory is allocated and deallocated automatically as functions are called and return.
+
+</ul>
+<div id="Introduction-1. Stack Memory-2. Fixed Size:"><h3 id="2. Fixed Size:" class="header"><a href="#Introduction-1. Stack Memory-2. Fixed Size:">2. Fixed Size:</a></h3></div>
+<ul>
+<li>
+The size of the stack is fixed and limited.
+
+<li>
+The stack typically has a smaller size compared to the heap.
+
+</ul>
+<div id="Introduction-1. Stack Memory-3. Faster Access:"><h3 id="3. Faster Access:" class="header"><a href="#Introduction-1. Stack Memory-3. Faster Access:">3. Faster Access:</a></h3></div>
+<ul>
+<li>
+Access to variables in the stack is faster than in the heap because of its simple and predictable structure.
+
+</ul>
+<div id="Introduction-1. Stack Memory-4. Limited Lifetime:"><h3 id="4. Limited Lifetime:" class="header"><a href="#Introduction-1. Stack Memory-4. Limited Lifetime:">4. Limited Lifetime:</a></h3></div>
+<ul>
+<li>
+Variables in the stack have a limited lifetime, tied to the scope of the function they belong to.
+
+</ul>
+<div id="Introduction-1. Stack Memory-5. Thread-Specific:"><h3 id="5. Thread-Specific:" class="header"><a href="#Introduction-1. Stack Memory-5. Thread-Specific:">5. Thread-Specific:</a></h3></div>
+<ul>
+<li>
+Each thread has its own stack, and local variables are thread-specific.
+
+</ul>
+   
+<div id="Introduction-Heap Memory:"><h2 id="Heap Memory:" class="header"><a href="#Introduction-Heap Memory:">Heap Memory:</a></h2></div>
+
+<div id="Introduction-Heap Memory:-1. Dynamic Memory Allocation:"><h3 id="1. Dynamic Memory Allocation:" class="header"><a href="#Introduction-Heap Memory:-1. Dynamic Memory Allocation:">1. Dynamic Memory Allocation:</a></h3></div>
+<ul>
+<li>
+Heap memory is used for dynamic memory allocation, where memory is allocated and deallocated manually by the programmer.
+
+</ul>
+<div id="Introduction-Heap Memory:-2. Variable Size:"><h3 id="2. Variable Size:" class="header"><a href="#Introduction-Heap Memory:-2. Variable Size:">2. Variable Size:</a></h3></div>
+<ul>
+<li>
+The size of the heap is not fixed and can grow or shrink during the program's execution.
+
+</ul>
+<div id="Introduction-Heap Memory:-3. Slower Access:"><h3 id="3. Slower Access:" class="header"><a href="#Introduction-Heap Memory:-3. Slower Access:">3. Slower Access:</a></h3></div>
+<ul>
+<li>
+Access to variables in the heap is slower than in the stack due to its more complex structure.
+
+</ul>
+<div id="Introduction-Heap Memory:-4. Extended Lifetime:"><h3 id="4. Extended Lifetime:" class="header"><a href="#Introduction-Heap Memory:-4. Extended Lifetime:">4. Extended Lifetime:</a></h3></div>
+<ul>
+<li>
+Variables in the heap can have a longer lifetime than those in the stack, persisting beyond the scope of the function that allocated them.
+
+</ul>
+<div id="Introduction-Heap Memory:-5. Shared Among Threads:"><h3 id="5. Shared Among Threads:" class="header"><a href="#Introduction-Heap Memory:-5. Shared Among Threads:">5. Shared Among Threads:</a></h3></div>
+<ul>
+<li>
+Heap memory is shared among all threads in a program.
+
+</ul>
+<div id="Introduction-Example:"><h2 id="Example:" class="header"><a href="#Introduction-Example:">Example:</a></h2></div>
+
+<p>
+Here's a simple example in C++ to illustrate the difference:<br />
+</p>
+
+<pre cpp>
+void stackExample() {
+    int x = 10;  // Variable allocated on the stack
+    // ...
+}  // Memory for 'x' is automatically deallocated when the function exits
+
+void heapExample() {
+    int* arr = new int[5];  // Dynamic memory allocation on the heap
+    // ...
+    delete[] arr;  // Manual deallocation
+}  // Memory for the array is deallocated manually
+
+int main() {
+    stackExample();
+    heapExample();
+    return 0;
+}
+</pre>
+
+<p>
+In <code>stackExample</code>, the variable <code>x</code> is allocated on the stack, and its memory is automatically deallocated when the function exits. In <code>heapExample</code>, an array is allocated on the heap using <code>new</code>, and its memory is deallocated manually using <code>delete[]</code>.<br />
+</p>
+
+
+<div id="Introduction-Table of difference"><h2 id="Table of difference" class="header"><a href="#Introduction-Table of difference">Table of difference</a></h2></div>
+
+<p>
+Certainly! Here's the table without the bold formatting:<br />
+</p>
+
+<p>
+```markdown<br />
+<table>
+<tr>
+<td>
+Characteristic
+</td>
+<td>
+Stack Memory
+</td>
+<td>
+Heap Memory
+</td>
+</tr>
+<tr>
+<td>
+-----------------------------
+</td>
+<td>
+------------------------------
+</td>
+<td>
+--------------------------------------
+</td>
+</tr>
+<tr>
+<td>
+Allocation Type
+</td>
+<td>
+Automatic (compiler manages)
+</td>
+<td>
+Manual (programmer manages)
+</td>
+</tr>
+<tr>
+<td>
+Size
+</td>
+<td>
+Fixed and limited
+</td>
+<td>
+Dynamic and can grow or shrink
+</td>
+</tr>
+<tr>
+<td>
+Access Speed
+</td>
+<td>
+Faster
+</td>
+<td>
+Slower due to its more complex structure
+</td>
+</tr>
+<tr>
+<td>
+Lifetime
+</td>
+<td>
+Limited (scoped to function)
+</td>
+<td>
+Extended (may persist beyond function scope)
+</td>
+</tr>
+<tr>
+<td>
+Thread Specific
+</td>
+<td>
+Yes (each thread has its own stack)
+</td>
+<td>
+No (shared among all threads)
+</td>
+</tr>
+<tr>
+<td>
+Usage Examples
+</td>
+<td>
+Local variables, function call info
+</td>
+<td>
+Dynamic data structures, objects
+</td>
+</tr>
+<tr>
+<td>
+Memory Management
+</td>
+<td>
+Automatic (compiler handles deallocation)
+</td>
+<td>
+Manual (programmer must deallocate using <code>delete</code> or <code>free</code>)
+</td>
+</tr>
+</table>
+</p>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="../style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>dynamic memory allocation</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+
+<div id="Introduction"><h1 id="Introduction" class="header"><a href="#Introduction">Introduction</a></h1></div>
+<p>
+In C and C++, dynamic memory allocation is done using the <code>malloc</code>, <code>calloc</code>, <code>realloc</code>, and <code>free</code> functions. These functions are part of the standard library and are used to allocate and deallocate memory on the heap.<br />
+</p>
+
+<div id="Introduction-Here's a brief overview of each function:"><h2 id="Here's a brief overview of each function:" class="header"><a href="#Introduction-Here's a brief overview of each function:">Here's a brief overview of each function:</a></h2></div>
+
+<ol>
+<li>
+malloc: Allocates a specified number of bytes of memory. It takes one argument, the number of bytes to allocate.
+<pre c>
+    int* dynamicArray = (int*)malloc(5 * sizeof(int));
+</pre>
+
+<li>
+calloc: Allocates a specified number of blocks of memory, each of a specified size. It takes two arguments, the number of blocks and the size of each block.
+<pre c>
+    int* dynamicArray = (int*)calloc(5, sizeof(int));
+</pre>
+
+<li>
+realloc: Changes the size of the memory block previously allocated using <code>malloc</code> or <code>calloc</code>. It takes two arguments, a pointer to the previously allocated memory block and the new size.
+<pre c>
+    int* resizedArray = (int*)realloc(dynamicArray, 10 * sizeof(int));
+</pre>
+
+<li>
+Free: Deallocates the memory block previously allocated using <code>malloc</code>, <code>calloc</code>, or <code>realloc</code>.
+<pre c>
+    free(dynamicArray);
+</pre>
+
+</ol>
+<p>
+Here's an example of dynamic memory allocation for an integer array in C:<br />
+</p>
+
+<pre c>
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+int main() {
+    // Allocate memory for an integer array of size 5
+    int* dynamicArray = (int*)malloc(5 * sizeof(int));
+
+    if (dynamicArray == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        return 1;
+    }
+
+    // Access and manipulate the dynamically allocated array
+    for (int i = 0; i &lt; 5; ++i) {
+        dynamicArray[i] = i * 2;
+    }
+
+    // Print the contents of the array
+    for (int i = 0; i &lt; 5; ++i) {
+        printf("Element %d: %d\n", i, dynamicArray[i]);
+    }
+
+    // Deallocate the memory when done
+    free(dynamicArray);
+
+    return 0;
+}
+</pre>
+
+<p>
+It's important to check whether the memory allocation was successful (i.e., if the returned pointer is not <code>NULL</code>). Also, remember to free the allocated memory using <code>free</code> when it's no longer needed to avoid memory leaks.<br />
+</p>
+
+
+<div id="Introduction-Typecasting"><h2 id="Typecasting" class="header"><a href="#Introduction-Typecasting">Typecasting</a></h2></div>
+<p>
+The <code>(int*)</code> in the example <code>(int*)malloc(5 * sizeof(int));</code> is a typecast, also known as a "cast." It is used to explicitly convert the result of the <code>malloc</code> function to the desired pointer type, which in this case is a pointer to an <code>int</code>. Let me break it down:<br />
+</p>
+
+<div id="Introduction-Typecasting-1. malloc Function:"><h3 id="1. malloc Function:" class="header"><a href="#Introduction-Typecasting-1. malloc Function:">1. malloc Function:</a></h3></div>
+<ul>
+<li>
+The <code>malloc</code> function allocates a block of memory of a specified size and returns a pointer to the beginning of that memory block.
+
+<li>
+The argument <code>5 * sizeof(int)</code> indicates the total number of bytes to allocate, which is equivalent to space for 5 integers.
+
+</ul>
+<div id="Introduction-Typecasting-2. Typecast (int*):"><h3 id="2. Typecast (int*):" class="header"><a href="#Introduction-Typecasting-2. Typecast (int*):">2. Typecast (int*):</a></h3></div>
+<ul>
+<li>
+The <code>(int*)</code> is a typecast that explicitly tells the compiler to treat the result of <code>malloc</code> as a pointer to an integer (<code>int*</code>).
+
+<li>
+It is necessary because <code>malloc</code> returns a generic pointer of type <code>void*</code>, and it's common practice to cast it to the appropriate type to avoid compiler warnings.
+
+</ul>
+<p>
+So, the complete line <code>int* dynamicArray = (int*)malloc(5 * sizeof(int));</code> can be understood as follows:<br />
+</p>
+<ul>
+<li>
+Allocate memory for an array of 5 integers.
+
+<li>
+The <code>malloc</code> function returns a pointer of type <code>void*</code>.
+
+<li>
+Typecast the result to a pointer to an integer (<code>int*</code>).
+
+<li>
+Assign the resulting pointer to the variable <code>dynamicArray</code>, which is declared as a pointer to an integer (<code>int*</code>).
+
+</ul>
+<div id="Introduction-Dynamic memory allocation in C++"><h2 id="Dynamic memory allocation in C++" class="header"><a href="#Introduction-Dynamic memory allocation in C++">Dynamic memory allocation in C++</a></h2></div>
+<p>
+In C++, dynamic memory allocation is done using operators <code>new</code> and <code>delete</code> (or <code>malloc</code> and <code>free</code>, but the former is more commonly used). Dynamic memory allocation allows you to allocate memory at runtime, and it is especially useful when you don't know the size of the data you need until your program is running. Here's a basic overview:<br />
+</p>
+
+<p>
+### Allocation with <code>new</code>:<br />
+</p>
+
+<pre cpp>
+#include &lt;iostream&gt;
+
+int main() {
+    // Allocate memory for an integer
+    int* dynamicInt = new int;
+
+    // Assign a value to the allocated memory
+    *dynamicInt = 42;
+
+    // Use the allocated memory
+    std::cout &lt;&lt; "Dynamic Integer: " &lt;&lt; *dynamicInt &lt;&lt; std::endl;
+
+    // Don't forget to free the allocated memory when done
+    delete dynamicInt;
+
+    return 0;
+}
+</pre>
+
+<p>
+### Array Allocation with <code>new</code>:<br />
+</p>
+
+<p>
+```cpp<br />
+#include &lt;iostream&gt;<br />
+</p>
+
+<p>
+int main() {<br />
+</p>
+<pre><code>// Allocate memory for an array of integers
+int* dynamicArray = new int[5];
+</code></pre>
+<pre><code>// Assign values to the allocated array
+for (int i = 0; i &lt; 5; ++i) {
+dynamicArray[i] = i * 10;
+}
+</code></pre>
+<pre><code>// Use the allocated array
+for (int i = 0; i &lt; 5; ++i) {
+std::cout &lt;&lt; "Element " &lt;&lt; i &lt;&lt; ": " &lt;&lt; dynamicArray[i] &lt;&lt; std::endl;
+}
+</code></pre>
+<pre><code>// Don't forget to free the allocated array when done
+delete[] dynamicArray;
+</code></pre>
+<pre><code>return 0;
+</code></pre>
+<p>
+}<br />
+```<br />
+</p>
+
+<p>
+### Allocation with <code>malloc</code> and <code>free</code>:<br />
+</p>
+
+<p>
+```cpp<br />
+#include &lt;iostream&gt;<br />
+#include &lt;cstdlib&gt;<br />
+</p>
+
+<p>
+int main() {<br />
+</p>
+<pre><code>// Allocate memory for an integer
+int* dynamicInt = static_cast&lt;int*&gt;(malloc(sizeof(int)));
+</code></pre>
+<pre><code>// Assign a value to the allocated memory
+*dynamicInt = 42;
+</code></pre>
+<pre><code>// Use the allocated memory
+std::cout &lt;&lt; "Dynamic Integer: " &lt;&lt; *dynamicInt &lt;&lt; std::endl;
+</code></pre>
+<pre><code>// Don't forget to free the allocated memory when done
+free(dynamicInt);
+</code></pre>
+<pre><code>return 0;
+</code></pre>
+<p>
+}<br />
+```<br />
+</p>
+
+<p>
+### Array Allocation with <code>malloc</code> and <code>free</code>:<br />
+</p>
+
+<p>
+```cpp<br />
+#include &lt;iostream&gt;<br />
+#include &lt;cstdlib&gt;<br />
+</p>
+
+<p>
+int main() {<br />
+</p>
+<pre><code>// Allocate memory for an array of integers
+int* dynamicArray = static_cast&lt;int*&gt;(malloc(5 * sizeof(int)));
+</code></pre>
+<pre><code>// Assign values to the allocated array
+for (int i = 0; i &lt; 5; ++i) {
+dynamicArray[i] = i * 10;
+}
+</code></pre>
+<pre><code>// Use the allocated array
+for (int i = 0; i &lt; 5; ++i) {
+std::cout &lt;&lt; "Element " &lt;&lt; i &lt;&lt; ": " &lt;&lt; dynamicArray[i] &lt;&lt; std::endl;
+}
+</code></pre>
+<pre><code>// Don't forget to free the allocated array when done
+free(dynamicArray);
+</code></pre>
+<pre><code>return 0;
+</code></pre>
+<p>
+}<br />
+```<br />
+</p>
+
+<p>
+In both cases (<code>new</code>/<code>delete</code> and <code>malloc</code>/<code>free</code>), it's important to free the memory when you're done using it to avoid memory leaks. Using <code>new</code> and <code>delete</code> is generally preferred in C++ due to better type safety and constructors/destructors invocation. If you're using <code>new</code>, you should use <code>delete</code>, and if you're using <code>new[]</code>, you should use <code>delete[]</code>. Similarly, if you're using <code>malloc</code>, you should use <code>free</code>. Mixing them can lead to undefined behavior.<br />
+</p>
+
+<p>
+Note: C++11 introduced <code>std::unique_ptr</code> and <code>std::shared_ptr</code> as safer alternatives to manage dynamic memory. Consider using smart pointers when possible to automate memory management.<br />
+</p>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+
