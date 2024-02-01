@@ -186,16 +186,16 @@ The largest possible size? Now the computer have two such memory locations:<br /
 RAM (Random Access Memory)
 
 <li>
-ROM (Read Only Memory)
+Hard disk storage or Solid state drives
 
 </ol>
 	
 <p>
-I found that the size available was 256GB(1GB=1024x1024x1024x8 bits) of RAM, and 10TB(1TB=1024x1024x1024x1024x8) of ROM. I thought to use the maximum of these, to amaze the general populous.<br />
+I found that the size available was 256GB(1GB=1024x1024x1024x8 bits) of RAM, and 10TB(1TB=1024x1024x1024x1024x8) of Hard Disk space. I thought to use the maximum of these, to amaze the general populous.<br />
 </p>
 
 <p>
-Since the number of elements belongs to integers, I started with integer data type.<br />
+Since the number of elements belongs to integers, I started with integer data type(All numbers and characters belongs to family of <a href="../fundamental data types.html">data types</a>).<br />
 </p>
 
 <pre cpp>
@@ -207,11 +207,11 @@ int N=10000000000;  //not allowed the maximum it can store is 2^{31}-1
 </pre>
 
 <p>
-I kept pressing on key '0' to make the size (N) as large as possible, it wasn't long to realise that I just can't store any such large number in variable 'N'. Since 'N' is declared of data type (int) or integer, which compiler can only assign 4 bytes of memory with each byte has 8 bits of space, where place of a bit can be filled by either 0 or 1. With 4 such bytes I am left with 32 bits. So with these bits, the maximum number I can store was just \(2^{31}-1\) rather than \(2^{32}-1\), where did the 1 bit go,   it turns out that the compiler also take care of negative numbers by taking one bit reserved for negative numbers.<br />
+I kept pressing on key '0' to make the size (N) as large as possible, it wasn't long to realise that I just can't store any such large number in variable 'N'. Since 'N' is declared of data type (int) or integer, which compiler can only assign 4 bytes of memory with each byte having 8 bits of space, where place of a bit can be filled by either 0 or 1. With 4 such bytes I am left with 32 bits. So with these bits, the maximum number I can store was just \(2^{31}-1\) rather than \(2^{32}-1\), where did the 1 bit go, it turns out that the compiler also takes care of negative integers by taking one bit reserved for negative numbers.<br />
 </p>
 
 <p>
-With \(2^{31}-1\) as maximum size I can allocate with integer data type, I was bit off. Sooner I found that there is another data type which can store only positive integers(unsigned integers(no need for 1 bit reservation for negative numbers now)) making the total number of elements double. I was happy and so I tried:<br />
+With \(2^{31}-1\) as maximum size I can allocate with integer data type, I was bit off. Sooner I found that there is another data type which can store only positive integers(unsigned integers(no need for 1 bit reservation for negative numbers now)) making the total number of elements double. I was happy and so I tried and again this large number can't be stored in this variable..<br />
 </p>
 
 <pre cpp>
@@ -219,7 +219,7 @@ unsigned int N= 10000000000; //again this large number can't be stored in this v
 </pre>
 
 <p>
-The maximum number possible can be stored using 'unsigned int' and binary shift operator. Since the maximum number it can store is \(2^{32}-1\), we can write this using binary shift operator(&lt;&lt; or &gt;&gt;). <br />
+The maximum number (\(2^{32}-1\)) possible can be stored using 'unsigned int' and binary shift operator (&lt;&lt; or &gt;&gt;). <br />
 but again error was on the way.....<br />
 </p>
 <pre cpp>
@@ -227,27 +227,30 @@ unsigned int N = 1&lt;&lt;32 - 1 ; // here 1&lt;&lt;32 is just (1000000000000000
 </pre>
 
 <p>
+We can't store 1&lt;&lt;32 or \(2^{32}\) in unsigned integer data type before we reduce 1 from it. <br />
+</p>
+
+<p>
 I then tried to look for other <a href="../fundamental data types.html">data types</a>, turns out that I can use 'long int(8 bytes)' or 'long long int(16 bytes)' or just 'long long(16 bytes)' to declare the sizes of the array, here the keywords like 'long' or 'long long' are termed as <a href="../Data modifiers.html">data modifiers</a>. These modifiers allocate the more number of space to store larger numbers into memory.<br />
 </p>
 
 <p>
-But if I choose a a single number so large which can occupy the whole of available storage, then where will I store the N elements of both the arrays? It is better to look for the largest possible data type to store largest possible integer on the computer. It was 'unsigned long long int', which allocates 16 bytes for each variable of its type. For 16 bytes(16x8=128 bits), the maximum number I can store is \(2^_{128}-1\). <br />
+But if I choose a a single number so large which can occupy the whole of available storage, then where will I store the N elements of both the arrays? It is better to look for the largest possible data type to store largest possible integer on the computer. It was 'unsigned long long int', which allocates 16 bytes for each variable of its type. For 16 bytes(16x8=128 bits), the maximum number I can store is \(2^_{128} - 1\). <br />
 </p>
 
 <p>
-This number is so <a href="https://www.wolframalpha.com/input?i=2%5E128-1">huge</a> that even my text editor (neovim which is used for writing this blog) takes minute to save the file. <br />
+This number is so <a href="https://www.wolframalpha.com/input?i=2%5E128-1">huge</a> that even my text editor (NEOVIM which is used for writing this blog) takes minute to save the file. <br />
 </p>
 
 <p>
-For a moment even if we allocate memory for \(2^{127}\) elements(<code>int *array1=new int[N];</code>) and entered integers values(4bytes) at all these \(2^{127}\) places for each vector. Even for entering the N+N values the CPU with (3400MHz clock frequency), will take 6 instructions per loop. In total it will take \(6x2^{127}\) Instructions. And CPU can take care of \(3400x10^{6}\) instructions per second.<br />
-So the time CPU will take to assign the N+N values is : \(\frac{6.2^{127}}{34. 10^{8}} = 3.022x10^{29}\) sec. or \(3.022x10^22\) years. We don't have that much time obviously.<br />
-Also storing 4bytes at \(2^{127}\) places of memory is not possible as it requires huge amount of memory \(2^{199}\) GB of storage. <br />
+For a moment even if we allocate memory for \(2^{127}\) elements(<code>int *array1=new int[N];</code>) and entered integers values(4bytes) at all these \(2^{127}\) places for both column matrices. Even for entering the N+N values the CPU with (3400MHz clock frequency), will take 6 instructions per loop. In total it will take \(6x2^{127}\) Instructions. And CPU can take care of \(3400.10^{6}\) instructions per second.<br />
+So the time CPU will take to assign the N+N values will be : \(\frac{6.2^{127}}{34. 10^{8}} = 3.022\times10^{29}\) sec. or \(3.022\times10^{22}\) years. We don't have that much time obviously.<br />
+Also storing 4bytes at \(2^{127}\) places of memory is not possible as it requires huge amount of memory \(2^{102}\) GB of storage. <br />
 </p>
 
 <pre cpp>
 unsigned long long int N=1&lt;&lt;127;
-int *array1=new int[N];
-int *array2=new int[N];
+//define both the column matrices and name these array1 and array2
 for (unsigned long long int i=0;i&lt;N;i++) //2 instructions to enter into loop each time(i++ and i&lt;N)
 {
     array1[i]=7;  //2 instruction or,  *(array+i)=7;
@@ -256,14 +259,44 @@ for (unsigned long long int i=0;i&lt;N;i++) //2 instructions to enter into loop 
 </pre>
 
 <p>
-Later, I found that the number of instructions I was guessing were not entirely correct, it is better to generate assembly code using <code>g++ -S programName.cpp</code> to generate the assembly file and look for number of instructions for the above 'for' loop. <br />
+Later, I found that the number of instructions I was guessing were not entirely correct (correct number of instructions are little more then anticipated), it is better to generate assembly code using <code>g++ -S programName.cpp</code> to generate the assembly file and look for number of instructions for the above 'for' loop. <br />
 </p>
 
-<div id="The demonstration-Starting from basic"><h2 id="Starting from basic" class="header"><a href="#The demonstration-Starting from basic">Starting from basic</a></h2></div>
+<div id="The demonstration-Starting from basic (modifying single array)"><h2 id="Starting from basic (modifying single array)" class="header"><a href="#The demonstration-Starting from basic (modifying single array)">Starting from basic (modifying single array)</a></h2></div>
 
 <p>
-I can't just define any large number as size of array, I have to <br />
+So it can't be the largest possible number a data type(<code>unsigned long long int</code>) can store, and with two such array the amount of required momory becomes double. I then thought to just store a single array with some numbers, and write a code to modify these numbers and store the result at same memory locations.<br />
 </p>
+
+<p>
+I thought to find the largest possible array which can be stored on 250GB or RAM. With 4bytes at each locations(aiming to store integers or float/real numbers),  I can store \(\frac{250.(1024.1024.1024)}{4}=67108864000\) numbers on the RAM. This number (67108864000) first needed to be registed in memory and we can't use integer data type , so we have to use <code>long int</code> data type which can store this number at some memory location(since <code>long int</code> reserves 8 bytes for data (1 bit for negative numbers), we can store maximum of \(2^{63} - 1\) = <a href="https://www.wolframalpha.com/input/?i=2%5E63-1">huge_number</a>). <br />
+</p>
+
+<p>
+Good news, we now have a number which can be stored using data type <code>long int</code> and we can reserve size of 4 bytes (for integers upto some large number), for each of the N=\(2^{63}-1\) numbers. <br />
+</p>
+
+<p>
+I tried with following:<br />
+</p>
+<pre cpp>
+#include&lt;iostream&gt;
+int main()
+{
+long int N=1&lt;&lt;63; //wrong as we need to explicitly tell that 1 is Long literal
+}
+</pre>
+
+<p>
+<code>output: Error: shift count &gt; = Width of type</code>, which can be get rid with use of <br />
+</p>
+<pre cpp>
+#include&lt;iostream&gt;
+int main()
+{
+long int N=1L&lt;&lt;63; //telling 1 belongs to Long int rather than 'int' data type
+}
+</pre>
 
     </div>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
