@@ -115,7 +115,7 @@ Simple, right. Let's do it then. We will start with the largest array(such colum
 </p>
 
 <p>
-The idea is to first do this task on CPU with a C++ program, and then add the same via use of parallel programming which require GPU and some programming Languages(like <a href="../CUDA C++.html">CUDA</a>) which support use of <a href="../GPU and CPU basics.html">GPU</a>. <br />
+The idea is to first do this task on CPU with a C++ program, and then add the same via use of parallel programming which require GPU and some programming Languages(like <a href="../Cuda Learning Center.html">CUDA</a>) which support use of <a href="../GPU and CPU basics.html">GPU</a>. <br />
 </p>
 
 <div id="The demonstration-Beginning of the puzzles"><h2 id="Beginning of the puzzles" class="header"><a href="#The demonstration-Beginning of the puzzles">Beginning of the puzzles</a></h2></div>
@@ -235,7 +235,7 @@ I then tried to look for other <a href="../fundamental data types.html">data typ
 </p>
 
 <p>
-But if I choose a a single number so large which can occupy the whole of available storage, then where will I store the N elements of both the arrays? It is better to look for the largest possible data type to store largest possible integer on the computer. It was 'unsigned long long int', which allocates 16 bytes for each variable of its type. For 16 bytes(16x8=128 bits), the maximum number I can store is \(2^_{128} - 1\). <br />
+But if I choose a single number so large which can occupy the whole of available storage, then where will I store the N elements of both the arrays? It is better to look for the largest possible data type to store largest possible integer on the computer. It was 'unsigned long long int', which allocates 16 bytes for each variable of its type. For 16 bytes(16x8=128 bits), the maximum number I can store is \(2^{128} - 1\). <br />
 </p>
 
 <p>
@@ -265,15 +265,16 @@ Later, I found that the number of instructions I was guessing were not entirely 
 <div id="The demonstration-Starting from basic (modifying single array)"><h2 id="Starting from basic (modifying single array)" class="header"><a href="#The demonstration-Starting from basic (modifying single array)">Starting from basic (modifying single array)</a></h2></div>
 
 <p>
-So it can't be the largest possible number a data type(<code>unsigned long long int</code>) can store, and with two such array the amount of required momory becomes double. I then thought to just store a single array with some numbers, and write a code to modify these numbers and store the result at same memory locations.<br />
+So it can't be the largest possible number a data type(<code>unsigned long long int</code>) can store, and with two such array the amount of required memory becomes double. I then thought to just store a single array with some numbers, and write a code to modify these numbers and store the result at same memory locations.<br />
+</p>
+
+
+<p>
+I thought to find the largest possible array which can be stored on 250GB of RAM. With 4 bytes at each locations(aiming to store integers or float/real numbers),  I can store \(\frac{250.(1024.1024.1024)}{4}=67108864000\) numbers on the RAM. This number (67108864000) first needed to be registered in memory and we can't use integer data type(since <code>int N=67108864000;</code> can't be stored with 4 bytes or 32 bits of 1 and 0) , so we have to use <code>long int</code> data type which can store this number at some memory location (since <code>long int</code> reserves 8 bytes for data (1 bit for negative numbers), we can store maximum of \(2^{63} - 1\) = <a href="https://www.wolframalpha.com/input/?i=2%5E63-1">huge_number</a>). <br />
 </p>
 
 <p>
-I thought to find the largest possible array which can be stored on 250GB or RAM. With 4bytes at each locations(aiming to store integers or float/real numbers),  I can store \(\frac{250.(1024.1024.1024)}{4}=67108864000\) numbers on the RAM. This number (67108864000) first needed to be registed in memory and we can't use integer data type , so we have to use <code>long int</code> data type which can store this number at some memory location(since <code>long int</code> reserves 8 bytes for data (1 bit for negative numbers), we can store maximum of \(2^{63} - 1\) = <a href="https://www.wolframalpha.com/input/?i=2%5E63-1">huge_number</a>). <br />
-</p>
-
-<p>
-Good news, we now have a number which can be stored using data type <code>long int</code> and we can reserve size of 4 bytes (for integers upto some large number), for each of the N=\(2^{63}-1\) numbers. <br />
+Good news, we now have a number which can be stored using data type <code>long int</code> and we can reserve size of 4 bytes (for integers upto some large number), for each of the N=\(2^{63}-1\) numbers.<br />
 </p>
 
 <p>
@@ -295,6 +296,71 @@ long int N=1&lt;&lt;63; //wrong as we need to explicitly tell that 1 is Long lit
 int main()
 {
 long int N=1L&lt;&lt;63; //telling 1 belongs to Long int rather than 'int' data type
+}
+</pre>
+
+
+<p>
+I am now planning to store integers on these N memory locations with the following code:<br />
+</p>
+<pre cpp>
+#include&lt;iostream&gt;
+int main()
+{
+long int N=1L&lt;&lt;63;
+int arr[N];
+for (int i=0;i&lt;N;i++)
+{
+    arr[i]=i; //storing i at each place of the array.
+}
+
+return 0;
+}
+</pre>
+
+<p>
+For most of the people the code will make sense, unless we really observe. The first error is in declaring an array of size N using <code>int arr[N];</code>, because this method allocate memory in <a href="Memory allocation.html">stack</a>, and since the stack memory is limited from 1MB to 8MB, we can't store 250GB sized array on these locations.<br />
+One has to look at dynamic memory allocation of the array, which is done by <code>int *dynamic_array= new int[N];</code> or by using <code>std::vector&lt;int&gt; arr(N);</code>. This allocates memory in RAM region of space, so I thought that this is the best the compiler can do (I was amazed to see that we can even write on Hard disk and read from there and modify the vectors,but this story is saved for the end part.)  <br />
+</p>
+
+<p>
+The second error is just a warning as the loop will not continue N times, since we have declared that variable 'i' is an integer, which will only run from 0 to \(2^{31}-1\) rather then 0 to  \(2^{63}-1\). We have to use correct data types for variable 'i'.<br />
+</p>
+
+
+<p>
+I tried with 'std::vector&lt;int&gt; arr(N);'<br />
+</p>
+<pre cpp>
+#include&lt;iostream&gt;
+int main()
+{
+long int N=1L&lt;&lt;63;
+std::vector&lt;int&gt; arr(N); //takes a lot of instructions to assign memory ( so many seconds just to execute this line of code )
+for (long int i=0;i&lt;N;i++)
+{
+    arr[i]=i; //storing i at each place of the array.
+}
+
+return 0;
+}
+</pre>
+
+<p>
+Turns out that there is some faster way of allocating the memory, it was the <code>int *arr=new int[N];</code>.<br />
+</p>
+<pre cpp>
+#include&lt;iostream&gt;
+int main()
+{
+long int N=1L&lt;&lt;63;
+int *arr= new int[N]; //allocates memory in no time.
+for (long int i=0;i&lt;N;i++)
+{
+    arr[i]=i; //storing i at each place of the array.
+}
+
+return 0;
 }
 </pre>
 
