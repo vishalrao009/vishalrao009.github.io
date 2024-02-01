@@ -47,28 +47,6 @@
 <body>
     <div id="content">
         
-<div id="Contents" class="toc"><h1 id="Contents" class="header"><a href="#Contents">Contents</a></h1></div>
-<ul>
-<li>
-<a href="2024-01-31.html#The demonstration">#The demonstration</a>
-
-<ul>
-<li>
-<a href="2024-01-31.html#Beginning of the puzzles">#Beginning of the puzzles</a>
-
-<ul>
-<li>
-<a href="2024-01-31.html#Algorithm (Man with Plan)">#Algorithm (Man with Plan)</a>
-
-</ul>
-<li>
-<a href="2024-01-31.html#Let the fun begin">#Let the fun begin</a>
-
-<li>
-<a href="2024-01-31.html#Starting from basic">#Starting from basic</a>
-
-</ul>
-</ul>
 <div id="The demonstration"><h1 id="The demonstration" class="header"><a href="#The demonstration">The demonstration</a></h1></div>
 
 <p>
@@ -86,36 +64,40 @@ The idea was simple, but not that easy to write it an hour or a day.But I was wr
 <p>
 The problem was simple, add two objects of type :<br />
 </p>
-\[
-\begin{bmatrix}
-a_1 \\
-a_2 \\
-\vdots \\
-a_n \\
-\end{bmatrix}
-+
-\begin{bmatrix}
-b_1 \\
-b_2 \\
-\vdots \\
-b_n \\
-\end{bmatrix}
-=
-\begin{bmatrix}
-c_1 \\
-c_2 \\
-\vdots \\
-c_n \\
-\end{bmatrix}
 
-\]
+<p>
+\begin{bmatrix}<br />
+a_1 \\<br />
+a_2 \\<br />
+\vdots \\<br />
+a_n \\<br />
+\end{bmatrix}<br />
++<br />
+\begin{bmatrix}<br />
+b_1 \\<br />
+b_2 \\<br />
+\vdots \\<br />
+b_n \\<br />
+\end{bmatrix}<br />
+=<br />
+\begin{bmatrix}<br />
+c_1 \\<br />
+c_2 \\<br />
+\vdots \\<br />
+c_n \\<br />
+\end{bmatrix}<br />
+</p>
+
+<p>
+}}$ <br />
+</p>
 
 <p>
 Simple, right. Let's do it then. We will start with the largest array(such column vectors/matrices are called as arrays) possible and write a C++ code to find the resulting addition. <br />
 </p>
 
 <p>
-The idea is to first do this task on CPU with a C++ program, and then add the same via use of parallel programming which require GPU and some programming Languages(like <a href="../Cuda Learning Center.html">CUDA</a>) which support use of <a href="../GPU and CPU basics.html">GPU</a>. <br />
+The idea is to first do this task on CPU with a C++ program, and then add the same via use of parallel programming which require GPU and some programming Languages(like <a href="../CUDA C++.html">CUDA</a>) which support use of <a href="../GPU and CPU basics.html">GPU</a>. <br />
 </p>
 
 <div id="The demonstration-Beginning of the puzzles"><h2 id="Beginning of the puzzles" class="header"><a href="#The demonstration-Beginning of the puzzles">Beginning of the puzzles</a></h2></div>
@@ -186,16 +168,20 @@ The largest possible size? Now the computer have two such memory locations:<br /
 RAM (Random Access Memory)
 
 <li>
-Hard disk storage or Solid state drives
+ROM (Read Only Memory)
 
 </ol>
 	
 <p>
-I found that the size available was 256GB(1GB=1024x1024x1024x8 bits) of RAM, and 10TB(1TB=1024x1024x1024x1024x8) of Hard Disk space. I thought to use the maximum of these, to amaze the general populous.<br />
+I found that the size available to me was 256GB(1GB=1024x1024x1024x8 bits) of RAM, and 10TB(1TB=1024x1024x1024x1024x8) of ROM. I thought to use the maximum of these, to amaze the general populous.<br />
 </p>
 
 <p>
-Since the number of elements belongs to integers, I started with integer data type(All numbers and characters belongs to family of <a href="../fundamental data types.html">data types</a>).<br />
+But if I choose a a single number so large which can occupy the whole of available storage, then where will I store the N elements of both the arrays. Anyway I tried with largest possible data type to store largest possible number on the computer. It was 'unsigned long long int', which allocates 16 bytes for each variable of its type. For 16 bytes(16x8=128 bits), the maximum number I can store is \(2^_{128}-1\). <br />
+</p>
+
+<p>
+This largest number is so large (3.40282366920938463463374607431768211455×10^38 or 340282366920938463463374607431768211455 or 3.4028E38).<br />
 </p>
 
 <pre cpp>
@@ -207,11 +193,11 @@ int N=10000000000;  //not allowed the maximum it can store is 2^{31}-1
 </pre>
 
 <p>
-I kept pressing on key '0' to make the size (N) as large as possible, it wasn't long to realise that I just can't store any such large number in variable 'N'. Since 'N' is declared of data type (int) or integer, which compiler can only assign 4 bytes of memory with each byte having 8 bits of space, where place of a bit can be filled by either 0 or 1. With 4 such bytes I am left with 32 bits. So with these bits, the maximum number I can store was just \(2^{31}-1\) rather than \(2^{32}-1\), where did the 1 bit go, it turns out that the compiler also takes care of negative integers by taking one bit reserved for negative numbers.<br />
+I kept pressing on key '0' to make the size (N) as large as possible, it wasn't long to realise that I just can't store any such large number in variable 'N'. It turns out that 'N' is declared of data type (int) or integer, which compiler can only assign 4 bytes of memory. One byte has 8 bits of space, where place of a bit can be filled by either 0 or 1. With 4 such bytes I am left with 32 bits. So with these bits, the maximum number I can store was just \(2^{32}-1\), but what about negative numbers, which again it turns out that the compiler also take care of negative numbers by taking one bit reserved for negative numbers.<br />
 </p>
 
 <p>
-With \(2^{31}-1\) as maximum size I can allocate with integer data type, I was bit off. Sooner I found that there is another data type which can store only positive integers(unsigned integers(no need for 1 bit reservation for negative numbers now)) making the total number of elements double. I was happy and so I tried and again this large number can't be stored in this variable..<br />
+With \(2^{31}-1\) as maximum size I can allocate with integer data type, I was bit off. Sooner I found that there is another data type which can store only positive integers(unsigned integers) making the total number of elements double. I was happy and so I tried:<br />
 </p>
 
 <pre cpp>
@@ -219,150 +205,17 @@ unsigned int N= 10000000000; //again this large number can't be stored in this v
 </pre>
 
 <p>
-The maximum number (\(2^{32}-1\)) possible can be stored using 'unsigned int' and binary shift operator (&lt;&lt; or &gt;&gt;). <br />
-but again error was on the way.....<br />
+I then thought to take maximum number possible which I can store using 'unsigned int', turns out that I can write it using binary shift operator. <br />
+Since the maximum number it can store is \(2^{32}-1\), we can write this using binary shift operator(&lt;&lt; or &gt;&gt;). <br />
 </p>
+
 <pre cpp>
 unsigned int N = 1&lt;&lt;32 - 1 ; // here 1&lt;&lt;32 is just (100000000000000000000000000000000=2^32(in decimal number system(with base 10, our number system with 10 digits))) but we can't add to objects of where one piece is bigger than can be stored in unsigned int data type.
 </pre>
 
 <p>
-We can't store 1&lt;&lt;32 or \(2^{32}\) in unsigned integer data type before we reduce 1 from it. <br />
-</p>
-
-<p>
 I then tried to look for other <a href="../fundamental data types.html">data types</a>, turns out that I can use 'long int(8 bytes)' or 'long long int(16 bytes)' or just 'long long(16 bytes)' to declare the sizes of the array, here the keywords like 'long' or 'long long' are termed as <a href="../Data modifiers.html">data modifiers</a>. These modifiers allocate the more number of space to store larger numbers into memory.<br />
 </p>
-
-<p>
-But if I choose a single number so large which can occupy the whole of available storage, then where will I store the N elements of both the arrays? It is better to look for the largest possible data type to store largest possible integer on the computer. It was 'unsigned long long int', which allocates 16 bytes for each variable of its type. For 16 bytes(16x8=128 bits), the maximum number I can store is \(2^{128} - 1\). <br />
-</p>
-
-<p>
-This number is so <a href="https://www.wolframalpha.com/input?i=2%5E128-1">huge</a> that even my text editor (NEOVIM which is used for writing this blog) takes minute to save the file. <br />
-</p>
-
-<p>
-For a moment even if we allocate memory for \(2^{127}\) elements(<code>int *array1=new int[N];</code>) and entered integers values(4bytes) at all these \(2^{127}\) places for both column matrices. Even for entering the N+N values the CPU with (3400MHz clock frequency), will take 6 instructions per loop. In total it will take \(6x2^{127}\) Instructions. And CPU can take care of \(3400.10^{6}\) instructions per second.<br />
-So the time CPU will take to assign the N+N values will be : \(\frac{6.2^{127}}{34. 10^{8}} = 3.022\times10^{29}\) sec. or \(3.022\times10^{22}\) years. We don't have that much time obviously.<br />
-Also storing 4bytes at \(2^{127}\) places of memory is not possible as it requires huge amount of memory \(2^{102}\) GB of storage. <br />
-</p>
-
-<pre cpp>
-unsigned long long int N=1&lt;&lt;127;
-//define both the column matrices and name these array1 and array2
-for (unsigned long long int i=0;i&lt;N;i++) //2 instructions to enter into loop each time(i++ and i&lt;N)
-{
-    array1[i]=7;  //2 instruction or,  *(array+i)=7;
-    array2[i]=3;  //2 instruction or, *(array+i)=3;
-} 
-</pre>
-
-<p>
-Later, I found that the number of instructions I was guessing were not entirely correct (correct number of instructions are little more then anticipated), it is better to generate assembly code using <code>g++ -S programName.cpp</code> to generate the assembly file and look for number of instructions for the above 'for' loop. <br />
-</p>
-
-<div id="The demonstration-Starting from basic (modifying single array)"><h2 id="Starting from basic (modifying single array)" class="header"><a href="#The demonstration-Starting from basic (modifying single array)">Starting from basic (modifying single array)</a></h2></div>
-
-<p>
-So it can't be the largest possible number a data type(<code>unsigned long long int</code>) can store, and with two such array the amount of required memory becomes double. I then thought to just store a single array with some numbers, and write a code to modify these numbers and store the result at same memory locations.<br />
-</p>
-
-
-<p>
-I thought to find the largest possible array which can be stored on 250GB of RAM. With 4 bytes at each locations(aiming to store integers or float/real numbers),  I can store \(\frac{250.(1024.1024.1024)}{4}=67108864000\) numbers on the RAM. This number (67108864000) first needed to be registered in memory and we can't use integer data type(since <code>int N=67108864000;</code> can't be stored with 4 bytes or 32 bits of 1 and 0) , so we have to use <code>long int</code> data type which can store this number at some memory location (since <code>long int</code> reserves 8 bytes for data (1 bit for negative numbers), we can store maximum of \(2^{63} - 1\) = <a href="https://www.wolframalpha.com/input/?i=2%5E63-1">huge_number</a>). <br />
-</p>
-
-<p>
-Good news, we now have a number which can be stored using data type <code>long int</code> and we can reserve size of 4 bytes (for integers upto some large number), for each of the N=\(2^{63}-1\) numbers.<br />
-</p>
-
-<p>
-I tried with following:<br />
-</p>
-<pre cpp>
-#include&lt;iostream&gt;
-int main()
-{
-long int N=1&lt;&lt;63; //wrong as we need to explicitly tell that 1 is Long literal
-}
-</pre>
-
-<p>
-<code>output: Error: shift count &gt; = Width of type</code>, which can be get rid with use of <br />
-</p>
-<pre cpp>
-#include&lt;iostream&gt;
-int main()
-{
-long int N=1L&lt;&lt;63; //telling 1 belongs to Long int rather than 'int' data type
-}
-</pre>
-
-
-<p>
-I am now planning to store integers on these N memory locations with the following code:<br />
-</p>
-<pre cpp>
-#include&lt;iostream&gt;
-int main()
-{
-long int N=1L&lt;&lt;63;
-int arr[N];
-for (int i=0;i&lt;N;i++)
-{
-    arr[i]=i; //storing i at each place of the array.
-}
-
-return 0;
-}
-</pre>
-
-<p>
-For most of the people the code will make sense, unless we really observe. The first error is in declaring an array of size N using <code>int arr[N];</code>, because this method allocate memory in <a href="Memory allocation.html">stack</a>, and since the stack memory is limited from 1MB to 8MB, we can't store 250GB sized array on these locations.<br />
-One has to look at dynamic memory allocation of the array, which is done by <code>int *dynamic_array= new int[N];</code> or by using <code>std::vector&lt;int&gt; arr(N);</code>. This allocates memory in RAM region of space, so I thought that this is the best the compiler can do (I was amazed to see that we can even write on Hard disk and read from there and modify the vectors,but this story is saved for the end part.)  <br />
-</p>
-
-<p>
-The second error is just a warning as the loop will not continue N times, since we have declared that variable 'i' is an integer, which will only run from 0 to \(2^{31}-1\) rather then 0 to  \(2^{63}-1\). We have to use correct data types for variable 'i'.<br />
-</p>
-
-
-<p>
-I tried with 'std::vector&lt;int&gt; arr(N);'<br />
-</p>
-<pre cpp>
-#include&lt;iostream&gt;
-int main()
-{
-long int N=1L&lt;&lt;63;
-std::vector&lt;int&gt; arr(N); //takes a lot of instructions to assign memory ( so many seconds just to execute this line of code )
-for (long int i=0;i&lt;N;i++)
-{
-    arr[i]=i; //storing i at each place of the array.
-}
-
-return 0;
-}
-</pre>
-
-<p>
-Turns out that there is some faster way of allocating the memory, it was the <code>int *arr=new int[N];</code>.<br />
-</p>
-<pre cpp>
-#include&lt;iostream&gt;
-int main()
-{
-long int N=1L&lt;&lt;63;
-int *arr= new int[N]; //allocates memory in no time.
-for (long int i=0;i&lt;N;i++)
-{
-    arr[i]=i; //storing i at each place of the array.
-}
-
-return 0;
-}
-</pre>
 
     </div>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
