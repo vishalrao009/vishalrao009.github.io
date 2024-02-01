@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="../style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>2024-01-31</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+<div id="Contents" class="toc"><h1 id="Contents" class="header"><a href="#Contents">Contents</a></h1></div>
+<ul>
+<li>
+<a href="2024-01-31.html#The demonstration">#The demonstration</a>
+
+<ul>
+<li>
+<a href="2024-01-31.html#Beginning of the puzzles">#Beginning of the puzzles</a>
+
+<ul>
+<li>
+<a href="2024-01-31.html#Algorithm (Man with Plan)">#Algorithm (Man with Plan)</a>
+
+</ul>
+<li>
+<a href="2024-01-31.html#Let the fun begin">#Let the fun begin</a>
+
+<li>
+<a href="2024-01-31.html#Starting from basic">#Starting from basic</a>
+
+</ul>
+</ul>
+<div id="The demonstration"><h1 id="The demonstration" class="header"><a href="#The demonstration">The demonstration</a></h1></div>
+
+<p>
+It was decided that we meet at 3:30PM in a similar sitting space to discuss the ideas for the demonstrations. After a while it occurred to me that maybe the parallel programming can be of some fun. The idea got some encouragement and my quest to write the magical code begun.   <br />
+</p>
+
+<p>
+On the day itself, I knew what to do, I came back from the office and started writing down the code which can show how parallel programming can be demonstrated to general public for the open day. <br />
+</p>
+
+<p>
+The idea was simple, but not that easy to write it an hour or a day.But I was writing the code with the will to finish it within few hours, because <br />
+</p>
+
+<p>
+The problem was simple, add two objects of type :<br />
+</p>
+\[
+\begin{bmatrix}
+a_1 \\
+a_2 \\
+\vdots \\
+a_n \\
+\end{bmatrix}
++
+\begin{bmatrix}
+b_1 \\
+b_2 \\
+\vdots \\
+b_n \\
+\end{bmatrix}
+=
+\begin{bmatrix}
+c_1 \\
+c_2 \\
+\vdots \\
+c_n \\
+\end{bmatrix}
+
+\]
+
+<p>
+Simple, right. Let's do it then. We will start with the largest array(such column vectors/matrices are called as arrays) possible and write a C++ code to find the resulting addition. <br />
+</p>
+
+<p>
+The idea is to first do this task on CPU with a C++ program, and then add the same via use of parallel programming which require GPU and some programming Languages(like <a href="../CUDA C++.html">CUDA</a>) which support use of <a href="../GPU and CPU basics.html">GPU</a>. <br />
+</p>
+
+<div id="The demonstration-Beginning of the puzzles"><h2 id="Beginning of the puzzles" class="header"><a href="#The demonstration-Beginning of the puzzles">Beginning of the puzzles</a></h2></div>
+
+<p>
+So all I had to do is to write 2 programs to do the same task and produce the advantages of using parallel computing(programming on GPU) over serial programming (CPU). <br />
+</p>
+
+<p>
+So what's a program, it's just a set of instructions written Sequentially in a language which either can be read directly by computer (machine language) or by some software(compiler) which can translate it for the computer. Everything what we write, see and hear via the computer is written in form of 0's and 1's. Every word of set of instructions has to be converted into these 1's and 0's. Such form is often termed as binary language or the number system with base 2. It turns out that it is the way to store the information or instructions using 1(on) or 0(off) state of some very tiny switches(also known as transistors) which our computer is mostly made up of. <br />
+</p>
+
+<p>
+Since we can't write each instruction in form of 1's and 0's, we have developed a way to convert write down the instructions in some familiar language and the compiler for that language convert it to required machine language. <br />
+</p>
+
+<p>
+It turns out that C or C++ is the fastest language available. I chose C++ and started writing the desired code.<br />
+</p>
+
+<p>
+I might go bit technical here, will provide links to unknown keywords.<br />
+</p>
+
+<div id="The demonstration-Beginning of the puzzles-Algorithm (Man with Plan)"><h3 id="Algorithm (Man with Plan)" class="header"><a href="#The demonstration-Beginning of the puzzles-Algorithm (Man with Plan)">Algorithm (Man with Plan)</a></h3></div>
+<p>
+The Algorithm or the way to write the code was simple, include some header files(to support some functionality to read and write, and write the main program (called as int main() or void main() which are main heart of the program)).<br />
+</p>
+
+<p>
+The program or the set of instructions can be reproduced from these steps:<br />
+</p>
+<ol>
+<li>
+Define a size(number of elements) of each array(both array has to be of equal size to add each respective \(n^{th}\) element).
+
+<li>
+Store the size of array on some part of memory(size of array is just a number).
+
+<li>
+Allocate space or memory of N( or size) numbers.  Do it for another N such numbers too.
+
+<li>
+Now fill up the memory space with some numbers.
+
+<li>
+Write a piece of instruction to add these numbers \(a_{i}+b_{i}=c_{i}\) for all \(i\le N\).
+
+<li>
+Store the respective addition of these N numbers into N memory spaces of first or second vector there itself. Therefore the first or second vector memory locations will have the answer of addition.
+
+<li>
+Print the addition result for first or last few elements to confirm.
+
+</ol>
+<div id="The demonstration-Let the fun begin"><h2 id="Let the fun begin" class="header"><a href="#The demonstration-Let the fun begin">Let the fun begin</a></h2></div>
+
+<p>
+I started to finish the first step of plan(Algorithm).<br />
+</p>
+
+<p>
+So the program started with inclusion of header files, and defining main function. I knew that in order to show power of GPUs over CPUs, I have to start with arrays of largest possible size.<br />
+The largest possible size? Now the computer have two such memory locations:<br />
+</p>
+<ol>
+<li>
+RAM (Random Access Memory)
+
+<li>
+ROM (Read Only Memory)
+
+</ol>
+	
+<p>
+I found that the size available was 256GB(1GB=1024x1024x1024x8 bits) of RAM, and 10TB(1TB=1024x1024x1024x1024x8) of ROM. I thought to use the maximum of these, to amaze the general populous.<br />
+</p>
+
+<p>
+Since the number of elements belongs to integers, I started with integer data type.<br />
+</p>
+
+<pre cpp>
+#include&lt;iostream&gt;
+int main()
+{
+int N=10000000000;  //not allowed the maximum it can store is 2^{31}-1
+}
+</pre>
+
+<p>
+I kept pressing on key '0' to make the size (N) as large as possible, it wasn't long to realise that I just can't store any such large number in variable 'N'. Since 'N' is declared of data type (int) or integer, which compiler can only assign 4 bytes of memory with each byte has 8 bits of space, where place of a bit can be filled by either 0 or 1. With 4 such bytes I am left with 32 bits. So with these bits, the maximum number I can store was just \(2^{31}-1\) rather than \(2^{32}-1\), where did the 1 bit go,   it turns out that the compiler also take care of negative numbers by taking one bit reserved for negative numbers.<br />
+</p>
+
+<p>
+With \(2^{31}-1\) as maximum size I can allocate with integer data type, I was bit off. Sooner I found that there is another data type which can store only positive integers(unsigned integers(no need for 1 bit reservation for negative numbers now)) making the total number of elements double. I was happy and so I tried:<br />
+</p>
+
+<pre cpp>
+unsigned int N= 10000000000; //again this large number can't be stored in this variable..
+</pre>
+
+<p>
+The maximum number possible can be stored using 'unsigned int' and binary shift operator. Since the maximum number it can store is \(2^{32}-1\), we can write this using binary shift operator(&lt;&lt; or &gt;&gt;). <br />
+but again error was on the way.....<br />
+</p>
+<pre cpp>
+unsigned int N = 1&lt;&lt;32 - 1 ; // here 1&lt;&lt;32 is just (100000000000000000000000000000000=2^32(in decimal number system(with base 10, our number system with 10 digits))) but we can't add to objects of where one piece is bigger than can be stored in unsigned int data type.
+</pre>
+
+<p>
+I then tried to look for other <a href="../fundamental data types.html">data types</a>, turns out that I can use 'long int(8 bytes)' or 'long long int(16 bytes)' or just 'long long(16 bytes)' to declare the sizes of the array, here the keywords like 'long' or 'long long' are termed as <a href="../Data modifiers.html">data modifiers</a>. These modifiers allocate the more number of space to store larger numbers into memory.<br />
+</p>
+
+<p>
+But if I choose a a single number so large which can occupy the whole of available storage, then where will I store the N elements of both the arrays? It is better to look for the largest possible data type to store largest possible integer on the computer. It was 'unsigned long long int', which allocates 16 bytes for each variable of its type. For 16 bytes(16x8=128 bits), the maximum number I can store is \(2^_{128}-1\). <br />
+</p>
+
+<p>
+This number is so <a href="https://www.wolframalpha.com/input?i=2%5E128-1">huge</a> that even my text editor (neovim which is used for writing this blog) takes minute to save the file. <br />
+</p>
+
+<p>
+For a moment even if we allocate memory for \(2^{127}\) elements(<code>int *array1=new int[N];</code>) and entered integers values(4bytes) at all these \(2^{127}\) places for each vector. Even for entering the N+N values the CPU with (3400MHz clock frequency), will take 6 instructions per loop. In total it will take \(6x2^{127}\) Instructions. And CPU can take care of \(3400x10^{6}\) instructions per second.<br />
+So the time CPU will take to assign the N+N values is : \(\frac{6.2^{127}}{34. 10^{8}} = 3.022x10^{29}\) sec. or \(3.022x10^22\) years. We don't have that much time obviously.<br />
+Also storing 4bytes at \(2^{127}\) places of memory is not possible as it requires huge amount of memory \(2^{199}\) GB of storage. <br />
+</p>
+
+<pre cpp>
+unsigned long long int N=1&lt;&lt;127;
+int *array1=new int[N];
+int *array2=new int[N];
+for (unsigned long long int i=0;i&lt;N;i++) //2 instructions to enter into loop each time(i++ and i&lt;N)
+{
+    array1[i]=7;  //2 instruction or,  *(array+i)=7;
+    array2[i]=3;  //2 instruction or, *(array+i)=3;
+} 
+</pre>
+
+<p>
+Later, I found that the number of instructions I was guessing were not entirely correct, it is better to generate assembly code using <code>g++ -S programName.cpp</code> to generate the assembly file and look for number of instructions for the above 'for' loop. <br />
+</p>
+
+<div id="The demonstration-Starting from basic"><h2 id="Starting from basic" class="header"><a href="#The demonstration-Starting from basic">Starting from basic</a></h2></div>
+
+<p>
+I can't just define any large number as size of array, I have to <br />
+</p>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+
