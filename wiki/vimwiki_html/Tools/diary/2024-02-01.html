@@ -175,7 +175,7 @@ I found that the size available was 256GB(1GB=1024x1024x1024x8 bits) of RAM, and
 </p>
 
 <p>
-Since the number of elements belongs to integers, I started with integer data type(All numbers and characters belongs to family of [data types](../fundamental data types.html)).  <br />
+Since the number of elements belongs to integers, I started with integer data type(All numbers and characters belongs to family of <a href="../fundamental data types.html">data types</a>.<br />
 </p>
 
 <pre cpp>
@@ -201,17 +201,16 @@ unsigned int N= 10000000000; //again this large number can't be stored in this v
 The maximum number (\(2^{32}-1\)) can be stored using 'unsigned int' and binary shift operator (&lt;&lt; or &gt;&gt;).  <br />
 but again error was on the way.....  <br />
 </p>
-
-<p>
-unsigned int N = 1&lt;&lt;32 - 1 ; // here 1&lt;&lt;32 is just (100000000000000000000000000000000=2^32(in decimal number system(with base 10, our number system with 10 digits))) but we can't add to objects of where one piece is bigger than can be stored in unsigned int data type.<br />
-</p>
+<pre cpp>
+unsigned int N = 1&lt;&lt;32 - 1 ; //here 1&lt;&lt;32 is just (100000000000000000000000000000000=2^32(in decimal number system(with base 10, our number system with 10 digits))) but we can't add to objects of where one piece is bigger than can be stored in unsigned int data type.
+</pre>
 
 <p>
 We can't store 1&lt;&lt;32 or \(2^{32}\) in unsigned integer data type before we reduce 1 from it.  <br />
 </p>
 
 <p>
-I then tried to look for other <a href="../fundamental data types.wiki/data types.html">../fundamental data types.wiki/data types</a>, turns out that I can use 'long int(8 bytes)' or 'long long int(16 bytes)' or just 'long long(16 bytes)' to declare the sizes of the array, here the keywords like 'long' or 'long long' are termed as <a href="../Data modifiers.html.html">data modifiers</a>. These modifiers allocate the more number of space to store larger numbers into memory.  <br />
+I then tried to look for other <a href="../fundamental data types.html">data types</a>, turns out that I can use 'long int(8 bytes)' or 'long long int(16 bytes)' or just 'long long(16 bytes)' to declare the sizes of the array, here the keywords like 'long' or 'long long' are termed as <a href="../Data modifiers.html.html">data modifiers</a>. These modifiers allocate the more number of space to store larger numbers into memory.  <br />
 </p>
 
 <p>
@@ -223,7 +222,7 @@ This number is so <a href="https://www.wolframalpha.com/input?i=2%5E128-1">huge<
 </p>
 
 <p>
-For a moment even if we allocate memory for \(2^{127}\) elements(<code>int *array1=new int[N];</code>) and entered integers values (4 bytes) at all these \(2^{127}\) places for both column matrices. Even for entering the N+N values the CPU with (3400MHz clock frequency), will take 6 instructions per loop. In total it will take \(6x2^{127}\) Instructions. And CPU can take care of \(3400.10^{6}\) instructions per second.  <br />
+For a moment even if we allocate memory for \(2^{127}\) elements(<code>int *array1=new int[N];</code>) and entered integers values (4 bytes) at all these \(2^{127}\) places for both column matrices. Even for entering the N+N values the CPU with (3400MHz clock frequency), will take 6 instructions per loop. In total it will take \(6\times2^{127}\) Instructions. And CPU can take care of \(3400.10^{6}\) instructions per second.  <br />
 So the time CPU will take to assign the N+N values will be : \(\frac{6.2^{127}}{34. 10^{8}} = 3.022\times10^{29}\) sec. or \(3.022\times10^{22}\) years. We don't have that much time obviously.  <br />
 Also storing 4 bytes at \(2^{127}\) places of memory is not possible as it requires huge amount of memory \(2^{102}\) GB of storage.  <br />
 </p>
@@ -233,8 +232,8 @@ unsigned long long int N=1&lt;&lt;127;
 //define both the column matrices and name these array1 and array2
 for (unsigned long long int i=0;i&lt;N;i++) //2 instructions to enter into loop each time(i++ and i&lt;N)
 {
-    array1[i]=7;  //2 instruction or,  \*(array+i)=7;
-    array2[i]=3;  //2 instruction or, \*(array+i)=3;
+    array1[i]=7;  //2 instruction or,  *(array+i)=7;
+    array2[i]=3;  //2 instruction or, *(array+i)=3;
 }
 </pre>
 
@@ -316,7 +315,7 @@ long int N=1L&lt;&lt;63;
 std::vector&lt;int&gt; arr(N); //takes a lot of instructions to assign memory ( so many seconds just to execute this line of code )
 for (long int i=0;i&lt;N;i++)
 {
-    arr\[i\]=i; //storing i at each place of the array.
+    arr[i]=i; //storing i at each place of the array.
 }
 return 0;
 }
@@ -334,11 +333,39 @@ long int N=1L&lt;&lt;63;
 int *arr= new int[N]; //allocates memory in no time.
 for (long int i=0;i&lt;N;i++)
 {
+    arr[i]=i; //storing i at each place of the array. Still wrong, as it won't store 'i' at a[i] locations for i&gt;2^{31}-1
+}
+return 0;
+}
+</pre>
+
+<p>
+This method returns the first address of the allocated memory for 'N' integer variables. To store an address in variable 'arr' we have to declare it with some symbol which makes the variable 'arr' an <a href="../Pointers in c++.html">pointer variable</a>. <br />
+</p>
+
+<p>
+Now it seems that we are fine, with the above code, but there is still something wrong, we have declared that the array locations can only store integer (integers store from \(-2^{31}\) to  \(2^{31}-1\) and not upto \(2^{63}-1\), which is full range of 'i'), but in the loop I am instructing compiler to store value of 'i' which could be greater than what an integer data type can store. If I increase data type of array to be 'long int', then each of N elements require double the memory (8 bytes instead of 4 bytes per memory location); if I use <code>long int * arr=new long int[N];</code>, this will try to allocate 500GB of space, I don't have that much of RAM.<br />
+</p>
+
+<pre cpp>
+#include&lt;iostream&gt;
+int main()
+{
+long int N=1L&lt;&lt;63;
+long int *arr= new long int[N]; //I don't have 500GB of RAM
+for (long int i=0;i&lt;N;i++)
+{
     arr[i]=i; //storing i at each place of the array.
 }
 return 0;
 }
 </pre>
+
+<p>
+So to reduce the size of array to integer data types only.<br />
+</p>
+
+<div id="The demonstration-Moving back to int"><h2 id="Moving back to int" class="header"><a href="#The demonstration-Moving back to int">Moving back to int</a></h2></div>
 
     </div>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
