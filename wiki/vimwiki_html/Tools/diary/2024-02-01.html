@@ -108,7 +108,7 @@ So what's a program, it's just a set of instructions written Sequentially in a l
 </p>
 
 <p>
-Since we can't write each instruction in form of 1's and 0's, we have developed a way to convert write down the instructions in some familiar language and the compiler for that language convert it to required machine language.  <br />
+Since we can't write each instruction in form of 1's and 0's, we have developed a way to convert the instructions written in familiar language (english or C or C++ or Python)  and the compiler for that language convert it to required machine language.  <br />
 </p>
 
 <p>
@@ -322,7 +322,7 @@ return 0;
 </pre>
 
 <p>
-Turns out that there is some faster way of allocating the memory, it was the <code>int *arr=new int[N];</code>.  <br />
+Turns out that there is some faster way of allocating the memory, it was the <code>int *arr=new int[N];</code>, but one has to delete the assigned memory locations explicitly in the end of the program.  <br />
 </p>
 
 <pre cpp>
@@ -335,6 +335,8 @@ for (unsigned long int i=0;i&lt;N;i++)
 {
     arr[i]=i; //storing i at each place of the array. Still wrong, as it won't store 'i' at a[i] locations for i&gt;2^{31}-1
 }
+
+delete [] arr; //we need to delete the assigned memory locations explicitly.
 return 0;
 }
 </pre>
@@ -365,7 +367,7 @@ If I am stubborn to insert the integers at each memory location with value of in
 </p>
 
 <p>
-Later it turns out that there are similar data types to store such variables which are 'uint64_t, uint32_t, uint16_t, uint8_t' to store 64bits, 32bits, 16bits and 8bit respectively.<br />
+Later it turns out that there are similar data types ('uint64_t, uint32_t, uint16_t, uint8_t') to allocate memory of 64bits, 32bits, 16bits and 8bit respectively for the declared variable.<br />
 </p>
 
 
@@ -399,7 +401,6 @@ void increase_magnitude(float *starting_address,unsigned int size_vec, float mag
     *starting_address=*starting_address * 2;
     //now we shall increase its address by 1.
     starting_address+=1;
-
   }
   //in this way at the same memory location we will have modified the vector.
 }
@@ -413,7 +414,6 @@ float magnitude_finder(float *starting_address_vec,unsigned int size)
   }
  return pow(sum,0.5); 
 }
-
 int main()
 {
   unsigned int N=1&lt;&lt;31; //the number implies 31 zeroes in front of 1. So it is 2^31.
@@ -495,6 +495,122 @@ Let me show my tryouts: <br />
 
 </ol>
 <div id="The demonstration-Returning back to sum of two"><h2 id="Returning back to sum of two" class="header"><a href="#The demonstration-Returning back to sum of two">Returning back to sum of two</a></h2></div>
+
+<div id="The demonstration-Returning back to sum of two-Serial programming"><h3 id="Serial programming" class="header"><a href="#The demonstration-Returning back to sum of two-Serial programming">Serial programming</a></h3></div>
+
+<p>
+After going through all the mistakes which I later wrote above while writing this blog, I am sharing the first try:<br />
+</p>
+
+<p>
+The first try out:<br />
+</p>
+<pre cpp>
+/******************************************************************************
+* File:             code7.cpp
+*
+* Author:           Vishal  
+* Created:          01/30/24 
+* Description:      This code is supposed to do vector addition for cpu for very large size array of size 2^34
+*****************************************************************************/
+#include &lt;cstdint&gt;
+#include &lt;iostream&gt;
+#include &lt;iterator&gt;
+#include &lt;vector&gt;
+#include &lt;cmath&gt;
+#include &lt;chrono&gt;
+
+using std::cout;
+using std::endl;
+void AddVectorsOnCPU(double *array1, double *array2, size_t size)
+{
+  for (size_t i=0;i&lt;size;i++)
+  {
+    //array1[i]+=array2[i];  //or *(array+i)+=*(array2+i);
+    *array1+=*array2;
+    array1+=1;
+    array2+=1;
+  }
+}
+int main(int argc, char *argv[])
+{
+  auto time_0 = std::chrono::high_resolution_clock::now();
+  size_t size1=1L&lt;&lt;32; //1L denotes long data type of 1.
+  size_t size2=size1; 
+  auto time_1 = std::chrono::high_resolution_clock::now();
+  double *vec1=new double[size1]; //dynamics_array allocation does not take any time comparable to stack memory 
+  double *vec2=new double[size2]; //dynamics_array allocation does not take any time comparable to stack memory 
+  //let us fill the vector with N natural numbers(1,2,.......N).
+  auto time_2 = std::chrono::high_resolution_clock::now();
+  auto elapsed_time_1 = std::chrono::duration_cast&lt;std::chrono::microseconds&gt;(time_2 - time_1).count() / 1e6;
+  auto elapsed_time_storing_N = std::chrono::duration_cast&lt;std::chrono::microseconds&gt;(time_1 - time_1).count() / 1e6;
+  for (size_t i=0;i&lt;size1;i++)
+  {
+    vec1[i]=i+1;
+    vec2[i]=i+2;
+    //or
+    //*(vec1+i)=i+1;
+    //*(vec2+i)=i+2;
+  }
+  double sum_f=vec1[size1-1]+vec2[size2-1]; //
+  printf("The last element of the array after sum shall be: %f \n",sum_f);
+  auto time_3 = std::chrono::high_resolution_clock::now();
+  auto elapsed_time_assigning_values = std::chrono::duration_cast&lt;std::chrono::microseconds&gt;(time_3 - time_2).count() / 1e6;
+  auto time_4 = std::chrono::high_resolution_clock::now();
+  AddVectorsOnCPU(vec1,vec2,size1);
+  auto time_5 = std::chrono::high_resolution_clock::now();
+  auto elapsed_time_modify_mag = std::chrono::duration_cast&lt;std::chrono::microseconds&gt;(time_5 - time_4).count() / 1e6;
+  //let us print last 2 elements of new vector
+  printf("The last 3 elements of the result are: \n")
+  for(int i=0;i&lt;3;i++)
+  {
+    printf("%f   ,",vec1[size1-(2-i)-1]);
+  }
+  cout&lt;&lt;"\nthe time to assign N: "&lt;&lt;elapsed_time_storing_N&lt;&lt;" seconds"&lt;&lt;endl;
+  cout&lt;&lt;"the time to declare vector of N with doubles data type : "&lt;&lt;elapsed_time_1&lt;&lt;" seconds"&lt;&lt;endl;
+  cout&lt;&lt;"the time to assign vectors: "&lt;&lt;elapsed_time_assigning_values&lt;&lt;" seconds"&lt;&lt;endl;
+  cout&lt;&lt;"the time to modify the vector_in: "&lt;&lt;elapsed_time_modify_mag&lt;&lt;" seconds"&lt;&lt;endl;
+  cout&lt;&lt;" The total time shall be :"&lt;&lt;elapsed_time_1+elapsed_time_assigning_values+elapsed_time_modify_mag&lt;&lt;" seconds"&lt;&lt;endl;
+  delete[] vec1;
+  delete[] vec2;
+  return 0;
+}
+</pre>
+
+<p>
+<span id="The demonstration-Returning back to sum of two-Serial programming-Output"></span><strong id="Output">Output</strong><br />
+```<br />
+The last element of the array after sum shall be: 8589934593.000000 <br />
+The last 3 elements of the result are: <br />
+8589934589.000000   ,8589934591.000000   ,8589934593.000000   ,<br />
+the time to assign N: 0 seconds<br />
+the time to declare vector of N with doubles data type : 1.3e-05 seconds<br />
+the time to assign vectors: 26.8489 seconds<br />
+the time to modify the vector_in: 10.8359 seconds<br />
+ The total time shall be :37.6848 seconds<br />
+</p>
+
+<p>
+real	0m37.837s<br />
+user	0m23.566s<br />
+sys 	0m14.189s<br />
+</p>
+
+<p>
+```<br />
+<span id="The demonstration-Returning back to sum of two-Serial programming-Finally, found the code for serial programming, let us do that for parallel programming"></span><strong id="Finally, found the code for serial programming, let us do that for parallel programming">Finally, found the code for serial programming, let us do that for parallel programming</strong><br />
+</p>
+
+<div id="The demonstration-Returning back to sum of two-Parallel Programming"><h3 id="Parallel Programming" class="header"><a href="#The demonstration-Returning back to sum of two-Parallel Programming">Parallel Programming</a></h3></div>
+
+<p>
+The parallel programming is much more efficient in doing this task, since parallel programming requires use of multiple cores at the same time. This task is performed on NVIDIA <a href="../GPU and CPU basics.html">GPUs</a>, since these GPU has many cores/ALU. I am using GPU cluster with 56 SM (Streaming Multiprocessors) where each of these Streaming Multiprocessors has 64 cores, and each cores can run 32 threads concurrently. Which provides us \(56\time64\time32=1,14,688\) threads. This means that instead of adding each \(a_{i}+b_{i}\), one after one (in serial programming done above), we can utilize the parallel addition by maximum of 114688 threads at single clock cycle of GPU. <br />
+The GPU has 750MHz of clock speed. Which means that this GPU has 5 times slower clock than our CPU with 3500MHz clock speed, and with this speed GPU can handle 750,000,000 instructions per second.<br />
+</p>
+
+<p>
+Since I am using NVIDIA GPUs, we are constrained to use <a href="../Cuda Learning Center.html">CUDA</a>.<br />
+</p>
 
     </div>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
