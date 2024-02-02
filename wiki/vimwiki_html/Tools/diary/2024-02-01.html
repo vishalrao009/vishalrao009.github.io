@@ -90,7 +90,7 @@ c_n \\
 
 
 <p>
-Simple, right. Let's do it then. We will start with the largest array(such column vectors/matrices are called as arrays) possible and write a C++ code to find the resulting addition.  <br />
+Simple, right. Let's do it then. We will start with the largest array(such column vectors/matrices are called as arrays) possible and write a <a href="../C++.html">C++</a> code to find the resulting addition.  <br />
 </p>
 
 <p>
@@ -121,10 +121,10 @@ I might go bit technical here, will provide links to unknown keywords.  <br />
 
 <div id="The demonstration-Serial Programming"><h2 id="Serial Programming" class="header"><a href="#The demonstration-Serial Programming">Serial Programming</a></h2></div>
 
-<div id="The demonstration-Serial Programming-Algorithm (Man with Plan)"><h3 id="Algorithm (Man with Plan)" class="header"><a href="#The demonstration-Serial Programming-Algorithm (Man with Plan)">Algorithm (Man with Plan)</a></h3></div>
+<div id="The demonstration-Serial Programming-Algorithm (Plan)"><h3 id="Algorithm (Plan)" class="header"><a href="#The demonstration-Serial Programming-Algorithm (Plan)">Algorithm (Plan)</a></h3></div>
 
 <p>
-The Algorithm or the way to write the code was simple, include some header files(to support some functionality to read and write, and write the main program (called as int main() or void main() which are main heart of the program)).  <br />
+The Algorithm or the way to write the code was simple, include some <a href="../Header_files.html">header files</a>(to support some functionality to read and write, and write the main program (called as int main() or void main() which are main heart of the program)).  <br />
 </p>
 
 <p>
@@ -450,23 +450,9 @@ int main()
 </p>
 
 <p>
- <span id="The demonstration-Moving back to int-Think what are these mistakes, think really hard."></span><strong id="Think what are these mistakes, think really hard.">Think what are these mistakes, think really hard.</strong><br />
+ *Think what are these <a href="mistakes_demonstration.html">mistakes</a>, think really hard.*<br />
 </p>
 
-<p>
-<span id="The demonstration-Moving back to int-Mistakes"></span><strong id="Mistakes">Mistakes</strong>:<br />
-</p>
-<ol>
-<li>
-Normal person who does day to day programming is habitual of assigning the index an data type of integer, as the index never exceed such a large number an integer data type can store. It was the same mistake I described before.  
-
-<li>
-The second mistake is to assigning the float data type to each elements (\(a_{i}\)), but it is not that hard to see that once we multiply the largest possible number by 4.2, it won't be stored with just 31 bits (1 bit reserved for negative numbers). 
-
-<li>
-Third mistake is similar to second one, In the function defined to find the magnitude of the vector, we have declared the variable 'sum' as of type 'float', which can only store real numbers with 4 bytes. Inside the loop we are finding square of very large numbers, after squaring the numbers become too large to be stored in 'float'  data type. One has to use 'double' data type for variable 'sum'. 
-
-</ol>
 <p>
 Let me show my tryouts: <br />
 </p>
@@ -893,6 +879,88 @@ real	0m15.330s<br />
 user	0m12.975s<br />
 sys	0m2.303s<br />
 </p>
+
+<p>
+```<br />
+</p>
+
+<div id="The demonstration-Comparing the same with serial programming"><h2 id="Comparing the same with serial programming" class="header"><a href="#The demonstration-Comparing the same with serial programming">Comparing the same with serial programming</a></h2></div>
+
+<pre cpp>
+/******************************************************************************
+* File:             code7.cpp
+*
+* Author:           Vishal  
+* Created:          01/30/24 
+* Description:      This code is supposed to do vector addition for cpu for very large size array of size 2^32
+*****************************************************************************/
+#include &lt;cstdint&gt;
+#include &lt;iostream&gt;
+#include &lt;iterator&gt;
+#include &lt;vector&gt;
+#include &lt;cmath&gt;
+#include &lt;chrono&gt;
+using std::cout;
+using std::endl;
+void AddVectorsOnCPU(uint8_t *array1, uint8_t *array2, size_t size)
+{
+  for (size_t i=0;i&lt;size;i++)
+  {
+    //if(i==0) printf("adding first element \n");
+   // if(i==size-1) printf("adding last element \n");
+    array1[i]+=array2[i];
+    /* *array1+=*array2; */
+    /* array1+=1; */
+    /* array2+=1; */
+  }
+}
+int main(int argc, char *argv[])
+{
+  size_t size1=1L&lt;&lt;32; //1L denotes long data type of 1.
+  size_t size2=size1; 
+  uint8_t *vec1=new uint8_t[size1]; //dynamics_array allocation does not take any time comparable to stack memory 
+  uint8_t *vec2=new uint8_t[size2]; //dynamics_array allocation does not take any time comparable to stack memory 
+
+  //we can print the starting address of these array:
+  cout&lt;&lt;"Printing the starting address of both array \n";
+  cout&lt;&lt;static_cast&lt;void*&gt;(vec1)&lt;&lt;" "&lt;&lt;static_cast&lt;void*&gt;(vec2)&lt;&lt;endl;
+  cout&lt;&lt;"Printing the last address of both array \n";
+  cout&lt;&lt;static_cast&lt;void*&gt;(vec1+size1-1)&lt;&lt;" "&lt;&lt;static_cast&lt;void*&gt;(vec2+size1-1)&lt;&lt;endl;
+
+  //let us fill the vector with 1 and 99 respectively.
+  auto time_0 = std::chrono::high_resolution_clock::now();
+  for (size_t i=0;i&lt;size1;i++)
+  {
+    vec1[i]=1;
+    vec2[i]=2;
+  }
+  auto time_1 = std::chrono::high_resolution_clock::now();
+  for(int i=0;i&lt;=50;i++)
+  {
+    AddVectorsOnCPU(vec1,vec2,size1);
+  }
+  auto time_2 = std::chrono::high_resolution_clock::now();
+
+//finding elapsed_times
+  auto elapsed_time_assigning_values = std::chrono::duration_cast&lt;std::chrono::microseconds&gt;(time_1 - time_0).count() / 1e6;
+  auto elapsed_time_modify_mag = std::chrono::duration_cast&lt;std::chrono::microseconds&gt;(time_2 - time_1).count() / 1e6;
+
+ printf(" Last 3 elements are ( %d, %d, %d ) \n",vec1[size1-3],vec1[size1-2],vec1[size1-1]);;
+  cout&lt;&lt;"the time to assign vectors: "&lt;&lt;elapsed_time_assigning_values&lt;&lt;" seconds"&lt;&lt;endl;
+  cout&lt;&lt;"the time to add the vectors : "&lt;&lt;elapsed_time_modify_mag&lt;&lt;" seconds"&lt;&lt;endl;
+  cout&lt;&lt;" The total time shall be :"&lt;&lt;elapsed_time_assigning_values+elapsed_time_modify_mag&lt;&lt;" seconds"&lt;&lt;endl;
+  delete[] vec1;
+  delete[] vec2;
+  return 0;
+}
+</pre>
+
+
+<p>
+<span id="The demonstration-Comparing the same with serial programming-Output:"></span><strong id="Output:">Output:</strong><br />
+```<br />
+</p>
+
 
 <p>
 ```<br />
