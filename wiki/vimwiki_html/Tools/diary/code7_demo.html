@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="../style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>code7_demo</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+<div id="Code 7"><h1 id="Code 7" class="header"><a href="#Code 7">Code 7</a></h1></div>
+
+<p>
+I am trying to increase the size of array, I tried with long int, long long int, to store bigger numbers than what int or unsigned int can store. It did not work untill I found the data type 'uint64_t', which worked fine. <br />
+</p>
+
+<p>
+Here is the code .<br />
+</p>
+<pre cpp>
+/******************************************************************************
+* File:             code7.cpp
+* Author:           Vishal  
+* Created:          01/30/24 
+* Description:      This code is supposed to do vector modification for cpu for very large size array of size 2^34
+*****************************************************************************/
+
+//This program is intended to demonstrate simple serial programming where a vectors element gets modified serially. 
+//
+#include &lt;cstdint&gt;
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;cmath&gt;
+#include &lt;chrono&gt;
+
+using std::cout;
+using std::endl;
+
+void increase_magnitude(float *starting_address,uint64_t  size_vec, float mag_multiplyer)
+{
+  //the variable *starting_address is a pointer which will point to (or contain address of), the first element of the array.
+  for (uint64_t i=0;i&lt;size_vec;i++) //2 instructions per loop for updating i, and checking i&lt;size  
+  {
+    //let us multiply the whole vector by 2
+    //since we have address of first element of vector, we can take its value by use of *
+    *starting_address=*starting_address * mag_multiplyer; //4 instructions
+    //now we shall increase its address by 1.
+    starting_address+=1; //2 instructions (add sum, and update sum)
+
+  } 
+  //in total loop shall have 8 instructions per loop, so time taken shall be (size/clockspeed)*instructions per loop
+
+  //in this way at the same memory location we will have modified the vector.
+
+}
+
+long double magnitude_finder(float *starting_address_vec,uint64_t size)
+{
+  //This function will return the magnitude of the vector. 
+  long double sum=0.0;
+  for (uint64_t i=0;i&lt;size;i++) //2 instructions per loop for updating i, and checking i&lt;size
+  {
+    /* sum+=pow((*starting_address_vec),2); //power function is slow (10 times)*/
+    sum+=(*starting_address_vec)*(*starting_address_vec); //5 instructions
+    starting_address_vec+=1; //2 instructions
+  }
+  //9 instructions per loop
+ return pow(sum,0.5); 
+}
+
+long double sum(float *starting_address_vec,uint64_t size)
+{
+  //This function will return the magnitude of the vector. 
+  long double sum=0.0;
+  for (uint64_t i=0;i&lt;size;i++) //2 instructions per loop for updating i, and checking i&lt;size
+  {
+    /* sum+=pow((*starting_address_vec),2); //power function is slow (10 times)*/
+    sum+=(*starting_address_vec); //5 instructions
+    starting_address_vec+=1; //2 instructions
+  }
+  //9 instructions per loop
+ return sum;
+}
+
+int main(int argc, char *argv[])
+{
+  auto time_0 = std::chrono::high_resolution_clock::now();
+  uint64_t N=1L&lt;&lt;34; //1L denotes long data type of 1.
+  auto time_1 = std::chrono::high_resolution_clock::now();
+  float *vec=new float[N]; //dynamics_array allocation does not take any time comparable to stack memory 
+
+  //let us fill the vector with N natural numbers(1,2,.......N).
+  auto time_2 = std::chrono::high_resolution_clock::now();
+  auto elapsed_time_1 = std::chrono::duration_cast&lt;std::chrono::microseconds&gt;(time_2 - time_1).count() / 1e6;
+  auto elapsed_time_storing_N = std::chrono::duration_cast&lt;std::chrono::microseconds&gt;(time_1 - time_1).count() / 1e6;
+  for (uint64_t i=0;i&lt;N;i++)
+  {
+    vec[i]=i+1;
+  }
+  auto time_3 = std::chrono::high_resolution_clock::now();
+  auto elapsed_time_assigning_values = std::chrono::duration_cast&lt;std::chrono::microseconds&gt;(time_3 - time_2).count() / 1e6;
+  /* cout&lt;&lt;vec[0]&lt;&lt;vec[1]&lt;&lt;vec[2]&lt;&lt;vec[3]&lt;&lt;endl; */
+
+  //let us define a pointer to integer vector
+  float *ptr_to_vec=&amp;vec[0]; //giving address of first element. Or we can just write: 
+
+  //we shall modify the vector by multiply it with some real number. 
+  //Real numbers are stored in float data types(require 4byte per real number) and double data types(8bytes).
+  float multiplier=4.476;
+
+  //Let us find the magnitude before changing the vector, 
+
+  long double mag_before=sum(ptr_to_vec,N);
+  auto time_4 = std::chrono::high_resolution_clock::now();
+  auto elapsed_time_mag1 = std::chrono::duration_cast&lt;std::chrono::microseconds&gt;(time_4 - time_3).count() / 1e6;
+
+
+
+  increase_magnitude(ptr_to_vec,N,multiplier);
+  auto time_5 = std::chrono::high_resolution_clock::now();
+  auto elapsed_time_modify_mag = std::chrono::duration_cast&lt;std::chrono::microseconds&gt;(time_5 - time_4).count() / 1e6;
+
+
+  long double mag_after=sum(ptr_to_vec,N);
+  auto time_6 = std::chrono::high_resolution_clock::now();
+  auto elapsed_time_mag2 = std::chrono::duration_cast&lt;std::chrono::microseconds&gt;(time_6 - time_5).count() / 1e6;
+
+  long double ratio_of_magnitudes=mag_after/mag_before;
+
+  printf("Value of sum before multiplying the vector is %Lf  \n",mag_before);
+  printf("Value of sum after multiplying the vector is %Lf   \n",mag_after);
+  cout&lt;&lt;"the final vector has sum "&lt;&lt;ratio_of_magnitudes&lt;&lt;" times the earlier one"&lt;&lt;endl&lt;&lt;"which should be equal to the multiplier (which is: "&lt;&lt;multiplier&lt;&lt;")"&lt;&lt;endl;
+
+  cout&lt;&lt;"the time to assign N: "&lt;&lt;elapsed_time_storing_N&lt;&lt;" seconds"&lt;&lt;endl;
+  cout&lt;&lt;"the time to declare vector of N with doubles data type : "&lt;&lt;elapsed_time_1&lt;&lt;" seconds"&lt;&lt;endl;
+  cout&lt;&lt;"the time to assign vector: "&lt;&lt;elapsed_time_assigning_values&lt;&lt;" seconds"&lt;&lt;endl;
+  cout&lt;&lt;"the time to find sum of vector_in: "&lt;&lt;elapsed_time_mag1&lt;&lt;" seconds"&lt;&lt;endl;
+  cout&lt;&lt;"the time to modify the vector_in: "&lt;&lt;elapsed_time_modify_mag&lt;&lt;" seconds"&lt;&lt;endl;
+  cout&lt;&lt;"the time to calculate sum of modified vector_in: "&lt;&lt;elapsed_time_mag2&lt;&lt;" seconds"&lt;&lt;endl;
+  cout&lt;&lt;" The total time shall be :"&lt;&lt;elapsed_time_1+elapsed_time_assigning_values+elapsed_time_mag1+elapsed_time_modify_mag+elapsed_time_mag2&lt;&lt;" seconds"&lt;&lt;endl;
+  delete[] vec;
+  return 0;
+}
+</pre>
+
+<p>
+<span id="Code 7-Output:"></span><strong id="Output:">Output:</strong><br />
+```<br />
+Value of sum before multiplying the vector is 147573952598266347520.000000  <br />
+Value of sum after multiplying the vector is 660540987060031083840.000000   <br />
+the final vector has sum 4.476 times the earlier one<br />
+which should be equal to the multiplier (which is: 4.476)<br />
+the time to assign N: 0 seconds<br />
+the time to declare vector of N with doubles data type : 1e-05 seconds<br />
+the time to assign vector: 62.9423 seconds<br />
+the time to find sum of vector_in: 94.2152 seconds<br />
+the time to modify the vector_in: 40.244 seconds<br />
+the time to calculate sum of modified vector_in: 63.339 seconds<br />
+ The total time shall be :260.741 seconds<br />
+</p>
+
+<p>
+real	4m22.348s<br />
+user	3m27.879s<br />
+sys	0m53.909s<br />
+</p>
+
+<p>
+```<br />
+</p>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+
