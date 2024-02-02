@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="../style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>code1_demo</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+<div id="Code 1"><h1 id="Code 1" class="header"><a href="#Code 1">Code 1</a></h1></div>
+<pre cpp>
+
+//This program is intended to demonstrate simple serial programming where a vectors element gets modified serially. 
+//
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;cmath&gt;
+
+using std::cout;
+using std::endl;
+using std::vector;
+
+void increase_magnitude(float *starting_address,unsigned int size_vec, float mag_multiplyer)
+{
+  //the variable *starting_address is a pointer which will point to (or contain address of), the first element of the array.
+  for (int i=0;i&lt;size_vec;i++)
+  {
+    //let us multiply the whole vector by 2
+    //since we have address of first element of vector, we can take its value by use of *
+    *starting_address=*starting_address * 2;
+    //now we shall increase its address by 1.
+    starting_address+=1;
+
+  }
+
+  //in this way at the same memory location we will have modified the vector.
+
+}
+
+float magnitude_finder(float *starting_address_vec,unsigned int size)
+{
+  //This function will return the magnitude of the vector. 
+  float sum=0.0;
+  for (int i=0;i&lt;size;i++)
+  {
+    sum+=pow((*starting_address_vec),2);
+  }
+ return pow(sum,0.5); 
+}
+
+
+int main(int argc, char *argv[])
+{
+  unsigned int N=1&lt;&lt;31; //the number implies 31 zeroes in front of 1. So it is 2^31.
+  vector&lt;float&gt; vec(N); //whenever we declare an vector, it has undefined size(if we don't provide the size). Unless we declare it with some size. 
+  //declaring vector of finite size; vector&lt;int&gt; v(100);
+  /* vector&lt;int&gt;v1(100); */
+  //declaring vector without size; vector&lt;int&gt; vec;
+
+  //let us define a pointer to integer vector
+  //let us fill the vector with N natural numbers(1,2,.......N).
+  cout&lt;&lt;N&lt;&lt;endl;
+
+  for (int i=0;i&lt;N;i++)
+  {
+      vec[i]=i;
+  }
+
+  float *ptr_to_vec=&amp;vec[0]; //giving address of first element. Or we can just write: 
+
+  //we shall modify the vector by multiply it with some real number. 
+  //Real numbers are stored in float data types(require 4byte per real number) and double data types(8bytes).
+  float multiplier=4.0;
+
+  //Let us find the magnitude before changing the vector, 
+  float mag_before=magnitude_finder(ptr_to_vec,N);
+  increase_magnitude(ptr_to_vec,N,multiplier);
+  float mag_after=magnitude_finder(ptr_to_vec,N);
+  float ratio_of_magnitudes=mag_after/mag_before;
+  cout&lt;&lt;"the final vector has magnitude "&lt;&lt;ratio_of_magnitudes&lt;&lt;" times the earlier one"&lt;&lt;endl&lt;&lt;"which should be equal to "&lt;&lt;pow(multiplier,0.5)&lt;&lt;endl;
+  return 0;
+}
+
+</pre>
+
+<p>
+```<br />
+<span id="Code 1-Output"></span><strong id="Output">Output</strong>:<br />
+</p>
+
+<p>
+2147483648<br />
+the final vector has magnitude -nan times the earlier one<br />
+which should be equal to 2<br />
+</p>
+
+<p>
+```<br />
+</p>
+
+<p>
+<span id="Code 1-Remarks: The magnitude can't handle large numbers in float data type, one must use double or long double."></span><strong id="Remarks: The magnitude can't handle large numbers in float data type, one must use double or long double.">Remarks: The magnitude can't handle large numbers in float data type, one must use double or long double.</strong> <br />
+</p>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+
