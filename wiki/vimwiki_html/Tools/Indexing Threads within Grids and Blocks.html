@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>Indexing Threads within Grids and Blocks</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+                max-width:100%; /*set maximum width for smaller devices */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+<div id="Indexing Threads withing Grid and blocks"><h1 id="Indexing Threads withing Grid and blocks" class="header"><a href="#Indexing Threads withing Grid and blocks">Indexing Threads withing Grid and blocks</a></h1></div>
+
+<p>
+We have seen how to get the thread ID for threads in a single block; just by using <code>index=threadIdx.x;</code> which is sufficient for single block.<br />
+</p>
+
+<p>
+But if that index is not unique withing the grid. <br />
+</p>
+<pre><code>blockIdx.x=0
+<table>
+<tr>
+<td>
+threadIdx.x=0
+</td>
+<td>
+threadIdx.x=1
+</td>
+<td>
+threadIdx.x=2
+</td>
+<td>
+threadIdx.x=3
+</td>
+</tr>
+</table>
+blockIdx.x=1
+<table>
+<tr>
+<td>
+threadIdx.x=0
+</td>
+<td>
+threadIdx.x=1
+</td>
+<td>
+threadIdx.x=2
+</td>
+<td>
+threadIdx.x=3
+</td>
+</tr>
+</table>
+blockIdx.x=2
+<table>
+<tr>
+<td>
+threadIdx.x=0
+</td>
+<td>
+threadIdx.x=1
+</td>
+<td>
+threadIdx.x=2
+</td>
+<td>
+threadIdx.x=3
+</td>
+</tr>
+</table>
+blockIdx.x=3
+<table>
+<tr>
+<td>
+threadIdx.x=0
+</td>
+<td>
+threadIdx.x=1
+</td>
+<td>
+threadIdx.x=2
+</td>
+<td>
+threadIdx.x=3
+</td>
+</tr>
+</table>
+</code></pre>
+
+
+<p>
+To get the unique index of threads, we have to make use of blockIdx.x variables.<br />
+Just like the indices of threads can be accessed within a block, <br />
+</p>
+<ol>
+<li>
+threadIdx.x
+
+<li>
+threadIDx.y
+
+<li>
+threadIDx.z
+
+</ol>
+	
+<p>
+we have, indices for blocks within a grid give by these variables.<br />
+</p>
+<ol>
+<li>
+blockIdx.x
+
+<li>
+blockIDx.y
+
+<li>
+blockIDx.z
+
+</ol>
+<p>
+To summarise: we have these following variables(size for grid and blocks are given by variables named as <code>gridDim</code> and <code>blockDim</code>, and index of blocks and threads within grind and blocks are given by <code>blockIdx.x</code> and <code>threadIdx.x</code>).<br />
+</p>
+
+<ol>
+<li>
+<code>dim3 gridDim;</code>
+
+<ul>
+<li>
+<code>int gridDim.x;</code>= number of blocks in x
+
+<li>
+<code>int gridDim.y;</code>= number of blocks in y
+
+<li>
+<code>int gridDim.z;</code>= number of blocks in z
+
+</ul>
+<li>
+<code>dim3 blockDim;</code>
+
+<ul>
+<li>
+<code>int blockDim.x;</code> : number of threads in x
+
+<li>
+<code>int blockDim.y;</code>: number of threads in y
+
+<li>
+<code>int blockDim.z;</code>: number of threads in z
+
+</ul>
+<li>
+<code>dim3 blockIDx;</code> (for index of blocks within a grid)
+
+<ul>
+<li>
+<code>int blockIdx.x;</code>: index of block in x direction
+
+<li>
+<code>int blockIDx.y;</code>: index of block in y direction
+
+<li>
+<code>int blockIDx.z;</code>: index of block in z direction
+
+</ul>
+<li>
+<code>dim3 threadIDx;</code> (for index of threads within a block)
+
+<ul>
+<li>
+<code>int threadIdx.x;</code> : index of threads in x direction 
+
+<li>
+<code>int threadIDx.y;</code> : index of threads in y direction 
+
+<li>
+<code>int threadIDx.z;</code> : index of threads in z direction 
+
+</ul>
+</ol>
+<p>
+These values are set as configuration parameter before the launch of the kernel.<br />
+</p>
+
+<div id="Indexing Threads withing Grid and blocks-Example 1"><h2 id="Example 1" class="header"><a href="#Indexing Threads withing Grid and blocks-Example 1">Example 1</a></h2></div>
+
+<p>
+Let us say, we have two blocks with 4 threads each. To get the unique index of all threads we should use :<br />
+	<code>index = threadIdx.x + blockIdx.x * blokDim.x;</code><br />
+	where <code>blockDim.x</code> tells the size of the blocks.<br />
+</p>
+	
+
+<table>
+<thead>
+<tr>
+<th>
+threadIdx.x
+</th>
+<th>
+blockIdx.x x blockDim.x
+</th>
+<th>
+index
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+0
+</td>
+<td>
+0.4
+</td>
+<td>
+0
+</td>
+</tr>
+<tr>
+<td>
+1
+</td>
+<td>
+0.4
+</td>
+<td>
+1
+</td>
+</tr>
+<tr>
+<td>
+2
+</td>
+<td>
+0.4
+</td>
+<td>
+2
+</td>
+</tr>
+<tr>
+<td>
+3
+</td>
+<td>
+0.4
+</td>
+<td>
+3
+</td>
+</tr>
+<tr>
+<td>
+0
+</td>
+<td>
+1.4
+</td>
+<td>
+4
+</td>
+</tr>
+<tr>
+<td>
+1
+</td>
+<td>
+1.4
+</td>
+<td>
+5
+</td>
+</tr>
+<tr>
+<td>
+2
+</td>
+<td>
+1.4
+</td>
+<td>
+6
+</td>
+</tr>
+<tr>
+<td>
+3
+</td>
+<td>
+1.4
+</td>
+<td>
+7
+</td>
+</tr>
+</tbody>
+</table>
+
+
+<div id="Indexing Threads withing Grid and blocks-Codes"><h2 id="Codes" class="header"><a href="#Indexing Threads withing Grid and blocks-Codes">Codes</a></h2></div>
+<pre cuda>
+
+
+#include&lt;iostream&gt;
+#include &lt;stdio.h&gt;
+__global__ void threadID()
+{
+	int threadindex = threadIdx.x;
+	printf("Executing thread with index =%d withing the block \n", threadindex);
+}
+__global__ void blockID()
+{
+	int	blockindex = blockIdx.x;
+	printf("Executing thread within the block ID %d \n",blockindex );
+}
+
+__global__ void unique_index()
+{
+	int index = threadIdx.x+blockIdx.x*blockDim.x;
+	printf("Executing thread with index  %d \n", index);
+}
+
+int main()
+{
+	threadID&lt;&lt;&lt;3,4&gt;&gt;&gt;();
+	cudaDeviceSynchronize();
+	std::cout&lt;&lt;std::endl;
+
+
+	blockID&lt;&lt;&lt;3,4&gt;&gt;&gt;();
+	cudaDeviceSynchronize();
+	std::cout&lt;&lt;std::endl;
+
+
+	unique_index&lt;&lt;&lt;3,4&gt;&gt;&gt;();
+	cudaDeviceSynchronize();
+	return 0;
+}
+
+
+</pre>
+
+<div id="Indexing Threads withing Grid and blocks-Codes-Output"><h3 id="Output" class="header"><a href="#Indexing Threads withing Grid and blocks-Codes-Output">Output</a></h3></div>
+
+<p>
+Executing thread with index =0 withing the block <br />
+Executing thread with index =1 withing the block <br />
+Executing thread with index =2 withing the block <br />
+Executing thread with index =3 withing the block <br />
+Executing thread with index =0 withing the block <br />
+Executing thread with index =1 withing the block <br />
+Executing thread with index =2 withing the block <br />
+Executing thread with index =3 withing the block <br />
+Executing thread with index =0 withing the block <br />
+Executing thread with index =1 withing the block <br />
+Executing thread with index =2 withing the block <br />
+Executing thread with index =3 withing the block <br />
+</p>
+
+<p>
+Executing thread within the block ID 0 <br />
+Executing thread within the block ID 0 <br />
+Executing thread within the block ID 0 <br />
+Executing thread within the block ID 0 <br />
+Executing thread within the block ID 1 <br />
+Executing thread within the block ID 1 <br />
+Executing thread within the block ID 1 <br />
+Executing thread within the block ID 1 <br />
+Executing thread within the block ID 2 <br />
+Executing thread within the block ID 2 <br />
+Executing thread within the block ID 2 <br />
+Executing thread within the block ID 2 <br />
+</p>
+
+<p>
+Executing thread with index  4 <br />
+Executing thread with index  5 <br />
+Executing thread with index  6 <br />
+Executing thread with index  7 <br />
+Executing thread with index  0 <br />
+Executing thread with index  1 <br />
+Executing thread with index  2 <br />
+Executing thread with index  3 <br />
+Executing thread with index  8 <br />
+Executing thread with index  9 <br />
+Executing thread with index  10 <br />
+Executing thread with index  11 <br />
+</p>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+
