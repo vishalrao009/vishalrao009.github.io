@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>Bresenham.cpp</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+                max-width:100%; /*set maximum width for smaller devices */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+<pre cuda>
+
+#include &lt;cstdint&gt;
+#include &lt;cmath&gt;
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;stdio.h&gt;
+using std::vector;
+using std::cout;
+using std::endl;
+
+std::vector&lt;std::vector&lt;int&gt;&gt; bresenham(int x0,int y0,int x1,int y1)
+{
+    std::vector&lt;std::vector&lt;int&gt;&gt; v;
+    std::vector&lt;int&gt; x_values;
+    std::vector&lt;int&gt; y_values;
+    int dx=x1-x0;
+    int dy=y1-y0;
+    int swap_flag=0;
+    if (dy&gt;dx){
+        int c=x1;
+        x1=y1;
+        y1=c;
+
+        int d=x0;
+        x0=y0;
+        y0=d;
+    dx=x1-x0;
+    dy=y1-y0;
+    swap_flag=1;
+    }
+    int p=2*dy-dx;
+    int x=x0;
+    int y=y0;
+    x_values.push_back(x);
+    y_values.push_back(y);
+    int i=0;
+    do {
+        if (p&lt;0) {
+            x+=1;
+            p+=2*dy;
+        }
+        else{
+            x+=1;
+            y+=1;
+            p+=2*(dy-dx);
+        }
+        x_values.push_back(x);
+        y_values.push_back(y);
+        /* cout&lt;&lt;x&lt;&lt;" "&lt;&lt;y&lt;&lt;std::endl; */
+        i+=1;
+    } while (i&lt;dx);
+    if(swap_flag==1){
+    v.push_back(y_values);
+    v.push_back(x_values);
+    }
+    else{
+    v.push_back(x_values);
+    v.push_back(y_values);
+    }
+    return v;
+}
+
+std::vector&lt;std::vector&lt;int&gt;&gt; path_index(std::vector&lt;std::vector&lt;int&gt;&gt; xy_bresenham_vec)
+{
+    std::vector&lt;std::vector&lt;int&gt;&gt; path_vec;
+    std::vector&lt;int&gt; path_temp;
+    std::vector&lt;int&gt; index; //index where dx=dy
+    // 0 means step in x, 1 means step in y, 2 means step in z
+    //first we shall find the number of points where delta_x=delta_y, and the number of path shall be 2^number(where delta_x=delta_y) 
+    for (int j=0;j&lt;xy_bresenham_vec[0].size()-1;j++)
+    {
+        int delta_x=xy_bresenham_vec[0][j+1]-xy_bresenham_vec[0][j];
+        int delta_y=xy_bresenham_vec[1][j+1]-xy_bresenham_vec[1][j];
+        if(delta_x==1 and delta_y==0)
+        {
+            path_temp.push_back(0);
+        }
+        else if(delta_x==0 and delta_y==1)
+        {
+            path_temp.push_back(1);
+        }
+        else if(delta_x==1 and delta_y==1)
+        {
+            path_temp.push_back(0);
+            path_temp.push_back(1);
+            index.push_back(j);
+        }
+    }
+    path_vec.push_back(path_temp);
+    path_vec.push_back(index);
+return path_vec;
+}
+
+int invert(int num)
+{
+    int result;
+    if(num==0)
+    {
+        result=1;
+    }
+    else if(num==1)
+    {
+        result=0;
+    }
+    return result;
+}
+
+std::vector&lt;int&gt; int_to_binary(int num,int size)
+{
+    //we size=size binary vector
+    std::vector&lt;int&gt; binary_vec;
+    std::vector&lt;int&gt; binary_vec_rev;
+    int result=num;
+    while(result!=1 &amp;&amp; result!=0)
+    {
+        binary_vec.push_back(result%2);
+        result/=2;
+    }
+    if(result==1 or result==0) binary_vec.push_back(result);
+    int present_size=binary_vec.size();
+    if (present_size&lt;size) 
+    {
+        for(int i=0;i&lt;size-present_size;i++)
+        {
+            binary_vec.push_back(0);
+        }
+    }
+    int correct_size=binary_vec.size();
+    for(int i=0;i&lt;size;i++)
+    {
+        binary_vec_rev.push_back(binary_vec[size-1-i]);
+    }
+    return binary_vec_rev;
+}
+
+__global__ void print2DVec(int *d_path,int rows,int columns)
+{
+    for(int i=0;i&lt;rows;i++)
+   {
+       printf("printing on gpu: path %d: ",i+1);
+        for(int j=0;j&lt;columns;j++)
+       {
+         //printf("%d ",*(d_path+(i*columns)+j));
+           printf("%d ",d_path[i*columns+j]);
+       }
+        printf("\n");
+
+    }
+   //    int index=threadIdx.x+blockIdx.x*blockDim.x;
+   //    if(index&lt;rows*columns)
+   //    {
+   //     printf("%d ",d_path[index]);
+   //    }
+
+
+}
+
+
+int main()
+{
+    std::vector&lt;std::vector&lt;int&gt;&gt; xy_bresenham_vec=bresenham(0,0,8,8);
+    std::vector&lt;int&gt; x_vec=xy_bresenham_vec[0];
+    std::vector&lt;int&gt; y_vec=xy_bresenham_vec[1];
+    cout&lt;&lt;"number of rows are"&lt;&lt;xy_bresenham_vec.size()&lt;&lt;endl;
+    cout&lt;&lt;"numbers of column are"&lt;&lt;xy_bresenham_vec[1].size()&lt;&lt;endl;
+    /* for(int i=0;i&lt;xy_bresenham_vec.size();i++) */
+    /* { */
+    /*     for(int j=0;j&lt;xy_bresenham_vec[i].size();j++) */
+    /*     { */
+    /*         std::cout&lt;&lt;xy_bresenham_vec[i][j]&lt;&lt;" "; */
+    /*     } */
+    /*     std::cout&lt;&lt;std::endl; */
+    /* } */
+    cout&lt;&lt;"trying different way\n";
+    cout&lt;&lt;"x values: ";
+    for(int i=0;i&lt;x_vec.size();i++)
+    {
+        cout&lt;&lt;x_vec[i]&lt;&lt;" ";
+    }
+    cout&lt;&lt;endl;
+    cout&lt;&lt;"y values: ";
+    for(int i=0;i&lt;y_vec.size();i++)
+    {
+        cout&lt;&lt;y_vec[i]&lt;&lt;" ";
+    }
+    cout&lt;&lt;endl;
+    std::vector&lt;int&gt; path_xy= path_index(xy_bresenham_vec)[0];
+    /* for (int num:path_xy) cout&lt;&lt;num&lt;&lt;" "&lt;&lt;endl; */
+    std::vector&lt;std::vector&lt;int&gt;&gt; final_paths_vec;
+    std::vector&lt;int&gt; index_xy = path_index(xy_bresenham_vec)[1];
+    int size_dx_eq_dy= index_xy.size();
+    int n_paths=pow(2,size_dx_eq_dy);
+    cout&lt;&lt;"number of paths shall be : "&lt;&lt;n_paths&lt;&lt;endl;
+    //we shall find the binary eqvivalent of the 2^size_dx_eq_dy and replace the corresponding value by the binary equivalent value at that index
+    //construct a function which returns the binary equivalent array of any integer
+    for (int ip=0;ip&lt;n_paths;ip++)
+    {
+        std::vector&lt;int&gt; binary_rep = int_to_binary(ip,size_dx_eq_dy);
+        std::vector&lt;int&gt; path_xy_duplicate=path_xy;
+        for(int iindex=0;iindex&lt;size_dx_eq_dy;iindex++)
+        {
+            int index=iindex+index_xy[iindex];
+            path_xy_duplicate[index]=binary_rep[iindex];
+            path_xy_duplicate[index+1]=invert(binary_rep[iindex]);
+        }
+        final_paths_vec.push_back(path_xy_duplicate);
+        cout&lt;&lt;"Path "&lt;&lt;ip+1&lt;&lt;" : ";
+        for(int i=0;i&lt;path_xy_duplicate.size();i++)
+        {
+            cout&lt;&lt;" "&lt;&lt;path_xy_duplicate[i]&lt;&lt;" ";
+        }
+        cout&lt;&lt;endl;
+    }
+
+//let us convert this 2d array to 1d, 
+    int rows=n_paths;
+    int columns=final_paths_vec[0].size();
+    int *host_final_paths=new int[rows*columns];
+    for(int i=0;i&lt;rows;i++)
+    {
+        for(int j=0;j&lt;columns;j++)
+        {
+            host_final_paths[j+i*columns]=final_paths_vec[i][j];
+        }
+    }
+    //allocating memory for paths on gpu
+    int* d_path; //declaring pointer to pointer
+    cudaMalloc((void**)&amp;d_path,rows*columns*sizeof(int));
+    cudaMemcpy(d_path,host_final_paths,columns*rows*sizeof(int),cudaMemcpyHostToDevice);
+    print2DVec&lt;&lt;&lt;1,1&gt;&gt;&gt;(d_path, rows, columns);
+    cudaDeviceSynchronize();
+    cudaFree(d_path);
+
+return 0;
+}
+
+</pre>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+
