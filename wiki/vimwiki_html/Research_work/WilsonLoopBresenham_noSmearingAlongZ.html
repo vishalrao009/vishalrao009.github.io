@@ -4,7 +4,7 @@
     <link rel="stylesheet" type="text/css" href="style.css">
     <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
-    <title>WilsonLoopSmeared_bresenham.cpp</title>
+    <title>WilsonLoopBresenham_noSmearingAlongZ</title>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
@@ -50,23 +50,14 @@
         
 <pre cuda>
 
-
-
-
 /******************************************************************************
 * File:             main_plaquette.cpp
 *
 * Author:           Vishal Rao  
 * Created:          02/08/24 
 * Description:      This program contains the function to calculate the wilson loop with hyp smearing and generation of more points using bresenham algorithm described in :https://arxiv.org/pdf/hep-lat/0005018.pdf
-*****************************************************************************/
-
-/*
+*****************************************************************************
  * main_plaquette.cpp
- *
- * Lukas Mazur, 10 Apr 2018 (original Author for Plaquette)
- * Vishal Rao , 06 Jan 2024 (generalisation from plaquette to wilson loop)
- *
  * This is just an example how a very very basic program works. Look at src/testing/main_GeneralOperatorTest.cpp to see
  * how to write more advanced GPU code.
  *
@@ -89,14 +80,15 @@ struct CalcWilson{
     SU3Accessor&lt;floatT&gt; SU3Accessor;
     int _length=1;
     int _height=1;
+    int _nu_in=0; // nu_in is the direction of fictitious time , in this direction we don't do smearing.
 
     //Constructor to initialize all necessary members.
-    CalcWilson(Gaugefield&lt;floatT,true,HaloDepth&gt; &amp;gauge, int &amp;length, int &amp;height) : SU3Accessor(gauge.getAccessor()), _length(length),_height(height){
+    CalcWilson(Gaugefield&lt;floatT,true,HaloDepth&gt; &amp;gauge, int &amp;length, int &amp;height, int &amp;nu_in) : SU3Accessor(gauge.getAccessor()), _length(length),_height(height), _nu_in(nu_in){
     }
 
 __device__ __host__ SU3&lt;floatT&gt; HalfLoop(int &amp;length, int &amp;height,gSite  site,int &amp;mu, int &amp;nu)
 {
-    // we have not taken site variable as reference as if it were take as reference, it will update the values at same memory location
+    // nu_in is the direction of fictitious time , in this direction we don't do smearing. // we have not taken site variable as reference as if it were take as reference, it will update the values at same mEmory location
     SU3&lt;floatT&gt; temp;
     temp=SU3&lt;floatT&gt;(1, 0, 0, 0, 1, 0, 0, 0, 1); //initialize to identity matrix
     typedef GIndexer&lt;All, HaloDepth&gt; GInd;
@@ -110,10 +102,10 @@ __device__ __host__ SU3&lt;floatT&gt; HalfLoop(int &amp;length, int &amp;height,
     }
     return temp; 
  }   
-    //This is the operator that is called inside the Kernel
+    //This is the operator that is called inside the Kernel // nu_in is the direction of fictitious time , in this direction we don't do smearing.
     __device__ __host__ floatT operator()(gSite site) {
 
-        /// We need to choose the type of indexer. The first template is the layout of the lattice.
+        /// We need to choose the type of indexer. The first template is the layout of the lattice. // nu_in is the direction of fictitious time , in this direction we don't do smearing.
         typedef GIndexer&lt;All, HaloDepth&gt; GInd;
         int l=_length;
         int h=_height;
@@ -121,30 +113,34 @@ __device__ __host__ SU3&lt;floatT&gt; HalfLoop(int &amp;length, int &amp;height,
         SU3&lt;floatT&gt; temp1,temp2;
 
         floatT result = 0;
-        for (int nu = 1; nu &lt; 3; nu++) 
-        {
-            for (int mu = 0; mu &lt; nu; mu++) 
-            {
-                temp1=HalfLoop(l,h,site,mu,nu);
-                temp2=HalfLoop(h,l,site,nu,mu);
-                result+=tr_d(temp1*dagger(temp2));
-                /* temp1=HalfLoop(h,l,site,mu,nu); */
-                /* temp2=HalfLoop(l,h,site,nu,mu); */
-                /* result+=tr_d(temp1*dagger(temp2)); */
-        //Return the result
-        //The return value will be stored in the array of the reductionbase at index site.isite.
-            }
+        int mu1,nu1,mu2,nu2;
+        switch (_nu_in) {
+            case 0: {mu1=1;nu1=0;mu2=2;nu1=0;}
+                    break;
+           
+            case 1: {mu1=0;nu1=1;mu2=2;nu1=1;}
+                    break;
+           
+            case 2: {mu1=0;nu1=2;mu2=1;nu1=2;}
+                    break;
         }
-        return result/3.0;
-        }
+        temp1=HalfLoop(l,h,site,mu1,nu1); 
+        temp2=HalfLoop(h,l,site,nu1,mu1);
+        result+=tr_d(temp1*dagger(temp2));
+        temp1=HalfLoop(l,h,site,mu2,nu2); 
+        temp2=HalfLoop(h,l,site,nu2,mu2);
+        result+=tr_d(temp1*dagger(temp2));
+        return result/2.0;
+
+    }
 
 };
 
 template&lt;class floatT,size_t HaloDepth&gt;
 struct CalcWilsonBresenham{
-    int _x,_y,_z;
+    int _x,_y,_z, _ex_dir;
     SU3Accessor&lt;floatT&gt; SU3Accessor;
-    CalcWilsonBresenham(Gaugefield&lt;floatT,true,HaloDepth&gt; &amp;gauge, int &amp;x,int &amp;y, int &amp;z) : SU3Accessor(gauge.getAccessor()), _x(x),_y(y),_z(z){}
+    CalcWilsonBresenham(Gaugefield&lt;floatT,true,HaloDepth&gt; &amp;gauge, int &amp;x,int &amp;y, int &amp;z, int &amp;ex_dir) : SU3Accessor(gauge.getAccessor()), _x(x),_y(y),_z(z), _ex_dir(ex_dir){}
   //This is the operator that is called inside the Kernel
 
 
@@ -211,43 +207,37 @@ struct CalcWilsonBresenham{
     }
     __device__ __host__ floatT operator()(gSite site) {
 
-        /// We need to choose the type of indexer. The first template is the layout of the lattice.
         typedef GIndexer&lt;All, HaloDepth&gt; GInd;
         /// Define a SU(3) matrix
         floatT result = 0;
         SU3&lt;floatT&gt; temp1,temp2;
-        for (int nu = 1; nu &lt; 3; nu++) 
-        {
-            for (int mu = 0; mu &lt; nu; mu++) 
-            {
-                temp1=BresenhamLoopXYL(_x,_y,_z,site,mu,nu);
-                temp2=BresenhamLoopXYU(_x,_y,_z,site,mu,nu);
-                result+=tr_d(temp1*dagger(temp2));
-            }
-        }
-        for (int nu = 1; nu &lt; 3; nu++) 
-        {
-            for (int mu = 0; mu &lt; nu; mu++) 
-            {
-                temp1=BresenhamLoopXYL(_y,_x,_z,site,mu,nu);
-                temp2=BresenhamLoopXYU(_y,_x,_z,site,mu,nu);
-                result+=tr_d(temp1*dagger(temp2));
-            }
-        }
-        return result/6.0;
+        int mu,nu;
+        switch (_ex_dir) {
+            case 0: mu=1;nu=2;break;
+            case 1: mu=0;nu=2;break;
+            case 2: mu=0;nu=1;break;
+    }        
+        temp1=BresenhamLoopXYL(_x,_y,_z,site,mu,nu);
+        temp2=BresenhamLoopXYU(_x,_y,_z,site,mu,nu);
+        result+=tr_d(temp1*dagger(temp2));
+//replacing x&lt;-&gt;y
+                    temp1=BresenhamLoopXYL(_y,_x,_z,site,mu,nu);
+                    temp2=BresenhamLoopXYU(_y,_x,_z,site,mu,nu);
+                    result+=tr_d(temp1*dagger(temp2));
+        return result/2.0;
         }
 };
 
 //Function to compute the wilson loop using the above struct CalcWilson.
 template&lt;class floatT, size_t HaloDepth&gt;
-floatT WilsonLoop(Gaugefield&lt;floatT,true, HaloDepth&gt; &amp;gauge, LatticeContainer&lt;true,floatT&gt; &amp;redBase, int &amp;l, int &amp;h){
+floatT WilsonLoop(Gaugefield&lt;floatT,true, HaloDepth&gt; &amp;gauge, LatticeContainer&lt;true,floatT&gt; &amp;redBase, int &amp;l, int &amp;h, int &amp;ex_dir){
 
     typedef GIndexer&lt;All,HaloDepth&gt; GInd;
     const size_t elems = GInd::getLatData().vol4;
     //Make sure, redBase is large enough
     redBase.adjustSize(elems);
 // we will iterate the process of finding wilson loop over whole bulk.
-    redBase.template iterateOverBulk&lt;All, HaloDepth&gt;(CalcWilson&lt;floatT, HaloDepth&gt;(gauge, l,h));
+    redBase.template iterateOverBulk&lt;All, HaloDepth&gt;(CalcWilson&lt;floatT, HaloDepth&gt;(gauge, l,h,ex_dir)); //ex_dir is excluded direction for smearing
 
     //Do the final reduction
     floatT Wloop;
@@ -259,14 +249,14 @@ floatT WilsonLoop(Gaugefield&lt;floatT,true, HaloDepth&gt; &amp;gauge, LatticeCo
 }
 //defining function for bresenham
 template&lt;class floatT, size_t HaloDepth&gt;
-floatT WilsonLoopBresenham(Gaugefield&lt;floatT,true, HaloDepth&gt; &amp;gauge, LatticeContainer&lt;true,floatT&gt; &amp;redBase, int &amp;x, int &amp;y,int &amp;z){
+floatT WilsonLoopBresenham(Gaugefield&lt;floatT,true, HaloDepth&gt; &amp;gauge, LatticeContainer&lt;true,floatT&gt; &amp;redBase, int &amp;x, int &amp;y,int &amp;z, int &amp;ex_dir){
 
     typedef GIndexer&lt;All,HaloDepth&gt; GInd;
     const size_t elems = GInd::getLatData().vol4;
     //Make sure, redBase is large enough
     redBase.adjustSize(elems);
 // we will iterate the process of finding wilson loop over whole bulk.
-    redBase.template iterateOverBulk&lt;All, HaloDepth&gt;(CalcWilsonBresenham&lt;floatT, HaloDepth&gt;(gauge,x,y,z));
+    redBase.template iterateOverBulk&lt;All, HaloDepth&gt;(CalcWilsonBresenham&lt;floatT, HaloDepth&gt;(gauge,x,y,z, ex_dir));
 
     //Do the final reduction
     floatT Wloop;
@@ -281,82 +271,103 @@ floatT WilsonLoopBresenham(Gaugefield&lt;floatT,true, HaloDepth&gt; &amp;gauge, 
 //
 // I am going to paste the hypSmearing.cpp file content here for the moment.
 
-
+//HYP smearing
 // also call updateAll()
 template&lt;class floatT, bool onDevice, size_t HaloDepth, CompressionType comp&gt;
 void HypSmearing&lt;floatT, onDevice, HaloDepth, comp&gt;::Su3Unitarize(Gaugefield&lt;floatT, onDevice, HaloDepth, comp&gt; &amp;gauge_out, Gaugefield&lt;floatT, onDevice, HaloDepth, comp&gt; &amp;gauge_base){
-
+//4 is link number
     HypStaple&lt;floatT, HaloDepth, comp, 4&gt; su_3_unitarize(gauge_out.getAccessor(), gauge_base.getAccessor(), gauge_base.getAccessor(), gauge_base.getAccessor());
     gauge_out.iterateOverBulkAllMu(su_3_unitarize);
     if(update_all)gauge_out.updateAll();
 }
 
 template&lt;class floatT, bool onDevice, size_t HaloDepth, CompressionType comp&gt;
-void HypSmearing&lt;floatT, onDevice, HaloDepth, comp&gt;::SmearAll(Gaugefield&lt;floatT, onDevice, HaloDepth, comp&gt; &amp;gauge_out) {
+void HypSmearing&lt;floatT, onDevice, HaloDepth, comp&gt;::SmearAll_spatial(Gaugefield&lt;floatT, onDevice, HaloDepth, comp&gt; &amp;gauge_out, int &amp;ex_dir) {
+/* // create level 1 fields */
+    /* _dummy.iterateOverBulkAllMu(staple3_lvl1_10); */
+    /* _gauge_lvl1_10 = (1-params.alpha_2) * _gauge_base + params.alpha_2/2 * _dummy; */
+    /* Su3Unitarize(_gauge_lvl1_10, _gauge_base); //_gauge_level1_10 is su3 now */
 
-    // create level 1 fields
-    _dummy.iterateOverBulkAllMu(staple3_lvl1_10);
-    _gauge_lvl1_10 = (1-params.alpha_3) * _gauge_base + params.alpha_3/2 * _dummy;
-    Su3Unitarize(_gauge_lvl1_10, _gauge_base);
+    /* _dummy.iterateOverBulkAllMu(staple3_lvl1_20); */
+    /* _gauge_lvl1_20 = (1-params.alpha_2) * _gauge_base + params.alpha_2/2 * _dummy; */
+    /* Su3Unitarize(_gauge_lvl1_20, _gauge_base); */
 
-    _dummy.iterateOverBulkAllMu(staple3_lvl1_20);
-    _gauge_lvl1_20 = (1-params.alpha_3) * _gauge_base + params.alpha_3/2 * _dummy;
-    Su3Unitarize(_gauge_lvl1_20, _gauge_base);
+    /* _dummy.iterateOverBulkAllMu(staple3_lvl1_30); */
+    /* _gauge_lvl1_30 = (1-params.alpha_2) * _gauge_base + params.alpha_2/2 * _dummy; */
+    /* Su3Unitarize(_gauge_lvl1_30, _gauge_base); */
 
-    _dummy.iterateOverBulkAllMu(staple3_lvl1_30);
-    _gauge_lvl1_30 = (1-params.alpha_3) * _gauge_base + params.alpha_3/2 * _dummy;
-    Su3Unitarize(_gauge_lvl1_30, _gauge_base);
+    /* _dummy.iterateOverBulkAllMu(staple3_lvl1_21); */
+    /* _gauge_lvl1_21 = (1-params.alpha_2) * _gauge_base + params.alpha_2/2 * _dummy; */
+    /* Su3Unitarize(_gauge_lvl1_21, _gauge_base); */
 
-    _dummy.iterateOverBulkAllMu(staple3_lvl1_21);
-    _gauge_lvl1_21 = (1-params.alpha_3) * _gauge_base + params.alpha_3/2 * _dummy;
-    Su3Unitarize(_gauge_lvl1_21, _gauge_base);
+    /* _dummy.iterateOverBulkAllMu(staple3_lvl1_31); */
+    /* _gauge_lvl1_31 = (1-params.alpha_2) * _gauge_base + params.alpha_2/2 * _dummy; */
+    /* Su3Unitarize(_gauge_lvl1_31, _gauge_base); */
 
-    _dummy.iterateOverBulkAllMu(staple3_lvl1_31);
-    _gauge_lvl1_31 = (1-params.alpha_3) * _gauge_base + params.alpha_3/2 * _dummy;
-    Su3Unitarize(_gauge_lvl1_31, _gauge_base);
+    /* _dummy.iterateOverBulkAllMu(staple3_lvl1_32); */
+    /* _gauge_lvl1_32 = (1-params.alpha_2) * _gauge_base + params.alpha_2/2 * _dummy; */
+    /* Su3Unitarize(_gauge_lvl1_32, _gauge_base); */
 
-    _dummy.iterateOverBulkAllMu(staple3_lvl1_32);
-    _gauge_lvl1_32 = (1-params.alpha_3) * _gauge_base + params.alpha_3/2 * _dummy;
-    Su3Unitarize(_gauge_lvl1_32, _gauge_base);
+    switch (ex_dir) {
+        case 0:{ _dummy.iterateOverBulkAllMu(staple3_lvl1_10);
+                _gauge_lvl1_10 = (1-params.alpha_2) * _gauge_base + params.alpha_2/2 * _dummy;
+                Su3Unitarize(_gauge_lvl1_10, _gauge_base); //_gauge_level1_10 is su3 now
+                                                           //
+                _dummy.iterateOverBulkAllMu(staple3_lvl1_20);
+                _gauge_lvl1_20 = (1-params.alpha_2) * _gauge_base + params.alpha_2/2 * _dummy;
+                Su3Unitarize(_gauge_lvl1_20, _gauge_base);
 
-    // now that we have level 1 fields, create level 2 staples
-    // note:  the order of the gauge fields goes in ascending order (10 &lt; 20 &lt; 30, 10 &lt; 21 &lt; 31, 20 &lt; 21 &lt; 32, 30 &lt; 31 &lt; 32)
-    // this is ASSUMED by HypStaple&lt;floatT, HaloDepth, comp, 2&gt;; DO NOT change this order without also modifying HypStaple&lt;floatT, HaloDepth, comp, 2&gt; and threeLinkStaple_second_level
-    HypStaple&lt;floatT, HaloDepth, comp, 2&gt; staple3_lvl2_0(_gauge_lvl1_10.getAccessor(), _gauge_lvl1_20.getAccessor(), _gauge_lvl1_30.getAccessor(), _dummy.getAccessor(), 0);
-    HypStaple&lt;floatT, HaloDepth, comp, 2&gt; staple3_lvl2_1(_gauge_lvl1_10.getAccessor(), _gauge_lvl1_21.getAccessor(), _gauge_lvl1_31.getAccessor(), _dummy.getAccessor(), 1);
-    HypStaple&lt;floatT, HaloDepth, comp, 2&gt; staple3_lvl2_2(_gauge_lvl1_20.getAccessor(), _gauge_lvl1_21.getAccessor(), _gauge_lvl1_32.getAccessor(), _dummy.getAccessor(), 2);
-    HypStaple&lt;floatT, HaloDepth, comp, 2&gt; staple3_lvl2_3(_gauge_lvl1_30.getAccessor(), _gauge_lvl1_31.getAccessor(), _gauge_lvl1_32.getAccessor(), _dummy.getAccessor(), 3);
+                _dummy.iterateOverBulkAllMu(staple3_lvl1_30);
+                _gauge_lvl1_30 = (1-params.alpha_2) * _gauge_base + params.alpha_2/2 * _dummy;
+                Su3Unitarize(_gauge_lvl1_30, _gauge_base);
 
-    //second level fields
-    _dummy.iterateOverBulkAllMu(staple3_lvl2_0);
-    _gauge_lvl2_0 = (1-params.alpha_2) * _gauge_base + params.alpha_2/4 * _dummy;
-    Su3Unitarize(_gauge_lvl2_0, _gauge_base);
+                HypStaple&lt;floatT, HaloDepth, comp, 2&gt; staple3_lvl2_0(_gauge_lvl1_10.getAccessor(), _gauge_lvl1_20.getAccessor(), _gauge_lvl1_30.getAccessor(), _dummy.getAccessor(), 0);
+                _dummy.iterateOverBulkAllMu(staple3_lvl2_0);
+                gauge_out = (1-params.alpha_1) * _gauge_base + params.alpha_1/4 * _dummy; //reused _gauge_lvl2_0
+                Su3Unitarize(gauge_out, _gauge_base);
+                }
+               break;
 
-    _dummy.iterateOverBulkAllMu(staple3_lvl2_1);
-    _gauge_lvl2_1 = (1-params.alpha_2) * _gauge_base + params.alpha_2/4 * _dummy;
-    Su3Unitarize(_gauge_lvl2_1, _gauge_base);
+        case 1: {_dummy.iterateOverBulkAllMu(staple3_lvl1_10);
+                _gauge_lvl1_10 = (1-params.alpha_2) * _gauge_base + params.alpha_2/2 * _dummy;
+                Su3Unitarize(_gauge_lvl1_10, _gauge_base); //_gauge_level1_10 is su3 now
 
-    _dummy.iterateOverBulkAllMu(staple3_lvl2_2);
-    _gauge_lvl2_2 = (1-params.alpha_2) * _gauge_base + params.alpha_2/4 * _dummy;
-    Su3Unitarize(_gauge_lvl2_2, _gauge_base);
+                _dummy.iterateOverBulkAllMu(staple3_lvl1_21);
+                _gauge_lvl1_21 = (1-params.alpha_2) * _gauge_base + params.alpha_2/2 * _dummy;
+                Su3Unitarize(_gauge_lvl1_21, _gauge_base);
 
-    _dummy.iterateOverBulkAllMu(staple3_lvl2_3);
-    _gauge_lvl2_3 = (1-params.alpha_2) * _gauge_base + params.alpha_2/4 * _dummy;
-    Su3Unitarize(_gauge_lvl2_3, _gauge_base);
+                _dummy.iterateOverBulkAllMu(staple3_lvl1_31);
+                _gauge_lvl1_31 = (1-params.alpha_2) * _gauge_base + params.alpha_2/2 * _dummy;
+                Su3Unitarize(_gauge_lvl1_31, _gauge_base);
 
-    // now that we have level 2 fields, create level 3 staple
-    HypStaple&lt;floatT, HaloDepth, comp, 1&gt; staple3_lvl3(_gauge_lvl2_0.getAccessor(), _gauge_lvl2_1.getAccessor(), _gauge_lvl2_2.getAccessor(), _gauge_lvl2_3.getAccessor());
+                HypStaple&lt;floatT, HaloDepth, comp, 2&gt; staple3_lvl2_1(_gauge_lvl1_10.getAccessor(), _gauge_lvl1_21.getAccessor(), _gauge_lvl1_31.getAccessor(), _dummy.getAccessor(), 1);
+               _dummy.iterateOverBulkAllMu(staple3_lvl2_1);
+               gauge_out = (1-params.alpha_1) * _gauge_base + params.alpha_1/4 * _dummy; //reused _gauge_lvl2_0
+               Su3Unitarize(gauge_out, _gauge_base);
+               }
+                break;
 
-    _dummy.iterateOverBulkAllMu(staple3_lvl3);
+        case 2: {_dummy.iterateOverBulkAllMu(staple3_lvl1_20);
+                _gauge_lvl1_20 = (1-params.alpha_2) * _gauge_base + params.alpha_2/2 * _dummy;
+                Su3Unitarize(_gauge_lvl1_20, _gauge_base);
 
-    // OLD VERSION, (MAYBE) DOES NOT WORK FOR SOME REASON
-    //_gauge_lvl2_0 = (1-params.alpha_1) * _gauge_base + params.alpha_1/6 * _dummy; //reused _gauge_lvl2_0
-    //Su3Unitarize(_gauge_lvl2_0);
+                _dummy.iterateOverBulkAllMu(staple3_lvl1_21);
+                _gauge_lvl1_21 = (1-params.alpha_2) * _gauge_base + params.alpha_2/2 * _dummy;
+                Su3Unitarize(_gauge_lvl1_21, _gauge_base);
 
-    // NEW VERSION, USES EXTRA FIELD RATHER THAN REUSE _gauge_lvl2_0
-    gauge_out = (1-params.alpha_1) * _gauge_base + params.alpha_1/6 * _dummy; //reused _gauge_lvl2_0
-    Su3Unitarize(gauge_out, _gauge_base);
+                _dummy.iterateOverBulkAllMu(staple3_lvl1_32);
+                _gauge_lvl1_32 = (1-params.alpha_2) * _gauge_base + params.alpha_2/2 * _dummy;
+                Su3Unitarize(_gauge_lvl1_32, _gauge_base);
 
+                HypStaple&lt;floatT, HaloDepth, comp, 2&gt; staple3_lvl2_2(_gauge_lvl1_20.getAccessor(), _gauge_lvl1_21.getAccessor(), _gauge_lvl1_32.getAccessor(), _dummy.getAccessor(), 2);
+                _dummy.iterateOverBulkAllMu(staple3_lvl2_2);
+                gauge_out = (1-params.alpha_1) * _gauge_base + params.alpha_1/4 * _dummy; //reused _gauge_lvl2_0
+                Su3Unitarize(gauge_out, _gauge_base);
+                }
+                break;
+            
+    }
+   
 }
 
 #define CLASS_INIT(floatT,HALO) \
@@ -410,11 +421,12 @@ int main(int argc, char *argv[]) {
     LatticeContainer&lt;true,PREC&gt; redBase(commBase);
     /// We need to tell the Reductionbase how large our Array will be
     redBase.adjustSize(GInd::getLatData().vol4);
-    int eqm_point=215;
+    int eqm_point=155;
     int last_point=1150;
     int node;
     sscanf(argv[1], "%d", &amp;node);
     //sscanf(argv[2], "%d", &amp;height);
+    int no_smearing_steps=1;
     for (int i=eqm_point; i&lt;=last_point;i+=5)
         {
             rootLogger.info("Read configuration");
@@ -423,28 +435,29 @@ int main(int argc, char *argv[]) {
             gauge.updateAll();
             Gaugefield&lt;PREC, true,HaloDepth&gt; gauge_out(commBase);
             gauge_out.one(); //initialize the gauge field variable
-        for(int no_smearing_steps=0;no_smearing_steps&lt;=30;no_smearing_steps+=30)
-            {
-                //we shall make a variable which stores gauge configuration
-                                 //doing smearing 5,10,15.... times, (loop will run just 5 times where we left of using gauge=gauge_out)
-                if (no_smearing_steps!=0){
-                    for(int j=1;j&lt;=30;j++)
-                    {
-                        HypSmearing&lt;floatT, true, HaloDepth, R18&gt; hypsmearing(gauge); //smearing of gauge
-                        hypsmearing.SmearAll(gauge_out); //and storing at gauge_out
-                        gauge=gauge_out;
-                    }
-                    }
+            Gaugefield&lt;PREC, true,HaloDepth&gt; gauge_copy(commBase);
+            gauge_copy.one(); //initialize the gauge field variable
+            gauge_copy=gauge;
+
+           for(int ex_dir=0;ex_dir&lt;3;ex_dir++)
+           {
+                for(int j=1;j&lt;=no_smearing_steps;j++)
+                {
+                    HypSmearing&lt;floatT, true, HaloDepth, R18&gt; hypsmearing(gauge); //smearing of gauge
+                    hypsmearing.SmearAll_spatial(gauge_out,ex_dir); //and storing at gauge_out
+                    gauge=gauge_out;  
+                }
+                gauge=gauge_copy;
                 const int Ns= LatDim[0];
-                for (int length=1; length&lt;Ns; length++)
+                for (int length=1; length&lt;=1; length++)
                 {      
                     for (int height=1; height&lt;Ns; height++)
                     {
                         PREC Wloop = 0;
                         /* timer.start(); */
                         /// compute wilson loop with smeared gauge_out
-                        Wloop = WilsonLoop&lt;PREC,HaloDepth&gt;(gauge, redBase, length,height );
-                        printf("Node:%d,Smear_count:%d,Length=%d,Height=%d,Wilson Loop:%1.15e\n",node,no_smearing_steps,length, height,Wloop);
+                        Wloop = WilsonLoop&lt;PREC,HaloDepth&gt;(gauge_out, redBase, length,height, ex_dir );
+                        printf("Node:%d,Smear_count:%d,Length=%d,Height=%d,ex_dir=%d,Wilson Loop:%1.15e\n",node,no_smearing_steps,length, height,ex_dir,Wloop);
 
                         /* rootLogger.info("Reduced Rectangle from rhmc : " ,  gaugeaction.rectangle()); */
                         /* rootLogger.info("Reduced plaquette from rhmc : " ,  gaugeaction.plaquette()); */
@@ -457,26 +470,19 @@ int main(int argc, char *argv[]) {
                     {
                         for(int c=1;c&lt;Ns;c++)
                         {
-                        PREC Wloop=WilsonLoopBresenham&lt;PREC,HaloDepth&gt;(gauge, redBase,a,b,c );
-                        printf("Node:%d,Smear_count:%d,Length=%f,Height=%d,Wilson Loop:%1.15e\n",node,no_smearing_steps,pow((a*a+b*b),0.5), c,Wloop);
+                        PREC Wloop=WilsonLoopBresenham&lt;PREC,HaloDepth&gt;(gauge_out, redBase,a,b,c, ex_dir );
+                        printf("Node:%d,Smear_count:%d,Length=%f,Height=%d,ex_dir=%d,Wilson Loop:%1.15e\n",node,no_smearing_steps,pow((a*a+b*b),0.5), c,ex_dir,Wloop);
                         }
                     }
                 }
 
 
 
+               }
+
             }
-        }
-    return 0;
+return 0;
 }
-//
-
-
-
-
-
-
-
 </pre>
 
     </div>
