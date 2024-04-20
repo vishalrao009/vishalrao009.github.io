@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="../style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>2024-02-28</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+                max-width:100%; /*set maximum width for smaller devices */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+<div id="Hyp smearing"><h1 id="Hyp smearing" class="header"><a href="#Hyp smearing">Hyp smearing</a></h1></div>
+
+<p>
+I think that, the full Hyp smearing is found in <a href="Full_hyp_wilsonLoop.html">Full_hyp_wilsonLoop</a> is correct, but since we need to exclude the fictitious time direction (x or y or z) for Hyp smearing in all levels, we need to change the code, I tried the following code <a href="naiveHyp_wilsonLoopExcludedDir.html">naiveHyp_wilsonLoopExcludedDir</a>, but even this is not working. Turns out that the Hyp smearing Procedure is not applied correctly. <br />
+</p>
+
+<p>
+I am going to understand the code base for Hyp smearing Procedure and write down the comments whenever required. <br />
+</p>
+
+<div id="Hyp smearing-Basic functions to calculate first level fields"><h2 id="Basic functions to calculate first level fields" class="header"><a href="#Hyp smearing-Basic functions to calculate first level fields">Basic functions to calculate first level fields</a></h2></div>
+<pre cpp>
+
+template&lt;class floatT,size_t HaloDepth,CompressionType comp&gt;
+__host__ __device__ SU3&lt;floatT&gt; inline hypThreeLinkStaple_first_level(SU3Accessor&lt;floatT,comp&gt; gAcc, gSiteMu siteMu, int excluded_dir1, int excluded_dir2) {
+    typedef GIndexer&lt;All,HaloDepth&gt; GInd;
+    SU3&lt;floatT&gt; temp = su3_zero&lt;floatT&gt;();
+    gSite site = GInd::getSite(siteMu.isite);
+    gSite site_save = site;
+    int mu = siteMu.mu;
+    if(mu == excluded_dir1 || mu == excluded_dir2) return temp*(floatT)NAN;
+    if(excluded_dir1 == excluded_dir2) return temp*(floatT)NAN;
+
+    int check_count = 0;
+
+    for (int nu_h = 1; nu_h &lt; 4; nu_h++) {
+        int nu = (mu+nu_h)%4;
+        if(nu == excluded_dir1 || nu == excluded_dir2) continue;
+        check_count += 1;
+        temp += gAcc.template getLinkPath&lt;All, HaloDepth&gt;(site, nu, mu, Back(nu));
+        site = site_save;
+        temp += gAcc.template getLinkPath&lt;All, HaloDepth&gt;(site, Back(nu), mu, nu);
+        site = site_save;
+    }
+
+    if(excluded_dir1 &gt;= 0 || excluded_dir2 &gt;= 0) assert(check_count == 1); //loop length is 1 in the case of use in hyp smearing
+    if(excluded_dir1 &gt;= 0 || excluded_dir2 &gt;= 0) assert(excluded_dir1 &gt;= 0 &amp;&amp; excluded_dir2 &gt;= 0); //only one excluded dir not supported
+
+    return temp;
+}
+
+
+</pre>
+
+<div id="Hyp smearing-Second level fields"><h2 id="Second level fields" class="header"><a href="#Hyp smearing-Second level fields">Second level fields</a></h2></div>
+<pre cpp>
+//It is assumed that the exluded directions in gaAcc_0, gaAcc_1, gaAcc_2 go in asending order (10 &lt; 20 &lt; 21 &lt; 30 &lt; 31 &lt; 32)
+// example:  suppose the exluded directions are 20, 21, 32, (for Vtilde_{i, mu; 2}), then gAcc_0 = _gauge_lvl1_20, gAcc_1 = _gauge_lvl1_21, gAcc_2 = _gauge_lvl1_32
+// in other words, the primary excluded direction in this example is 2, so the extra excluded directions go in asending order:  0, 1, 3.
+template&lt;class floatT,size_t HaloDepth,CompressionType comp&gt;
+__host__ __device__ SU3&lt;floatT&gt; inline hypThreeLinkStaple_second_level(SU3Accessor&lt;floatT,comp&gt; gAcc_0, SU3Accessor&lt;floatT,comp&gt; gAcc_1, SU3Accessor&lt;floatT,comp&gt; gAcc_2, gSiteMu siteMu, int excluded_dir, SU3Accessor&lt;floatT,comp&gt; temp_gAcc_mu_excluded_dir, SU3Accessor&lt;floatT,comp&gt; temp_gAcc_nu_excluded_dir) {
+
+    typedef GIndexer&lt;All,HaloDepth&gt; GInd;
+    SU3&lt;floatT&gt; temp = su3_zero&lt;floatT&gt;();
+    int mu = siteMu.mu;
+    if(mu==excluded_dir) return temp*(floatT)NAN;
+    gSite origin = GInd::getSite(siteMu.isite);
+    gSite upMu = GInd::site_up(origin,mu);
+
+    //ex = 0, then mu=1,2,3, =&gt; 10, 20, 30 (0, 1, 2) = (mu-1, mu-1, mu-1)
+    //ex = 1, then mu=0,2,3, =&gt; 10, 21, 31 (0, 1, 2) = (mu, mu-1, mu-1)
+    //ex = 2, then mu=0,1,3, =&gt; 20, 21, 32 (0, 1, 2) = (mu, mu, mu-1)
+    //ex = 3, then mu=0,1,2, =&gt; 30, 31, 32 (0, 1, 2) = (mu, mu, mu)
+    //=&gt;gAcc_idx = mu &gt; excluded_dir ? mu - 1 : mu
+
+    int gAcc_idx = mu &gt; excluded_dir ? mu - 1 : mu;
+    assert(gAcc_idx &lt; 3);
+    if(gAcc_idx == 0) temp_gAcc_mu_excluded_dir=gAcc_0;
+    else if(gAcc_idx == 1)temp_gAcc_mu_excluded_dir=gAcc_1;
+    else if(gAcc_idx == 2)temp_gAcc_mu_excluded_dir=gAcc_2;
+    else assert(0);
+
+    int nu_add = 0;
+    for (int nu_h = 0; nu_h &lt; 3; nu_h++) {
+
+        if(nu_h == excluded_dir) nu_add = 1;
+        int nu = nu_h + nu_add; // we want nu here to go in ascending order; if excluded_dir == 1, then nu should go 0, 2, 3
+        if(nu == mu) continue;
+
+        gSite downNu = GInd::site_dn(origin,nu);
+        gSite upNu = GInd::site_up(origin,nu);
+        gSite upMudownNu = GInd::site_dn(upMu, nu);
+        assert(gAcc_idx != nu_h);
+
+        if(nu_h == 0)temp_gAcc_nu_excluded_dir=gAcc_0;
+        else if(nu_h == 1)temp_gAcc_nu_excluded_dir=gAcc_1;
+        else if(nu_h == 2)temp_gAcc_nu_excluded_dir=gAcc_2;
+
+        // nu &gt; 0
+        temp += temp_gAcc_mu_excluded_dir.getLink(GInd::getSiteMu(origin,nu))*temp_gAcc_nu_excluded_dir.getLink(GInd::getSiteMu(upNu,mu))*temp_gAcc_mu_excluded_dir.getLinkDagger(GInd::getSiteMu(upMu,nu));
+        // nu &lt; 0
+        temp += temp_gAcc_mu_excluded_dir.getLinkDagger(GInd::getSiteMu(downNu,nu))*temp_gAcc_nu_excluded_dir.getLink(GInd::getSiteMu(downNu,mu))*temp_gAcc_mu_excluded_dir.getLink(GInd::getSiteMu(upMudownNu,nu));
+    }
+    return temp;
+}
+</pre>
+
+<div id="Hyp smearing-Third level fields"><h2 id="Third level fields" class="header"><a href="#Hyp smearing-Third level fields">Third level fields</a></h2></div>
+<pre cpp>
+
+template&lt;class floatT,size_t HaloDepth,CompressionType comp&gt;
+__host__ __device__ SU3&lt;floatT&gt; inline hypThreeLinkStaple_third_level(SU3Accessor&lt;floatT,comp&gt; gAcc_0, SU3Accessor&lt;floatT,comp&gt; gAcc_1, SU3Accessor&lt;floatT,comp&gt; gAcc_2, SU3Accessor&lt;floatT,comp&gt; gAcc_3, gSiteMu siteMu, SU3Accessor&lt;floatT,comp&gt; temp_gAcc_mu, SU3Accessor&lt;floatT,comp&gt; temp_gAcc_nu) {
+
+    typedef GIndexer&lt;All,HaloDepth&gt; GInd;
+    SU3&lt;floatT&gt; temp = su3_zero&lt;floatT&gt;();
+    SU3&lt;floatT&gt; temp_chk = su3_zero&lt;floatT&gt;();
+    int mu = siteMu.mu;
+    gSite origin = GInd::getSite(siteMu.isite);
+    gSite upMu = GInd::site_up(origin,mu);
+
+    if(mu == 0)temp_gAcc_mu=gAcc_0;
+    else if(mu == 1)temp_gAcc_mu=gAcc_1;
+    else if(mu == 2)temp_gAcc_mu=gAcc_2;
+    else if(mu == 3)temp_gAcc_mu=gAcc_3;
+
+    for (int nu_h = 1; nu_h &lt; 4; nu_h++) {
+        int nu = (mu+nu_h)%4;
+        gSite downNu = GInd::site_dn(origin,nu);
+        gSite upNu = GInd::site_up(origin,nu);
+        gSite upMudownNu = GInd::site_dn(upMu, nu);
+
+        if(nu == 0)temp_gAcc_nu=gAcc_0;
+        else if(nu == 1)temp_gAcc_nu=gAcc_1;
+        else if(nu == 2)temp_gAcc_nu=gAcc_2;
+        else if(nu == 3)temp_gAcc_nu=gAcc_3;
+
+        // nu &gt; 0
+        temp += temp_gAcc_mu.getLink(GInd::getSiteMu(origin,nu))*temp_gAcc_nu.getLink(GInd::getSiteMu(upNu,mu))*temp_gAcc_mu.getLinkDagger(GInd::getSiteMu(upMu,nu));
+        // nu &lt; 0
+        temp += temp_gAcc_mu.getLinkDagger(GInd::getSiteMu(downNu,nu))*temp_gAcc_nu.getLink(GInd::getSiteMu(downNu,mu))*temp_gAcc_mu.getLink(GInd::getSiteMu(upMudownNu,nu));
+    }
+    assert(!(temp==temp_chk));
+    return temp;
+}
+</pre>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+
