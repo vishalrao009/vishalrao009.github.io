@@ -49,53 +49,160 @@
     <div id="content">
         
 <div id="Bash"><h1 id="Bash" class="header"><a href="#Bash">Bash</a></h1></div>
-
-<div id="Bash-Some commands"><h2 id="Some commands" class="header"><a href="#Bash-Some commands">Some commands</a></h2></div>
-
-<ol>
-<li>
-using vim mode in bash terminal: use 'set -o vi' in bottom of .bashrc and source it. Press &lt;Esc&gt; to go to command mode. follow <a href="https://dev.to/brandonwallace/how-to-use-vim-mode-on-the-command-line-in-bash-fnn#:~:text=Did%20you%20know%20you%20can%20use%20Vim%20mode%20on%20the%20command%20line%3F&amp;text=set%20%2Do%20vi%20is%20always,bashrc.&amp;text=By%20default%2C%20the%20Bash%20command,the%20End%20of%20the%20line.">this one</a>
-
-<li>
-To kill processes with a specific keyword in their command line, you can use the <code>pkill</code> command along with the <code>-f</code> option, which allows you to match against the entire command line. In this case, you want to kill processes containing the keyword "/examples/plaquettee". Here's the command:
-
-</ol>
-<p>
-```bash<br />
-pkill -f "/examples/plaquettee"<br />
-```<br />
-</p>
+<div id="Bash-Killing processes"><h2 id="Killing processes" class="header"><a href="#Bash-Killing processes">Killing processes</a></h2></div>
 
 <p>
-Explanation:<br />
+<a href="kill process in bash.html">kill process in bash</a><br />
 </p>
+
+<div id="Bash-Basics of bash"><h2 id="Basics of bash" class="header"><a href="#Bash-Basics of bash">Basics of bash</a></h2></div>
+
+<div id="Bash-Basics of bash-Notes"><h3 id="Notes" class="header"><a href="#Bash-Basics of bash-Notes">Notes</a></h3></div>
 <ul>
 <li>
-<code>pkill</code>: The command for sending signals to processes based on their name or other attributes.
+Echo statements always require double quotes in bash script.
 
 <li>
-<code>-f</code>: This option tells <code>pkill</code> to match against the entire command line.
-
-<li>
-<code>"/examples/plaquettee"</code>: The keyword or pattern you want to search for in the command line.
+use ${variable} to reference the variable.
 
 </ul>
 <p>
-Please be cautious when using <code>pkill</code>, as it can terminate multiple processes that match the specified pattern. Ensure that the pattern you provide is specific enough to target only the processes you intend to terminate.<br />
+Sample script 1:<br />
+</p>
+<pre bash>
+#!/bin/bash
+
+echo "hi there"
+echo "my current directory is "
+pwd
+
+echo "contents of the directory is"
+ls
+
+</pre>
+
+<div id="Bash-Variables in bash"><h2 id="Variables in bash" class="header"><a href="#Bash-Variables in bash">Variables in bash</a></h2></div>
+<div id="Bash-Variables in bash-Example 1"><h3 id="Example 1" class="header"><a href="#Bash-Variables in bash-Example 1">Example 1</a></h3></div>
+<pre bash>
+#!/bin/bash
+
+a=3
+b=4 
+c= $a + $b 
+echo "$c"
+
+</pre>
+
+<p>
+output: <br />
+3+4<br />
+</p>
+
+<div id="Bash-Variables in bash-Example 2"><h3 id="Example 2" class="header"><a href="#Bash-Variables in bash-Example 2">Example 2</a></h3></div>
+
+<pre bash>
+#!/bin/bash
+
+word="fun"
+
+echo "linux is $word"
+echo "bash is $word"
+echo "Test cricket is $word"
+</pre>
+
+<p>
+Output: <br />
 </p>
 
 <p>
-If you want to see which processes would be matched before actually killing them, you can use the <code>-l</code> (list) option:<br />
+linux is fun<br />
+bash is fun<br />
+Test cricket is fun<br />
+</p>
+
+<div id="Bash-Variables in bash-Example 3 (Capturing output of a command)"><h3 id="Example 3 (Capturing output of a command)" class="header"><a href="#Bash-Variables in bash-Example 3 (Capturing output of a command)">Example 3 (Capturing output of a command)</a></h3></div>
+
+<pre bash>
+#!/bin/bash
+echo "file contents are $(ls)"
+echo "present directory is $(pwd)}"
+
+now=$(date) 
+echo "system date and time is $now"
+
+name=$(whoami) # or use $(USER)
+echo "my name is $name and using this machine on $now"
+
+
+</pre>
+
+<div id="Bash-Math functions"><h2 id="Math functions" class="header"><a href="#Bash-Math functions">Math functions</a></h2></div>
+
+<div id="Bash-Math functions-Example 1"><h3 id="Example 1" class="header"><a href="#Bash-Math functions-Example 1">Example 1</a></h3></div>
+
+<ul>
+<li>
+multiplication is calculated by <code>expr 100 /* 4</code>, addition is calculated by <code>expr 2 + 3</code>, division is calculated by <code>expr 2 / 3</code>. 
+
+</ul>
+ 
+<pre bash>
+#!/bin/bash
+
+var=33
+total= expr $var + 4
+echo "total is $total"
+
+
+</pre>
+<p>
+Here are some ways to add two numbers and store the result in a variable in Bash:<br />
+Using the let command.<br />
+Code<br />
+</p>
+<pre bash>
+num1=10
+num2=20
+let sum=$num1+$num2
+echo "The sum is $sum"
+
+</pre>
+
+<p>
+This will print the following output:<br />
+Code<br />
+The sum is 30<br />
+</p>
+
+<div id="Bash-Math functions-Using the expr command."><h3 id="Using the expr command." class="header"><a href="#Bash-Math functions-Using the expr command.">Using the expr command.</a></h3></div>
+<pre bash>
+num1=10
+num2=20
+sum=$(expr $num1 + $num2)
+echo "The sum is $sum"
+
+</pre>
+<p>
+This will also print the following output:<br />
 </p>
 
 <p>
-```bash<br />
-pkill -l -f "/examples/plaquettee"<br />
-```<br />
+Code<br />
+The sum is 30<br />
 </p>
 
+<div id="Bash-Math functions-Using the bc command."><h3 id="Using the bc command." class="header"><a href="#Bash-Math functions-Using the bc command.">Using the bc command.</a></h3></div>
+
+<pre bash>
+num1=10
+num2=20
+sum=$(echo $num1 + $num2 | bc)
+echo "The sum is $sum"
+
+</pre>
 <p>
-This will list the processes that match the specified pattern without sending any termination signals.<br />
+This will also print the following output:<br />
+The sum is 30<br />
 </p>
 
     </div>
