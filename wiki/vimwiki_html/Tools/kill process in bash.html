@@ -4,7 +4,7 @@
     <link rel="stylesheet" type="text/css" href="style.css">
     <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
-    <title>index</title>
+    <title>kill process in bash</title>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
@@ -48,48 +48,52 @@
 <body>
     <div id="content">
         
-<div id="Wiki4: Tools"><h1 id="Wiki4: Tools" class="header"><a href="#Wiki4: Tools">Wiki4: Tools</a></h1></div>
-
-<p>
-The following tools have been used for the required research work.<br />
-</p>
 
 <ol>
 <li>
-<a href="Programming Languages.html">Programming Languages</a>
+using vim mode in bash terminal: use 'set -o vi' in bottom of .bashrc and source it. Press &lt;Esc&gt; to go to command mode. follow <a href="https://dev.to/brandonwallace/how-to-use-vim-mode-on-the-command-line-in-bash-fnn#:~:text=Did%20you%20know%20you%20can%20use%20Vim%20mode%20on%20the%20command%20line%3F&amp;text=set%20%2Do%20vi%20is%20always,bashrc.&amp;text=By%20default%2C%20the%20Bash%20command,the%20End%20of%20the%20line.">this one</a>
 
 <li>
-<a href="vimwiki.html">vimwiki</a>
-
-<li>
-<a href="vim.html">vim</a>
-
-<li>
-<a href="podman.html">podman</a>
+To kill processes with a specific keyword in their command line, you can use the <code>pkill</code> command along with the <code>-f</code> option, which allows you to match against the entire command line. In this case, you want to kill processes containing the keyword "/examples/plaquettee". Here's the command:
 
 </ol>
-<hr />
+<p>
+```bash<br />
+pkill -f "/examples/plaquettee"<br />
+```<br />
+</p>
 
-<div id="Wiki4: Tools-Diary"><h2 id="Diary" class="header"><a href="#Wiki4: Tools-Diary">Diary</a></h2></div>
-
+<p>
+Explanation:<br />
+</p>
 <ul>
 <li>
-<a href="diary/diary.html">DIARY FOR Tools</a>
+<code>pkill</code>: The command for sending signals to processes based on their name or other attributes.
+
+<li>
+<code>-f</code>: This option tells <code>pkill</code> to match against the entire command line.
+
+<li>
+<code>"/examples/plaquettee"</code>: The keyword or pattern you want to search for in the command line.
 
 </ul>
-<hr />
 <p>
-<span class="todo">TODO</span><br />
+Please be cautious when using <code>pkill</code>, as it can terminate multiple processes that match the specified pattern. Ensure that the pattern you provide is specific enough to target only the processes you intend to terminate.<br />
 </p>
 
-<ol>
-<li class="done3">
-<a href="SED_and_AWK.html">SED_and_AWK</a>
+<p>
+If you want to see which processes would be matched before actually killing them, you can use the <code>-l</code> (list) option:<br />
+</p>
 
-<li class="done2">
-<a href="gnuplot.html">gnuplot</a>
+<p>
+```bash<br />
+pkill -l -f "/examples/plaquettee"<br />
+```<br />
+</p>
 
-</ol>
+<p>
+This will list the processes that match the specified pattern without sending any termination signals.<br />
+</p>
 
     </div>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
