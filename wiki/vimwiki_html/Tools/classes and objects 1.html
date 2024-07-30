@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>classes and objects 1</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 18px;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+                max-width:100%; /*set maximum width for smaller devices */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+<div id="classes and objects 1"><h1 id="classes and objects 1" class="header"><a href="#classes and objects 1">classes and objects 1</a></h1></div>
+
+
+<p>
+Class is user defined data type; whereas (int, char, float) are primitive or inbuit data type.<br />
+</p>
+
+<p>
+example:<br />
+</p>
+<ol>
+<li>
+Student vishal; 
+
+</ol>
+<p>
+Here <code>Student</code> is name of user defined data type and <code>vishal</code> is name of variable of such data type.<br />
+</p>
+
+<div id="classes and objects 1-Code"><h2 id="Code" class="header"><a href="#classes and objects 1-Code">Code</a></h2></div>
+<p>
+We will break our code in three files (main.cpp, Student.cpp(contains function and variable definition), Student.hpp(contains function and variable declaration))<br />
+</p>
+
+<div id="classes and objects 1-Code-1. main.cpp"><h3 id="1. main.cpp" class="header"><a href="#classes and objects 1-Code-1. main.cpp">1. main.cpp</a></h3></div>
+<pre cpp>
+
+/******************************************************************************
+* File:             classes.cpp
+*
+* Author:           vishal rao  
+* Created:          07/30/24 
+*****************************************************************************/
+#include "Student.hpp"
+int main(int argc, char *argv[])
+{
+	
+	std::cout &lt;&lt; "program starts :" &lt;&lt; std::endl;
+	{ //see what happens if we remove the {}
+		/* Student vishal; */
+		Student* naresh= new Student;
+		naresh-&gt;m_name="naresh";
+		delete naresh; // without it destructor is not called
+	}
+	
+
+	Student s1,s2;
+
+	s1.m_name="vishal"; //only work if m_name is public, destructor for first variable is called in end
+	s1.printname();
+
+	s2.m_name="naersh";
+	s2.printname();
+
+	std::cout &lt;&lt; "program ends" &lt;&lt; std::endl;
+	 
+
+	return 0;
+}
+
+</pre>
+<div id="classes and objects 1-Code-2. Student.hpp"><h3 id="2. Student.hpp" class="header"><a href="#classes and objects 1-Code-2. Student.hpp">2. Student.hpp</a></h3></div>
+<pre cpp>
+
+#ifndef STUDENT_HPP
+#define STUDENT_HPP 
+
+#include &lt;iostream&gt;
+class Student{ //curly braces gives skope of class
+	
+	public:
+		std::string m_name;
+		Student();//constructor
+		~Student();//destructor
+		void printname();
+	
+	
+	private: 
+		//hidden attributes and variables of class
+	
+};
+#endif /* ifndef STUDENT_HPP */
+</pre>
+
+<div id="classes and objects 1-Code-3. Student.cpp"><h3 id="3. Student.cpp" class="header"><a href="#classes and objects 1-Code-3. Student.cpp">3. Student.cpp</a></h3></div>
+<pre cpp>
+#include "Student.hpp"
+
+Student::Student(){
+	std::cout &lt;&lt; "Constructor is called" &lt;&lt; std::endl;
+}
+
+Student::~Student()
+{
+	std::cout &lt;&lt; "Destructor is called " &lt;&lt; std::endl;
+}
+
+void Student::printname(){
+	std::cout &lt;&lt; "name is "&lt;&lt;m_name&lt;&lt; std::endl;
+}
+
+</pre>
+
+<div id="classes and objects 1-Code-output"><h3 id="output" class="header"><a href="#classes and objects 1-Code-output">output</a></h3></div>
+<p>
+program starts :<br />
+Constructor is called<br />
+Destructor is called <br />
+Constructor is called<br />
+Constructor is called<br />
+name is vishal<br />
+name is naersh<br />
+program ends<br />
+Destructor is called <br />
+Destructor is called<br />
+</p>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+
