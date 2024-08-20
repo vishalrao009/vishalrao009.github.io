@@ -4,7 +4,7 @@
     <link rel="stylesheet" type="text/css" href="../style.css">
     <link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
-    <title>2024-02-28</title>
+    <title>original_hyp_code</title>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
@@ -48,23 +48,13 @@
 <body>
     <div id="content">
         
-<div id="Hyp smearing"><h1 id="Hyp smearing" class="header"><a href="#Hyp smearing">Hyp smearing</a></h1></div>
-
-<p>
-I think that, the full Hyp smearing is found in <a href="Full_hyp_wilsonLoop.html">Full_hyp_wilsonLoop</a> is correct, but since we need to exclude the fictitious time direction (x or y or z) for Hyp smearing in all levels, we need to change the code, I tried the following code <a href="naiveHyp_wilsonLoopExcludedDir.html">naiveHyp_wilsonLoopExcludedDir</a>, but even this is not working. Turns out that the Hyp smearing Procedure is not applied correctly. <br />
-</p>
-
-<p>
-I am going to understand the code base for Hyp smearing Procedure and write down the comments whenever required. <br />
-</p>
-
-<div id="Hyp smearing-Basic functions to calculate first level fields"><h2 id="Basic functions to calculate first level fields" class="header"><a href="#Hyp smearing-Basic functions to calculate first level fields">Basic functions to calculate first level fields</a></h2></div>
-<pre cpp>
+<pre cuda>
 
 template&lt;class floatT,size_t HaloDepth,CompressionType comp&gt;
 __host__ __device__ SU3&lt;floatT&gt; inline hypThreeLinkStaple_first_level(SU3Accessor&lt;floatT,comp&gt; gAcc, gSiteMu siteMu, int excluded_dir1, int excluded_dir2) {
     typedef GIndexer&lt;All,HaloDepth&gt; GInd;
     SU3&lt;floatT&gt; temp = su3_zero&lt;floatT&gt;();
+    /* printf("ex_dir 1 %d , ex_dir2 %d  \n",excluded_dir1,excluded_dir2); */
     gSite site = GInd::getSite(siteMu.isite);
     gSite site_save = site;
     int mu = siteMu.mu;
@@ -90,10 +80,6 @@ __host__ __device__ SU3&lt;floatT&gt; inline hypThreeLinkStaple_first_level(SU3A
 }
 
 
-</pre>
-
-<div id="Hyp smearing-Second level fields"><h2 id="Second level fields" class="header"><a href="#Hyp smearing-Second level fields">Second level fields</a></h2></div>
-<pre cpp>
 //It is assumed that the exluded directions in gaAcc_0, gaAcc_1, gaAcc_2 go in asending order (10 &lt; 20 &lt; 21 &lt; 30 &lt; 31 &lt; 32)
 // example:  suppose the exluded directions are 20, 21, 32, (for Vtilde_{i, mu; 2}), then gAcc_0 = _gauge_lvl1_20, gAcc_1 = _gauge_lvl1_21, gAcc_2 = _gauge_lvl1_32
 // in other words, the primary excluded direction in this example is 2, so the extra excluded directions go in asending order:  0, 1, 3.
@@ -106,16 +92,18 @@ __host__ __device__ SU3&lt;floatT&gt; inline hypThreeLinkStaple_second_level(SU3
     if(mu==excluded_dir) return temp*(floatT)NAN;
     gSite origin = GInd::getSite(siteMu.isite);
     gSite upMu = GInd::site_up(origin,mu);
+    //
+//gAcc_idx = mu &gt; excluded_dir ? mu - 1 : mu;
 
-    //ex = 0, then mu=1,2,3, =&gt; 10, 20, 30 (0, 1, 2) = (mu-1, mu-1, mu-1)
-    //ex = 1, then mu=0,2,3, =&gt; 10, 21, 31 (0, 1, 2) = (mu, mu-1, mu-1)
-    //ex = 2, then mu=0,1,3, =&gt; 20, 21, 32 (0, 1, 2) = (mu, mu, mu-1)
-    //ex = 3, then mu=0,1,2, =&gt; 30, 31, 32 (0, 1, 2) = (mu, mu, mu)
+    //ex = 0, then mu=1,2,3, =&gt; 10, 20, 30, then gAcc_idx= (0, 1, 2) = (mu-1, mu-1, mu-1)
+    //ex = 1, then mu=0,2,3, =&gt; 10, 21, 31, then gAcc_idx= (0, 1, 2) = (mu, mu-1, mu-1)
+    //ex = 2, then mu=0,1,3, =&gt; 20, 21, 32, then gAcc_idx= (0, 1, 2) = (mu, mu, mu-1)
+    //ex = 3, then mu=0,1,2, =&gt; 30, 31, 32, then gAcc_idx= (0, 1, 2) = (mu, mu, mu)
     //=&gt;gAcc_idx = mu &gt; excluded_dir ? mu - 1 : mu
 
     int gAcc_idx = mu &gt; excluded_dir ? mu - 1 : mu;
     assert(gAcc_idx &lt; 3);
-    if(gAcc_idx == 0) temp_gAcc_mu_excluded_dir=gAcc_0;
+    if(gAcc_idx == 0) temp_gAcc_mu_excluded_dir=gAcc_0; // mu is temp excluded dir
     else if(gAcc_idx == 1)temp_gAcc_mu_excluded_dir=gAcc_1;
     else if(gAcc_idx == 2)temp_gAcc_mu_excluded_dir=gAcc_2;
     else assert(0);
@@ -132,7 +120,7 @@ __host__ __device__ SU3&lt;floatT&gt; inline hypThreeLinkStaple_second_level(SU3
         gSite upMudownNu = GInd::site_dn(upMu, nu);
         assert(gAcc_idx != nu_h);
 
-        if(nu_h == 0)temp_gAcc_nu_excluded_dir=gAcc_0;
+        if(nu_h == 0)temp_gAcc_nu_excluded_dir=gAcc_0; //nu is temp excluded dir
         else if(nu_h == 1)temp_gAcc_nu_excluded_dir=gAcc_1;
         else if(nu_h == 2)temp_gAcc_nu_excluded_dir=gAcc_2;
 
@@ -143,10 +131,7 @@ __host__ __device__ SU3&lt;floatT&gt; inline hypThreeLinkStaple_second_level(SU3
     }
     return temp;
 }
-</pre>
 
-<div id="Hyp smearing-Third level fields"><h2 id="Third level fields" class="header"><a href="#Hyp smearing-Third level fields">Third level fields</a></h2></div>
-<pre cpp>
 
 template&lt;class floatT,size_t HaloDepth,CompressionType comp&gt;
 __host__ __device__ SU3&lt;floatT&gt; inline hypThreeLinkStaple_third_level(SU3Accessor&lt;floatT,comp&gt; gAcc_0, SU3Accessor&lt;floatT,comp&gt; gAcc_1, SU3Accessor&lt;floatT,comp&gt; gAcc_2, SU3Accessor&lt;floatT,comp&gt; gAcc_3, gSiteMu siteMu, SU3Accessor&lt;floatT,comp&gt; temp_gAcc_mu, SU3Accessor&lt;floatT,comp&gt; temp_gAcc_nu) {
@@ -182,6 +167,11 @@ __host__ __device__ SU3&lt;floatT&gt; inline hypThreeLinkStaple_third_level(SU3A
     assert(!(temp==temp_chk));
     return temp;
 }
+
+
+
+
+
 </pre>
 
     </div>
