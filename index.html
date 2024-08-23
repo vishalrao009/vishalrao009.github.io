@@ -76,10 +76,6 @@
         .cv-viewer {
             margin-top: 30px;
         }
-        .cv-viewer embed {
-            width: 100%;
-            height: 400px;
-        }
         footer {
             margin-top: 50px;
             font-size: 0.6em;
@@ -115,14 +111,7 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
-    <div id="g_id_onload"
-         data-client_id="YOUR_GOOGLE_CLIENT_ID"
-         data-login_uri="YOUR_REDIRECT_URI"
-         data-auto_prompt="false">
-    </div>
-    <div class="g_id_signin" data-type="standard"></div>
-
-    <div id="content-container" class="container" style="display:none;">
+    <div class="container">
         <div class="header">
             <div>
                 <h1>Vishal Rao</h1>
@@ -157,12 +146,13 @@
         <h2>Wiki</h2>
         <div class="content-offset">
             <p>For Public use: SIMULATeQCD wikipedia <a href="wiki/vimwiki_html/SIMULATeQCD/index.html">SIMULATeQCD wikipedia</a> </p>
-            <p>For Personal use:   <a href="wiki/vimwiki_html/All_wiki/index.html">Master Wiki</a> </p>
+            <p>For Personal use: <a href="wiki/vimwiki_html/All_wiki/index.html">Master Wiki</a> </p>
         </div>
 
         <h2>Curriculum Vitae (CV)</h2>
         <div class="content-offset">
-            <div class="cv-viewer">
+            <div class="g_id_signin" data-type="standard"></div>
+            <div id="cv-viewer" class="cv-viewer" style="display:none;">
                 <embed src="cv.pdf" type="application/pdf" />
             </div>
         </div>
@@ -179,17 +169,10 @@
 
     <script>
         function onSignIn(googleUser) {
-            // User is signed in.
-            document.getElementById('content-container').style.display = 'block';
-            // Hide the sign-in button.
+            // Show the CV section after successful login
+            document.getElementById('cv-viewer').style.display = 'block';
+            // Hide the sign-in button
             document.querySelector('.g_id_signin').style.display = 'none';
-        }
-
-        function onSignOut() {
-            // User is signed out.
-            document.getElementById('content-container').style.display = 'none';
-            // Show the sign-in button.
-            document.querySelector('.g_id_signin').style.display = 'block';
         }
 
         window.onload = function() {
@@ -203,7 +186,6 @@
                     size: "large"
                 }
             );
-            google.accounts.id.prompt(); // Shows the One Tap prompt (optional)
         };
     </script>
 </body>
