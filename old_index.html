@@ -28,35 +28,35 @@
             border: 1px solid #000;
             margin-bottom: 20px;
             margin-left: 20px;
-
         }
         .header {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            margin-bottom: 40px;
         }
         .header img {
             max-width: 150px;
             height: auto;
             border-radius: 5px;
+                
         }
         h1, h2 {
             color: #0056b3;
         }
         h1 {
             margin-bottom: 10px;
-            font-size: 1.1em; /* Reduced font size */
+            font-size: 1.1em;
         }
         h2 {
             margin-top: 40px;
             margin-bottom: 20px;
             text-decoration: underline;
-            font-size: 1.1em; /* Reduced font size */
+            font-size: 1.1em;
         }
         .intro {
             margin-bottom: 30px;
-            margin-right: 30px;
-
+            margin-right: 20px;
         }
         .content-offset {
             padding-left: 20px;
@@ -79,10 +79,6 @@
         }
         .cv-viewer {
             margin-top: 30px;
-        }
-        .cv-viewer embed {
-            width: 100%;
-            height: 400px;
         }
         footer {
             margin-top: 50px;
@@ -116,6 +112,7 @@
             }
         }
     </style>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
     <div class="container">
@@ -153,12 +150,21 @@
         <h2>Wiki</h2>
         <div class="content-offset">
             <p>For Public use: SIMULATeQCD wikipedia <a href="wiki/vimwiki_html/SIMULATeQCD/index.html">SIMULATeQCD wikipedia</a> </p>
-            <p>For Personal use:   <a href="wiki/vimwiki_html/All_wiki/index.html">Master Wiki</a> </p>
+            <p>For Personal use: <a href="wiki/vimwiki_html/All_wiki/index.html">Master Wiki</a> </p>
         </div>
 
         <h2>Curriculum Vitae (CV)</h2>
+        <p> Please login to view Resume.</p>
         <div class="content-offset">
-            <div class="cv-viewer">
+            <div id="g_id_onload"
+                 data-client_id="660706504701-r7nrfcifa7qesf1r5332jb9rp7hs5ssf.apps.googleusercontent.com"
+                 data-context="signin"
+                 data-ux_mode="popup"
+                 data-callback="onSignIn"
+                 data-auto_prompt="false">
+            </div>
+            <div class="g_id_signin" data-type="standard"></div>
+            <div id="cv-viewer" class="cv-viewer" style="display:none;">
                 <embed src="cv.pdf" type="application/pdf" />
             </div>
         </div>
@@ -174,9 +180,13 @@
     </footer>
 
     <script>
-        setTimeout(function(){
-            window.location.href = "wiki/vimwiki_html/All_wiki/index.html";
-        }, 120000);
+        function onSignIn(response) {
+            if (response && response.credential) {
+                document.getElementById('cv-viewer').style.display = 'block';
+                document.querySelector('.g_id_signin').style.display = 'none';
+            }
+        }
     </script>
 </body>
 </html>
+
