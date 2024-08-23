@@ -43,13 +43,13 @@
         }
         h1 {
             margin-bottom: 10px;
-            font-size: 1.1em; /* Reduced font size */
+            font-size: 1.1em;
         }
         h2 {
             margin-top: 40px;
             margin-bottom: 20px;
             text-decoration: underline;
-            font-size: 1.1em; /* Reduced font size */
+            font-size: 1.1em;
         }
         .intro {
             margin-bottom: 30px;
@@ -112,9 +112,17 @@
             }
         }
     </style>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
-    <div class="container">
+    <div id="g_id_onload"
+         data-client_id="YOUR_GOOGLE_CLIENT_ID"
+         data-login_uri="YOUR_REDIRECT_URI"
+         data-auto_prompt="false">
+    </div>
+    <div class="g_id_signin" data-type="standard"></div>
+
+    <div id="content-container" class="container" style="display:none;">
         <div class="header">
             <div>
                 <h1>Vishal Rao</h1>
@@ -170,9 +178,33 @@
     </footer>
 
     <script>
-        setTimeout(function(){
-            window.location.href = "wiki/vimwiki_html/All_wiki/index.html";
-        }, 120000);
+        function onSignIn(googleUser) {
+            // User is signed in.
+            document.getElementById('content-container').style.display = 'block';
+            // Hide the sign-in button.
+            document.querySelector('.g_id_signin').style.display = 'none';
+        }
+
+        function onSignOut() {
+            // User is signed out.
+            document.getElementById('content-container').style.display = 'none';
+            // Show the sign-in button.
+            document.querySelector('.g_id_signin').style.display = 'block';
+        }
+
+        window.onload = function() {
+            google.accounts.id.initialize({
+                client_id: '660706504701-r7nrfcifa7qesf1r5332jb9rp7hs5ssf.apps.googleusercontent.com',
+                callback: onSignIn
+            });
+            google.accounts.id.renderButton(
+                document.querySelector('.g_id_signin'), {
+                    theme: "outline",
+                    size: "large"
+                }
+            );
+            google.accounts.id.prompt(); // Shows the One Tap prompt (optional)
+        };
     </script>
 </body>
 </html>
