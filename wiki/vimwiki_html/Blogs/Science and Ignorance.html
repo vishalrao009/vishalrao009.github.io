@@ -82,8 +82,8 @@
         
 <div id="Science and Ignorance"><h1 id="Science and Ignorance" class="header"><a href="#Science and Ignorance">Science and Ignorance</a></h1></div>
 
-        <!-- Example usage of dynamically setting a Google Drive image -->
-        <img id="myImage" alt="Google Drive Image">
+        <!-- The img tag will only be included if an image is needed -->
+        <img id="myImage" alt="Google Drive Image" style="display:none;">
     </div>
     
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
@@ -99,17 +99,22 @@
         // Function to set image source from Google Drive link
         function setDriveImage(elementId, driveLink) {
             const imageElement = document.getElementById(elementId);
+            if (!driveLink || !imageElement) {
+                return;
+            }
+
             const convertedLink = convertDriveLink(driveLink);
-            if (imageElement && convertedLink) {
+            if (convertedLink) {
                 imageElement.src = convertedLink;
-            } else {
-                console.error("Invalid Google Drive link or element ID.");
+                imageElement.style.display = "block"; // Make the image visible
             }
         }
 
-        // Example usage: Set an image from Google Drive
-        // Replace 'https://drive.google.com/file/d/FILE_ID/view?usp=sharing' with your Google Drive link
-        setDriveImage("myImage", "https://drive.google.com/file/d/FILE_ID/view?usp=sharing");
+        // Example usage: Set an image from Google Drive only if there's a link
+        const googleDriveLink = "%drive_link%"; // This variable should be set dynamically
+        if (googleDriveLink) {
+            setDriveImage("myImage", googleDriveLink);
+        }
     </script>
 </body>
 </html>
