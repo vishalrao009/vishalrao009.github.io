@@ -34,27 +34,27 @@
 
         h1 {
             font-size: 28; /* Smaller size for h1 */
-                color: black;
+            color: black;
         }
 
         h2 {
             font-size: 26px; /* Smaller size for h2 */
-                color: blue;
+            color: blue;
         }
 
         h3 {
             font-size: 24px; /* Smaller size for h3 */
-                color: orange;
+            color: orange;
         }
 
         h4 {
-            font-size: 20; /* Smaller size for h3 */
-                color: purple;
+            font-size: 20px; /* Smaller size for h4 */
+            color: purple;
         }
         
-        h5,h6 {
-            font-size: 18;
-                color: red;
+        h5, h6 {
+            font-size: 18px;
+            color: red;
         }
 
         img {
@@ -82,10 +82,34 @@
         
 <div id="Science and Ignorance"><h1 id="Science and Ignorance" class="header"><a href="#Science and Ignorance">Science and Ignorance</a></h1></div>
 
+        <!-- Example usage of dynamically setting a Google Drive image -->
+        <img id="myImage" alt="Google Drive Image">
     </div>
+    
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
     <script type="text/javascript">
         document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+
+        // Function to convert Google Drive link to embeddable format
+        function convertDriveLink(link) {
+            const fileId = link.match(/[-\w]{25,}/);
+            return fileId ? `https://drive.google.com/uc?export=view&id=${fileId[0]}` : '';
+        }
+
+        // Function to set image source from Google Drive link
+        function setDriveImage(elementId, driveLink) {
+            const imageElement = document.getElementById(elementId);
+            const convertedLink = convertDriveLink(driveLink);
+            if (imageElement && convertedLink) {
+                imageElement.src = convertedLink;
+            } else {
+                console.error("Invalid Google Drive link or element ID.");
+            }
+        }
+
+        // Example usage: Set an image from Google Drive
+        // Replace 'https://drive.google.com/file/d/FILE_ID/view?usp=sharing' with your Google Drive link
+        setDriveImage("myImage", "https://drive.google.com/file/d/FILE_ID/view?usp=sharing");
     </script>
 </body>
 </html>
