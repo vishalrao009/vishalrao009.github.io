@@ -82,13 +82,13 @@
         
 <div id="Parameter file for RHMC"><h1 id="Parameter file for RHMC" class="header"><a href="#Parameter file for RHMC">Parameter file for RHMC</a></h1></div>
 
-<div id="Parameter file for RHMC-Crucial changes to the parameter file"><h2 id="Crucial changes to the parameter file" class="header"><a href="#Parameter file for RHMC-Crucial changes to the parameter file">Crucial changes to the parameter file</a></h2></div>
+<div id="Parameter file for RHMC-Changes to the parameter file"><h2 id="Changes to the parameter file" class="header"><a href="#Parameter file for RHMC-Changes to the parameter file">Changes to the parameter file</a></h2></div>
 <ol>
 <li>
-The simulation takes a long time for light quark masses (lighter the mass, more time it takes)
+The simulation takes a long time for light quark masses (lighter the mass, more time it takes) \({e^2=p^2+m^2}\)
 
 <li>
-In any given lattice qcd calcuations we have value of beta(2N_c/g.g, i.e. beta is inverse gauge coupling) as input parameter, from "/root/AnalysisToolBox/latqcdtools" we can find the value of 
+In any given lattice QCD calculations we have value of beta(\(\frac{2N_{c}}{g^2}\), i.e. beta is inverse gauge coupling) as input parameter, from "/root/AnalysisToolBox/latqcdtools" we can find the value of 
 
 <ol>
 <li>
@@ -108,7 +108,7 @@ m_ud (since we have found the strange quark mass we can just devide the m_s/27 t
 Next we can take small lattice if our goal is just learning (in this way we can just generate configurations quickly)
 
 <li>
-Basically the program will calculate some number and on basis of that number it will either accept or reject the update in configuration of gauge field, strange field, and light qurk fields. In total program will run <span id="Parameter file for RHMC-Crucial changes to the parameter file-no_md"></span><strong id="no_md">no_md</strong> (number of molecular dynamics) steps, in each such molecular dynamics/monte carlo step, the strange quark gets updated <span id="Parameter file for RHMC-Crucial changes to the parameter file-no_step_sf"></span><strong id="no_step_sf">no_step_sf</strong> times and for each such strange quark updates, the gauge configuration gets updated <span id="Parameter file for RHMC-Crucial changes to the parameter file-no_sw"></span><strong id="no_sw">no_sw</strong> times. So in summary program will undergo <span id="Parameter file for RHMC-Crucial changes to the parameter file-no_md. no_step_sf . no_sw"></span><strong id="no_md. no_step_sf . no_sw">no_md. no_step_sf . no_sw</strong> gauge update steps{i.e no_md light quark steps, no_md.no_step_sf strange quark steps, and no_md.no_step_sf.no_sw gauge steps} and after each 20 such light quark steps/molecular dynamics steps, it will either accpet or reject the configuration, and it will write the *write_every*th such update to some nersc file (either accepted or rejected).
+Basically the program will calculate some number and on basis of that number it will either accept or reject the update in configuration of gauge field, strange field, and light qurk fields. In total program will run <span id="Parameter file for RHMC-Changes to the parameter file-no_md"></span><strong id="no_md">no_md</strong> (number of molecular dynamics) steps, in each such molecular dynamics/monte carlo step, the strange quark gets updated <span id="Parameter file for RHMC-Changes to the parameter file-no_step_sf"></span><strong id="no_step_sf">no_step_sf</strong> times and for each such strange quark updates, the gauge configuration gets updated <span id="Parameter file for RHMC-Changes to the parameter file-no_sw"></span><strong id="no_sw">no_sw</strong> times. So in summary program will undergo <span id="Parameter file for RHMC-Changes to the parameter file-no_md. no_step_sf . no_sw"></span><strong id="no_md. no_step_sf . no_sw">no_md. no_step_sf . no_sw</strong> gauge update steps{i.e no_md light quark steps, no_md.no_step_sf strange quark steps, and no_md.no_step_sf.no_sw gauge steps} and after each 20 such light quark steps/molecular dynamics steps, it will either accpet or reject the configuration, and it will write the *write_every*th such update to some nersc file (either accepted or rejected).
 			Example: 
 			no_md=20, no_step_sf=5, no_sw=10, no_updates=33, write_every=11,
 			This will generate the total of 20x5x10=1000 trial gauge update steps(20 light quark trial update, 20x5=100 strange quark trial updates), after each such 20 light quark steps (or 1000 gauge trial updates, or 100 strange quark trial steps) the trial update will undergo the accept-reject function. Basically 33 such total update steps will be performed and each step will be under accept/reject condition, out of which program will save every 11th such accept reject step into some NERSC file as per specified by path.
