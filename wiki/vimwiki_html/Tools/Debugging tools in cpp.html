@@ -91,13 +91,6 @@
 </head>
 <body>
     <div id="content">
-        <!-- Example link without preloaded preview -->
-        <a href="article1.html" class="link">Article 1</a>
-        <div class="link-preview"></div>
-
-        <a href="article2.html" class="link">Article 2</a>
-        <div class="link-preview"></div>
-
         
 <div id="Assert"><h1 id="Assert" class="header"><a href="#Assert">Assert</a></h1></div>
 
@@ -137,41 +130,40 @@ During the development phase, assertions can help catch bugs and ensure that the
     <script type="text/javascript">
         document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
 
-        // Fetch the linked page content and display the preview
+        // Add link preview functionality
         document.addEventListener("DOMContentLoaded", function () {
-            const links = document.querySelectorAll("a.link");
+            const links = document.querySelectorAll("a");
 
             links.forEach(link => {
                 link.addEventListener("mouseover", async function (event) {
-                    let previewBox = link.nextElementSibling;
+                    let previewBox = link.querySelector(".link-preview");
 
-                    if (previewBox && previewBox.innerHTML.trim() === "") {
-                        const url = link.href;
-                        
-                        try {
-                            // Fetch the linked content
-                            const response = await fetch(url);
-                            const text = await response.text();
-
-                            // Parse the response HTML and extract the first paragraph or a few lines
-                            const parser = new DOMParser();
-                            const doc = parser.parseFromString(text, "text/html");
-                            const firstParagraph = doc.querySelector('p') ? doc.querySelector('p').textContent : "No preview available.";
-                            
-                            // Truncate the content to 200 characters
-                            const previewText = firstParagraph.slice(0, 200) + "...";
-                            previewBox.innerHTML = previewText;
-
-                        } catch (err) {
-                            previewBox.innerHTML = "Preview not available.";
-                        }
-
-                        previewBox.style.display = "block";
+                    if (!previewBox) {
+                        previewBox = document.createElement("div");
+                        previewBox.className = "link-preview";
+                        link.appendChild(previewBox);
                     }
+
+                    const url = link.href;
+                    
+                    try {
+                        // Fetch the linked content
+                        const response = await fetch(url);
+                        const text = await response.text();
+                        
+                        // Extract a small preview from the content (you can refine this)
+                        const previewText = text.slice(0, 300); // Modify slice size as needed
+                        previewBox.innerHTML = previewText;
+
+                    } catch (err) {
+                        previewBox.innerHTML = "Preview not available";
+                    }
+                    
+                    previewBox.style.display = "block";
                 });
 
                 link.addEventListener("mouseout", function () {
-                    const previewBox = link.nextElementSibling;
+                    const previewBox = link.querySelector(".link-preview");
                     if (previewBox) {
                         previewBox.style.display = "none";
                     }
