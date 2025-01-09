@@ -96,7 +96,7 @@ We need to ask where is this variable located in memory, we have an operator(&am
 address are stored with 12 characters of hexadecimal numbers. ex. 0xAEC034523823 . storing this number requires 12.4=48 bits of memory. (becuase each hexadecimal number is from 0 to 15(F), and 4 bits are sufficient to store any hexadecimal number)
 
 <li>
-since 4 bytes (48 bits) are sufficient for storing address we can use integer data type to store address of variable.
+since 4 bytes (32 bits) are sufficient for storing address we can use integer data type to store address of variable.
 
 <li>
 pointers points/stores address of varialbe so they are declared and assigned by : int * p=&amp;a; (here p is pointer varialbe which will store address of varialbe 'a')
@@ -112,9 +112,14 @@ Reference is an alias or another name for any given variable.<br />
 The way we create an alias is:<br />
 </p>
 <pre cpp>
-int a=5;
+	#include&lt;iostream&gt;
+	int main()
+	{
+	int a=5;
 	int &amp; b=a;  //here b is an alias of a, now we can access the variable a by two methods, a or b.
+	std::cout&lt;&lt;a&lt;&lt;'\t'&lt;&lt;b;
 	//(int &amp;b, int &amp; b , int&amp; b - all are same)	
+	}
 </pre>
 <p>
 	Behind the scenes references uses pointers, but we don't need to go to that level.<br />
@@ -131,10 +136,13 @@ References are majorly used when we are passing large amount of data in a functi
 	
 <pre cpp>
 	#include&lt;iostream&gt;
-	void add(int &amp;a, int &amp;b)
-	return a+b;
+	int add(int &amp;a, int &amp;b)
+	{
+	int c=a+b;
+	return c;
+	}
 	
-	void main()
+	int main()
 	{
 	int x=50;
 	int y=40;
@@ -153,10 +161,12 @@ Like pointers any changes made to alias does not remains inside the function onl
 	{
 	a++;
 	}
-	void main()
+	int main()
 	{
 	int x=5;
-	std::cout&lt;&lt;increment(x)&lt;&lt;x; //it will print 6 6
+	increment(x);
+	std::cout&lt;&lt;x; //it will print 6 
+	return 0;
 	}
 
 </pre>
@@ -168,17 +178,19 @@ Location we set to alias/reference is permanent, once we set an alias, we can no
 	int c=30;
 	int &amp;b=a;
 	b=c; // this statement will store value of c in b which points to address of a, so a=30=b=c
+	return 0;
 </pre>
 
 <li>
 Alias and original variable has same address and it can be checked by following code:
 <pre cpp>
-	#include&lt;iostream&gt;
-	void main()
+ 	#include&lt;iostream&gt;
+	int main()
 	{
 	int a=5;
 	int &amp;b=a;
 	std::cout&lt;&lt;&amp;a&lt;&lt;'\t'&lt;&lt;&amp;b;
+	return 0;
 	}
 </pre>
 
