@@ -95,10 +95,12 @@ Pass by value just copies the data to parameter variable: look at code below
 	{
 	a++;
 	}
-	void main()
+	int main()
 	{
 	int x=20;
-	std::cout&lt;&lt;change_var(x)&lt;&lt;x; //here value 20 is copied in parameter a and is incremented. the changes will be only made in parameter 'a' and not in variable 'x', it will generate output as : 21 20
+	change_var(x);
+	std::cout&lt;&lt;x; //here value 20 is copied in parameter a and is incremented. the changes will be only made in parameter 'a' and not in variable 'x', it will generate output as : 21 20
+	return 0;
 	}
 </pre>
 
@@ -141,18 +143,30 @@ Pass by pointers will also change the data globally. It is suggested to use pass
 have a look at the code:
 <pre cpp>
 	#include&lt;iostream&gt;
-	void change_var(int *a) //here a is an pointer to variable 'x' and a stores memory address of varialbe x. 
+	int * change_var(int *a) //here a is an pointer to variable 'x' and a stores memory address of varialbe x. 
 	{
-		*a++; //we need to dereference the pointer to access its value. 'a' holds the address and *a has its value.
+		(*a)++; //we need to dereference the pointer to access its value. 'a' holds the address and *a has its value. note that *a++ won't work and it will increase the value of address by one. 
+		a++;
+		return a;
 	}
-	void main()
+	int main()
 	{
 	int x=20;
-	std::cout&lt;&lt;change_var(&amp;x)&lt;&lt;x; //here value 20 is in x, and x is referenced by parameter/alias 'a'. the changes will be made in parameter 'a' and in variable 'x', it will generate output as : 21 21
+	std::cout&lt;&lt;"address of x is "&lt;&lt;&amp;x&lt;&lt;std::endl;
+	int *a=change_var(&amp;x);
+	std::cout&lt;&lt;x&lt;&lt;std::endl; //here value 20 is in x, and x is referenced by parameter/alias 'a'. the changes will be made in parameter 'a' and in variable 'x', it will generate output as : 21
+	std::cout&lt;&lt;"address after calling function is "&lt;&lt;a;
 	}
 </pre>
 
 </ul>
+	
+<p>
+<span id="Pass by value, pass by reference, pass by pointers.-Pass by pointers-Output"></span><strong id="Output">Output</strong><br />
+address of x is 0x7ffcd5f30234<br />
+21<br />
+address after calling function is 0x7ffcd5f30238<br />
+</p>
 
     </div>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
