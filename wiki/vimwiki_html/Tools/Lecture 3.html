@@ -101,35 +101,49 @@ We will look at passing multiple template parameters in our template parameter l
 	   return 0;
 	}
 </pre>
-	 We shall copy this code in <a href="https://cppinsights.io/">https://cppinsights.io/</a> and have a look at what kind of code compiler generates on our behalf if we use templates. 
-	Following are insights from above webpage: 
-<pre cpp>
-			#include&lt;iostream&gt;
-			template&lt;typename t1, typename t2&gt;
-		void foo(t1 input1, t2 input2)
-		{
-		  (std::cout &lt;&lt; input1) &lt;&lt; std::endl;
-		  (std::cout &lt;&lt; input2) &lt;&lt; std::endl;
-		}
 
-			
-			/* First instantiated from: insights.cpp:12 */
-			#ifdef INSIGHTS_USE_TEMPLATE
-			template&lt;&gt;
-			void foo&lt;int, float&gt;(int input1, float input2)
-			{
-			  std::cout.operator&lt;&lt;(input1).operator&lt;&lt;(std::endl);
-			  std::cout.operator&lt;&lt;(input2).operator&lt;&lt;(std::endl);
-			}
-			#endif
-			
-			int main()
-		 {
-		   foo&lt;int, float&gt;(3, 4.5F);
-		   return 0;
-		 }
+</ul>
+<p>
+<span id="Multiple template parameters and and non-object type parameters:-Output"></span><strong id="Output">Output</strong><br />
+3<br />
+4.5<br />
+</p>
+
+<p>
+We can copy this code in <a href="https://cppinsights.io/">https://cppinsights.io/</a> and have a look at what kind of code compiler generates on our behalf if we use templates. <br />
+</p>
+		
+<p>
+Following are insights from above webpage: <br />
+</p>
+<pre cpp>
+	#include&lt;iostream&gt;
+	template&lt;typename t1, typename t2&gt;
+void foo(t1 input1, t2 input2)
+{
+  (std::cout &lt;&lt; input1) &lt;&lt; std::endl;
+  (std::cout &lt;&lt; input2) &lt;&lt; std::endl;
+}
+
+	
+	/* First instantiated from: insights.cpp:12 */
+	#ifdef INSIGHTS_USE_TEMPLATE
+	template&lt;&gt;
+	void foo&lt;int, float&gt;(int input1, float input2)
+	{
+	  std::cout.operator&lt;&lt;(input1).operator&lt;&lt;(std::endl);
+	  std::cout.operator&lt;&lt;(input2).operator&lt;&lt;(std::endl);
+	}
+	#endif
+	
+	int main()
+ {
+   foo&lt;int, float&gt;(3, 4.5F);
+   return 0;
+ }
 </pre>
 
+<ul>
 <li>
 To print the type names we can include &lt;typeinfo&gt; 
 <pre cpp>
