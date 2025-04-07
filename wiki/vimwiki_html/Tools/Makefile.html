@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>Makefile</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 20px; /* Increase base font size */
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        h1 {
+            font-size: 28; /* Smaller size for h1 */
+                color: black;
+        }
+
+        h2 {
+            font-size: 26px; /* Smaller size for h2 */
+                color: blue;
+        }
+
+        h3 {
+            font-size: 24px; /* Smaller size for h3 */
+                color: orange;
+        }
+
+        h4 {
+            font-size: 20; /* Smaller size for h3 */
+                color: purple;
+        }
+        
+        h5,h6 {
+            font-size: 18;
+                color: red;
+        }
+
+        img {
+            display: block;
+            max-width: 100%;
+            max-height: 500px;
+            margin: 30px auto; /* Add space above and below images */
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+                max-width: 100%; /* Set maximum width for smaller devices */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+<div id="Basics of Makefile"><h1 id="Basics of Makefile" class="header"><a href="#Basics of Makefile">Basics of Makefile</a></h1></div>
+
+<div id="Basics of Makefile-References"><h2 id="References" class="header"><a href="#Basics of Makefile-References">References</a></h2></div>
+<p>
+I have tried to read the content from the <a href="https://makefiletutorial.com/#why-do-makefiles-exist">link</a> <br />
+</p>
+
+<p>
+Makefiles are written in order to only compile the changed file in a large project. <br />
+</p>
+
+<ol>
+<li>
+Install 'make'
+
+<li>
+goto any folder where all files are written.
+
+<li>
+create a <code>Makefile</code> , just write the below content and save it into file named as <code>Makefile</code>. If make is installed it will show syntax highlighting. 
+
+<li>
+You can also name it anything just call by <code>make -f makefilename targets</code>
+
+</ol>
+<p>
+The general syntax is <br />
+</p>
+
+<pre make>
+target1:prerequisite
+	command1
+	command2
+	command3
+target2:prerequisites1 prerequisite2 
+	command1
+	command2
+...
+
+</pre>
+
+<p>
+Once file is saved with name <code>Makefile</code>, we can run it into all the below types.<br />
+</p>
+
+<div id="Basics of Makefile-Running a makefile"><h2 id="Running a makefile" class="header"><a href="#Basics of Makefile-Running a makefile">Running a makefile</a></h2></div>
+<p>
+*Makefile will only compile the target if either no file named as <code>target1</code> or <code>target2</code> exist in the directory or file named <code>target1</code> or <code>target2</code> is updated respectively.*<br />
+</p>
+
+<ol>
+<li>
+<code>make</code> this command in terminal will only compile the first target which is <code>target1</code> in our case.
+
+<li>
+<code>make target1</code> will only compile the target named as <code>target2</code>
+
+<li>
+<code>make target1 target2</code> will only compile the targets named as <code>target1</code> and <code>target2</code>.
+
+</ol>
+<p>
+In order to run all the targets we define a target named as <code>all</code> with prerequisite as name of all targets. <br />
+</p>
+
+<pre make>
+all: target bla
+	echo "this is one target to compile all targets"
+
+target: program.cpp # if any file with name "target" exists, make won't run this target
+	g++ program.cpp -o target
+
+bla: bla.cpp
+	g++ bla.cpp -o bla
+
+bla.cpp: 
+	echo "int main () { return 0; }" &gt; bla.cpp
+clean: 
+	rm -rf target bla bla.cpp
+
+.PHONY: all # this ensures that "all" is trated as target and not any file
+</pre>
+
+
+<p>
+The above makefile now contains some targets, the following commands will give respective runs.<br />
+</p>
+<ol>
+<li>
+<code>make all</code> will compile all the targets which are mentioned in prerequisite of target <code>all</code> which is <code>target</code> and <code>bla</code>. It is necessary that <code>all</code> is not saved as file, so we say in the end with <code>.PHONY: all</code> that it is just a task and not any filename.
+
+<li>
+Since <code>make</code> only compiles first target, and if our first target is <code>all</code>, then <code>make</code> is same as <code>make all</code>, else <code>make</code> will run only the first <code>target</code>.
+
+<li>
+But if we have already compiled the command <code>make all</code> running again with <code>make all</code> won't change anything until we change the file content of targets or prerequisites. 
+
+<li>
+<code>make bla</code> will not run until the prerequisite <code>bla.cpp</code> is created, so it will look for below target <code>bla.cpp</code> and execute it. Once prerequisite is met target <code>bla</code> will run.
+
+<li>
+<code>make clean</code> will run all the saved files.
+
+</ol>
+<div id="Basics of Makefile-Variables"><h2 id="Variables" class="header"><a href="#Basics of Makefile-Variables">Variables</a></h2></div>
+<p>
+Variables can only be strings, we store the strings in variable with <code>:=</code> or <code>=</code>.<br />
+Reference variable using \((variable) or \){variable}.<br />
+</p>
+<pre make>
+files=file1 file2 file3 file4 file5
+
+somefile: $(files)
+	echo "look at the variable value " $(files)
+	touch somefile
+
+file1: 
+	touch file1
+file2: 
+	touch file2
+file3:
+	touch file3
+file4:
+	touch file4
+file5:
+	touch file5
+</pre>
+
+<div id="Basics of Makefile-Multiple Targets"><h2 id="Multiple Targets" class="header"><a href="#Basics of Makefile-Multiple Targets">Multiple Targets</a></h2></div>
+<pre make>
+all: f1.o f2.o
+f1.o f2.o:
+	echo $@
+# Equivalent to:
+# f1.o:
+#	 echo f1.o
+# f2.o:
+#	 echo f2.o
+</pre>
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+

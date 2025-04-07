@@ -4,7 +4,7 @@
     <link rel="stylesheet" type="text/css" href="style.css">
     <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
-    <title>Programming Languages</title>
+    <title>NVIDIA NSM DLI 2024</title>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
@@ -80,35 +80,132 @@
 <body>
     <div id="content">
         
-<div id="Programming Languages"><h1 id="Programming Languages" class="header"><a href="#Programming Languages">Programming Languages</a></h1></div>
+<div id="NVIDIA NSM DLI 2024"><h1 id="NVIDIA NSM DLI 2024" class="header"><a href="#NVIDIA NSM DLI 2024">NVIDIA NSM DLI 2024</a></h1></div>
 
-<p>
-The following links will guide you to the list of programming languages useful for computation.<br />
-</p>
+<div id="NVIDIA NSM DLI 2024-Sept 14"><h2 id="Sept 14" class="header"><a href="#NVIDIA NSM DLI 2024-Sept 14">Sept 14</a></h2></div>
 
 <ol>
 <li>
-<a href="C++.html">C++</a>
+CPU is main controller; it gives tasks to GPU and waits for results and receive results from GPU, so we can't replace CPU with GPU. GPU is co-processor and it only handles compute intensive tasks. 
 
 <li>
-<a href="CUDA C++.html">CUDA C++</a>
-
-<li>
-<a href="Python.html">Python</a>
-
-<li>
-<a href="C.html">C</a>
-
-<li>
-<a href="SED_and_AWK.html">SED_and_AWK</a>
-
-<li>
-<a href="Bash.html">Bash</a>
-
-<li>
-<a href="Makefile.html">Makefile</a>
+CPU and GPU are on same mother board, they have separate memory to handle serial and parallel tasks respectively.
+<table>
+<thead>
+<tr>
+<th>
+CPU
+</th>
+<th>
+GPU
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+sophisticated control unit
+</td>
+<td>
+less sophisticated control unit
+</td>
+</tr>
+<tr>
+<td>
+Larger cache
+</td>
+<td>
+smaller cache
+</td>
+</tr>
+<tr>
+<td>
+Less area for cores (20% of total area)
+</td>
+<td>
+more area for cores (80% of total area)
+</td>
+</tr>
+<tr>
+<td>
+More DRAM
+</td>
+<td>
+often less VRAM than CPU
+</td>
+</tr>
+<tr>
+<td>
+Faster clock
+</td>
+<td>
+Less powerful clock
+</td>
+</tr>
+</tbody>
+</table>
 
 </ol>
+<p>
+<a href="https://youtu.be/-P28LKWTzrI ">CPU vs GPU mythbusters</a><br />
+</p>
+
+<p>
+We also use GPU for display. (To change colors simultaneously)<br />
+</p>
+
+<p>
+GPC- Graphic Processing Cluster<br />
+SM- Streaming Multiprocessor<br />
+core-CUDA cores<br />
+SFU-special function unit (trigonometric functions, logarithmic functions )<br />
+</p>
+
+<p>
+<span id="NVIDIA NSM DLI 2024-Sept 14-Multiple cores make up one SM, multiple SM makes one GPC, multiple GPC makes GPU."></span><strong id="Multiple cores make up one SM, multiple SM makes one GPC, multiple GPC makes GPU.">Multiple cores make up one SM, multiple SM makes one GPC, multiple GPC makes GPU.</strong><br />
+</p>
+
+
+<hr />
+<p>
+nvcc- nvidia cuda compiler<br />
+</p>
+<ul>
+<li>
+  Threads are group together to form Thread blocks.
+
+<li>
+  group of blocks are termed as Grid.
+
+</ul>
+<p>
+Threads-&gt; Blocks -&gt; Grids<br />
+</p>
+
+<p>
+example: gpufunction&lt;&lt;&lt;N_blocks, N_threads_per_block&gt;&gt;&gt;();<br />
+	or :  gpufunction&lt;&lt;&lt;gridDim.x, blockDim.x&gt;&gt;&gt;();<br />
+</p>
+
+<ul>
+<li>
+  Addtwovectors&lt;&lt;&lt;2,4&gt;&gt;&gt;(); Here 2 blocks and each block has 4 threads. This function will be executed 8 times. 
+
+<li>
+  Limit: max number of threads per block is 1024, max number of blocks per grid depends upon architecture.
+
+<li>
+	threadIdx.x = thread Id local to a given block
+	blockIdx.x = block Id local to a grid
+ 	blockDim.x = number of threads per block
+ 	gridDim.x = number of blocks per grid
+
+<li>
+  Global ID of thread in presence of multiple blocks = threadIdx.x + blockIdx.x + blockDim.x
+
+<li>
+
+</ul>
 
     </div>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
