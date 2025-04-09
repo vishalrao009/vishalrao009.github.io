@@ -11,6 +11,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <!-- PDF.js Viewer CSS -->
     <style>
         body {
             background-image: url('../Images/parchment.jpg');
@@ -19,12 +20,12 @@
             background-attachment: fixed;
             margin: 0;
             font-family: Arial, sans-serif;
-            padding: 3cm; /* Add 3cm padding on all sides */
+            padding: 3cm;
         }
 
         #content {
             color: #333;
-            font-size: 20px; /* Increase base font size */
+            font-size: 20px;
             line-height: 1.6;
             max-width: 1200px;
             margin: 0 auto;
@@ -32,47 +33,45 @@
             background-color: rgba(255, 255, 255, 0.5);
         }
 
-        h1 {
-            font-size: 28; /* Smaller size for h1 */
-                color: black;
+        /* PDF Container Styles */
+        .pdf-container {
+            width: 100%;
+            height: 70vh;
+            min-height: 500px;
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
         }
 
-        h2 {
-            font-size: 26px; /* Smaller size for h2 */
-                color: blue;
+        .pdf-mobile-fallback {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            margin: 20px 0;
         }
 
-        h3 {
-            font-size: 24px; /* Smaller size for h3 */
-                color: orange;
-        }
-
-        h4 {
-            font-size: 20; /* Smaller size for h3 */
-                color: purple;
-        }
-        
-        h5,h6 {
-            font-size: 18;
-                color: red;
-        }
-
-        img {
-            display: block;
-            max-width: 100%;
-            max-height: 500px;
-            margin: 30px auto; /* Add space above and below images */
-        }
-
-        /* Mobile Styles */
+        /* Responsive adjustments */
         @media only screen and (max-width: 600px) {
             body {
-                padding: 1cm; /* Adjust padding for smaller screens */
+                padding: 1cm;
             }
-
             #content {
-                padding: 10px; /* Adjust padding for smaller screens */
-                max-width: 100%; /* Set maximum width for smaller devices */
+                padding: 10px;
+                max-width: 100%;
+            }
+            .pdf-container {
+                height: 60vh;
+                min-height: 300px;
+            }
+            /* Show fallback on mobile */
+            .pdf-mobile-fallback {
+                display: block;
+            }
+            .pdf-desktop-viewer {
+                display: none;
             }
         }
     </style>
@@ -553,15 +552,55 @@ SIMULATeQCD
 
 
 <p>
-The space space plaquette comparision can be found at <img src="../docs/plaq_ss_comp.pdf" />.<br />
-The space time plaquette comparision can be found at <img src="../docs/plaq_st_comp.pdf" /><br />
+The space space plaquette comparision plot: <img src="../docs/plaq_ss_comp.pdf" /><br />
+The space time plaquette comparision plot: <img src="../docs/plaq_st_comp.pdf" /><br />
 </p>
 
+        
+        <!-- This script will replace PDF links with embedded viewers -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Find all PDF links and replace them with viewers
+                const pdfLinks = document.querySelectorAll('a[href$=".pdf"]');
+                
+                pdfLinks.forEach(link => {
+                    const pdfUrl = link.href;
+                    const container = document.createElement('div');
+                    container.className = 'pdf-container';
+                    
+                    // Desktop viewer (iframe)
+                    const iframe = document.createElement('iframe');
+                    iframe.className = 'pdf-desktop-viewer';
+                    iframe.src = pdfUrl;
+                    iframe.width = '100%';
+                    iframe.height = '100%';
+                    iframe.style.border = 'none';
+                    
+                    // Mobile fallback
+                    const fallback = document.createElement('div');
+                    fallback.className = 'pdf-mobile-fallback';
+                    fallback.innerHTML = `
+                        <p>For better PDF viewing on mobile:</p>
+                        <a href="${pdfUrl}" target="_blank">Open PDF in new tab</a>
+                        <p>or</p>
+                        <a href="https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}" target="_blank">
+                            View with Google Docs Viewer
+                        </a>
+                    `;
+                    
+                    container.appendChild(iframe);
+                    container.appendChild(fallback);
+                    
+                    // Replace link with the viewer
+                    link.parentNode.replaceChild(container, link);
+                });
+            });
+        </script>
     </div>
+    
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
     <script type="text/javascript">
         document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
     </script>
 </body>
 </html>
-
