@@ -9,10 +9,17 @@
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
 
-    <!-- PDF.js Viewer CSS -->
     <style>
+        :root {
+            --desktop-padding: 3cm;
+            --mobile-padding: 1cm;
+            --content-maxwidth: 1200px;
+            --pdf-height: 80vh;
+            --mobile-pdf-height: 60vh;
+        }
+
         body {
             background-image: url('../Images/parchment.jpg');
             background-size: cover;
@@ -20,58 +27,89 @@
             background-attachment: fixed;
             margin: 0;
             font-family: Arial, sans-serif;
-            padding: 3cm;
+            padding: var(--desktop-padding);
+            box-sizing: border-box;
+            overflow-x: hidden;
         }
 
         #content {
             color: #333;
             font-size: 20px;
             line-height: 1.6;
-            max-width: 1200px;
+            max-width: var(--content-maxwidth);
             margin: 0 auto;
-            padding: 10px;
+            padding: 20px;
             background-color: rgba(255, 255, 255, 0.5);
+            box-sizing: border-box;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         /* PDF Container Styles */
         .pdf-container {
             width: 100%;
-            height: 70vh;
-            min-height: 500px;
+            height: var(--pdf-height);
             margin: 20px 0;
             border: 1px solid #ddd;
-            border-radius: 4px;
-            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        .pdf-mobile-fallback {
-            display: none;
+        .pdf-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .pdf-fallback {
+            padding: 15px;
+            background: #f8f8f8;
             text-align: center;
-            padding: 20px;
-            background: #f5f5f5;
-            border-radius: 4px;
-            margin: 20px 0;
         }
 
-        /* Responsive adjustments */
-        @media only screen and (max-width: 600px) {
+        /* Headers */
+        h1 { font-size: 28px; color: black; }
+        h2 { font-size: 26px; color: blue; }
+        h3 { font-size: 24px; color: orange; }
+        h4 { font-size: 20px; color: purple; }
+        h5, h6 { font-size: 18px; color: red; }
+
+        /* Images */
+        img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            margin: 30px auto;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            overflow-x: auto;
+            display: block;
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 768px) {
             body {
-                padding: 1cm;
+                padding: var(--mobile-padding);
             }
+
             #content {
                 padding: 10px;
                 max-width: 100%;
             }
+
             .pdf-container {
-                height: 60vh;
-                min-height: 300px;
+                height: var(--mobile-pdf-height);
             }
-            /* Show fallback on mobile */
-            .pdf-mobile-fallback {
+
+            /* Force responsive tables */
+            table {
                 display: block;
-            }
-            .pdf-desktop-viewer {
-                display: none;
+                overflow-x: auto;
+                white-space: nowrap;
             }
         }
     </style>
@@ -552,52 +590,37 @@ SIMULATeQCD
 
 
 <p>
-The space space plaquette comparision plot: <img src="../docs/plaq_ss_comp.pdf" /><br />
-The space time plaquette comparision plot: <img src="../docs/plaq_st_comp.pdf" /><br />
+The space space plaquette comparision plot: <img src="/root/phd_work/notes/vimwiki/Research_work/diary/docs/plaq_ss_comp.pdf" /><br />
+The space time plaquette comparision plot: <img src="/root/phd_work/notes/vimwiki/Research_work/diary/docs/plaq_st_comp.pdf" /><br />
 </p>
 
-        
-        <!-- This script will replace PDF links with embedded viewers -->
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                // Find all PDF links and replace them with viewers
-                const pdfLinks = document.querySelectorAll('a[href$=".pdf"]');
-                
-                pdfLinks.forEach(link => {
-                    const pdfUrl = link.href;
-                    const container = document.createElement('div');
-                    container.className = 'pdf-container';
-                    
-                    // Desktop viewer (iframe)
-                    const iframe = document.createElement('iframe');
-                    iframe.className = 'pdf-desktop-viewer';
-                    iframe.src = pdfUrl;
-                    iframe.width = '100%';
-                    iframe.height = '100%';
-                    iframe.style.border = 'none';
-                    
-                    // Mobile fallback
-                    const fallback = document.createElement('div');
-                    fallback.className = 'pdf-mobile-fallback';
-                    fallback.innerHTML = `
-                        <p>For better PDF viewing on mobile:</p>
-                        <a href="${pdfUrl}" target="_blank">Open PDF in new tab</a>
-                        <p>or</p>
-                        <a href="https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}" target="_blank">
-                            View with Google Docs Viewer
-                        </a>
-                    `;
-                    
-                    container.appendChild(iframe);
-                    container.appendChild(fallback);
-                    
-                    // Replace link with the viewer
-                    link.parentNode.replaceChild(container, link);
-                });
-            });
-        </script>
     </div>
-    
+
+    <!-- PDF.js Loader (will only activate for PDF links) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Find all PDF links and replace with embedded viewers
+            document.querySelectorAll('a[href$=".pdf"]').forEach(pdfLink => {
+                const pdfUrl = pdfLink.getAttribute('href');
+                const container = document.createElement('div');
+                container.className = 'pdf-container';
+                
+                const iframe = document.createElement('iframe');
+                iframe.className = 'pdf-iframe';
+                iframe.src = `https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true`;
+                
+                const fallback = document.createElement('div');
+                fallback.className = 'pdf-fallback';
+                fallback.innerHTML = `Your browser doesn't support PDF embedding. <a href="${pdfUrl}">Download PDF</a>`;
+                
+                container.appendChild(iframe);
+                container.appendChild(fallback);
+                
+                pdfLink.parentNode.replaceChild(container, pdfLink);
+            });
+        });
+    </script>
+
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
     <script type="text/javascript">
         document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
