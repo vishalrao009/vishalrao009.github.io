@@ -1,0 +1,2308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <title>QFT2-Ashoke-1-5</title>
+    <!-- <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> --> 
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm; /* Add 3cm padding on all sides */
+        }
+
+        #content {
+            color: #333;
+            font-size: 20px; /* Increase base font size */
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        h1 {
+            font-size: 28; /* Smaller size for h1 */
+                color: black;
+        }
+
+        h2 {
+            font-size: 26px; /* Smaller size for h2 */
+                color: blue;
+        }
+
+        h3 {
+            font-size: 24px; /* Smaller size for h3 */
+                color: orange;
+        }
+
+        h4 {
+            font-size: 20; /* Smaller size for h3 */
+                color: purple;
+        }
+        
+        h5,h6 {
+            font-size: 18;
+                color: red;
+        }
+
+        img {
+            display: block;
+            max-width: 100%;
+            max-height: 500px;
+            margin: 30px auto; /* Add space above and below images */
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 0.5cm; /* Adjust padding for smaller screens */
+            }
+
+            #content {
+                padding: 10px; /* Adjust padding for smaller screens */
+                max-width: 100%; /* Set maximum width for smaller devices */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+<div id="QFT-2 Lecture Notes"><h1 id="QFT-2 Lecture Notes" class="header"><a href="#QFT-2 Lecture Notes">QFT-2 Lecture Notes</a></h1></div>
+
+<p>
+<em>Original TikZ diagrams are marked [diagram] / [figure omitted] (MathJax cannot render them).</em><br />
+</p>
+
+<div id="Lecture 1"><h1 id="Lecture 1" class="header"><a href="#Lecture 1">Lecture 1</a></h1></div>
+
+<p>
+<span id="Lecture 1-Results From QFT-1"></span><strong id="Results From QFT-1">Results From QFT-1</strong><br />
+</p>
+
+<p>
+Consider QFT of scalar field.<br />
+</p>
+
+<p>
+--- We know that most of physical information is contained in<br />
+</p>
+
+\[
+G\left(x_1, x_2, \ldots x_n\right) = \frac{\left\langle \Omega\right|\, T\left(\prod_{i=1}^{N}\hat{\phi}(x)\right)\left|\Omega\right\rangle}{\left\langle \Omega \middle| \Omega \right\rangle}
+\]
+
+<p>
+where, \(x = \left(\vec{x}, t\right)\)<br />
+</p>
+
+\[
+\begin{gathered}
+\left|\Omega\right\rangle = \text{interacting ground state.}\\
+T\left(\phi(t_1)\,\phi(t_2)\right) = \theta\left(t_1 - t_2\right)\,\phi(t_1)\,\phi(t_2) + \theta\left(t_2 - t_1\right)\,\phi(t_1)\,\phi(t_2)\\
+\left(\text{i.e.\ largest time on left}\right)
+\end{gathered}
+\]
+
+<p>
+The reason greens fun. is important is that it contains<br />
+</p>
+
+<p>
+--- info. about masses of particles for a given theory (given by pole positions of 2 point functions in momentum space)<br />
+</p>
+
+<p>
+--- It contains info about \(S\)-matrix elements. via LSZ formalism.<br />
+</p>
+
+<p>
+<span id="Lecture 1-Goals For QFT-2"></span><strong id="Goals For QFT-2">Goals For QFT-2</strong> ---<br />
+</p>
+
+<p>
+(1) One first goal in QFT-2 will be to develope new ways of calculating green's fun. ex. Path integral formalism &amp; study properties of Green's fun.; we will also try to know why Path integral formulation? ( (1) Canonical Formulation breaks manifested lorentz invariance (we give special role to time in hamiltonian formulation i.e. Hamiltonian generates time translations not space translations); although final results are lorentz invariance, so one advantage is that we can maintain lorentz invariance in path integral formulation.<br />
+</p>
+
+<p>
+(2) Another reason to use path integral formulation is that, for cases of interaction term in lagrangian having time derivative than hamiltonian might become complicated \(\left(H = p\dot{q} - L\right)\)<br />
+</p>
+
+<p>
+Consider 1-d QM ---<br />
+</p>
+
+\[
+L = \frac{1}{2}\,\dot{q}^{2} + \frac{\lambda}{2}\,\dot{q}^{2}\,q
+\]
+
+\[
+\begin{gathered}
+p = \frac{\partial L}{\partial\dot{q}} = \dot{q} + \lambda\,\dot{q}\,q\\
+\Rightarrow\qquad \dot{q} = \frac{p}{1+\lambda q}
+\end{gathered}
+\]
+
+\[
+\begin{aligned}
+H &amp;= \dot{q}\,p - L\\
+&amp;= \frac{p^{2}}{\left(\lambda q + 1\right)} - \frac{1}{2}\,\frac{p^{2}}{\left(1+\lambda q\right)^{2}} - \frac{\lambda}{2}\,q\,\frac{p^{2}}{\left(1+\lambda q\right)^{2}}\\
+&amp;= \frac{p^{2}}{\left(1+\lambda q\right)}\left(1 - \frac{1}{2\left(1+\lambda q\right)} - \frac{q\lambda}{2\left(1+\lambda q\right)}\right)\\
+&amp;= \frac{p^{2}}{2\left(1+\lambda q\right)^{2}}\left(2 + 2\lambda q - 1 - \lambda q\right)
+\end{aligned}
+\]
+
+\[
+\begin{aligned}
+H &amp;= \frac{1}{2}\left(\frac{p^{2}}{1+\lambda q}\right) = \frac{p^{2}}{2}\left(1 + q\lambda\right)^{-1}\\
+&amp;= \frac{p^{2}}{2}\left(1 - q\lambda + \frac{q^{2}\lambda^{2}}{2} - \frac{\lambda^{3}\,q^{3}}{3!} + \cdots\right)
+\end{aligned}
+\]
+
+<p>
+Note that lagrangian only contains one term of '\(\lambda\)' whereas hamiltonian has multiple orders of \(\lambda\).<br />
+</p>
+
+<p>
+(3) Path integral approach is well suited for non-abelian gauge theories. (non-abelian gauge theories describe strong, weak &amp; electromagnetic interactions, i.e. everything except gravity).<br />
+</p>
+
+<p>
+We can also develope path integral approach for time dependent lagrangian but our lagrangian for universe is time independent upto great accuracy.<br />
+</p>
+
+<p>
+<span id="Lecture 1-Path Integral in QM"></span><strong id="Path Integral in QM">Path Integral in QM</strong> ---<br />
+</p>
+
+<p>
+Lets start for simple example ---<br />
+</p>
+
+\[
+\begin{gathered}
+H = \frac{p^{2}}{2m} + V(q)\\
+L = \frac{1}{2}\,m\,\dot{q}^{2} - V(q)
+\end{gathered}
+\]
+
+<p>
+we define Action \((S)\) \(= \displaystyle\int dt\; L\left(q(t), \dot{q}(t)\right)\)<br />
+</p>
+
+<p>
+Now consider quantum theory ---<br />
+</p>
+
+<p>
+--- We will use Heisenberg picture (time independent states &amp; time dependent operator)<br />
+</p>
+
+\[
+\Psi_{H} = \Psi_{S}(0)\;,\qquad O_{H}(0) = O_{S}
+\]
+
+<p>
+--- set \(\hbar = 1\)<br />
+</p>
+
+<p>
+--- Operators evolve via<br />
+</p>
+
+\[
+\begin{aligned}
+\hat{q}(t) &amp;= e^{iHt}\;\hat{q}_{H}(0)\;e^{-iHt}\\
+\hat{q}_{H}(t) &amp;= e^{iHt}\;\hat{q}_{S}\;e^{-iHt}
+\end{aligned}
+\]
+
+<p>
+Now consider two states (eigen states of \(\hat{q}\), labelled by e.v. \(q'\) &amp; \(q''\)). \(\left|q'\right\rangle\) &amp; \(\left|q''\right\rangle\) respectively.<br />
+</p>
+
+<p>
+Quantity we are interested in is \(K\left(q', t';\ q'', t''\right)\)<br />
+</p>
+
+\[
+\begin{aligned}
+K\left(q', t';\ q'', t''\right) &amp;= \left\langle q''\right|\, e^{-iH\left(t''-t'\right)}\left|q'\right\rangle\\
+&amp;= \left\langle q''\right|\, \underline{e^{-iH t''}}\;\underline{e^{iH t'}}\left|q'\right\rangle
+\end{aligned}
+\]
+
+<p>
+<span id="Lecture 1-ex"></span><strong id="ex">ex</strong> :<br />
+</p>
+
+\[
+\begin{aligned}
+\hat{q}(t')\,\underline{e^{iHt'}\left|q'\right\rangle} &amp;= e^{iHt'}\,\hat{q}\,e^{-iHt'}\,e^{iHt'}\left|q'\right\rangle\\
+&amp;= e^{iHt'}\;\hat{q}\left|q'\right\rangle\\
+&amp;= q'\;e^{iHt'}\left|q'\right\rangle
+\end{aligned}
+\]
+
+<p>
+So \(e^{iHt'}\left|q'\right\rangle\) is eigen state of \(\hat{q}(t')\) with e.v. \(q'\).<br />
+</p>
+
+<p>
+Similarly,<br />
+</p>
+
+\[
+\left\langle q''\right|\,e^{-iHt''}\,\hat{q}(t'') = q''\left\langle q''\right| e^{-iHt''}
+\]
+
+<p>
+So,<br />
+</p>
+
+<p>
+\(K\) is overlap between eigen states of \(\hat{q}(t')\) &amp; \(\hat{q}(t'')\) with e.v. \(q'\) &amp; \(q''\) respectively.<br />
+</p>
+
+<p>
+<span id="Lecture 1-Claim"></span><strong id="Claim">Claim</strong> ---<br />
+</p>
+
+\[
+K\left(q', t';\ q'', t''\right) = \int\left[\mathcal{D}q\right]\, e^{iS}
+\qquad\text{for}\quad t'' &gt; t'
+\]
+
+<p>
+<em>[figure omitted]</em><br />
+</p>
+
+<p>
+We think of path as descrete collection of points. Lets take \(N\) as some large integer.<br />
+</p>
+
+\[
+\text{We define}\qquad \Delta = \frac{t''-t'}{N} \quad\Rightarrow\;\text{small number}
+\]
+
+\[
+\begin{aligned}
+\tau_{k} &amp;= t' + (k-1)\,\Delta \qquad k = 1, 2, 3\ldots N+1.\\
+\tau_{1} &amp;= t'\\
+\tau_{2} &amp;= t' + \Delta\\
+\tau_{3} &amp;= t' + 2\Delta\\
+&amp;\;\;\vdots\\
+\tau_{N+1} &amp;= t' + N\Delta = t''
+\end{aligned}
+\]
+
+<p>
+<em>[figure omitted]</em><br />
+</p>
+
+<p>
+We define<br />
+</p>
+
+\[
+\begin{gathered}
+q_{i} = q\left(\tau_{i}\right)\ \text{ for a given path}\\
+q_{1} = q\left(\tau_{1}\right) = q(t') = q'\\
+q_{2} = q\left(\tau_{2}\right)\\
+\vdots\\
+q_{N+1} = q\left(\tau_{N+1}\right) = q(t'') = q''
+\end{gathered}
+\]
+
+<p>
+So our path is collection of points \(\left(q_1, q_2 \ldots q_{N+1}\right)\) (or) \(\left(q', \ldots\ldots, q''\right)\)<br />
+</p>
+
+<p>
+So action<br />
+</p>
+
+\[
+\begin{aligned}
+(S) &amp;= \int_{t'}^{t''} dt\,\left(\frac{1}{2}\,\dot{q}^{2} - V(q)\right)\\
+&amp;= \Delta\,\sum_{k=1}^{N}\left(\frac{1}{2}\left(\frac{q_{k+1}-q_{k}}{\Delta}\right)^{2} - V\left(q_{k}\right)\right)
+\end{aligned}
+\]
+
+<p>
+So<br />
+</p>
+
+\[
+\begin{gathered}
+K\left(q', t';\ q'', t''\right) = \lim_{N\to\infty}\;\mathcal{N}\!\int dq_2\, dq_3\ldots dq_N\; e^{iS}\\
+\hookrightarrow\;\text{does not depend on } q' \,\&amp;\, q''.\quad\left(\text{fixed for all case}\right).
+\end{gathered}
+\]
+
+\[
+\begin{aligned}
+K\left(q', t';\ q'', t''\right) &amp;= \left\langle q''\right| e^{-iH\left(t''-t'\right)}\left|q'\right\rangle\\
+&amp;= \left\langle q''\right| e^{-iH N\Delta}\left|q'\right\rangle\\
+&amp;= \left\langle q''\right| \underbrace{e^{-iH\Delta}}_{\downarrow}\, e^{-iH\Delta}\, e^{-iH\Delta}\cdots \underbrace{e^{-iH\Delta}}_{\uparrow}\left|q'\right\rangle
+\end{aligned}
+\]
+
+\[
+\int dq_N \left|q_N\right\rangle\left\langle q_N\right|
+\qquad\qquad
+\begin{aligned}
+&amp;\text{insert completeness relation.}\\
+&amp;\int dq_2 \left|q_2\right\rangle\left\langle q_2\right|
+\end{aligned}
+\]
+
+\[
+= \int dq_2\, dq_3\ldots dq_N\;\prod_{k=1}^{N}\;\underline{\left\langle q_{k+1}\right| e^{-iH\Delta}\left|q_{k}\right\rangle}
+\qquad
+\left(\underline{q_{N+1} = q''}\ \&amp;\ q_{1} = q'\right)
+\]
+
+<p>
+Now our goal is to evaluate \(\left\langle q_{k+1}\right| e^{-iH\Delta}\left|q_{k}\right\rangle\)<br />
+</p>
+
+\[
+= \left\langle q_{k+1}\right|\, e^{-i\left(\frac{\hat{p}^{2}}{2m} + V(\hat{q})\right)\Delta}\left|q_{k}\right\rangle
+\qquad
+\left|
+\begin{aligned}
+&amp;e^{A+B} = e^{A}\,e^{B}\,e^{-\frac{1}{2}\left[B,A\right]}\cdots\\
+&amp;\text{for our case } \left[B,A\right] \sim \Delta^{2}
+\end{aligned}
+\right.
+\]
+
+\[
+\simeq\; \left\langle q_{k+1}\right|\, e^{-i\frac{\hat{p}^{2}}{2m}\Delta}\; e^{-iV(\hat{q})\Delta}\left|q_{k}\right\rangle
+\]
+
+<p>
+\(\downarrow\) Note that this is approx. equal to.<br />
+</p>
+
+\[
+\begin{gathered}
+\text{As}\quad e^{A+B} = e^{A}\, e^{B}\, e^{\frac{1}{2}\left[B,A\right]}\cdots\\
+\text{For our case}\quad \left[B,A\right] = \sim\Delta^{2}
+\;\Rightarrow\;
+e^{A+B} = e^{A}\,e^{B}\cdot e^{\Delta^{2}K} = e^{A}\,e^{B}\left(1 + \Delta^{2}K + \cdots\right)
+\end{gathered}
+\]
+
+<p>
+Since we have \(N\)-such products \(\prod_{k=1}^{N}\left\langle q_{k+1}\right|e^{-iH\Delta}\left|q_{k}\right\rangle\) we get,<br />
+</p>
+
+\[
+\begin{gathered}
+\lim_{N\to\infty}\left(1 + \Delta^{2}K\right)^{N}
+\qquad\text{where}\quad \Delta = C/N\\
+\lim_{N\to\infty}\left(1 + \frac{\text{const.}}{N^{2}}\right)^{N} = \;\underline{1}
+\end{gathered}
+\]
+
+\[
+\begin{aligned}
+&amp;\simeq\; e^{-iV\left(q_k\right)\Delta}\,\left\langle q_{k+1}\right|\, e^{-i\frac{\hat{p}^{2}}{2m}\Delta}\cdot I\,\left|q_{k}\right\rangle
+\qquad\qquad \hookrightarrow I = \int dp_{k}\left|p_{k}\right\rangle\left\langle p_{k}\right|\\
+&amp;\simeq\; e^{-iV\left(q_k\right)\Delta}\int dp\;\left\langle q_{k+1}\right| e^{-i\frac{\hat{p}^{2}}{2m}\Delta}\left|p_{k}\right\rangle\left\langle p_{k}\middle| q_{k}\right\rangle\\
+&amp;\simeq\; e^{-iV\left(q_k\right)\Delta}\int dp\; e^{-i\frac{p_{k}^{2}}{2m}\Delta}\;\left\langle q_{k+1}\middle| p_{k}\right\rangle\left\langle p_{k}\middle| q_{k}\right\rangle\\
+&amp;\simeq\; e^{-iV\left(q_k\right)\Delta}\left(\frac{1}{2\pi}\right)\int dp\; e^{-i\frac{p_{k}^{2}}{2m}\Delta}\cdot e^{i\,p_{k}\left(q_{k+1}-q_{k}\right)}
+\end{aligned}
+\]
+
+<p>
+using<br />
+</p>
+
+\[
+\left\langle x \middle| p \right\rangle = \frac{1}{\sqrt{2\pi}}\;e^{+i\,p\cdot x}
+\]
+
+\[
+\simeq\; e^{-iV\left(q_k\right)\Delta}\left(\frac{1}{2\pi}\right)\int dp_{k}\;
+e^{-\frac{i\Delta}{2m}\left(p_{k} - \frac{2m\,p_{k}\left(q_{k+1}-q_{k}\right)}{\Delta} + \frac{m}{\Delta^{2}}\left(q_{k+1}-q_{k}\right)^{2} - \frac{m}{\Delta^{2}}\left(q_{k+1}-q_{k}\right)^{2}\right)}
+\]
+
+\[
+\simeq\; \frac{e^{-iV\left(q_k\right)\Delta}}{2\pi}\int dp_{k}\;
+e^{-\frac{i\Delta}{2m}\left(p_{k} - m\frac{\left(q_{k+1}-q_{k}\right)}{\Delta}\right)^{2}}\;
+e^{\frac{i}{2\Delta}\left(q_{k+1}-q_{k}\right)^{2}}
+\]
+
+\[
+\simeq\; \frac{e^{-iV\left(q_k\right)\Delta \;+\; \frac{i}{2\Delta}\left(q_{k+1}-q_{k}\right)^{2}}}{2\pi}\;\sqrt{\frac{\pi\,2m}{i\Delta}}
+\]
+
+<p>
+So,<br />
+</p>
+
+\[
+\begin{aligned}
+K\left(q', t';\ q'', t''\right)
+&amp;= \int dq_2\, dq_3\ldots dq_N\;\prod_{k=1}^{N}\left(\frac{1}{2\pi}\right)
+e^{-iV\left(q_k\right)\Delta + \frac{i}{2\Delta}\left(q_{k+1}-q_{k}\right)^{2}}\cdot\sqrt{\frac{2\pi m}{i\Delta}}\\
+&amp;= \int dq_2\, dq_3\ldots dq_N\left(\frac{1}{\sqrt{2\pi}}\right)^{N}
+e^{+i\Delta\left(\sum_{k=1}^{N}\frac{\left(q_{k+1}-q_{k}\right)^{2}}{\Delta} - V\left(q_{k}\right)\right)}
+\left(\sqrt{\frac{m}{i\Delta}}\right)^{N}
+\end{aligned}
+\]
+
+\[
+\boxed{\;K\left(q', t';\ q'', t''\right) = \mathcal{N}\int\left[\mathcal{D}q\right]\; e^{+iS}\;}
+\qquad\qquad
+\mathcal{N} = \left(\sqrt{\frac{m}{2\pi\,i\Delta}}\right)^{N}
+\]
+
+<div id="Lecture 2"><h1 id="Lecture 2" class="header"><a href="#Lecture 2">Lecture 2</a></h1></div>
+
+<p>
+<span id="Lecture 2-Generalisation"></span><strong id="Generalisation">Generalisation</strong> :<br />
+</p>
+
+<p>
+Suppose we want to calculate matrix elements of kind ---<br />
+</p>
+
+\[
+\left\langle q''\right|\, e^{-iHt''}\;\underline{T\left(\hat{q}(t_1)\,\hat{q}(t_2)\,\cdots\,\hat{q}(t_n)\right)}\; e^{iHt'}\left|q'\right\rangle
+\]
+
+<p>
+instead of just \(\left\langle q'', t'' \middle| q', t'\right\rangle\) or \(\left\langle q''\right| e^{-iHt''}\cdot\underline{1}\cdot e^{iHt'}\left|q'\right\rangle\)<br />
+</p>
+
+<p>
+where \(t'' &gt; t_n &gt; t_{n-1}\;\cdots\; &gt; t'\)<br />
+</p>
+
+<p>
+eventually we will take limits \(t'' \longrightarrow \infty\), \(t' \longrightarrow -\infty\)<br />
+</p>
+
+<p>
+Claim is<br />
+</p>
+
+\[
+\left\langle q''\right| e^{-iHt''}\, T\left(\hat{q}(t_1)\,\hat{q}(t_2)\,\cdots\,\hat{q}(t_n)\right) e^{iHt'}\left|q'\right\rangle
+\;=\; \int\left[\mathcal{D}q\right]\, e^{iS}\; q(t_1)\,q(t_2)\cdots q(t_n)
+\]
+
+<p>
+Please remind that \(e^{iHt'}\left|q'\right\rangle\) is eigen state of \(\hat{q}(t')\) as it satisfies<br />
+</p>
+
+\[
+\begin{aligned}
+\underline{\hat{q}(t')}\;\underline{e^{iHt'}\left|q'\right\rangle} &amp;= \underline{e^{iHt'}\,\hat{q}\,e^{-iHt'}}\;\underline{e^{iHt'}\left|q'\right\rangle}\\
+&amp;= q'\;\underline{e^{iHt'}\left|q'\right\rangle}
+\end{aligned}
+\]
+
+<p>
+with eigen value \(q'\).<br />
+</p>
+
+<p>
+Similarly \(\left\langle q''\right| e^{-iHt''}\) is eigen state of \(\hat{q}(t'')\), with eigen value \(q''\).<br />
+</p>
+
+<p>
+Above claim implies that path integral automatically generates matrix elements of time ordered products of operators<br />
+</p>
+
+<p>
+Since LHS &amp; RHS of our claim is independent of choice weather<br />
+</p>
+
+\[
+\begin{gathered}
+t_1 &gt; t_2 &gt; t_3\;\cdots\; &gt; t_n\\
+\text{or}\qquad t_1 &lt; t_2 &lt; t_3 \cdots &lt; t_{n-1} &lt; t_n
+\end{gathered}
+\]
+
+<p>
+We choose \(t_n &gt; t_{n-1} &gt; t_{n-2}\;\cdots\; &gt; t_2 &gt; t_1\)<br />
+</p>
+
+<p>
+<span id="Lecture 2-LHS"></span><strong id="LHS">LHS</strong> :<br />
+</p>
+
+\[
+\left\langle q''\right|\, e^{-iHt''}\;\hat{q}(t_n)\,\hat{q}(t_{n-1})\,\ldots\,\hat{q}(t_1)\; e^{iHt'}\left|q'\right\rangle
+\]
+
+<p>
+using<br />
+</p>
+
+\[
+\left.
+\begin{aligned}
+\hat{q}(t_n) &amp;= e^{iHt_n}\,\hat{q}(0)\,e^{-iHt_n}\\
+&amp;= e^{+iHt_n}\,\hat{q}\,e^{-iHt_n}
+\end{aligned}
+\right\}\;\text{Heisenberg picture.}
+\]
+
+<p>
+\(\Rightarrow\) LHS becomes<br />
+</p>
+
+\[
+\begin{aligned}
+&amp;\left\langle q''\right| e^{-iHt''}\, e^{iHt_n}\,\hat{q}\,e^{-iHt_n}\; e^{iHt_{n-1}}\,\hat{q}\,e^{-iHt_{n-1}}\cdots\; e^{iHt_1}\,\hat{q}\,e^{-iHt_1}\,e^{iHt'}\left|q'\right\rangle\\
+=\;&amp;\left\langle q''\right|\, e^{-iH\left(t''-t_n\right)}\;\hat{q}\;e^{-iH\left(t_n - t_{n-1}\right)}\;\cdots\cdots\;
+e^{-iH\left(t_2-t_1\right)}\;\hat{q}\;e^{-iH\left(t_1-t'\right)}\left|q'\right\rangle
+\end{aligned}
+\]
+
+<p>
+Note that, time difference \(t_n - t_{n-1}\) may not be same for all '\(n\)'.<br />
+</p>
+
+<p>
+So let us descretise total time diff. \(t'' - t' = N\Delta\)<br />
+</p>
+
+<p>
+we define<br />
+</p>
+
+\[
+\begin{gathered}
+t_1 = t' + k_1\,\Delta\\
+t_2 = t' + k_2\,\Delta
+\qquad
+\left\{\,k_r\ \text{may not be same}\right.\\
+\vdots\\
+t_r = t' + k_r\,\Delta\\
+\text{for some integer } k_r.
+\end{gathered}
+\]
+
+<p>
+Now one can argue that \(k_r\) may be some floating point number<br />
+</p>
+
+<p>
+The idea is that we devide \(t'' - t'\) in large # of small time steps.<br />
+</p>
+
+<p>
+<em>[figure omitted]</em><br />
+</p>
+
+<p>
+We then can shift our \(t_r\) such that it falls on one of red lines (upto an small order \(\delta\) we can shift our times).<br />
+</p>
+
+\[
+\text{Then}\qquad t_r = t_1 + k_r\,\Delta\qquad\text{where}\quad \underline{k_r \in \mathbb{I}}
+\]
+
+\[
+\begin{gathered}
+r = 1, 2, 3\;\cdots\; n\\
+k_r = 0, 1, 2, \cdots\; N
+\end{gathered}
+\]
+
+<p>
+Since we have choosen \(t_n &gt; t_{n-1} &gt; t_{n-2}\;\cdots\; &gt; t_1\)<br />
+</p>
+
+\[
+\begin{gathered}
+\Rightarrow\qquad t_r &gt; t_{r-1} &gt; t_{r-2}\\
+\Rightarrow\qquad k_r &gt; k_{r-1} &gt; k_{r-2}
+\end{gathered}
+\]
+
+\[
+\begin{aligned}
+\Rightarrow\qquad t_n - t_{n-1} &amp;= \left(t_1 + k_n\,\Delta\right) - \left(t_1 + k_{n-1}\,\Delta\right)\\
+&amp;= \left(k_n - k_{n-1}\right)\Delta
+\end{aligned}
+\]
+
+<p>
+also \(t_1 = t' + k_1\,\Delta\) \(\Rightarrow\) \(t_1 - t' = k_1\,\Delta\)<br />
+</p>
+
+<p>
+LHS becomes :<br />
+</p>
+
+\[
+\begin{aligned}
+&amp;\left\langle q''\right|\, e^{-i\hat{H}\left(t''-t_n\right)}\;\hat{q}\;e^{-i\hat{H}\left(t_n-t_{n-1}\right)}\;\hat{q}\;\cdots\cdots\;
+e^{-i\hat{H}\left(t_2-t_1\right)}\;\hat{q}\;e^{-i\hat{H}\left(t_1-t'\right)}\left|q'\right\rangle\\
+=\;&amp;\left\langle q''\right|\, e^{-iH\left(N-k_n\right)\Delta}\;\hat{q}\;e^{-iH\left(k_n-k_{n-1}\right)\Delta}\;\cdots\cdots\;
+e^{-iH\left(k_2-k_1\right)\Delta}\;\hat{q}\;e^{-iH\,k_1\,\Delta}\left|q'\right\rangle
+\end{aligned}
+\]
+
+\[
+\uparrow\quad\text{insert identity operator}\qquad
+I = \int dq_n\left|q_n\right\rangle\left\langle q_n\right|
+\]
+
+\[
+\left(\text{Since } \exists\ `n\text{' such } \hat{q}\text{, we insert `}n\text{' identity}\right)
+\]
+
+<p>
+LHS becomes ---<br />
+</p>
+
+\[
+\begin{aligned}
+=\;\left\langle q''\right|\, e^{-i\hat{H}\left(N-k_n\right)\Delta}\;\hat{q}&amp;\left(\int dq_n\left|q_n\right\rangle\left\langle q_n\right|\right)e^{-i\hat{H}\left(k_n-k_{n-1}\right)\Delta}\;\cdots\\
+&amp;\cdots\;\hat{q}\int dq_2\left|q_2\right\rangle\left\langle q_2\right| e^{-iH\left(k_2-k_1\right)\Delta}\;\hat{q}\int dq_1\left|q_1\right\rangle\left\langle q_1\right|\,e^{-i\hat{H}\,k_1\Delta}\left|q'\right\rangle
+\end{aligned}
+\]
+
+\[
+\begin{aligned}
+\hat{q}\left|q_n\right\rangle &amp;= q(t_n)\left|q_n\right\rangle\\
+&amp;= q_n\left|q_n\right\rangle
+\end{aligned}
+\]
+
+<p>
+LHS \(\Rightarrow\)<br />
+</p>
+
+\[
+\begin{aligned}
+\int dq_1\, dq_2\cdots dq_n\;
+&amp;\left\langle q''\right| e^{-i\hat{H}\left(N-k_n\right)\Delta}\left|q_n\right\rangle\left\langle q_n\right| e^{-i\hat{H}\left(k_n-k_{n-1}\right)\Delta}\left|q_{n-1}\right\rangle\\
+&amp;\cdots\cdots\;\left\langle q_2\right| e^{-i\hat{H}\left(k_2-k_1\right)\Delta}\left|q_1\right\rangle\left\langle q_1\right| e^{-i\hat{H}\,k_1\Delta}\left|q'\right\rangle\\
+&amp;\times\; q(t_1)\,q(t_2)\;\cdots\; q(t_n)
+\end{aligned}
+\]
+
+\[
+= \int dq_1\, dq_2\cdots dq_n\;\; q(t_1)\,q(t_2)\cdots q(t_n)\cdot
+\prod_{j=0}^{n}\;\left\langle q_{j+1}\right| e^{-iH\left(k_{j+1}-k_j\right)\Delta}\left|q_j\right\rangle
+\]
+
+<p>
+where,<br />
+</p>
+
+\[
+\begin{aligned}
+q_{n+1} &amp;= q''\\
+q_{0} &amp;= q'
+\end{aligned}
+\]
+
+\[
+\left\langle q_{j+1}\right| e^{-iH\left(k_{j+1}-k_j\right)\Delta}\left|q_j\right\rangle \;=\;?
+\]
+
+<p>
+or<br />
+</p>
+
+\[
+\left\langle x\right| e^{-iH\,\alpha_j\,\Delta}\left|y\right\rangle \;=\;?
+\qquad\qquad
+\left\{
+\begin{aligned}
+\alpha_j &amp;= k_{j+1} - k_j\\
+q_j &amp;= y\\
+q_{j+1} &amp;= x
+\end{aligned}
+\right.
+\]
+
+\[
+\begin{aligned}
+&amp;\left\langle x\right|\, e^{-i\left(\frac{\hat{p}^{2}}{2m} + \hat{V}(x)\right)\alpha_j\,\Delta}\left|y\right\rangle\\
+\sim\;\;&amp;\left\langle x\right|\, e^{-i\frac{V(x)}{2}\,\alpha_j\Delta}\; e^{-i\frac{\hat{p}^{2}}{2m}\alpha_j\Delta}\; e^{-i\,V(x)\,\frac{\alpha_j\Delta}{2}}\left|y\right\rangle\\
+\sim\;\;&amp; e^{-i\left(\frac{V(x)+V(y)}{2}\right)\alpha_j\Delta}\;\left\langle x\right| e^{-i\frac{\hat{p}^{2}\,\alpha_j\Delta}{2m}}\; I\;\left|y\right\rangle
+\qquad\qquad \hookrightarrow I = \int dP\left|p\right\rangle\left\langle p\right|\\
+\sim\;\;&amp; e^{-i\left(\frac{V(x)+V(y)}{2}\right)\alpha\Delta}\;\int dP\;\left\langle x\middle|p\right\rangle\left\langle p\middle|y\right\rangle\; e^{-\frac{i\,p^{2}\,\alpha\Delta}{2m}}\\
+\sim\;\;&amp; e^{-\frac{i}{2}\left(V(x)+V(y)\right)\alpha_j\Delta}\;\int dp\;\frac{1}{\sqrt{2\pi}}\,e^{i\,p\cdot x}\;\frac{1}{\sqrt{2\pi}}\,e^{-i\,p\,y}\;e^{-i\,p^{2}\alpha_j\Delta/2m}\\
+\sim\;\;&amp;\frac{1}{2\pi}\; e^{-\frac{i\,\alpha_j\Delta}{2}\left(V(x)+V(y)\right)}\;\int dp\;\; e^{i\left(p\cdot\left(x-y\right) - \frac{p^{2}\alpha_j\Delta}{2m}\right)}\\
+\sim\;\;&amp;\frac{1}{2\pi}\; e^{-\frac{i\,\alpha\Delta}{2}\left(V(x)+V(y)\right)}\;\int dp\;\;
+e^{-\frac{i\alpha\Delta}{2m}\left(p^{2} - \frac{2m}{\alpha\Delta}\,p\cdot\left(x-y\right) + \frac{m^{2}\left(x-y\right)^{2}}{\alpha^{2}\Delta^{2}} - \frac{m^{2}\left(x-y\right)^{2}}{\alpha^{2}\Delta^{2}}\right)}\\
+\sim\;\;&amp;\frac{1}{2\pi}\; e^{-i\,\frac{\alpha\Delta}{2}\left(V(x)+V(y)\right)}\;\int dp\;\;
+e^{-i\,\frac{\alpha\Delta}{2m}\left(p - \frac{\left(x-y\right)m}{\alpha\Delta}\right)^{2}}\; e^{\frac{i\,m\left(x-y\right)^{2}}{2\,\alpha\Delta}}\\
+\sim\;\;&amp;\frac{1}{2\pi}\; e^{-i\,\frac{\alpha\Delta}{2}\left(V(x)+V(y)\right) + \frac{i\,m}{2\alpha\Delta}\left(x-y\right)^{2}}\;\int dp\;\;
+e^{-\frac{i\,\alpha\Delta}{2m}\left(p - \frac{\left(x-y\right)m}{\alpha\Delta}\right)^{2}}\\
+\sim\;\;&amp;\frac{1}{2\pi}\;\; e^{-i\,\frac{\alpha\Delta}{2}\left(V(x)+V(y)\right) + \frac{i\,m}{2\alpha\Delta}\left(x-y\right)^{2}}\;\;
+\sqrt{\frac{\pi\,2m}{\alpha_j\,\Delta}}
+\end{aligned}
+\]
+
+<p>
+\(\Rightarrow\) LHS becomes,<br />
+</p>
+
+\[
+\int\mathcal{D}q\;\; q(t_1)\,q(t_2)\cdots q(t_n)\;\;
+\prod_{j=0}^{n}\;\frac{1}{2\pi}\;
+e^{-i\,\frac{\alpha\Delta}{2}\left(V\left(q_{j+1}\right)+V\left(q_j\right)\right) + \frac{i\,m}{2\alpha\Delta}\left(q_{j+1}-q_j\right)^{2}}\;
+\sqrt{\frac{\pi\,2m}{\alpha\Delta}}
+\qquad\left(\alpha = \alpha_j\right)
+\]
+
+\[
+= \mathcal{N}\int\mathcal{D}q\;\; q(t_1)\,q(t_2)\cdots q(t_n)\;\;
+e^{\,i\alpha\Delta\,\sum_{j=0}^{n}\,\frac{m}{2}\left(\frac{q_{j+1}-q_j}{\alpha\Delta}\right)^{2} - \left(\frac{V\left(q_{j+1}\right)+V\left(q_j\right)}{2}\right)}
+\]
+
+\[
+\boxed{\displaystyle
+\left\langle q'', t''\right| T\left(\prod_{i}^{n}\, q\left(t_i\right)\right)\left|q', t'\right\rangle
+= \mathcal{N}\int\mathcal{D}q\;\; q(t_1)\,q(t_2)\;\cdots\; q(t_n)\;\; e^{\,iS}}
+\qquad
+\left\{
+\begin{aligned}
+\alpha\Delta &amp;= \left(k_{j+1}-k_j\right)\Delta\\
+&amp;= t_{j+1} - t_j
+\end{aligned}
+\right.
+\]
+
+<p>
+Let us do the integral more accurately.<br />
+</p>
+
+\[
+\int dp\;\; e^{-\frac{i\Delta\,p^{2}}{2m}}
+\]
+
+<p>
+to make a sense of it we need to add positive real part to '\(i\)'.<br />
+</p>
+
+\[
+\int dp\;\; e^{-\left(i+\epsilon\right)\frac{\Delta\,p^{2}}{2m}}
+\qquad\qquad
+\left|
+\begin{aligned}
+&amp;\text{For } i = 0\quad I = \text{Area} = \int dp\; e^{-\epsilon\,\Delta p^{2}/2m}\\
+&amp;\text{Shall give +ve answer}\\
+&amp;\text{[diagram]}
+\end{aligned}
+\right.
+\]
+
+\[
+\text{(or)}\qquad
+I = \int dp\;\; e^{-i\left(1-i\epsilon\right)\frac{\Delta\,p^{2}}{2m}}
+\]
+
+<p>
+Now apply gaussian formule<br />
+</p>
+
+\[
+\begin{aligned}
+I &amp;= \sqrt{\frac{\pi\,2m}{\left(1-i\epsilon\right)\,i\,\Delta}}\\
+&amp;= \sqrt{\frac{2m\,\pi}{\left(i+\epsilon\right)\Delta}}
+\qquad\longleftarrow\;\underline{\text{Verify!}}
+\end{aligned}
+\]
+
+<p>
+Time ordering &amp; anti-time ordering is giving same answer in path integral reps, which it can't be --- so we have to account for<br />
+</p>
+
+<p>
+Let us see how will we take \(\sqrt{i+\epsilon}\) in this \(\mathbb{C}\) plane. \(\hookrightarrow\) has two solutions<br />
+</p>
+
+<p>
+<em>[figure omitted]</em><br />
+</p>
+
+<p>
+If '\(i\)' were absent, we should have positive answer. Branch cut has to go in some other direction. Since we are defining analytic continuation from \(\epsilon \to i+\epsilon\) i.e. there should not be branch cut in way of \(\epsilon \to i+\epsilon\). We can take branch cut like (1) or (2) does not matter.<br />
+</p>
+
+\[
+\text{then}\qquad \sqrt{1+\epsilon}? = \lim_{\epsilon\to0}\left(i+\epsilon\right)^{1/2} = e^{\left(i\pi/2\right)/2} = e^{i\pi/4}
+\]
+
+<p>
+This is same as,<br />
+</p>
+
+\[
+\begin{gathered}
+\Delta \;\longrightarrow\; \Delta\left(1-i\epsilon\right)\\
+\frac{1}{\Delta} \;\longrightarrow\; \frac{1}{\Delta}\left(1+i\epsilon\right)
+\end{gathered}
+\]
+
+\[
+\Delta = \frac{t''-t'}{N}
+\]
+
+\[
+\begin{gathered}
+\text{for}\qquad \Delta \;\longrightarrow\; \Delta\left(1-i\epsilon\right)\\
+t \;\longrightarrow\; t\left(1-i\epsilon\right)
+\qquad\hookrightarrow\;\text{complex time.}
+\end{gathered}
+\]
+
+<p>
+<em>[figure omitted]</em><br />
+</p>
+
+<p>
+let us write \(t = \tau\left(1-i\epsilon\right)\) where \(\tau \in \mathbb{R}\), \(t \in \mathbb{C}\)<br />
+</p>
+
+<p>
+We have final path integral (for \(\left\langle q(t'')\middle|q(t')\right\rangle\))<br />
+</p>
+
+\[
+\mathcal{N}\int dq_2\, dq_3\cdots dq_n\;
+\exp\left(i\Delta\,\sum_{j=0}^{N}\left\{\frac{m}{2}\underbrace{\left(\frac{q_{j+1}-q_j}{\Delta}\right)^{2}}_{(1)} - \underbrace{V\left(q_j\right)}_{(2)}\right\}\right)
+\]
+
+<p>
+here we have \(\Delta\cdot\dfrac{1}{\Delta^{2}} \sim \dfrac{1}{\Delta}\)<br />
+</p>
+
+\[
+\frac{1}{\Delta} \;\longrightarrow\; \frac{1}{\Delta}\left(1+i\epsilon\right)
+\]
+
+<p>
+So extra term we get :<br />
+</p>
+
+\[
+i\left(\frac{i\epsilon}{\Delta}\right)\sum_{j=1}^{N}\frac{m}{2}\left(q_{j+1}-q_j\right)^{2} - i\sum_{j=0}^{N}\left(-i\epsilon\right)\Delta\,V\left(q_j\right)
+\]
+
+<p>
+For large \(q\) :<br />
+</p>
+
+\[
+\begin{gathered}
+\int dq_2\,dq_3\ldots dq_N\;\exp\left(-\frac{\epsilon}{\Delta}\,\sum_{j=0}^{N}\left(\frac{m}{2}\left(q_{j+1}-q_j\right)^{2}\right) + i^{2}\,\epsilon\sum_{j=0}^{N} V\left(q_j\right)\right)\\
+\text{for}\quad q \to \infty\;;\quad \exp\left(-\epsilon\infty\right) \to 0
+\end{gathered}
+\]
+
+<p>
+This extra term has effect that integral supresses for very large \(q\). So This makes integral well defined; if it were purely oscilletory \(e^{iS}\) we remain in doubt if it is well defined or not.<br />
+</p>
+
+<p>
+Now we have a damped integral.<br />
+</p>
+
+<p>
+let us write \(t = \tau\left(1-i\epsilon\right)\) ; \(\tau \in \mathbb{R}\)<br />
+</p>
+
+<p>
+So,<br />
+</p>
+
+\[
+\left\langle q''\right|\, e^{-i\hat{H}\tau''\left(1-i\epsilon\right)}\;
+\underbrace{T\Big(\hat{q}\left(\tau_1(1-i\epsilon)\right)\,\hat{q}\left(\tau_2(1-i\epsilon)\right)\cdots\hat{q}\left(\tau_n(1-i\epsilon)\right)\Big)}\;
+e^{i\hat{H}\tau'\left(1-i\epsilon\right)}\left|q'\right\rangle
+\]
+
+\[
+\downarrow\; I = \sum_{s}\left|s\right\rangle\left\langle s\right|
+\qquad\qquad
+\hookrightarrow\; I = \sum_{r}\left|r\right\rangle\left\langle r\right|
+\qquad\qquad
+\left\{\left|r\right\rangle\right\}\ \text{are energy eigen states}
+\]
+
+<p>
+let us insert complete set of energy eigen states ---<br />
+</p>
+
+\[
+I = \sum_{s}\left|s\right\rangle\left\langle s\right|
+\]
+
+<p>
+Now term<br />
+</p>
+
+\[
+\begin{aligned}
+1)\qquad \left\langle q''\right|\sum_{s}\left|s\right\rangle\left\langle s\right| e^{-i\hat{H}\tau''\left(1-i\epsilon\right)}
+&amp;= \sum_{s}\left\langle q''\middle|s\right\rangle\, e^{-i\,E_s\,\tau''\left(1-i\epsilon\right)}\left\langle s\right|\\
+&amp;= \sum_{s}\left\langle q''\middle|s\right\rangle\; e^{-i\,E_s\,\tau'' - \epsilon\,E_s\,\tau''}\left\langle s\right|
+\end{aligned}
+\]
+
+\[
+\begin{aligned}
+2)\qquad e^{i\hat{H}\tau'\left(1-i\epsilon\right)}\sum_{r}\left|r\right\rangle\left\langle r\middle|q'\right\rangle
+&amp;= \sum_{r}\left\langle r\middle|q'\right\rangle\, e^{i\,E_r\,\tau'\left(1-i\epsilon\right)}\left|r\right\rangle\\
+&amp;= \sum_{r}\left\langle r\middle|q'\right\rangle\; e^{+i\,E_r\,\tau' + \epsilon\,E_r\,\tau'}\left|r\right\rangle
+\end{aligned}
+\]
+
+<p>
+Now; take limits : \(\tau'' \to \infty\), \(\tau' \to -\infty\)<br />
+</p>
+
+<p>
+under these limits term (1) &amp; (2) only survives for \(E_r = E_s = E_{\Omega}\) i.e ground state.<br />
+</p>
+
+\[
+\left\langle q''\middle|\Omega\right\rangle\left\langle \Omega\middle|q'\right\rangle\;
+e^{-i\,E_{\Omega}\,\tau'' - \epsilon\,E_{\Omega}\,\tau''}\;
+e^{i\,E_{\Omega}\,\tau' + \epsilon\,E_{\Omega}\,\tau'}
+\qquad
+\nwarrow\;\text{ground state (vacuum)}
+\]
+
+<p>
+Then<br />
+</p>
+
+\[
+\left\langle \Omega\right| T\left(\hat{q}\left(\tau_1(1-i\epsilon)\right)\,\hat{q}\left(\tau_2(1-i\epsilon)\right)\cdots\hat{q}\left(\tau_n(1-i\epsilon)\right)\right)\left|\Omega\right\rangle
+\qquad
+\begin{aligned}
+&amp;\downarrow\;\left\langle q\left(\tau''\to\infty\right)\right|\\
+&amp;\hookrightarrow\;\left|\hat{q}\left(\tau'\to-\infty\right)\right\rangle
+\end{aligned}
+\]
+
+<p>
+Normalising :<br />
+</p>
+
+\[
+\frac{\left\langle \Omega\right| T\left(\prod_{i=1}^{n}\,\hat{q}\left(\tau_i\left(1-i\epsilon\right)\right)\right)\left|\Omega\right\rangle}{\left\langle \Omega\middle|\Omega\right\rangle}
+\;=\;
+\frac{\displaystyle\int\left[\mathcal{D}q\right]\, e^{iS}\; q\left(\tau_1(1-i\epsilon)\right)\,q\left(\tau_2(1-i\epsilon)\right)\cdots q\left(\tau_n(1-i\epsilon)\right)}{\displaystyle\int\left[\mathcal{D}q\right]\, e^{iS}}
+\]
+
+\[
+\left\{\text{in end we take } \epsilon \to 0 \text{ limit.}\right\}
+\]
+
+<p>
+Since we are rotating time axis \(t \to \tau\left(1-i\epsilon\right)\) we can rotate it all the way to imaginary axis.<br />
+</p>
+
+<p>
+<em>[figure omitted]</em><br />
+</p>
+
+<p>
+achieved by \(t \;\longrightarrow\; e^{-i\pi/2}\,\tau\)<br />
+</p>
+
+<p>
+Problem is argument of \(q\left(\tau\,e^{-i\pi/2}\right)\) are imaginary; we will do calculation using these arguments and will rotate the final result back to where arguments are real.<br />
+</p>
+
+<p>
+i.e. we will have to rotate \(e^{+i\pi/2}\) after our final result. \(\hookrightarrow\) anticlockwise<br />
+</p>
+
+<p>
+If we find result for anti-time ordering; then this will be different.<br />
+ \(\Delta \to i\Delta = \tau\) i.e. \(\underline{t_2 - i\tau_2}\)<br />
+</p>
+
+<p>
+Singularities appear when we do analytic continuation back to real axis. There are also studies on kinds of singularity which appear on analytic continuation.<br />
+</p>
+
+<p>
+Anti-time ordering gives us euclidean metric path integral by rotating \(t \to e^{i\pi/2}\,\tau\); but we won't use it; since we are dealing with perturbative QFT. Euclidean path integral provides results for non-perturbative phenomena.<br />
+</p>
+
+<p>
+The funda is same; after we found results using euclidean path integral we will rotate back to real axis. \(\left(t \to e^{-i\pi/2}\,\tau\right)\) where \(\left(\tau' = e^{i\pi/2}\,\tau\right)\).<br />
+</p>
+
+<p>
+If vacuum were degenerate; this would have been more complicated. Fortunately in most of QFT vacuum is non-degenerate.<br />
+</p>
+
+<p>
+In QM if there is degenerate vacuum; we have to be more careful.<br />
+</p>
+
+<div id="Lecture 3"><h1 id="Lecture 3" class="header"><a href="#Lecture 3">Lecture 3</a></h1></div>
+
+<p>
+<span id="Lecture 3-Scalar field theory"></span><strong id="Scalar field theory">Scalar field theory</strong> :<br />
+</p>
+
+\[
+S = \int dt\; d^{3}x\;\left(-\frac{1}{2}\,\eta^{\mu\nu}\,\partial_{\mu}\phi\,\partial_{\nu}\phi \;-\; V\left(\phi\right)\right)
+\]
+
+<p>
+here, \(\eta^{\mu\nu} = \mathrm{diag}\left(-1, 1, 1, 1\right)\)<br />
+</p>
+
+<p>
+Think of space as discrete collection of points.<br />
+</p>
+
+\[
+\vec{x} \;\longrightarrow\; a\,\vec{n}
+\qquad\qquad
+\vec{n} = \left(n_1, n_2, n_3\right)
+\]
+
+\[
+\downarrow\;\text{lattice size}
+\]
+
+\[
+\text{Space}\ \text{---}\qquad
+\begin{matrix}
+\cdot &amp; \cdot &amp; \cdot &amp; \cdot &amp; \cdot\\
+\cdot &amp; \cdot &amp; \cdot &amp; \cdot &amp; \cdot\\
+\cdot &amp; \cdot &amp; \cdot &amp; \cdot &amp; \cdot
+\end{matrix}
+\]
+
+<p>
+using discretised space breaks lorentz invariance. we will use it in limit \(a \to 0\).<br />
+</p>
+
+\[
+\begin{aligned}
+\text{Action } (S) &amp;= \int dt\, d^{3}x\;\left(\frac{\dot{\phi}^{2}}{2} - \frac{\left(\nabla\phi\right)^{2}}{2} - V(\phi)\right)
+\qquad\qquad \phi\left(x, t\right) \to \phi_{n}\left(t\right)\\
+&amp;= \int dt\;\; a^{3}\sum_{n=\left(n_1,n_2,n_3\right)}\Bigg[\left(\frac{1}{2}\,\partial_t\,\phi_{n}(t)\right)^{2}\\
+&amp;\qquad\qquad -\frac{1}{2}\left(\frac{\phi_{n_1+1,\,n_2,\,n_3}(t) - \phi_{n_1 n_2 n_3}(t)}{a}\right)^{2}\\
+&amp;\qquad\qquad -\frac{1}{2}\left(\frac{\phi_{n_1,\,n_2+1,\,n_3}(t) - \phi_{n_1 n_2 n_3}(t)}{a}\right)^{2}\\
+&amp;\qquad\qquad -\frac{1}{2}\left(\frac{\phi_{n_1,\,n_2,\,n_3+1}(t) - \phi_{n_1 n_2 n_3}(t)}{a}\right)^{2}\\
+&amp;\qquad\qquad -\; V(\phi)\;\Bigg]
+\end{aligned}
+\]
+
+<p>
+<span id="Lecture 3-Exercise"></span><strong id="Exercise">Exercise</strong> : check the path integral formulation extends to multiple variables.<br />
+</p>
+
+\[
+H = \sum_{i=1}^{M}\;\frac{p_i^{2}}{2m_i} + V\left(q_1, q_2 \ldots q_M\right)
+\]
+
+<p>
+Discretize time with interval \(\Delta\).<br />
+</p>
+
+\[
+\text{i.e.}\qquad \int dt \;\longrightarrow\; \Delta\sum_{n_0}
+\qquad\qquad
+n = \left(n_0, n_1, n_2, n_3\right)
+\]
+
+<p>
+here, \(n_0, n_1, n_2, n_3 \in\) Integers<br />
+</p>
+
+\[
+\begin{gathered}
+\partial_t\,\phi \;\longrightarrow\; \frac{\phi_{n_0+1,\,n_1,n_2,n_3} - \phi_{n_0,\,n_1,n_2,n_3}}{\Delta}\\
+\phi_{n_1 n_2 n_3}(t) \;\longrightarrow\; \phi_{n} = \phi_{n_0, n_1, n_2, n_3}
+\end{gathered}
+\]
+
+<p>
+The \(\Delta \to \Delta\left(1-i\epsilon\right)\) prescription is same as working in Euclidean prescription.<br />
+</p>
+
+<p>
+if \(\Delta\) is real time<br />
+</p>
+
+\[
+\Delta \;\longrightarrow\; \tau = i\,\Delta
+\qquad
+\left\{
+\text{[diagram]}
+\right\}
+\qquad\text{here } \tau \text{ is imaginary time.}
+\]
+
+<p>
+If we were in Euclidean formulation \(\left(-i\tau = \Delta\;\Rightarrow\;\tau = i\Delta\right)\)<br />
+</p>
+
+\[
+\begin{gathered}
+\partial_t\,\phi \;\longrightarrow\; \partial_{\tau}\,\phi\\
+\frac{\phi_{n_0+1,\,n_1 n_2 n_3} - \phi_{n_0 n_1 n_2 n_3}}{\Delta}
+\;\longrightarrow\;
+\frac{\phi_{n_0+1,\,n_1 n_2 n_3} - \phi_{n_0\, n_1 n_2 n_3}}{-i\,\tau}
+\end{gathered}
+\]
+
+<p>
+So,<br />
+</p>
+
+\[
+\left(\partial_{\tau}\phi\right)^{2} \;=\; -\left(\partial_t\,\phi\right)^{2}
+\]
+
+<p>
+For \(\Delta = a\) ; space &amp; time are symmetrical<br />
+</p>
+
+<p>
+Euclidean formulation makes it more menifest that there is some symmetry in \(x \leftrightarrow t\).<br />
+</p>
+
+<p>
+Once we take out continuum limit, we get a continuous rotation group, and then we do analytic continuation, to recover lorentz symmetry.<br />
+</p>
+
+\[
+S\left[\phi\right] = \text{Functional of } \phi(x) = \int d^{4}x\;\left(\frac{1}{2}\left(\partial_t\phi\right)^{2} - \frac{1}{2}\left(\nabla\phi\right)^{2} - V\left(\phi\left(x,t\right)\right)\right)
+\]
+
+\[
+x = \left(\bar{x}, t\right)
+\]
+
+<p>
+So,<br />
+</p>
+
+<p>
+\(S[\phi]\) : Functional of \(\phi\). in continuum formalism but it is a function of \(\left\{\phi_{i_1 i_2 i_3 i_4}\right\}\) in discrete form.<br />
+</p>
+
+\[
+\left\{\phi_{i}\right\} = \left\{\phi_{0000}\,,\ \phi_{0001}\,,\ \phi_{0011}\,,\ldots\ \phi_{(N-1)(N-1)(N-1)(N-1)}\right\}
+\]
+
+\[
+\hookrightarrow\;\text{variables.}
+\]
+
+<p>
+So we can define usual partial derivative --- \(\dfrac{\partial S}{\partial\phi_{i_1 i_2 i_3 i_4}}\)<br />
+</p>
+
+<p>
+(Def\(^{\text{n}}\)) Functional derivative \(\xrightarrow{\text{\;\;discretisation\;\;}}\)<br />
+</p>
+
+\[
+\frac{1}{a^{3}\Delta}\;\frac{\partial S}{\partial\phi_{i_0 i_1 i_2 i_3}} \;\equiv\; \frac{\delta S}{\delta\phi(x)}
+\]
+
+<p>
+<span id="Lecture 3-Claim"></span><strong id="Claim">Claim</strong> :<br />
+</p>
+
+<p>
+For fixed \(y\), \(\phi(y)\) is a functional of \(\phi(x)\).<br />
+</p>
+
+<p>
+Since \(\phi(y)\) gives a number for a given \(\phi(x)\) at point '\(y\)'.<br />
+</p>
+
+<p>
+So, we can calculate,<br />
+</p>
+
+\[
+\text{functional derivative}\qquad
+\frac{\delta\,\phi(y)}{\delta\,\phi(x)} = \delta^{4}\left(x-y\right)
+\]
+
+<p>
+<span id="Lecture 3-Proof"></span><strong id="Proof">Proof</strong> :<br />
+</p>
+
+<p>
+Suppose : \(y = \left(\Delta\,n_0,\ a\,n_1,\ a\,n_2,\ a\,n_3\right)\)<br />
+</p>
+
+\[
+\begin{gathered}
+\phi(y) = \phi_{n_0 n_1 n_2 n_3}\\
+\frac{\delta\phi(y)}{\delta\phi(x)} = \frac{1}{a^{3}\Delta}\;\frac{\partial\,\phi_{n_0 n_1 n_2 n_3}}{\partial\,\phi_{m_0 m_1 m_2 m_3}}\\
+= \frac{1}{a^{3}\Delta}\;\;\delta_{m_0 n_0}\,\delta_{m_1 n_1}\,\delta_{m_2 n_2}\,\delta_{m_3 n_3}
+\end{gathered}
+\]
+
+<p>
+Lets prove RHS to be equal to \(\delta^{4}\left(x-y\right)\).<br />
+</p>
+
+\[
+\int d^{4}x\;\delta^{4}\left(x-y\right)\,F(x) = F(y)
+\qquad\text{for any } F.
+\]
+
+<p>
+\(\downarrow\)<br />
+</p>
+
+\[
+\begin{gathered}
+a^{3}\Delta\!\!\sum_{m_0 m_1 m_2 m_3}\;\frac{1}{a^{3}\Delta}\;\delta_{m_0 n_0}\,\delta_{m_1 n_1}\,\delta_{m_2 n_2}\,\delta_{m_3 n_3}\;F_{m_0, m_1 m_2 m_3}\\
+= F_{n_0 n_1 n_2 n_3} \;=\; F(y)
+\end{gathered}
+\]
+
+<p>
+This has to hold for any \(F\).<br />
+</p>
+
+<p>
+<span id="Lecture 3-In scalar Field Theory"></span><strong id="In scalar Field Theory">In scalar Field Theory</strong> :<br />
+</p>
+
+\[
+Z\left[J\right] = \int\mathcal{D}\phi\;\; e^{\,i\,S\left(\phi\right) + i\int d^{4}x\; J(x)\,\phi(x)}
+\]
+
+\[
+\left(\text{Functional of } J \text{ \&amp; Not } \phi\right)\ !\ (?)
+\]
+
+\[
+\left(-i\,\frac{\partial}{\partial J(x_1)}\right)\left(-i\,\frac{\partial}{\partial J(x_2)}\right)\cdots\left(-i\,\frac{\partial}{\partial J(x_n)}\right) Z\left[J\right]
+= Z\left[J\right]\;\phi(x_1)\,\phi(x_2)\cdots\phi(x_n)
+\]
+
+\[
+\left(\text{using}\quad \frac{d}{dx}\,e^{a(x)} = e^{a(x)}\,\frac{da}{dx}\right)
+\]
+
+<p>
+So,<br />
+</p>
+
+\[
+\begin{aligned}
+-i\,\frac{\partial}{\partial J(x_n)}\int\mathcal{D}\phi\; e^{\,i\,S(\phi) + i\int J(x)\phi(x)\,d^{4}x}
+&amp;= \left(-i\right)\left(i\right)\, Z\cdot\frac{\partial}{\partial J(x_n)}\int J(x)\,\phi(x)\,d^{4}x\\
+&amp;= Z\left[J\right]\cdot\int\frac{\partial}{\partial J(x_n)}\,J(x)\,\phi(x)\,d^{4}x\\
+&amp;= Z\left[J\right]\,\int\delta^{4}\left(x - x_n\right)\,\phi(x)\,d^{4}x\\
+&amp;= Z\left[J\right]\;\phi\left(x_n\right)
+\end{aligned}
+\]
+
+\[
+\begin{gathered}
+-i\,\frac{\partial}{\partial J(x_{n-1})}\; Z\left[J\right]\,\phi(x_n)
+= Z\left[J\right]\;\phi\left(x_{n-1}\right)\,\phi\left(x_n\right)\\
+-i\,\frac{\partial}{\partial J(x_2)}\; Z\left[J\right]\,\phi(x_{n-1})\,\phi(x_n)
+= Z\left[J\right]\;\phi\left(x_2\right)\,\phi\left(x_{n-1}\right)\,\phi\left(x_n\right)
+\end{gathered}
+\]
+
+<p>
+So,<br />
+</p>
+
+\[
+\boxed{\displaystyle
+\left(\prod_{i=1}^{n}\left(\frac{-i\,\partial}{\partial J\left(x_i\right)}\right)\right) Z\left[J\right]
+\;=\; Z\left[J\right]\;\prod_{i=1}^{n}\;\phi\left(x_i\right)}
+\qquad\longleftarrow\;\text{classical fields/variables}
+\]
+
+<p>
+Similarly,<br />
+</p>
+
+\[
+G_{n}\left(x_1, x_2 \ldots x_n\right) = \frac{\left\langle \Omega\right| T\Big(\overbrace{\hat{\phi}(x_1)\,\hat{\phi}(x_2)\,\ldots\,\hat{\phi}(x_n)}^{\text{operators.}}\Big)\left|\Omega\right\rangle}{\left\langle \Omega\middle|\Omega\right\rangle}
+\]
+
+<p>
+using;<br />
+</p>
+
+\[
+\left\langle q''\right| e^{-iHt''}\;\underline{T\left(\hat{q}(t_1)\,\hat{q}(t_2)\cdots\hat{q}(t_n)\right)}\; e^{iHt'}\left|q'\right\rangle
+= \int\left[\mathcal{D}q\right]\, e^{iS}\; q(t_1)\,q(t_2)\cdots q(t_n)
+\]
+
+\[
+= \frac{1}{Z\left[0\right]}\;
+\left(-i\,\frac{\partial}{\partial J(x_1)}\right)\left(-i\,\frac{\partial}{\partial J(x_2)}\right)\cdots\left(-i\,\frac{\partial}{\partial x_n}\right)
+Z\left[J\right]\;\Bigg|_{J=0.}
+\]
+
+\[
+\uparrow\quad\left(\text{classical variables}\right)
+\]
+
+<div id="Lecture 4"><h1 id="Lecture 4" class="header"><a href="#Lecture 4">Lecture 4</a></h1></div>
+
+<p>
+ Calculate \(Z[J]\) for free theory :<br />
+</p>
+
+\[
+Z\left[J\right] = \int\mathcal{D}\phi\;\; e^{\,i\,S\left(\phi\right) + i\int J(x)\,\phi(x)\,d^{4}x}
+\qquad\text{---}(1)
+\]
+
+\[
+\eta_{\mu\nu} = \left(-1, 1, 1, 1\right)
+\]
+
+\[
+S\left[\phi\right]_{\text{free}} = \int d^{4}x\;\left(-\frac{1}{2}\,\partial_{\mu}\phi\,\partial^{\mu}\phi \;-\; \frac{1}{2}\,m^{2}\phi^{2}\right)
+\]
+
+<p>
+Lets find \(\left(i\,S\left[\phi\right] + i\int J(x)\,\phi(x)\,d^{4}x\right)\) first then put it in eq (1).<br />
+</p>
+
+<p>
+Claim is: \(i\,S\left[\phi\right] + i\int J(x)\,\phi(x)\,d^{4}x\) is equal to<br />
+</p>
+
+\[
+\frac{i}{2}\int d^{4}x\left(-\eta^{\mu\nu}\,\partial_{\mu}\chi\,\partial_{\nu}\chi - m^{2}\chi^{2}\right)
+\;-\;\frac{1}{2}\int d^{4}x\, d^{4}x'\;\Delta\left(x-x'\right)\, J(x)\,J(x')
+\]
+
+<p>
+Where \(\Delta\left(x-x'\right)\) satisfies<br />
+</p>
+
+\[
+\left(\partial_x^{2} - m^{2}\right)\Delta\left(x-x'\right) = i\,\delta^{4}\left(x-x'\right)
+\]
+
+<p>
+&amp;<br />
+</p>
+
+\[
+\chi(x) = \phi(x) - i\int d^{4}x'\;\Delta\left(x, x'\right)\,J(x')
+\]
+
+<p>
+<span id="Lecture 4-RHS"></span><strong id="RHS">RHS</strong> :<br />
+</p>
+
+\[
+\begin{aligned}
+&amp;\frac{i}{2}\int d^{4}x\left(-\partial_{\mu}\chi\,\partial^{\mu}\chi - m^{2}\chi^{2}\right)
+\qquad
+\left\{
+\begin{aligned}
+&amp;\text{using } \int\partial_{x}\left(\chi\,\partial^{\mu}\chi\right) = \underbrace{\left(\chi\,\partial^{\mu}\chi\right)}_{\text{surface term.}}\\
+&amp;= 0 = \int\partial_{\mu}\chi\,\partial^{\mu}\chi + \int\chi\,\partial_{x}^{2}\chi\\
+&amp;\qquad\chi\big(\text{Boundary}\big) \to 0
+\end{aligned}
+\right.\\
+=\;&amp;\frac{i}{2}\int d^{4}x\;\left(\chi\,\partial^{2}\chi - m^{2}\chi^{2}\right)\\
+=\;&amp;\frac{i}{2}\int d^{4}x\;\;\chi\,\underline{\left(\partial_x^{2} - m^{2}\right)}\,\chi\\
+=\;&amp;\frac{i}{2}\int d^{4}x\;\;\chi(x)\left(\partial_x^{2} - m^{2}\right)\left(\phi(x) - i\int d^{4}x'\;\Delta\left(x-x'\right)J(x')\right)\\
+=\;&amp;\frac{i}{2}\int d^{4}x\;\;\chi(x)\left(\partial_x^{2}-m^{2}\right)\phi(x)
+\;+\;\frac{1}{2}\int d^{4}x\,d^{4}x'\;\chi(x)\;\underline{\left(\partial_x^{2}-m^{2}\right)\Delta\left(x-x'\right)}\,J(x')\\
+=\;&amp;\frac{1}{2}\int d^{4}x\,d^{4}x'\;\chi(x)\;\delta^{4}\left(x-x'\right)\,J(x')
+\;+\;\frac{i}{2}\int d^{4}x\;\chi(x)\left(\partial_x^{2}-m^{2}\right)\phi(x)\\
+=\;&amp;\frac{i}{2}\int d^{4}x\;\underset{(1)}{\chi(x)}\,\underset{(2)}{\left(\partial_x^{2}-m^{2}\right)\phi(x)}
+\;+\;\frac{1}{2}\int d^{4}x\;\;\chi(x)\,J(x)
+\end{aligned}
+\]
+
+<p>
+using integral by parts \(\hookleftarrow\) we get<br />
+</p>
+
+\[
+\begin{aligned}
+=\;&amp;\frac{i}{2}\int d^{4}x\;\phi\left(\partial_x^{2}-m^{2}\right)\chi(x)
+\;+\;\frac{1}{2}\int d^{4}x\;\left(\phi(x) - i\int d^{4}x'\;\Delta\left(x-x'\right)J(x')\right) J(x)\\
+=\;&amp;\frac{i}{2}\int d^{4}x\;\phi(x)\left(\partial_x^{2}-m^{2}\right)\left\{\phi - i\int d^{4}x'\;\Delta\left(x-x'\right)J(x')\right\}\\
+&amp;\qquad\qquad +\;\frac{1}{2}\int d^{4}x\;\underset{J(x)}{\phi(x)}
+\;+\;\frac{1}{2}\int d^{4}x\,d^{4}x'\;\Delta\left(x-x'\right)J(x')\,J(x)\\
+=\;&amp;\frac{i}{2}\int d^{4}x\;\phi\left(\partial_x^{2}-m^{2}\right)\phi
+\;+\;\frac{1}{2}\int d^{4}x\,d^{4}x'\;\phi(x)\;\underbrace{\left(\partial_x^{2}-m^{2}\right)\Delta\left(x-x'\right)}_{\nearrow\;i\,\delta^{4}\left(x-x'\right)}\;J(x')\\
+&amp;\qquad\qquad +\;\frac{i}{2}\int d^{4}x\;\underset{J(x)}{\phi(x)}
+\;+\;\frac{1}{2}\int d^{4}x\,d^{4}x'\;\Delta\left(x-x'\right)J(x')\,J(x)\\
+=\;&amp;\frac{i}{2}\int d^{4}x\;\phi\left(\partial_x^{2}-m^{2}\right)\phi
+\;+\;\frac{i}{2}\int d^{4}x\;\phi(x)\,J(x)
+\;+\;\frac{i}{2}\int d^{4}x\;\phi(x)\,J(x)\\
+&amp;\qquad\qquad +\;\frac{1}{2}\int d^{4}x\,d^{4}x'\;\Delta\left(x-x'\right)\,J(x')\,J(x)
+\end{aligned}
+\]
+
+<p>
+Now,<br />
+</p>
+
+\[
+\begin{aligned}
+&amp;\frac{1}{2}\int d^{4}x\left(-\partial_{\mu}\phi\,\partial^{\mu}\phi - m^{2}\phi^{2}\right)
+\;-\;\frac{1}{2}\int d^{4}x\,d^{4}x'\;\Delta\left(x-x'\right)J(x)\,J(x')\\
+=\;&amp;\frac{i}{2}\int d^{4}x\;\phi\left(\partial_x^{2}-m^{2}\right)\phi + i\int d^{4}x\;\phi(x)\,J(x)\\
+&amp;\qquad + \cancel{\frac{1}{2}\int d^{4}x\,d^{4}x'\;\Delta\left(x-x'\right)J(x')\,J(x)}
+\;\cancel{- \frac{1}{2}\int d^{4}x\,d^{4}x'\;\Delta\left(x-x'\right)J(x')\,J(x)}\\
+=\;&amp;\frac{i}{2}\int d^{4}x\;\phi\left(\partial_x^{2}-m^{2}\right)\phi \;+\; i\int d^{4}x\;\phi(x)\,J(x)\\
+=\;&amp;i\,S\left[\phi\right] + i\int d^{4}x\;\phi(x)\,J(x)\;=\;\underline{\text{LHS}}.\qquad\text{proved!}
+\end{aligned}
+\]
+
+\[
+\Rightarrow\quad i\int d^{4}x\;\phi(x)\,J(x) = -\frac{1}{2}\int d^{4}x\,d^{4}x'\;\Delta\left(x-x'\right)J(x)\,J(x')
+\]
+
+<p>
+Idea is now to replace \(\mathcal{D}\phi \;\longrightarrow\; \mathcal{D}\chi\)<br />
+</p>
+
+<p>
+as \(\phi\) is just a constant shift to \(\chi\).<br />
+</p>
+
+\[
+\begin{gathered}
+\chi = \phi - i\int d^{4}x'\;\Delta\left(x-x'\right)J(x')\\
+d\chi = d\phi\\
+\Rightarrow\qquad \mathcal{D}\phi = \mathcal{D}\chi
+\end{gathered}
+\]
+
+<p>
+So,<br />
+</p>
+
+\[
+\begin{aligned}
+Z\left[J\right] &amp;= \int\mathcal{D}\chi\;\; e^{\,i\,S\left(\chi\right) + i\int J(x)\,\chi(x)\,d^{4}x}\\
+&amp;= \int\mathcal{D}\chi\;\;
+e^{\,\frac{i}{2}\int d^{4}x\;\chi\left(\partial_x^{2}-m^{2}\right)\chi}\;\cdot\;
+e^{-\frac{1}{2}\int d^{4}x\,d^{4}x'\;\Delta\left(x-x'\right)\,J(x)\,J(x')}
+\end{aligned}
+\]
+
+\[
+Z_{f}\left[J\right] = Z_{f}\left[0\right]\;\;
+e^{-\frac{1}{2}\int d^{4}x\,d^{4}x'\;\Delta\left(x-x'\right)\,J(x)\,J(x')}
+\]
+
+\[
+\Rightarrow\quad
+\boxed{\displaystyle
+\frac{Z_{f}\left[J\right]}{Z_{f}\left[0\right]} = \exp\left(-\frac{1}{2}\int d^{4}x\,d^{4}x'\;\Delta\left(x-x'\right)\,J(x)\,J(x')\right)}
+\]
+
+<p>
+With this we can find free greens function ---<br />
+</p>
+
+\[
+G_{f}\left(x_1, x_2 \ldots x_n\right) =
+\left(\frac{-i\,\partial}{\partial J(x_1)}\right)\left(\frac{-i\,\partial}{\partial J(x_2)}\right)\cdots\left(\frac{-i\,\partial}{\partial J(x_n)}\right)
+\frac{Z_{f}\left[J\right]}{Z_{f}\left[0\right]}\;\Bigg|_{J=0.}
+\]
+
+<p>
+example,<br />
+</p>
+
+\[
+\begin{aligned}
+G_{f}\left(x_1 x_2\right) &amp;=
+\left(-\frac{i\,\partial}{\partial J(x_1)}\right)\left(\frac{-i\,\partial}{\partial J(x_2)}\right)
+\frac{Z_{f}\left[J\right]}{Z_{f}\left[0\right]}\;\Bigg|_{J=0}\\
+&amp;= \left(\frac{-i\,\partial}{\partial J(x_1)}\right)\left(\frac{-i\,\partial}{\partial J(x_2)}\right)\cdot
+e^{-\frac{1}{2}\int d^{4}x\,d^{4}x'\;\Delta\left(x-x'\right)J(x)\,J(x')}\\
+&amp;= \left(-\frac{i\,\partial}{\partial J(x_1)}\right)
+e^{-\frac{1}{2}\int d^{4}x\,d^{4}x'\,J(x)\,\Delta\left(x-x'\right)J(x')}\\
+&amp;\qquad\cdot\left(\frac{i}{2}\int d^{4}x\,d^{4}x'\,J(x)\;\Delta\left(x-x'\right)\;\frac{\partial J(x')}{\partial J(x_2)}
+\;+\;\frac{i}{2}\int d^{4}x\,d^{4}x'\;\frac{\partial J(x)}{\partial J(x_2)}\;\Delta\left(x-x'\right)J(x')\right)\\
+&amp;= \left(-\frac{i\,\partial}{\partial J(x_1)}\right)
+e^{-\frac{1}{2}\int d^{4}x\,d^{4}x'\;\Delta\left(x-x'\right)J(x)\,J(x')}
+\cdot\left(\frac{i}{2}\int d^{4}x\,d^{4}x'\,J(x)\,\Delta\left(x-x'\right)\cdot\delta^{4}\left(x'-x_2\right)\right.\\
+&amp;\qquad\qquad\left. +\;\frac{i}{2}\int d^{4}x\,d^{4}x'\,J(x')\,\Delta\left(x-x'\right)\,\delta^{4}\left(x-x_2\right)\right)\\
+&amp;= \left(-\frac{i}{\partial J(x_1)}\right)
+e^{-\frac{1}{2}\int d^{4}x\,d^{4}x'\,J(x)\,\Delta\left(x-x'\right)J(x')}
+\left\{\frac{i}{2}\int d^{4}x\;J(x)\,\Delta\left(x-x_2\right)
+\;+\;\frac{i}{2}\int d^{4}x'\;J(x')\,\Delta\left(x_2-x'\right)\right\}\\
+&amp;= \left(\frac{i}{2}\int d^{4}x\,d^{4}x'\;\frac{\delta J(x)}{\delta J(x_1)}\;\Delta\left(x-x'\right)J(x')\right.\\
+&amp;\qquad +\left.\frac{i}{2}\int d^{4}x\,d^{4}x'\;J(x)\,\Delta\left(x-x'\right)\frac{\delta J(x')}{\delta J(x_1)}\right)
+\times\left(\frac{1}{2}\int d^{4}x\;\frac{J(x)}{\Delta\left(x-x'\right)}
++ \frac{1}{2}\int d^{4}x'\;J(x')\,\Delta\left(x_2-x'\right)\right)\\
+&amp;\qquad + e^{-\frac{1}{2}\int d^{4}x\,d^{4}x'\,J(x)\,\Delta\left(x-x'\right)J(x')}
+\left(\frac{1}{2}\int d^{4}x\;\delta^{4}\left(x-x_1\right)\Delta\left(x-x_2\right)\right.\\
+&amp;\qquad\qquad\left. +\frac{1}{2}\int d^{4}x'\;\delta^{4}\left(x'-x_1\right)\Delta\left(x_2-x'\right)\right)
+\end{aligned}
+\]
+
+<p>
+at \(J = 0\)<br />
+</p>
+
+\[
+\begin{aligned}
+&amp;= \frac{1}{2}\,\Delta\left(x_1-x_2\right) + \frac{1}{2}\,\Delta\left(x_2-x_1\right)\\
+&amp;= \Delta\left(x_1-x_2\right) \;=\; \Delta\left(x_1, x_2\right)
+\end{aligned}
+\]
+
+<p>
+Similarly,<br />
+</p>
+
+\[
+\begin{aligned}
+G_{\text{free}}\left(x_1\, x_2\, x_3\, x_4\right) =
+\;&amp;\Delta\left(x_1\,x_2\right)\Delta\left(x_3\,x_4\right)
++ \Delta\left(x_1\,x_3\right)\Delta\left(x_2\,x_4\right)\\
+&amp;+ \Delta\left(x_1\,x_4\right)\Delta\left(x_2\,x_3\right)
+\end{aligned}
+\]
+
+<p>
+Similarly,<br />
+</p>
+
+\[
+\begin{gathered}
+G_{\text{free}}\left(x_1\,x_2\ldots x_{2n}\right) =
+\Delta\left(x_1\,x_2\right)\Delta\left(x_2\,x_3\right)\cdots\Delta\left(x_{2n-1},\,x_{2n}\right)
+\;+\;\text{All permutations}\\
+\text{Total \# of permutations} \;=\; \frac{2n!}{2^{n}\,n!}
+\end{gathered}
+\]
+
+<p>
+as<br />
+</p>
+
+\[
+G_{f}\left(x_1\,x_2\ldots x_{2n+1}\right) = 0
+\quad\left(\text{using wicks contraction}\ \left\langle 0\middle| T\left(\text{odd \# of fields}\right)\middle|0\right\rangle = 0\right)
+\]
+
+<p>
+(or) # of permutations shall be :<br />
+</p>
+
+\[
+\left(2n-1\right)\left(2n-3\right)\cdot 5\cdot3\cdot1 \;=\; \frac{2n!}{2^{n}\,n!}
+\qquad\longleftarrow\;\text{How}\ (?)
+\]
+
+<p>
+<span id="Lecture 4-Feynman rules"></span><strong id="Feynman rules">Feynman rules</strong> :<br />
+</p>
+
+<p>
+(1) For correlation function of \(2n\)-\(\phi\)'s<br />
+</p>
+
+<p>
+<em>[figure omitted]</em><br />
+</p>
+
+<p>
+To get \(\Delta\left(x_1\,x_2 - x_{2n}\right)\) we find :<br />
+</p>
+
+\[
+\Delta\left(x_1\,x_2 - x_{2n}\right) =
+\underbrace{\Delta\left(x_1, x_k\right)\;\Delta\left(x_2, x_\ell\right)\cdots}_{\substack{\text{`}n\text{' such terms}\\ \left(n\text{- propagators}\right)}}
+\;+\;\underbrace{\sum\;\text{All permutations}}_{n}
+\]
+
+<p>
+Suppose we take action ---<br />
+</p>
+
+\[
+S = -\int d^{4}x\;\left(\frac{1}{2}\,\eta^{\mu\nu}\,\partial_{\mu}\phi\,\partial_{\nu}\phi + \frac{m^{2}}{2}\,\phi^{2} + \frac{\lambda}{4!}\;\phi^{4}\right)
+\]
+
+\[
+\lambda:\ \text{small parameter}
+\]
+
+<p>
+Write<br />
+</p>
+
+\[
+\exp\left(\int\left(i\,\frac{\lambda}{4!}\;\phi^{4}\right)d^{4}x\right)\ \text{as}\ :\quad
+\sum_{m=0}^{\infty}\;\frac{1}{m!}\left(\frac{-i\lambda}{4!}\right)^{m}\left\{\int d^{4}x\;\phi^{4}(x)\right\}^{m}
+\]
+
+\[
+e^{iS} = e^{i\,S_{\text{free}} + i\,S_{\text{int}}}
+= e^{i\,S_{\text{free}}}\cdot e^{i\,S_{\text{int}}}
+= e^{i\,S_{\text{free}}}\;\sum_{m}\;\frac{1}{m!}\left(\frac{-i\lambda}{4!}\right)^{m}\left\{i\,S_{\text{int}}\right\}^{m}
+\]
+
+<p>
+We are interested to find \(G\left(x_1\,x_2\ldots x_{2n}\right)\) in interacting theory.<br />
+</p>
+
+\[
+\begin{aligned}
+\text{unnormalised}\quad
+G\left(x_1\,x_2\ldots x_n\right) &amp;= \left\langle 0\right| T\left\{\phi_0(x_1)\,\phi_0(x_2)\ldots\phi_0(x_n)\; e^{i\,S_{\text{int}}}\right\}\left|0\right\rangle\\
+&amp;= \left\langle 0\right| T\left\{\phi_0(x_1)\,\phi_0(x_2)\ldots\phi_0(x_n)
+\sum_{m=0}^{\infty}\frac{1}{m!}\left(\frac{-i\lambda}{4!}\right)^{m}\left(\int d^{4}y\;\phi^{4}(y)\right)^{m}\ldots\right\}\left|0\right\rangle
+\end{aligned}
+\]
+
+\[
+\text{Normalised}\quad
+G\left(x_1\,x_2\ldots x_n\right) =
+\frac{G\left(x_1\,x_2\ldots x_n\right)}{G\left(x_1\,x_2\ldots x_n\big|_{n=0}\right)}
+\;=\;\frac{G\left(x_1\,x_2\ldots x_n\right)}{G(0)}
+\]
+
+\[
+G(0) = \left\langle \Omega\middle|\Omega\right\rangle = \left\langle 0\right| T\left\{\exp\left(i\,S_{\text{int}}\right)\right\}\left|0\right\rangle
+\]
+
+<p>
+<span id="Lecture 4-Feynman rules of interacting theory"></span><strong id="Feynman rules of interacting theory">Feynman rules of interacting theory</strong> :<br />
+</p>
+
+<p>
+Besides the \(x\)'s for external states we have 4 extra \(x\)'s for each factor of \(\lambda\).<br />
+</p>
+
+<p>
+i.e. For each order in '\(\lambda\)' introduce a vertex<br />
+<em>[diagram]</em><br />
+&amp; calculate using 4 extra vertex in free case with a vertex factor of \(\left(\dfrac{-i\lambda}{4!}\right)\).<br />
+</p>
+
+\[
+\underline{\text{and}}\qquad \int d^{4}x\qquad \forall\ x.
+\]
+
+<p>
+For \(m\) such vertex<br />
+<em>[diagram]</em><br />
+we have \(\dfrac{1}{m!}\) from expansion of \(e^{i\,S_{\text{int}}}\).<br />
+</p>
+
+<p>
+or \(\left(\text{for } O\left(\lambda^{m}\right)\text{ we have } \dfrac{1}{m!}\ \text{factor.}\right)\)<br />
+</p>
+
+<p>
+Suppose we want to calculate \(G\left(x_1\,x_2\right)\) upto \(O(\lambda)\).<br />
+</p>
+
+\[
+\text{[diagram]}
+\qquad
+\downarrow\;\text{one vertex with factor}\ \left(-\frac{i\lambda}{4!}\right)
+\]
+
+<p>
+Possibilities are:<br />
+</p>
+
+<p>
+<em>[figure omitted]</em><br />
+</p>
+
+<p>
+Diagram (1) : \(\phi^{4}\) theory<br />
+</p>
+
+\[
+G_1 = (\frac{-i\lambda}{4!})\int d^{4}x\;\;\Delta\left(x_1\,x_2\right)\,\Delta\left(x, x\right)\,\Delta\left(x, x\right)\;\cdot\;(3)
+\qquad
+\swarrow\;\text{Combinatorial factor}
+\]
+
+<p>
+Diagram (2) :<br />
+</p>
+
+\[
+G_2 = \frac{-i\lambda}{4!}\int d^{4}x\;\;\Delta\left(x_1, x\right)\,\Delta\left(x_2, x\right)\,\Delta\left(x, x\right)\;\cdot\;\left(4\cdot3\cdot1\right)
+\]
+
+\[
+G\left(x_1\,x_2\right) = G_1 + G_2
+\]
+
+<p>
+<span id="Lecture 4-ex"></span><strong id="ex">ex</strong> :<br />
+</p>
+
+\[
+G\left(x_1 x_2 x_3 x_4\right) =
+\text{[diagram]}
+= \frac{-i\lambda}{\cancel{\left(4!\right)}}\int d^{4}x\;\Delta\left(x_1, x\right)\Delta\left(x_2\,x\right)\Delta\left(x_3\,x\right)\Delta\left(x_4\,x\right)\cdot\left(\cancel{4\cdot3\cdot2\cdot1}\right)
+\]
+
+\[
+\swarrow\quad 4!\ \text{is designed to cancel out C.f.\ from tree level diagrams!}
+\qquad
+\downarrow\;\text{Combinatorial factor}
+\]
+
+<p>
+denominator / Normalisation<br />
+</p>
+
+\[
+\begin{aligned}
+\left\langle \Omega\middle|\Omega\right\rangle &amp;= \left\langle 0\right| T\left\{e^{i\,S_{\text{int}}}\right\}\left|0\right\rangle\\
+&amp;= 1 + \int\left(\frac{-i\lambda}{4!}\right) d^{4}x \left\langle 0\middle|\phi^{4}(x)\middle|0\right\rangle
++ \left(\frac{-i\lambda}{4!}\right)^{2}\frac{1}{2!}\int d^{4}x\,d^{4}y\;\left\langle 0\middle|\phi^{4}(x)\,\phi^{4}(y)\middle|0\right\rangle + \cdots
+\end{aligned}
+\]
+
+\[
+= 1 +
+\text{[diagram]}
+\;+\;
+\text{[diagram]}
+\;+\;
+\text{[diagram]}
+\;+\;\cdots\;\text{Bubble diagrams}
+\]
+
+<p>
+diagrams like<br />
+<em>[diagram]</em><br />
+should not be included as such disconnected diagrams factor as connected \(\times\) vacuum bubbles where bubbles's contribution cancels from denominator \(\left\langle \Omega\middle|\Omega\right\rangle\).<br />
+——— \(\times\) ———<br />
+</p>
+
+<div id="Lecture 5 --- Factorisation of bubble diagrams"><h1 id="Lecture 5 --- Factorisation of bubble diagrams" class="header"><a href="#Lecture 5 --- Factorisation of bubble diagrams">Lecture 5 --- Factorisation of bubble diagrams</a></h1></div>
+
+<p>
+<span id="Lecture 5 --- Factorisation of bubble diagrams-Factorisation of bubble diagrams"></span><strong id="Factorisation of bubble diagrams">Factorisation of bubble diagrams</strong> ---<br />
+</p>
+
+<p>
+Suppose we have situation like this :<br />
+</p>
+
+<p>
+<em>[figure omitted]</em><br />
+</p>
+
+\[
+\begin{aligned}
+&amp;\left(m\text{ -- interaction vertices}\right)\\
+&amp;\text{Feynman diagram with no bubble (as we have external legs)}
+\end{aligned}
+\qquad\qquad
+\begin{aligned}
+&amp;\left(n\text{-vertices [all are internal]}\right)\\
+&amp;\text{vacuum Bubble (as no external line/leg)}
+\end{aligned}
+\]
+
+<p>
+<span id="Lecture 5 --- Factorisation of bubble diagrams-Interpretation"></span><strong id="Interpretation">Interpretation</strong> :<br />
+</p>
+
+\[
+\frac{1}{\left(m+n\right)!}\left(\frac{-i\lambda}{4!}\right)^{m+n}\quad\swarrow
+\]
+
+<p>
+(1) Above two diagrams may appear as single feynman diagram<br />
+</p>
+
+<p>
+(2) Above diagram is product of two seperate diagrams. (connected \(\times\) bubble).<br />
+</p>
+
+\[
+=\;\frac{1}{m!}\left(\frac{-i\lambda}{4!}\right)^{m}\;\frac{1}{n!}\left(\frac{-i\lambda}{4!}\right)^{n}
+\]
+
+<p>
+If interpretation (1) \(=\) interpretation (2)<br />
+</p>
+
+<p>
+Any diagram can be thought as product of \(\Big(\sum\limits_{\text{form}}\)diagram without bubble\(\Big)\) \(\times\) \(\left(1 + \text{Sum of bubbles}\right)\).<br />
+</p>
+
+<p>
+i.e.<br />
+</p>
+
+\[
+\begin{gathered}
+\text{Sum of Feynman diagrams} = \left(\text{sum of connected}\right)\times\left(1 + \text{sum of bubbles}\right)\\
+= \sum\nolimits_{\text{connected}}\;\cdot\;\sum\left(1 + \text{bubbles}\right)
+\end{gathered}
+\]
+
+<p>
+The key is to find combinatorial factors which is hard to find if we don't have diagrams. If we had diagram we can follow it to find combinatorial factor.<br />
+</p>
+
+<p>
+But exchange of vertices don't generate new diagrams<br />
+</p>
+
+\[
+\begin{gathered}
+\text{So,}\qquad
+1)\quad \frac{1}{\left(m+n\right)!}\left(\frac{-i\lambda}{4!}\right)^{m+n}\;\times\;\left(m+n\right)!
+\qquad
+\swarrow\;
+\begin{aligned}
+&amp;\text{factors for exchange}\\
+&amp;\text{of vertices.}
+\end{aligned}\\
+2)\quad \frac{1}{m!}\left(\frac{-i\lambda}{4!}\right)^{m}\;\frac{1}{n!}\left(\frac{-i\lambda}{4!}\right)^{n}\;\times\;\left(m!\;\, n!\right)
+\end{gathered}
+\]
+
+<p>
+<span id="Lecture 5 --- Factorisation of bubble diagrams-Counting"></span><strong id="Counting">Counting</strong> (1)<br />
+</p>
+
+<ul>
+<li>
+of ways of choosing '\(m\)' vertices out of \(\left(m+n\right)\) is \(^{m+n}C_m\)
+\[
+= \frac{\left(m+n\right)!}{m!\;n!}
+\qquad\qquad
+\left\{{}^{n}C_r = \frac{n!}{r!\left(n-r\right)!}\right.
+\]
+
+</ul>
+<p>
+——— \(\times\) ———<br />
+We were after propagator \(\Delta\left(x, x'\right)\) satisfying (we need to find \(\Delta\left(x,x'\right)\))<br />
+</p>
+
+\[
+\left(\partial_x^{2} - m^{2}\right)\Delta\left(x, x'\right) = i\,\delta^{4}\left(x-x'\right)
+\qquad\left(\text{translation invariant}\right)
+\]
+
+\[
+\begin{gathered}
+x \;\longrightarrow\; x + a\\
+x' \;\longrightarrow\; x' + a
+\qquad\qquad
+\text{eq}^{\text{n}}\text{ will look same.}
+\end{gathered}
+\]
+
+<p>
+So, this \(\Delta\left(x, x'\right)\) shall only depend upon \(\left|x - x'\right|\).<br />
+</p>
+
+<p>
+Fourier expansion of<br />
+</p>
+
+\[
+\Delta\left(x, x'\right) = \int\frac{d^{4}k}{\left(2\pi\right)^{4}}\;\; e^{i\,k\cdot\left(x-x'\right)}\;\;\widetilde{\Delta}(k)
+\]
+
+<p>
+if we use above eq\(^{\text{n}}\)<br />
+</p>
+
+\[
+\begin{aligned}
+\left(\partial_x^{2} - m^{2}\right)\Delta\left(x, x'\right)
+&amp;= \int\frac{d^{4}k}{\left(2\pi\right)^{4}}\;\left(\partial_x^{2} - m^{2}\right)\, e^{i\,k\cdot\left(x-x'\right)}\;\widetilde{\Delta}(k)\\
+&amp;= \int\frac{d^{4}k}{\left(2\pi\right)^{4}}\;\left(i^{2}k^{2} - m^{2}\right)\, e^{i\,k\cdot\left(x-x'\right)}\;\widetilde{\Delta}(k)\\
+&amp;= \int\frac{d^{4}k}{\left(2\pi\right)^{4}}\;\left(-k^{2} - m^{2}\right)\, e^{i\,k\cdot\left(x-x'\right)}\;\widetilde{\Delta}(k)\\
+&amp;= i\,\delta^{4}\left(x-x'\right)
+\qquad\text{iff}:\quad
+\widetilde{\Delta}(k) = \frac{i}{-k^{2}-m^{2}}
+\end{aligned}
+\]
+
+\[
+\widetilde{\Delta}(k) = \frac{i}{-\left(k^{0}k_{0} + k_i\,k^{i} + m^{2}\right)}
+= \frac{i}{-\left(-k_0^{2} + k_i\cdot k_i + m^{2}\right)}
+\]
+
+\[
+\widetilde{\Delta}(k) = \frac{i}{k_0^{2} - \vec{k}^{2} - m^{2}}
+\qquad\cdots\left(\eta_{\mu\nu} = \left(-1,1,1,1\right)\right)
+\]
+
+<p>
+Not defined fully at denominator \(= 0\).<br />
+</p>
+
+<p>
+So, it needs to be specified how to deal with singularity.<br />
+</p>
+
+\[
+\text{Singularity at}\qquad k_0 = \pm\sqrt{\vec{k}^{2} + m^{2}}
+\]
+
+<p>
+Ambiguity \(\propto\) \(e^{i\,k\cdot\left(x-x'\right)}\) at \(k_0 = \pm\sqrt{\vec{k}^{2}+m^{2}}\) (in \(x\)-dependence)<br />
+</p>
+
+<p>
+i.e. expression for \(\Delta\left(x, x'\right)\) will change by \(e^{i\,k\cdot\left(x-x'\right)}\) at \(k_0 = \pm\sqrt{\vec{k}^{2}+m^{2}}\)<br />
+</p>
+
+<p>
+Also \(e^{i\,k\cdot\left(x-x'\right)}\) satisfies<br />
+</p>
+
+\[
+\begin{gathered}
+\left(\partial_x^{2} - m^{2}\right) e^{i\,k\cdot\left(x-x'\right)} = 0\\
+\underline{\text{LHS}}:\quad \left(-k^{2}-m^{2}\right)\, e^{i\,k\cdot\left(x-x'\right)} = (0)\cdot e^{i\,k\cdot\left(x-x'\right)}\\
+\downarrow\\
+\text{at}\ k_0 = \pm\sqrt{\vec{k}^{2}+m^{2}}
+\end{gathered}
+\]
+
+<p>
+So, this ambiguity is just reflecting the fact that this eq\(^{\text{n}}\)<br />
+</p>
+
+\[
+\left(\partial_x^{2}-m^{2}\right)\Delta\left(x, x'\right) = i\,\delta^{4}\left(x-x'\right)
+\]
+
+<p>
+does not have unique sol\(^{\text{n}}\) (i.e. \(\Delta\left(x, x'\right)\)).<br />
+</p>
+
+<p>
+for ex: we can \(\Delta \to \Delta' = \Delta + \text{Const}\).<br />
+</p>
+
+\[
+\text{Still}\qquad \left(\partial_x^{2}-m^{2}\right)\Delta' = i\,\delta^{4}\left(x-x'\right)
+\]
+
+<p>
+Greens function is not uniquely defined in minkowaski space.<br />
+</p>
+
+<p>
+<span id="Lecture 5 --- Factorisation of bubble diagrams-Shortcut"></span><strong id="Shortcut">Shortcut</strong>:<br />
+</p>
+
+\[
+x^{0} - \left(x'\right)^{0} \;\longrightarrow\; \left(x^{0} - x'^{0}\right)\cdot\left(1 - i\epsilon\right)
+\]
+
+<p>
+So,<br />
+</p>
+
+\[
+\begin{aligned}
+\Delta\left(x, x'\right) &amp;= \int\frac{d^{4}k}{\left(2\pi\right)^{4}}\;\;
+e^{-i\,k^{0}\left(x^{0}-x'^{0}\right) + i\,\vec{k}\cdot\left(\vec{x}-\vec{x}'\right)}\;\;\widetilde{\Delta}(k)\\
+&amp;= \int\frac{d^{4}k}{\left(2\pi\right)^{4}}\;\;
+e^{-i\,k^{0}\left(x^{0}-x'^{0}\right)\left(1-i\epsilon\right) + i\,\vec{k}\cdot\left(\vec{x}-\vec{x}'\right)}\;\;\widetilde{\Delta}(k)\\
+&amp;= \int\frac{dk^{0}}{2\pi}\;\frac{d^{3}k}{\left(2\pi\right)^{3}}\;\;
+e^{-k^{0}\left(i+\epsilon\right)\left(x^{0}-x'^{0}\right)\; +\; i\,\vec{k}\cdot\left(\vec{x}-\vec{x}''\right)}\;\;\widetilde{\Delta}(k)\\
+&amp;\qquad\qquad\qquad\downarrow\quad\text{will blow up as}\ \ k^{0} \to \left(-\infty\right).
+\end{aligned}
+\]
+
+<p>
+So to prevent it, we also rotate \(k^{0}\)<br />
+</p>
+
+\[
+k^{0} \;\longrightarrow\; \frac{k^{0}}{1-i\epsilon} = k^{0}\left(1+i\epsilon\right) + O\left(\epsilon^{2}\right)
+\qquad
+\hookrightarrow\;\text{does it really prevent}\ (?)
+\]
+
+<p>
+Such that<br />
+</p>
+
+\[
+\begin{aligned}
+\widetilde{\Delta}(k) = \frac{i}{k'^{2} - \vec{k}^{2} - m^{2}}
+\;&amp;\longrightarrow\;
+\frac{i}{k^{0\,2}\left(1+i\epsilon\right)^{2} - \vec{k}^{2} - m^{2}}\\
+&amp;= \frac{i}{k^{0\,2}\left(1+2i\epsilon\right) - \vec{k}^{2} - m^{2}}
+\qquad\left(\text{neglecting } O\left(\epsilon^{2}\right)\right)\\
+&amp;= \frac{i}{\left(k^{0}\right)^{2} - \vec{k}^{2} - m^{2} + 2i\epsilon\,k^{0\,2}}\\
+&amp;= \frac{i}{\left(k^{0}\right)^{2} - \vec{k}^{2} - m^{2} + i\epsilon}
+\qquad\text{redefing } \epsilon.
+\end{aligned}
+\]
+
+<p>
+poles are now shifted<br />
+</p>
+
+\[
+k^{0} = \left\{
+\begin{aligned}
+&amp;\sqrt{\vec{k}^{2}+m^{2}} - i\epsilon\\
+-&amp;\sqrt{\vec{k}^{2}+m^{2}} + i\epsilon
+\end{aligned}
+\right.
+\]
+
+<p>
+<em>[figure omitted]</em><br />
+</p>
+
+<p>
+So, Final form of propagator becomes :<br />
+</p>
+
+\[
+\widetilde{\Delta}_{F}(k) = \frac{i}{-k^{2} - m^{2} + i\epsilon}
+\qquad\text{where}\quad \epsilon &gt; 0.
+\]
+
+<p>
+In path integral formelism \(i\epsilon\) prescription ensures that we get vacuum state to calculate partition functionel.<br />
+</p>
+
+\[
+\begin{gathered}
+e^{iHT}\left|q'\right\rangle \;\longrightarrow\; e^{iHT}\sum_{n}\left|n\right\rangle\left\langle n\middle|q'\right\rangle
+= \sum_{n} e^{i\,E_n\,t}\;\psi_{n}\left(q'\right)\left|n\right\rangle\\
+\text{if}\quad T \;\longrightarrow\; T\left(1-i\epsilon\right)\\
+\searrow\quad
+e^{i\,H\,T\left(1-i\epsilon\right)}\;\sum_{n}\left|n\right\rangle\left\langle n\middle|q'\right\rangle
+= \sum_{n}\; e^{i\,E_n\,T\left(1-i\epsilon\right)}\;\left\langle n\middle|q'\right\rangle\;\left|n\right\rangle
+\end{gathered}
+\]
+
+<p>
+at \(t = -\infty\) only \(n = 0\) state survives<br />
+</p>
+
+\[
+\sum_{n}\; e^{i\,E_n\,t}\;\, e^{\epsilon\,E_n\,T}\left|n\right\rangle\left\langle n\middle|q'\right\rangle.
+\qquad
+\swarrow\;
+\begin{aligned}
+&amp;\text{What if } E_0 \neq 0\\
+&amp;\text{does it still survive?}
+\end{aligned}
+\]
+
+<p>
+Also \(m^{2} \to m^{2}\left(1-i\epsilon\right)\) makes path integral well defined! else we have damped fun. \(e^{iS}\).<br />
+</p>
+
+<p>
+<span id="Lecture 5 --- Factorisation of bubble diagrams-Momentum space feynman rules"></span><strong id="Momentum space feynman rules">Momentum space feynman rules</strong> :<br />
+</p>
+
+<p>
+Idea is to calculate fourier transform of green's function.<br />
+</p>
+
+\[
+\begin{aligned}
+\widetilde{G}\left(k_1\,k_2\,\cdots\,k_n\right) = \int d^{4}x_1\, d^{4}x_2\ldots d^{4}x_n\;\;
+&amp;e^{-i\,k_1\cdot x_1}\; e^{-i\,k_2\cdot x_2}\cdots e^{-i\,k_n\cdot x_n}\\
+&amp;\times\;\; G_{n}\left(x_1\,x_2\,\cdots\,x_n\right)
+\end{aligned}
+\]
+
+<p>
+We have<br />
+</p>
+
+\[
+\begin{gathered}
+\widetilde{\phi}(k) = \int d^{4}x\;\;\phi(x)\;\, e^{-i\,k\cdot x}\\
+\phi(x) = \int\frac{d^{4}k}{\left(2\pi\right)^{4}}\;\; e^{i\,k\cdot x}\;\;\widetilde{\phi}(k)
+\end{gathered}
+\]
+
+<p>
+In \(Z[J]\), we will replace \(\mathcal{D}\phi \to \mathcal{D}\widetilde{\phi}\) there will be some Jacobian (const. but independent of source term \(J(x)\) which will cancel out when we devide by \(Z[0]\).)<br />
+ \(\nearrow\) what will be Jacobian (?)<br />
+</p>
+
+\[
+\begin{aligned}
+Z\left[J\right] &amp;= \frac{1}{Z[0]}\int\left[\mathcal{D}\phi\right] e^{\,iS + i\int d^{4}x\;\phi(x)\,J(x)}\\
+&amp;= \frac{1}{Z[0]}\int\left[\mathcal{D}\widetilde{\phi}\right]\;
+e^{\,iS + i\int d^{4}x\; J(x)\left(\int\frac{d^{4}k}{\left(2\pi\right)^{4}}\; e^{i\,k\cdot x}\;\widetilde{\phi}(k)\right)}
+\end{aligned}
+\]
+
+<p>
+also<br />
+</p>
+
+\[
+S_{\text{free}}\left[\phi\right] = \frac{1}{2}\int d^{4}x\;\left(\eta^{\mu\nu}\,\partial_{\mu}\phi\,\partial_{\nu}\phi - m^{2}\phi^{2}\right)
+\]
+
+<p>
+using \(\phi(x) = \int\frac{d^{4}k}{\left(2\pi\right)^{4}}\; e^{i\,k\cdot x}\;\widetilde{\phi}(k)\)<br />
+</p>
+
+\[
+\begin{aligned}
+S_{\text{free}}\left[\widetilde{\phi}\right] = \frac{1}{2}\int d^{4}x\int\frac{d^{4}k}{\left(2\pi\right)^{4}}\;\frac{d^{4}k'}{\left(2\pi\right)^{4}}
+\;\Big[&amp;\left(i\,k_{\mu}\right)\left(i\,k'_{\nu}\right)\,\widetilde{\phi}(k)\,\widetilde{\phi}(k')\;\eta^{\mu\nu}\;
+e^{i\,k\cdot x}\, e^{i\,k'\cdot x}\\
+&amp;- m^{2}\;\widetilde{\phi}(k)\,\widetilde{\phi}(k')\;
+e^{i\,k\cdot x}\, e^{i\,k'\cdot x}\Big]
+\end{aligned}
+\]
+
+<p>
+where \(\left\{d\breve{k} = \dfrac{dk}{2\pi}\right\}\)<br />
+</p>
+
+\[
+= \frac{1}{2}\int d^{4}x\int d^{4}\breve{k}\;d^{4}\breve{k}'\;\cdot\;
+e^{i\,x\cdot\left(k+k'\right)}\;\;\widetilde{\phi}(k)\;\widetilde{\phi}(k')\;\left(-k^{2}-m^{2}\right)
+\]
+
+<p>
+solving \(\int d^{4}x\) we get<br />
+</p>
+
+\[
+= \frac{1}{2}\int d^{4}\breve{k}\;d^{4}\breve{k}'\;\left(2\pi\right)^{4}\,\delta^{4}\left(k+k'\right)\;
+\widetilde{\phi}(k)\;\widetilde{\phi}(k')\;\left(-k^{2}-m^{2}\right)
+\]
+
+<p>
+solving \(k'\) integral we get<br />
+</p>
+
+\[
+S_{\text{free}}\left[\widetilde{\phi}\right] = \frac{1}{2}\int\frac{d^{4}k}{\left(2\pi\right)^{4}}\;\;
+\underbrace{\widetilde{\phi}(k)\;\widetilde{\phi}(-k)}_{\downarrow\;\text{quadratic term}\ (1)}\;\;
+\underset{\nearrow\;\text{Inverse of propagator}}{(-k^{2}-m^{2})}
+\]
+
+<p>
+Similarly<br />
+</p>
+
+\[
+\begin{aligned}
+S_{\text{int}} &amp;= \int d^{4}x\;\, L_{\text{int}} = \int d^{4}x\;\frac{\lambda}{4!}\,\phi^{4}(x)\\
+&amp;= \frac{\lambda}{4!}\int d^{4}x\int d^{4}\breve{k}_1\, d^{4}\breve{k}_2\, d^{4}\breve{k}_3\, d^{4}\breve{k}_4\;\;
+e^{i\,x\cdot\left(k_1+k_2+k_3+k_4\right)}\;\;
+\widetilde{\phi}\left(k_1\right)\widetilde{\phi}\left(k_2\right)\widetilde{\phi}\left(k_3\right)\widetilde{\phi}\left(k_4\right)
+\end{aligned}
+\]
+
+<p>
+solving '\(x\)' integral<br />
+</p>
+
+\[
+S_{\text{int}} = \frac{\lambda}{4!}\int d^{4}\breve{k}_1\, d^{4}\breve{k}_2\, d^{4}\breve{k}_3\, d^{4}\breve{k}_4\;
+\left(2\pi\right)^{4}\,\delta^{4}\left(k_1+k_2+k_3+k_4\right)\;
+\widetilde{\phi}\left(k_1\right)\widetilde{\phi}\left(k_2\right)\widetilde{\phi}\left(k_3\right)\widetilde{\phi}\left(k_4\right)
+\]
+
+<p>
+the Source Action becomes<br />
+</p>
+
+\[
+\begin{aligned}
+i\int \underset{\downarrow\;k'}{J(x)}\;\underset{\downarrow\;k}{\phi(x)}\;d^{4}x
+&amp;= i\int d^{4}x\int d^{4}\breve{k}\,d^{4}k'\;\;\widetilde{J}(k')\;\widetilde{\phi}(k)\; e^{i\,x\cdot\left(k+k'\right)}\\
+&amp;= i\int d^{4}\breve{k}\,d^{4}\breve{k}'\;\;\widetilde{J}(k')\;\widetilde{\phi}(k)\;\left(2\pi\right)^{4}\delta^{4}\left(k+k'\right)\\
+&amp;= i\int\frac{d^{4}k}{\left(2\pi\right)^{4}}\;\;\widetilde{J}(-k)\;\widetilde{\phi}(k)
+\qquad
+\hookrightarrow\;\text{linear term}\ (2)
+\end{aligned}
+\]
+
+<p>
+(1) is quadratic term , (2) is linear term , so we complete the square.<br />
+</p>
+
+<p>
+It turns out that:<br />
+</p>
+
+\[
+\frac{Z_{f}\left[J\right]}{Z_{f}\left[0\right]} =
+\exp\left(-\frac{1}{2}\int d^{4}\breve{k}_1\; d^{4}\breve{k}_2\;\;\Delta_{F}\left(k_1, k_2\right)\;\widetilde{J}\left(k_1\right)\,\widetilde{J}\left(k_2\right)\right)
+\]
+
+\[
+\Delta_{F}\left(k_1\,k_2\right) = \left(2\pi\right)^{4}\,\delta^{4}\left(k_1+k_2\right)
+\]
+
+\[
+\begin{aligned}
+G_{F}\left(k_1\,k_2\,\cdots\,k_n\right) =
+\left(-\left(2\pi\right)^{4}\, i\,\frac{\delta}{\delta\widetilde{J}\left(-k_1\right)}\right)
+&amp;\left(-\left(2\pi\right)^{4}\, i\,\frac{\delta}{\delta\widetilde{J}\left(-k_2\right)}\right)\\
+\cdots\;
+&amp;\left(-\left(2\pi\right)^{4}\, i\,\frac{\delta}{\delta\widetilde{J}\left(-k_N\right)}\right)\;
+\frac{Z\left[J\right]}{Z\left[0\right]}\;\Bigg|_{J=0.}
+\end{aligned}
+\]
+
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+    </script>
+</body>
+</html>
+
