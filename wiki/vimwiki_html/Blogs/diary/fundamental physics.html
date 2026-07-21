@@ -4,13 +4,12 @@
     <link rel="stylesheet" type="text/css" href="../style.css">
     <link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
+    <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
     <title>fundamental physics</title>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <style>
         body {
             background-image: url('../Images/parchment.jpg');
@@ -19,66 +18,90 @@
             background-attachment: fixed;
             margin: 0;
             font-family: Arial, sans-serif;
-            padding: 3cm; /* Add 3cm padding on all sides */
+            padding: 3cm;
         }
-
         #content {
             color: #333;
-            font-size: 20px; /* Increase base font size */
+            font-size: 20px;
             line-height: 1.6;
             max-width: 1200px;
             margin: 0 auto;
             padding: 10px;
             background-color: rgba(255, 255, 255, 0.5);
         }
-
         h1 {
-            font-size: 28; /* Smaller size for h1 */
-                color: black;
+            font-size: 28px;
         }
-
         h2 {
-            font-size: 26px; /* Smaller size for h2 */
-                color: blue;
+            font-size: 24px;
         }
-
         h3 {
-            font-size: 24px; /* Smaller size for h3 */
-                color: orange;
+            font-size: 20px;
         }
-
-        h4 {
-            font-size: 20; /* Smaller size for h3 */
-                color: purple;
+        h4, h5, h6 {
+            font-size: 18px;
         }
-        
-        h5,h6 {
-            font-size: 18;
-                color: red;
-        }
-
         img {
             display: block;
             max-width: 100%;
             max-height: 500px;
-            margin: 30px auto; /* Add space above and below images */
+            margin: 30px auto;
         }
-
+        /* Diagram blocks (Mermaid + TikZ): centered, no code-box background */
+        pre.mermaid, pre.tikz {
+            background: none;
+            border: none;
+            text-align: center;
+        }
+        #content svg {
+            max-width: 100%;
+            height: auto;
+        }
+        /* Breadcrumb trail */
+        .breadcrumb {
+            font-size: 15px;
+            line-height: 1.4;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+            color: #555;
+            word-break: break-word;
+        }
+        .breadcrumb:empty {
+            display: none;   /* hides the bar on the home page / single-crumb pages */
+        }
+        .breadcrumb a {
+            color: #6b4f2a;
+            text-decoration: none;
+        }
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        .breadcrumb .breadcrumb-sep {
+            color: #999;
+            margin: 0 4px;
+        }
+        .breadcrumb .breadcrumb-current {
+            color: #333;
+            font-weight: bold;
+        }
         /* Mobile Styles */
         @media only screen and (max-width: 600px) {
             body {
-                padding: 0.5cm; /* Adjust padding for smaller screens */
+                padding: 1cm;
             }
-
             #content {
-                padding: 10px; /* Adjust padding for smaller screens */
-                max-width: 100%; /* Set maximum width for smaller devices */
+                padding: 10px;
+                max-width: 100%;
             }
         }
     </style>
 </head>
 <body>
     <div id="content">
+        <!-- Breadcrumb trail: home > link1 > link2 > current. Filled in by JS below. -->
+        <nav id="breadcrumb" class="breadcrumb" aria-label="Breadcrumb"
+             data-home="../index.html" data-home-label="Home"></nav>
         
 
 <p>
@@ -86,10 +109,109 @@ By fundamental physics I mean branch of physics which deals with most fundamenta
 </p>
 
     </div>
+
+    <!-- 0. Breadcrumb trail: builds "home > link1 > link2 > current" from the pages
+            visited in this browser tab, each clickable to jump straight there. -->
+    <script>
+    (function () {
+        var nav = document.getElementById('breadcrumb');
+        if (!nav || !window.sessionStorage) return;
+
+        var STORAGE_KEY = 'vimwiki_breadcrumb_trail';
+        var homeHref = nav.getAttribute('data-home') || 'index.html';
+        var homeLabel = nav.getAttribute('data-home-label') || 'Home';
+
+        // Resolve a (possibly relative) href to an absolute path for comparison.
+        function toPath(href) {
+            try { return new URL(href, window.location.href).pathname; }
+            catch (e) { return href; }
+        }
+
+        var home = { path: toPath(homeHref), title: homeLabel, href: homeHref };
+        var current = {
+            path: window.location.pathname,
+            title: (document.title || 'Current').trim(),
+            href: window.location.pathname + window.location.search
+        };
+
+        // Load the trail saved for this tab.
+        var trail = [];
+        try { trail = JSON.parse(sessionStorage.getItem(STORAGE_KEY)) || []; }
+        catch (e) { trail = []; }
+
+        // Always anchor the trail at Home.
+        if (!trail.length || trail[0].path !== home.path) {
+            trail = [{ path: home.path, title: home.title, href: home.href }];
+        }
+
+        if (current.path === home.path) {
+            // On the home page, the trail is just Home.
+            trail = [{ path: home.path, title: home.title, href: home.href }];
+        } else {
+            // If we've been here before in this trail, cut back to it
+            // (so jumping "up" doesn't leave stale crumbs). Otherwise append.
+            var idx = -1;
+            for (var i = 0; i < trail.length; i++) {
+                if (trail[i].path === current.path) { idx = i; break; }
+            }
+            if (idx >= 0) {
+                trail = trail.slice(0, idx + 1);
+                trail[idx].title = current.title; // refresh in case the title changed
+            } else {
+                trail.push(current);
+            }
+        }
+
+        try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(trail)); }
+        catch (e) { /* private mode / quota: still render below */ }
+
+        // Render. Leave the bar empty (hidden via .breadcrumb:empty) if we're
+        // only showing Home with nothing to navigate back to.
+        if (trail.length <= 1) return;
+
+        trail.forEach(function (crumb, i) {
+            if (i === trail.length - 1) {
+                var span = document.createElement('span');
+                span.className = 'breadcrumb-current';
+                span.setAttribute('aria-current', 'page');
+                span.textContent = crumb.title;
+                nav.appendChild(span);
+            } else {
+                var a = document.createElement('a');
+                a.href = crumb.href;
+                a.textContent = crumb.title;
+                nav.appendChild(a);
+                var sep = document.createElement('span');
+                sep.className = 'breadcrumb-sep';
+                sep.textContent = '\u203A'; // ›
+                nav.appendChild(sep);
+            }
+        });
+    })();
+    </script>
+
+    <!-- 1. Turn vimwiki {{{class="tikz"}}} blocks into TikZJax script tags (must run BEFORE tikzjax.js) -->
+    <script>
+        document.querySelectorAll('pre.tikz').forEach(function (pre) {
+            var s = document.createElement('script');
+            s.type = 'text/tikz';
+            s.textContent = pre.textContent; // browser decodes HTML entities here
+            pre.replaceWith(s);
+        });
+    </script>
+    <!-- 2. Syntax-highlight code blocks, but skip diagram blocks -->
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
     <script type="text/javascript">
-        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+        document.querySelectorAll('pre:not(.mermaid):not(.tikz)').forEach(function (block) {
+            hljs.highlightBlock(block);
+        });
+    </script>
+    <!-- 3. TikZJax: renders <script type="text/tikz"> into SVG -->
+    <script src="https://tikzjax.com/v1/tikzjax.js"></script>
+    <!-- 4. Mermaid: renders <pre class="mermaid"> into SVG -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
     </script>
 </body>
 </html>
-
