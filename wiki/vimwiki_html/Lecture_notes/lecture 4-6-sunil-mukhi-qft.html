@@ -1,0 +1,2055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
+    <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
+    <title>lecture 4-6-sunil-mukhi-qft</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm;
+        }
+        #content {
+            color: #333;
+            font-size: 20px;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+        h1 {
+            font-size: 28px;
+        }
+        h2 {
+            font-size: 24px;
+        }
+        h3 {
+            font-size: 20px;
+        }
+        h4, h5, h6 {
+            font-size: 18px;
+        }
+        img {
+            display: block;
+            max-width: 100%;
+            max-height: 500px;
+            margin: 30px auto;
+        }
+        /* Diagram blocks (Mermaid + TikZ): centered, no code-box background */
+        pre.mermaid, pre.tikz {
+            background: none;
+            border: none;
+            text-align: center;
+        }
+        #content svg {
+            max-width: 100%;
+            height: auto;
+        }
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm;
+            }
+            #content {
+                padding: 10px;
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+
+<div id="Lecture 4 (Sunil Mukhi)"><h2 id="Lecture 4 (Sunil Mukhi)" class="header"><a href="#Lecture 4 (Sunil Mukhi)">Lecture 4 (Sunil Mukhi)</a></h2></div>
+
+<p>
+<span id="Lecture 4 (Sunil Mukhi)-Propagators"></span><strong id="Propagators">Propagators</strong> --- The basic idea of propagator is that, it is vacuum expectation of product of two fields. There are many such vacuum expectation values, we will start with most basic two fields.<br />
+</p>
+
+<p>
+(1)<br />
+</p>
+
+\[
+\underset{\substack{\downarrow\\ \text{comes from}\\ \text{translational invariance of }\Delta(x,y)}}{\Delta(x-y)} = \langle 0|\varphi(x)\,\varphi(y)|0\rangle
+\qquad
+\left\{
+\begin{aligned}
+&amp;\text{Just a propagator, not useful \&amp; does not have any name.}\\
+&amp;\text{Physically useful one's will be linear combination}\\
+&amp;\text{of these in some way.}
+\end{aligned}
+\right.
+\]
+
+\[
+\begin{gathered}
+\varphi(x) = \underbrace{\int\frac{d^3k}{(2\pi)^3}\frac{1}{\sqrt{2\omega_k}}\, a_k\, e^{-ik\cdot x}}_{\substack{\varphi_+(x)\\ {\text{Removes particle}}\\ {\text{of momentum }\vec{k}}}}
++ \underbrace{\int\frac{d^3k}{(2\pi)^3}\frac{1}{\sqrt{2\omega_k}}\, a^\dagger_k\, e^{ik\cdot x}}_{\substack{\varphi_-(x)\\ {\text{Adds particle}}\\ {\text{of momentum }\vec{k}}}}\\
+\varphi(x) = \varphi_+(x) + \varphi_-(x)
+\end{gathered}
+\]
+
+<p>
+here, \(e^{ik\cdot x} = e^{i(k^0x^0 - \vec{k}\cdot\vec{x})}\) \(\left(\begin{smallmatrix} k^0 = \omega\\ x^0 = t\end{smallmatrix}\right)\)<br />
+</p>
+
+<ul>
+<li>
+Since \(a_k\) is destruction operator, so \(\varphi_+(x)\) which is linear combination of \(a_k\) is also a destruction/annihilation operator.
+
+<li>
+Similarly \(\varphi_-(x)\) is a creation operator.
+\[
+\begin{aligned}
+\langle 0|\varphi(x)\varphi(y)|0\rangle
+&amp;= \langle 0|\left(\varphi_+(x) + \varphi_-(x)\right)\left(\varphi_+(y) + \varphi_-(y)\right)|0\rangle\\
+&amp;= \langle 0|\varphi_+(x)\,\varphi_-(y)|0\rangle + 0 + 0 + 0\\
+&amp;= \Big\langle 0\Big|\int\frac{d^3k}{(2\pi)^3}\frac{1}{\sqrt{2\omega_k}}\, a_k\, e^{-ik\cdot x}\int\frac{d^3k'}{(2\pi)^3}\frac{1}{\sqrt{2\omega_{k'}}}\, a^\dagger_{k'}\, e^{ik'\cdot y}\Big|0\Big\rangle\\
+&amp;= \int\frac{d^3k}{(2\pi)^3}\,\frac{d^3k'}{(2\pi)^3}\,\frac{1}{\sqrt{2\omega_k}}\,\frac{1}{\sqrt{2\omega_{k'}}}\;\langle 0|a_k\, a^\dagger_{k'}|0\rangle\; e^{-ik\cdot x}\, e^{ik'\cdot y}\\
+&amp;\qquad\qquad\qquad
+\begin{aligned}
+&amp;\downarrow\\
+[a_k,\, a^\dagger_{k'}] &amp;= a_k a^\dagger_{k'} - a^\dagger_{k'} a_k = (2\pi)^3\,\delta^3(k-k')
+\end{aligned}\\
+&amp;= \int\frac{d^3k}{(2\pi)^3}\,\frac{d^3k'}{(2\pi)^3}\,\frac{1}{\sqrt{2\omega_k}}\,\frac{1}{\sqrt{2\omega_{k'}}}\; e^{-ik\cdot x}\, e^{ik'\cdot y}\Big(\underbrace{\langle 0|a^\dagger_{k'}a_k|0\rangle}_{\to\,0} + \langle 0|[a_k, a^\dagger_{k'}]|0\rangle\Big)\\
+&amp;= \int\frac{d^3k}{(2\pi)^3}\,\frac{d^3k'}{(2\pi)^3}\,\frac{1}{\sqrt{2\omega_k}}\,\frac{1}{\sqrt{2\omega_{k'}}}\; e^{-ik\cdot x}\, e^{ik'\cdot y}\,(2\pi)^3\,\delta^3(k-k')\\
+&amp;= \int\frac{d^3k}{(2\pi)^3}\,\frac{1}{2\omega_k}\;e^{-i\,k\cdot(x-y)}
+\qquad{\text{ which we found in lec 3}}
+\end{aligned}
+\]
+\[
+\boxed{\;\Delta(x-y) = \langle 0|\varphi(x)\,\varphi(y)|0\rangle = \int\frac{d^3k}{(2\pi)^3}\,\frac{1}{2\omega_k}\; e^{-i\,k\cdot(x-y)}\;}
+\]
+
+</ul>
+<div id="Feynman Propagator"><h2 id="Feynman Propagator" class="header"><a href="#Feynman Propagator">Feynman Propagator</a></h2></div>
+
+\[
+\begin{aligned}
+D_F(x-y) &amp;= \langle 0|T\left(\varphi(x)\varphi(y)\right)|0\rangle = \langle 0|T\left(\varphi(y)\varphi(x)\right)|0\rangle\\
+&amp;= \theta(x^0-y^0)\,\langle 0|\varphi(x)\varphi(y)|0\rangle + \theta(y^0-x^0)\,\langle 0|\varphi(y)\varphi(x)|0\rangle\\
+&amp;= \theta(x^0-y^0)\;\Delta(x-y) + \theta(y^0-x^0)\;\Delta(y-x) \;\;\text{---\,(1)}
+\end{aligned}
+\]
+
+<p>
+Therefore we can see that, feynman propagator is linear combination of two ordinary propagators.<br />
+Now we can easily see that the formula we wrote in previous lecture was correct:<br />
+</p>
+
+\[
+D_F(x-y) = \int_{C_F}\frac{d^4k}{(2\pi)^4}\;\frac{i}{k^2-m^2}\; e^{-ik(x-y)}
+\qquad
+\text{[diagram below]}
+\]
+
+<pre class="tikz">
+\begin{tikzpicture}[baseline=0, scale=0.6]
+\draw (-2.2,0) -- (2.2,0);
+\draw (0,-0.9) -- (0,0.9);
+\node at (-1.2,0) {$\times$}; \node[above] at (-1.2,0.15) {\footnotesize$-\omega_k$};
+\node at (1.2,0) {$\times$}; \node[above] at (1.2,0.15) {\footnotesize$+\omega_k$};
+\draw[thick] (-2.1,-0.08) -- (-1.5,-0.08) arc(180:360:0.3 and 0.18) -- (0.9,-0.08) arc(180:0:0.3 and 0.18) -- (2.1,-0.08);
+\end{tikzpicture}
+</pre>
+
+<p>
+To show that after integrating over \(k^0\):<br />
+</p>
+
+\[
+{D_F(x-y) = \begin{cases}\Delta(x-y) &amp; x^0&gt;y^0\\ \Delta(y-x) &amp; x^0&lt;y^0\end{cases}}
+\]
+
+<p>
+If we go above/below both poles we end up getting retarded and advanced propagator.<br />
+Another way is to move poles bit up &amp; down:<br />
+</p>
+
+<pre class="tikz">
+\begin{tikzpicture}[&gt;=stealth, scale=0.75]
+\draw (-2.5,0) -- (2.5,0);
+\draw (0,-1.3) -- (0,1.3);
+\node at (-1.2,0) {$\times$};
+\node at (1.2,0) {$\times$};
+\draw[thick] (-2.4,-0.08) -- (-1.5,-0.08) arc(180:360:0.3 and 0.18) -- (0.9,-0.08) arc(180:0:0.3 and 0.18) -- (2.4,-0.08);
+\draw[-&gt;, thick] (3.2,0) -- (4.8,0);
+\begin{scope}[xshift=8cm]
+\draw (-2.5,0) -- (2.5,0);
+\draw (0,-1.3) -- (0,1.3);
+\node at (-1.2,0.4) {$\times$};
+\node[above] at (-1.2,0.6) {\footnotesize$k_0 = -\omega_k+i\epsilon$};
+\node at (1.2,-0.4) {$\times$};
+\node[below] at (1.2,-0.6) {\footnotesize$k_0 = \omega_k-i\epsilon$};
+\end{scope}
+\node[align=left] at (13.5,0.6) {\footnotesize Done by replacing\\ \footnotesize $k^2-m^2 \to k^2-m^2+i\epsilon$};
+\end{tikzpicture}
+</pre>
+
+\[
+\left\{\;
+\begin{aligned}
+\text{Poles become:}\quad &amp; k^2 - m^2 + i\epsilon = 0\\
+&amp; k_0 = \pm\sqrt{\vec{k}^2 + m^2 - i\epsilon}\\
+&amp; k_0 = \pm\left(\omega_k - i\epsilon\right)\\
+\Rightarrow\quad &amp; k_{0_1} = \omega_k - i\epsilon\\
+&amp; k_{0_2} = -\omega_k + i\epsilon
+\end{aligned}
+\right.
+\]
+
+<p>
+Therefore we write<br />
+</p>
+
+\[
+\boxed{\;D_F(x-y) = \lim_{\epsilon\to 0}\int\frac{d^4k}{(2\pi)^4}\;\frac{i}{k^2-m^2+i\epsilon}\;e^{-ik(x-y)}\;}
+\]
+
+<p>
+Eq (1) becomes ---<br />
+</p>
+
+\[
+\begin{aligned}
+D_F(x-y) &amp;= \theta(x^0-y^0)\,\langle 0|\varphi(x)\,\varphi(y)|0\rangle + \theta(y^0-x^0)\,\langle 0|\varphi(y)\,\varphi(x)|0\rangle\\
+&amp;= \theta(x^0-y^0)\,\langle 0|\underbrace{[\varphi_+(x),\,\varphi_-(y)]}_{\hookrightarrow\;\text{complex number}}|0\rangle
++ \theta(y^0-x^0)\,\langle 0|\underbrace{[\varphi_+(y),\,\varphi_-(x)]}_{\hookrightarrow\;\text{complex}\atop\text{number}}|0\rangle\\
+&amp;= \theta(x^0-y^0)\,[\varphi_+(x),\varphi_-(y)]\,\langle 0|0\rangle + \theta(y^0-x^0)\,[\varphi_+(y),\varphi_-(x)]\,\langle 0|0\rangle
+\end{aligned}
+\]
+
+\[
+D_F(x-y) = \theta(x^0-y^0)\,\underbrace{\left[\varphi_+(x),\,\varphi_-(y)\right]}_{{\text{A complex number}}} + \theta(y^0-x^0)\,\left[\varphi_+(y),\,\varphi_-(x)\right]
+\qquad{\text{(representing an operator)!}}
+\]
+
+<div id="Lagrangian density &amp; Action"><h2 id="Lagrangian density &amp; Action" class="header"><a href="#Lagrangian density &amp; Action">Lagrangian density &amp; Action</a></h2></div>
+
+<p>
+<span id="Lagrangian density &amp; Action-Motivation"></span><strong id="Motivation">Motivation</strong> ---<br />
+(1) Communicate important information about field equations, make symmetries manifest.<br />
+(2) Hamiltonian required Lagrangian which require \(\mathcal{L}\) and Action. (we need it for quantisation)<br />
+(3) \(\mathcal{L}\) itself is starting point for path integral quantisation.<br />
+Above are reasons to work with \(\mathcal{L}\) and Action as opposed to just EOM.<br />
+EOM of interest was \(\to\) \(\left(\partial_\mu\partial^\mu + m^2\right)\varphi(x) = 0\)<br />
+</p>
+
+\[
+\begin{aligned}
+\&amp;\qquad \mathcal{L}(\varphi,\partial_\mu\varphi) &amp;= \frac{1}{2}\left(\partial_\mu\varphi\right)\left(\partial^\mu\varphi\right) - \frac{1}{2}m^2\varphi^2\\
+\&amp;\qquad L &amp;= \int d^3x\;\mathcal{L}
+\qquad\left(\text{}\mathcal{L}\text{ for value of }\varphi\text{ at each point }\vec{x}\text{}\right)\\
+\&amp;\qquad A &amp;= \int dt\, L = \int d^4x\;\mathcal{L}
+\end{aligned}
+\]
+
+<p>
+Expanding<br />
+</p>
+
+\[
+\mathcal{L} = \frac{1}{2}\partial_\mu\varphi\,\partial^\mu\varphi - \frac{1}{2}m^2\varphi^2
+= \underbrace{\frac{1}{2}\dot{\varphi}^2}_{T} - \underbrace{\frac{1}{2}(\nabla\varphi)^2 - \frac{1}{2}m^2\varphi^2}_{V}
+\]
+
+<p>
+<span id="Lagrangian density &amp; Action-EOM"></span><strong id="EOM">EOM</strong> ---<br />
+</p>
+
+\[
+\begin{gathered}
+S = \int d^4x\;\mathcal{L} = \int d^4x\left(\frac{1}{2}\partial_\mu\varphi\,\partial^\mu\varphi - \frac{1}{2}m^2\varphi^2\right)\\
+\frac{\delta S}{\delta(\varphi(y))} = 0 \qquad\text{from}\;\left\{\frac{\delta\varphi(x)}{\delta\varphi(y)} = \delta^4(x-y)
+\quad\text{}\hookrightarrow\text{ variation at }\varphi(x)\text{ w.r.t.\ variation at }y\text{ for }\varphi\text{.}\right.
+\end{gathered}
+\]
+
+\[
+\begin{aligned}
+\frac{\delta S_{KG}}{\delta\varphi(y)}
+&amp;= \int d^4x\left[\frac{1}{2}\,2\,\underbrace{\frac{\delta\varphi(x)}{\delta\varphi(y)}}_{\delta_{xy}}\underbrace{\partial^\mu\varphi}_{A^\mu} + \frac{1}{2}\,\underbrace{\partial_\mu\varphi}_{A_\mu}\,\partial^\mu\underbrace{\frac{\delta\varphi(x)}{\delta\varphi(y)}}_{\delta_{xy}} - \frac{1}{2}m^2\,2\,\varphi(x)\frac{\delta\varphi(x)}{\delta\varphi(y)}\right]\\
+&amp;= \int d^4x\left[\underline{\partial^\mu\varphi\;\partial_\mu\left(\delta^4(x-y)\right)} - m^2\varphi(x)\,\delta^4(x-y)\right]
+\qquad
+\left\{
+\begin{aligned}
+\partial^\mu_x &amp;= \frac{\partial}{\partial x_\mu}\\
+\partial_x &amp;= \frac{\partial}{\partial x}
+\end{aligned}
+\right.
+\qquad\left(A^\mu B_\mu = A_\mu B^\mu\right)
+\end{aligned}
+\]
+
+<p>
+Integral by parts ---<br />
+</p>
+
+\[
+\begin{aligned}
+&amp;= \int d^4x\;\Big(\partial^\mu_x\left(\partial_\mu\varphi\;\delta^4(x-y)\right) - \partial^\mu\left(\partial_\mu\varphi(x)\right)\delta^4(x-y) - m^2\varphi(x)\,\delta^4(x-y)\Big)\\
+&amp;= \int d^4x\;\Big(\cancelto{0\;\text{(boundary)}}{\partial^\mu\left(\partial_\mu\varphi\;\delta^4(x-y)\right)} - \left(\partial^2+m^2\right)\varphi(x)\,\delta^4(x-y)\Big)\\
+&amp;= -\left(\partial_0^2 - \nabla^2 + m^2\right)\varphi(y)
+\end{aligned}
+\]
+
+<p>
+For \(S_{KG}\):<br />
+</p>
+
+\[
+\frac{\delta S}{\delta\varphi(y)} = 0 \;\Rightarrow\; \boxed{\;\left(\partial^2+m^2\right)\varphi(y) = 0\;}
+\]
+
+<div id="Interacting theory (Non linear EOM)"><h2 id="Interacting theory (Non linear EOM)" class="header"><a href="#Interacting theory (Non linear EOM)">Interacting theory (Non linear EOM)</a></h2></div>
+
+\[
+S_{\text{int}} = \int d^4x\left(\frac{1}{2}\,\partial_\mu\varphi\,\partial^\mu\varphi - V(\varphi)\right)
+\qquad
+\begin{aligned}
+&amp;\nearrow\;\text{field potential}\\
+&amp;\hookrightarrow\;\text{potential in field space}
+\end{aligned}
+\]
+
+<p>
+*Possibilities of \(V(\varphi)\)* ---<br />
+</p>
+
+\[
+V(\varphi) =
+\begin{cases}
+1)\;\;\text{Constant } (\times) &amp; \left\{\text{does not contribute to EOM}\right.\\[1ex]
+2)\;\;\text{Linear in } \varphi\;(\times) &amp; \left\{\text{as shifting by }\varphi\text{ will remove this term.}\right.\\[1ex]
+3)\;\;\text{quadratic } \left(\frac{1}{2}m^2\varphi^2\right) &amp; \left\{\text{already there in free theory}\right.\\[1ex]
+4)\;\;\text{Cubic} &amp; \left(\text{have problem of negative energy}\right)\\[1ex]
+5)\;\;\varphi^4 &amp;
+\end{cases}
+\]
+
+<pre class="tikz">
+\begin{tikzpicture}[scale=0.7]
+\draw (-2,0) -- (2,0) node[right] {$\varphi$};
+\draw (0,-1.5) -- (0,1.5);
+\draw[thick, smooth] plot[domain=-1.3:1.3] (\x, {0.55*\x*\x*\x});
+\node[below, align=center, text width=3.5cm] at (0.8,-1.5) {\footnotesize System does not have stable behaviour for $V(\varphi)=\varphi^3$.};
+\end{tikzpicture}
+</pre>
+
+\[
+\text{So,}\qquad V(\varphi) = \varphi^{2n} \qquad\text{where } \left\{\,n\in\mathbb{Z}^+ \;\&amp;\; n&gt;1\right.
+\]
+
+<p>
+So the general field potential we take is<br />
+</p>
+
+\[
+V(\varphi) = \frac{1}{2}m^2\varphi^2 + (\dfrac{\lambda}{4!}\,\varphi^4)\;\longrightarrow\;\text{interaction term}
+\]
+
+<p>
+This is known as '\(\varphi^4\) theory'. (we can have mix of \(\varphi^3\) &amp; \(\varphi^4\) terms.)<br />
+This theory will describe particles which not only propagate but also interact.<br />
+Here, \(\lambda\) --- strength of interaction/coupling constant.<br />
+</p>
+
+<p>
+<span id="Interacting theory (Non linear EOM)-Dimension"></span><strong id="Dimension">Dimension</strong> --- '\(S\)' is dimensionless \(\left(e^{iS/\hbar},\;\hbar = (\!(\;)\!)\right)\)<br />
+</p>
+
+\[
+\begin{gathered}
+c = 1 \;\Rightarrow\; [L] = [T]\\
+S = \int d^4x\left(\frac{1}{2}\partial^\mu\varphi\,\partial_\mu\varphi - \frac{1}{2}m^2\varphi^2 - \frac{\lambda\varphi^4}{4!}\right)\\
+[S] = 0 = \Big(4 - 2 + 2[\varphi]\Big) \;\Rightarrow\; [\varphi] = -1 \;\text{in length unit}\;/\; +1 \;\text{in energy/mass unit}\\
+\text{mass dimension of } L, T = -1\\
+0 = -4 - [\lambda] + 4[\varphi]\\
+4 = [\lambda] + 4 \;\Rightarrow\; \boxed{[\lambda] = 0}\qquad\text{mass dimension of }\lambda\text{ is 0.}
+\end{gathered}
+\]
+
+<p>
+If we use \(\varphi^5, \varphi^6,\ldots\varphi^n\) interaction terms we get coupling constant \(\lambda\) with negative mass dimension &amp; theories with \(-\)ve mass dimension of \(\lambda\) are not renormalizable. So we only study \(\varphi^4\).<br />
+Corresponding to lagrangian density, we have notion of \(\mathcal{H}\) (Hamiltonian density):<br />
+</p>
+
+\[
+\pi(x) = \frac{\delta\mathcal{L}}{\delta(\dot{\varphi}(x))}
+\qquad\Bigg|\quad
+\begin{aligned}
+\mathcal{L} &amp;= \frac{1}{2}\partial^\mu\varphi\,\partial_\mu\varphi - V(\varphi)\\
+&amp;= \frac{1}{2}\left(\partial^0\varphi\,\partial_0\varphi - \partial^i\varphi\,\partial_i\varphi\right) - V(\varphi)\\
+&amp;= \frac{1}{2}\dot{\varphi}^2 - \frac{1}{2}(\nabla\varphi)^2 - V(\varphi)
+\end{aligned}
+\]
+
+<p>
+We then find \(\mathcal{H} = \dot{\varphi}(x)\,\pi - \mathcal{L}\), for \(\mathcal{L} = \frac{1}{2}\dot{\varphi}^2 - \frac{1}{2}(\nabla\varphi)^2 - V(\varphi)\):<br />
+</p>
+
+\[
+\begin{gathered}
+\pi = \frac{\partial\mathcal{L}}{\partial\dot{\varphi}} = \dot{\varphi}\\
+\text{So}\quad \mathcal{H} = \dot\varphi\,\pi - \mathcal{L} = \pi^2 - \left(\frac{1}{2}\pi^2 - \frac{1}{2}(\nabla\varphi)^2 - V(\varphi)\right)\\
+\underset{\substack{\downarrow\\ \text{energy density in space}}}{\boxed{\;\mathcal{H} = \frac{\pi^2}{2} + \frac{1}{2}(\nabla\varphi)^2 + V(\varphi)\;}}\\
+\text{i.e.}\quad H = \int d^3x\;\mathcal{H}
+\end{gathered}
+\]
+
+<p>
+For<br />
+</p>
+
+\[
+\mathcal{H} = \frac{\pi^2}{2} + \frac{1}{2}(\nabla\varphi)^2 + \frac{1}{2}m^2\varphi^2 + \frac{\lambda}{4!}\varphi^4
+\]
+
+<p>
+Our goal shall be to find eigen values and eigen functions of this hamiltonian. We would like to know how interactions will occur mathematically.<br />
+We shall diagonalise the \(\mathcal{H}\).<br />
+We have effectively diagonalised first part in last lecture, we were able to rewrite it in terms of the \(a, a^\dagger\).<br />
+But it turns out we can't diagonalise the \(\mathcal{H}\).<br />
+Using another approach we write<br />
+</p>
+
+\[
+\begin{gathered}
+\mathcal{H} = H_0 + H_{\text{int}}\\
+H_0 = \frac{\pi^2}{2} + \frac{1}{2}(\nabla\varphi)^2 + \frac{1}{2}m^2\varphi^2\\
+H_{\text{int}} = \frac{\lambda}{4!}\,\varphi^4
+\end{gathered}
+\]
+
+<p>
+We assume (\(\lambda\ll 1\)) &amp; use perturbation theory in powers of \(\lambda\).<br />
+What is meaning of perturbation theory in QFT?<br />
+It means for any physical quantity, there will be contribution from part where \(\lambda=0\), then first correction is proportional to \(\lambda\), &amp; second correction is proportional to \(\lambda^2\) &amp; so on.<br />
+Zeroth order of \(\lambda\) was being discussed by us in last 3 lectures (i.e. free theory). In that theory there are free particles of arbitrary four momentum \(k_i\) \(\left(\forall(\text{3 momentum } \vec{k}, \text{ energy } \omega_k)\right)\) as many as we like, i.e. there are states with many particle, no particle, few particles.<br />
+In free theory there won't be any scattering, suppose we have 2 particle state with momentum \(\vec{k}_1\) and \(\vec{k}_2\), as long as \(\lambda=0\):<br />
+</p>
+
+<pre class="tikz">
+\begin{tikzpicture}[&gt;=stealth]
+\draw[-&gt;] (0,0.5) -- node[above]{$\vec{k}_1$} (1.6,0.5);
+\draw[-&gt;] (0,0) -- node[below]{$\vec{k}_2$} (1.6,0);
+\node at (3.1,0.25) {no scattering};
+\draw[-&gt;] (4.6,0.5) -- (6.2,0.5) node[right]{$\vec{k}_1$};
+\draw[-&gt;] (4.6,0) -- (6.2,0) node[right]{$\vec{k}_2$};
+\node[right, align=left, text width=4cm] at (7.2,0.25) {\footnotesize Since there is no interaction particles will keep propagating with initial 3 momentum $\vec{k}_i$.};
+\end{tikzpicture}
+</pre>
+
+<p>
+To first order in '\(\lambda\)', we expect particles to scatter exactly once!<br />
+Then we have<br />
+</p>
+
+<pre class="tikz">
+\begin{tikzpicture}[&gt;=stealth]
+\draw[-&gt;] (-1.8,0.8) -- node[above]{$\vec{k}_1$} (-0.3,0.1);
+\draw[-&gt;] (-1.8,-0.8) -- node[below]{$\vec{k}_2$} (-0.3,-0.1);
+\draw (0,0) circle (0.28);
+\draw[-&gt;] (0.28,0.12) -- (1.9,0.9) node[right]{$\vec{k}_3$};
+\draw[-&gt;] (0.28,0.03) -- (1.9,0.35) node[right]{$\vec{k}_4$};
+\draw[-&gt;] (0.28,-0.06) -- (1.9,-0.2) node[right]{$\vec{k}_5$};
+\draw[-&gt;, dashed] (0.28,-0.15) -- (1.9,-0.9) node[right]{$\vec{k}_n$};
+\node[right, align=left] at (3.6,0) {$\Bigg\}$ \footnotesize final no of particles\\ \footnotesize is not fixed!};
+\end{tikzpicture}
+</pre>
+
+<p>
+We shall do a power series in \(\lambda\) &amp; ask if the series converge. In fact all field theories have divergent power series, they satisfy weaker cond. i.e. they are asymptotic, which means that, to high enough orders we get closer &amp; closer to some answer &amp; after some more higher orders the series diverge.<br />
+Recall that in free theory, vacuum state \(|0\rangle\) satisfies<br />
+</p>
+
+\[
+H_0|0\rangle = 0 \;\;\text{---\,(k)}\quad\text{\&amp; all other states have positive energy w.r.t.\ the ground state.}
+\]
+
+<p>
+For case of interacting theory --- The vacuum is denoted by \(|\Omega\rangle\) and is defined by<br />
+</p>
+
+\[
+H|\Omega\rangle = \underbrace{\left(H_0 + H_{\text{int}}\right)|\Omega\rangle}_{\text{some minimum energy}} \;\;\text{---\,(l)}
+\]
+
+<p>
+Free vacuum \(|0\rangle\) is defined by \(H_0\), where as interacting vacuum is defined by \((H_0 + H_{\text{int}})\).<br />
+</p>
+
+<ul>
+<li>
+We can imagine that we have a system with no interactions \(\lambda=0\), and the system is in the vacuum. &amp; imagine slowly turning on \(\lambda\), the nature of vacuum will change. The vacuum will evolve from \(|0\rangle\) to \(|\Omega\rangle\).
+
+</ul>
+<p>
+We can see that \(|\Omega\rangle \neq |0\rangle\), by looking at \(H_{\text{int}}\):<br />
+</p>
+
+\[
+\begin{aligned}
+H_{\text{int}} \propto \varphi^4 &amp;= \left(\varphi_+ + \varphi_-\right)^4\\
+&amp;= \varphi_-^4 + \varphi_-^3\varphi_+ + \cdots
+\qquad
+\begin{aligned}
+&amp;\hookrightarrow\text{create 4 particles from vacuum}\\
+&amp;\text{contains 4 } \left(a^\dagger_{k_1}a^\dagger_{k_2}a^\dagger_{k_3}a^\dagger_{k_4}\right)\text{ in free theory}
+\end{aligned}
+\end{aligned}
+\]
+
+<p>
+That means \(|\Omega\rangle\) can not be \(|0\rangle\), because that term creates particles from \(|0\rangle\).<br />
+So we must change the state in some way to compensate such that finally there are no particles in the interacting theory in new vacuum.<br />
+</p>
+
+<ul>
+<li>
+When we turn 'on' the interaction, the vacuum state \(|0\rangle\) even at fixed time, changes to different vacuum state \(|\Omega\rangle\). We should not think in terms of time evolution. Its one state turning into another state.
+
+<li>
+Note that \(|\Omega\rangle\) contains particles in free theory but is empty in interacting theory.
+
+<li>
+In truly free theory particles just propagate without interacting. For 1st order in \(\lambda\) they only interact once, which means for most of their life they remain free.
+<pre class="tikz">
+\begin{tikzpicture}[&gt;=stealth]
+\draw[-&gt;] (-2.4,0.5) -- (-0.4,0.15);
+\draw[-&gt;] (-2.4,-0.5) -- (-0.4,-0.15);
+\draw (0,0) circle (0.35);
+\draw (-0.15,0.1) -- (0.15,-0.1);
+\draw (-0.15,-0.1) -- (0.1,0.15);
+\draw[-&gt;] (0.35,0.15) -- (2.2,0.7);
+\draw[-&gt;] (0.37,0.02) -- (2.2,0.25);
+\draw[-&gt;] (0.33,-0.15) -- (2.2,-0.5);
+\node[below] at (0,-0.5) {$x$};
+\node[below, align=left, text width=9cm] at (1.6,-1.0) {\footnotesize $\hookrightarrow$ from $-\infty$ to $x$, particles must propagate freely. If interacts on the way then we get another power of $\lambda$, then its not the lowest order term.};
+\end{tikzpicture}
+</pre>
+
+</ul>
+<p>
+For first order/lowest order interaction, they are described by \(H_0\) (most of time).<br />
+</p>
+
+<ul>
+<li>
+Suppose at some time \(t=0\), we have a field configuration \(\varphi(0,\vec{x})\) &amp; we want to study its time evolution (in interacting theory).
+
+</ul>
+<p>
+We can define,<br />
+</p>
+
+\[
+\varphi_0(t,\vec{x}) = e^{iH_0t}\;\varphi(0,\vec{x})\;e^{-iH_0t}
+\qquad\left\{\begin{aligned}&amp;\text{free Hamiltonian evolution of}\\ &amp;\text{free field.}\end{aligned}\right.
+\]
+
+<p>
+We can also define<br />
+</p>
+
+\[
+\varphi(t,\vec{x}) = e^{iHt}\;\varphi(0,\vec{x})\;e^{-iHt}
+\qquad\left\{\begin{aligned}&amp;\text{interacting field evolution}\\ &amp;\text{according to full Hamiltonian}\\ &amp;H = H_0 + H_{\text{int}}.\end{aligned}\right.
+\]
+
+<p>
+We can agree that we don't have free field in interacting theory, we only have field \(\varphi(t,x)\) which evolves with full hamiltonian \(H\). However field might not be some observable, its needed for our calculation.<br />
+The goal here is to express the interacting theory in terms of variables of free theory.<br />
+The simplest physical quantity of interacting theory/any field theory is the propagator.<br />
+Lets find the interacting propagator.<br />
+It will be amplitude of particle propagation from \(x\) to \(y\):<br />
+</p>
+
+\[
+(t,\vec{x}) \rightleftarrows (t',\vec{y}), \quad\text{or}\quad y\to x \;\text{ depending on time ordering.}
+\]
+
+<p>
+<span id="Interacting theory (Non linear EOM)-Interacting Propagator"></span><strong id="Interacting Propagator">Interacting Propagator</strong> ---<br />
+</p>
+
+\[
+\begin{aligned}
+\langle\Omega|\,T\big(\overset{\substack{\text{interacting fields}\\\downarrow}}{\varphi(x)\,\varphi(y)}\big)\,|\Omega\rangle
+\qquad&amp;\text{}\Longleftarrow\text{ our goal!}\\
+= \langle 0|\, f\left(\varphi_0, \cdots\right)|0\rangle&amp;
+\end{aligned}
+\]
+
+<p>
+Once we achieve this goal of writing down \(\langle\Omega|T(\varphi(x)\varphi(y))|\Omega\rangle\) in terms of free fields i.e. \(\langle 0|f(\varphi_0,\cdots)|0\rangle\), then note that it reduced to calculations in free theory (i.e. expectation value of product of free fields in free vacuum.)<br />
+The first term is easy to write, since interactions are turned off (leading term):<br />
+</p>
+
+\[
+\begin{gathered}
+\langle\Omega|T\left(\varphi(x)\varphi(y)\right)|\Omega\rangle = \langle 0|T\left(\varphi_0(x)\,\varphi_0(y)\right)|0\rangle
++ \lambda\,\langle 0|T(\cdots)|0\rangle + \lambda^2\,\langle 0|T(\cdots)|0\rangle + \cdots\\
+(\lambda\to\text{turn})
+\end{gathered}
+\]
+
+<p>
+here \(\Omega, \varphi\) depends upon \(\lambda\):<br />
+</p>
+
+\[
+\left.
+\begin{aligned}
+\Omega &amp;= \Omega(\lambda)\\
+\varphi &amp;= \varphi(\lambda)\\
+\varphi_0 &amp;= \varphi(\lambda=0)\\
+|\Omega(\lambda=0)\rangle &amp;= |0\rangle
+\end{aligned}
+\;\right]
+\]
+
+<p>
+As we saw<br />
+</p>
+
+\[
+\varphi(t,\vec{x}) = e^{iHt}\,\varphi(0,\vec{x})\,e^{-iHt}
+\qquad
+\underset{\substack{\text{Relation between}\\ \varphi_0(x)\;\&amp;\;\varphi(x)}}{\left\{
+\begin{aligned}
+\varphi_0(t,\vec{x}) &amp;= e^{iH_0t}\,\varphi(0,\vec{x})\,e^{-iH_0t}\\
+\Rightarrow\;\varphi(0,\vec{x}) &amp;= e^{-iH_0t}\,\varphi_0(t,\vec{x})\,e^{iH_0t}
+\end{aligned}
+\right.}
+\]
+
+\[
+\begin{aligned}
+\varphi(t,\vec{x}) &amp;= \underline{e^{iHt}\, e^{-iH_0t}}\;\varphi_0(t,\vec{x})\;\underline{e^{iH_0t}\, e^{-iHt}}\\
+&amp;\neq e^{i(H-H_0)t}\;\varphi_0(t,\vec{x})\;e^{-i(H-H_0)t}
+\qquad
+\left\{
+\begin{aligned}
+&amp;\text{Since } [H, H_0]\neq 0.\\
+&amp;\text{×}\;[H_{\text{int}}, H_0]\neq 0;\\
+&amp;\Rightarrow [H_0,H] + [H_{\text{int}},H_0]\neq 0\\
+&amp;1)\;[H_{\text{int}}, H_0]\neq 0\\
+&amp;\Rightarrow \left[(a^\dagger)^4,\, a^\dagger a\right]\neq 0\\
+&amp;\text{indeed its}\neq 0.
+\end{aligned}
+\right.\\
+\varphi(t,x) &amp;\neq e^{iH_{\text{int}}t}\;\varphi_0(t,\vec{x})\;e^{-iH_{\text{int}}t}
+\end{aligned}
+\]
+
+<p>
+We define,<br />
+</p>
+
+\[
+\boxed{\;
+\begin{aligned}
+\varphi(t,x) &amp;= U^{-1}\;\varphi_0(t,x)\;U\\
+\text{then}\quad U &amp;= e^{iH_0t}\, e^{-iHt}
+\end{aligned}\;}
+\qquad
+\left\{
+\begin{aligned}
+&amp;\text{where `}U\text{' is some unitary operator}\\
+&amp;U^\dagger U = U U^\dagger = 1
+\end{aligned}
+\right.
+\]
+
+
+<div id="Lecture 5 (Sunil Mukhi) --- Part 1"><h2 id="Lecture 5 (Sunil Mukhi) --- Part 1" class="header"><a href="#Lecture 5 (Sunil Mukhi) --- Part 1">Lecture 5 (Sunil Mukhi) --- Part 1</a></h2></div>
+
+<p>
+We could write \(\mathcal{H} = H_0 + H_{\text{int}}\), where<br />
+</p>
+
+\[
+H_{\text{int}} = \int d^3x\;\mathcal{H}_{\text{int}} = \frac{\lambda}{4!}\int d^3x\;\varphi^4
+\qquad\qquad
+\begin{aligned}
+\varphi_0(x) &amp;= \text{interaction picture field (or) Free field.}\\
+\varphi(x) &amp;: \text{Interacting Field.}
+\end{aligned}
+\]
+
+<p>
+In earlier lecture we saw that, we can write<br />
+</p>
+
+\[
+\begin{aligned}
+\varphi(x,t) &amp;= e^{iHt}\;\varphi(x,0)\;e^{-iHt}\\
+&amp;= e^{iHt}\,e^{-iH_0t}\;\varphi_0(x,t)\;\underbrace{e^{iH_0t}\,e^{-iHt}}_{U}
+\end{aligned}
+\]
+
+\[
+\boxed{\;\varphi(\vec{x},t) = U^\dagger\;\varphi_0(x,t)\;U\;}
+\]
+
+<p>
+Physical interpretation of above equation is that, we can express<br />
+</p>
+
+\[
+\varphi_0(x,t) = U\;\varphi(x,t)\;U^\dagger
+\qquad\longrightarrow\;\text{interacting field.}
+\qquad\Bigg|\;
+\begin{aligned}
+H_0|0\rangle &amp;= 0 \;\longrightarrow\;\text{free vacuum}\\
+\left(H_0+H_{\text{int}}\right)|\Omega\rangle &amp;= E_0|\Omega\rangle\\
+&amp;\hookrightarrow\;\text{interacting vacuum}
+\end{aligned}
+\]
+
+<p>
+This means we can get \(\varphi(\vec{x},t)\) from \(\varphi_0(x,t)\) by operating some conjugate operators \(U^\dagger\) &amp; \(U\).<br />
+\(E_0\neq 0\) due to perturbation, ground state energy has shifted.<br />
+</p>
+
+<p>
+We will also write \(|\Omega\rangle\) in terms of \(|0\rangle\).<br />
+Now, strategy to solve for \(U\), is to look for differential equation in \(U\):<br />
+</p>
+
+\[
+U = e^{iH_0t}\; e^{-iHt}
+\qquad\left\{
+\begin{aligned}
+U &amp;\neq e^{iH_0t - iHt}\\
+\text{as } [H_0, H] &amp;\neq 0
+\end{aligned}
+\right.
+\]
+
+\[
+\begin{aligned}
+\frac{dU}{dt} &amp;= iH_0U - iUH\\
+&amp;= iH_0\,e^{iH_0t}\,e^{-iHt} - i\,e^{+iH_0t}\,e^{-iHt}\,H\\
+&amp;= i\left(e^{iH_0t}H_0\,e^{-iHt} - e^{iH_0t}\,H\,e^{-iHt}\right)\\
+&amp;= i\left(e^{iH_0t}\left(H_0-H\right)e^{-iHt}\right)\\
+&amp;= -i\,e^{iH_0t}\;H_{\text{int}}\;e^{-iHt}\\
+&amp;= -i\,\underbrace{e^{iH_0t}\,H_{\text{int}}\,e^{-iH_0t}}_{H_I(t)}\;\underbrace{e^{iH_0t}\,e^{-iHt}}_{{U(t)}}
+\end{aligned}
+\]
+
+<p>
+We define,<br />
+</p>
+
+\[
+H_I(t) = e^{iH_0t}\;H_{\text{int}}\;e^{-iH_0t}
+\qquad\hookrightarrow\;\text{free }H_0\text{ evolution of }H_{\text{int}}\text{.}
+\]
+
+<p>
+then,<br />
+</p>
+
+\[
+\boxed{\;i\,\frac{dU(t)}{dt} = H_I(t)\;{U(t)}\;}
+\]
+
+<p>
+where \(H_I(t)\) = Interaction picture hamiltonian.<br />
+</p>
+
+<p>
+Suggestion of students ---<br />
+</p>
+
+\[
+U(t) = e^{-i\int_0^t H_I(t')\,dt'}
+\]
+
+<p>
+It is only true if \(\left[H_I(t),\, H_I(t')\right] = 0\) \(\forall\, t,t' \in (-\infty,\infty)\).<br />
+But<br />
+</p>
+
+\[
+\left[H_I(t) = \left[e^{iH_0t}\, H_{\text{int}}\, e^{-iH_0t}\,,\; e^{iH_0t'}\, H_{\text{int}}\, e^{-iH_0t'}\right] = H_I(t')\right] \neq 0
+\]
+
+<p>
+Note that here \((0 &lt; t' &lt; t)\), here \(t'\) is dummy variable which is integrated over \(0\) to \(t\).<br />
+What if we want \(U(t'')\) such that \((0 &lt; t'' &lt; t)\):<br />
+</p>
+
+\[
+U(t'') = e^{-i\int_0^{t''} H_I(t')\,dt'}
+\qquad\left\{\;\left(0 &lt; t' &lt; t''\right)\right.
+\]
+
+<p>
+Then<br />
+</p>
+
+\[
+\begin{aligned}
+U(t) &amp;= U(t)\;U(t'')\\
+&amp;= \underbrace{e^{-i\int_{t''}^{t} H_I(t')\,dt'}}_{`H'\text{ at }(t''&lt;t'&lt;t)}\cdot \underbrace{e^{-i\int_0^{t''}H_I(t')\,dt'}}_{H\text{ at }(0&lt;t'&lt;t'')}\\
+&amp;\neq e^{-i\int_0^t H_I(t')\,dt'}
+\qquad\text{Since } \left[H_I(t_1),\, H_I(t_2)\right]\neq 0.
+\end{aligned}
+\]
+
+<p>
+Another way to see that <span id="Lecture 5 (Sunil Mukhi) --- Part 1-how"></span><strong id="how">how</strong> suggestion is wrong ---<br />
+Lets find<br />
+</p>
+
+\[
+\begin{aligned}
+\frac{dU}{dt} = \frac{d}{dt}(U) &amp;= \frac{d}{dt}\Bigg(1 - i\int_0^t H_I(t')\,dt' + \frac{(-i)^2}{2}\int_0^t H_I(t')dt'\int_0^t H_I(t'')dt''\\
+&amp;\qquad\qquad + \frac{(-i)^3}{3!}\int_0^t H_I(t')\,dt'\int_0^t H_I(t'')\,dt''\int_0^t H_I(t''')\,dt''' + \cdots\Bigg)\\
+&amp;= 0 - i\,H_I(t) + \frac{(-i)^2}{2!}\left(H_I(t)\int_0^t H_I(t')\,dt' + \int_0^t H_I(t')\,dt'\;H_I(t)\right)\\
+&amp;\qquad + \frac{(-i)^3}{3!}\Bigg(H_I(t)\int_0^t H_I(t'')\,dt''\int_0^t H_I(t''')\,dt''' + \int_0^t H_I(t')\,dt'\;H_I(t)\int_0^t H_I(t'')\,dt''\\
+&amp;\qquad\qquad + \int_0^t H_I(t')\,dt'\int_0^t H_I(t'')\,dt''\;H_I(t)\Bigg) + \cdots
+\end{aligned}
+\]
+
+<p>
+We can see that<br />
+</p>
+
+\[
+\int_0^t H_I(t')\,dt'\;H_I(t) \neq H_I(t)\int_0^t H_I(t')\,dt'
+\]
+
+<p>
+as \(\left[H_I(t),\, H_I(t')\right]\neq 0\) for \(t'\,(0&lt;t'&lt;t)\);<br />
+also \(\left[H_I(t),\, H_I(t'')\right]\neq 0\) for \(t''\,(0&lt;t''&lt;t)\).<br />
+</p>
+
+\[
+\Rightarrow\quad i\frac{dU}{dt} \neq H_I(t)\,U(t)
+\]
+
+<p>
+So our suggestion does not give correct answer. \(\hookrightarrow\) *\(U(t,0)\)*<br />
+</p>
+
+<p>
+<span id="Lecture 5 (Sunil Mukhi) --- Part 1-Solution"></span><strong id="Solution">Solution</strong> ---<br />
+</p>
+
+\[
+U(t) = T\left(e^{-i\int_0^t H_I(t')\,dt'}\right)
+\qquad
+\begin{aligned}
+&amp;\downarrow\\
+&amp;\text{Time ordering symbol.}
+\end{aligned}
+\]
+
+<p>
+Let us explain it ---<br />
+We can write<br />
+</p>
+
+\[
+\int_0^t H_I(t')\,dt' = \lim_{\epsilon\to 0}\;\epsilon\left[H_I(0) + H_I(\epsilon) + H_I(2\epsilon) + \cdots + H_I(t-\epsilon)\right]
+\qquad\text{where `}\epsilon\text{' is time step.}
+\]
+
+<p>
+First consider ordinary exponential of above quantity &amp; then we will look into Time ordered exponential of this quantity.<br />
+The ordinary exponential:<br />
+</p>
+
+\[
+T\left(e^{-i\int_0^t H_I(t')\,dt'}\right) = \lim_{\epsilon\to 0} T\Big(e^{-i\epsilon\left(H^0 + H^\epsilon + H^{2\epsilon} + \cdots + H^{t-\epsilon}\right)}\Big)\;\text{---\,(1)}
+\]
+
+<p>
+Whereas Time ordered exponential means<br />
+</p>
+
+\[
+T\left(\exp\Big(-i\int_0^t H_I(t')\,dt'\Big)\right) = \lim_{\epsilon\to 0}\;
+e^{-i\epsilon H^{t-\epsilon}}\cdots\; e^{-i\epsilon H^{2\epsilon}}\; e^{-i\epsilon H^{\epsilon}}\;
+\underset{\substack{\uparrow\\ {\text{earliest time}}\\ {\text{operate on}}\\ {\text{state first.}}}}{e^{-i\epsilon H^{0}}}\;\text{---\,(2)}
+\]
+
+<p>
+In limit \(\epsilon\to 0\): eq (1) \(=\) eq (2).<br />
+If we write right Riemann sum we have<br />
+</p>
+
+\[
+U = T\left(e^{-i\int_0^t H_I(t')\,dt'}\right) = \lim_{\epsilon\to 0}\;
+e^{-i\epsilon H_I^{t}}\; e^{-i\epsilon H_I^{t-\epsilon}}\cdots\; e^{-i\epsilon H^{0}}
+\]
+
+<p>
+such that<br />
+</p>
+
+\[
+\begin{gathered}
+\frac{dU}{dt} = -i\,H_I(t)\left(e^{-i\epsilon H_I^t}\, e^{-i\epsilon H_I^{t-\epsilon}}\cdots e^{-i\epsilon H^0}\right)\\
+\frac{dU}{dt} = H_I(t)\;U(t) \qquad\text{which recovers the eqn.}
+\end{gathered}
+\]
+
+<p>
+Now lets find \(U^\dagger\to\)<br />
+</p>
+
+\[
+U^\dagger(t) = \text{It should be Anti time ordering of}\left(e^{+i\int_0^t H_I(t')\,dt'}\right):
+\qquad
+U^\dagger(t) = \bar{T}\left(e^{+i\int_0^t H_I(t')\,dt'}\right)
+\]
+
+<p>
+We can easily see that \(UU^\dagger = U^\dagger U = 1\):<br />
+</p>
+
+\[
+\begin{aligned}
+UU^\dagger &amp;= \left(\lim_{\epsilon\to 0}\, e^{-i\epsilon H^t}\cdots e^{-i\epsilon H^{2\epsilon}}\, e^{-i\epsilon H^{\epsilon}}\right)\lim_{\epsilon\to 0}\left(e^{i\epsilon H^\epsilon}\, e^{i\epsilon H^{2\epsilon}}\cdots e^{i\epsilon H^t}\right)\\
+&amp;= \text{All terms cancel out and give } 1\\
+&amp;\boxed{\;UU^\dagger = 1\;}
+\end{aligned}
+\]
+
+<p>
+<span id="Lecture 5 (Sunil Mukhi) --- Part 1-Identity"></span><strong id="Identity">Identity</strong>:<br />
+</p>
+
+\[
+U(t_1)\,U^\dagger(t_2) = U(t_1,t_2) = T\left(e^{-i\int_{t_1}^{t_2}H_I(t'')\,dt''}\right)
+\qquad\forall\;(t_1 &gt; t_2).
+\]
+
+\[
+\Rightarrow\quad T\left(\exp\Big(-i\int_0^{t_1}H_I(t')\,dt'\Big)\right)\bar{T}\left(\exp\Big(+i\int_0^{t_2}H_I(t'')\,dt''\Big)\right)
+\]
+
+<p>
+Since, \(t_1 &gt; t_2\) we can write LHS ---<br />
+</p>
+
+\[
+\begin{aligned}
+&amp;\quad T\left(e^{-i\int_{t_2}^{t_1}H_I(t'')\,dt''}\right)\underline{\,T\left(e^{-i\int_0^{t_2}H_I(t')\,dt'}\right)\bar{T}\left(e^{+i\int_0^{t_2}H_I(t'')\,dt''}\right)}\\
+&amp;= T\left(e^{-i\int_{t_2}^{t_1}H_I(t'')\,dt''}\right)\cdot 1\\
+&amp;= U(t_1, t_2)
+\end{aligned}
+\]
+
+\[
+\text{i.e.}\qquad U(t_1)\;U^\dagger(t_2) = U(t_1,t_2) \qquad\text{for } t_1 &gt; t_2 &gt; 0
+\]
+
+<p>
+Remember we want to calculate ---<br />
+</p>
+
+\[
+\langle\Omega|\,T\left(\varphi(x_1)\,\varphi(x_2)\right)|\Omega\rangle
+\qquad\text{--- called 2 point function or Feynman propagator. (Full propagator).}
+\]
+
+<p>
+We can define multiple point functions.<br />
+Now we have two Jobs ---<br />
+</p>
+
+<ul>
+<li>
+Express \(|\Omega\rangle\) in terms of \(|0\rangle\)
+
+<li>
+Express \(\varphi(x)\) in terms of \(\varphi_0(x)\)
+
+</ul>
+<p>
+Job (2) is already done:<br />
+</p>
+
+\[
+\varphi(x,t) = U^\dagger\,\varphi_0(x,t)\,U
+\qquad\text{where}\quad U(t) = T\left(e^{-i\int_0^t H_I(t')\,dt'}\right)
+\]
+
+<div id="Lecture 5 (Sunil Mukhi) --- Part 1-Lecture 5 --- Part 2"><h3 id="Lecture 5 --- Part 2" class="header"><a href="#Lecture 5 (Sunil Mukhi) --- Part 1-Lecture 5 --- Part 2">Lecture 5 --- Part 2</a></h3></div>
+
+<p>
+(1) \(|\Omega\rangle\) in terms of \(|0\rangle\) ---<br />
+To do that let us find<br />
+</p>
+
+\[
+e^{-iHt}\,|0\rangle
+\qquad\hookrightarrow\;\text{How free vacuum evolve in time with full hamiltonian of the system}
+\]
+
+<p>
+Remember that this hamiltonian '\(H\)' has ground state \(|\Omega\rangle\).<br />
+Let \(|n\rangle\) be the eigen state of \(\hat{H}\), such that<br />
+</p>
+
+\[
+\begin{gathered}
+H|n\rangle = E_n|n\rangle \qquad\hookrightarrow\;\text{state with }n\text{ particles}\\
+H|\Omega\rangle = \underset{\substack{\downarrow\\\text{ground state of }H.}}{E_0}|\Omega\rangle
+\qquad\qquad E_0 &lt; E_n \;\;(n\neq 0)
+\end{gathered}
+\]
+
+<p>
+Then we can write<br />
+</p>
+
+\[
+\begin{aligned}
+e^{-iHt}\,|0\rangle &amp;= e^{-iHt}\left(\sum_n |n\rangle\langle n|\right)|0\rangle\\
+&amp;= \sum_n e^{-iHt}\,|n\rangle\langle n|0\rangle\\
+&amp;= \sum_n e^{-iE_nt}\,|n\rangle\langle n|0\rangle\\
+&amp;= e^{-iE_0t}\,|\Omega\rangle\langle\Omega|0\rangle + \sum_{n\neq 0} e^{-iE_nt}\,|n\rangle\langle n|0\rangle
+\end{aligned}
+\]
+
+<p>
+For large times ---<br />
+</p>
+
+\[
+= e^{-iE_0t}\Bigg[\,|\Omega\rangle\langle\Omega|0\rangle + \underbrace{\sum_{n\neq 0}e^{-i(E_n-E_0)t}\,|n\rangle\langle n|0\rangle}_{\longrightarrow\;0\;\text{ as }\;T\to\infty(1-i\epsilon)}\Bigg]
+\qquad
+\begin{aligned}
+&amp;\downarrow\\
+&amp;\text{Mathematical Prescription to}\\
+&amp;\text{get rid of } \sum_{n\neq 0}e^{-i(E_n-E_0)t}|n\rangle\langle n|0\rangle
+\end{aligned}
+\]
+
+\[
+\lim_{\lambda\to\infty}\;\sum_{n\neq 0} e^{-i(E_n-E_0)\,\lambda(1-i\epsilon)}\;\langle n|0\rangle\;|n\rangle
+\]
+
+<p>
+Because we need to find relation between \(|\Omega\rangle\) &amp; \(|0\rangle\). We will see that '\(\epsilon\)' does not play much role.<br />
+</p>
+
+\[
+\lim_{\lambda\to\infty}\sum_{n\neq 0}\underbrace{e^{-i(E_n-E_0)\lambda}}_{\text{oscillatory}}\;\underbrace{e^{-\lambda\epsilon(E_n-E_0)}}_{\substack{\text{vanishes}\to 0\\ {\text{For }(E_n&gt;E_0)}}} \longrightarrow 0
+\]
+
+<p>
+So, we can write RHS as $\left(t \Leftrightarrow T \Rightarrow\text{large times with ``}-i\epsilon\text{'' prescription}\right)$<br />
+</p>
+
+\[
+\lim_{T\to\infty(1-i\epsilon)}\; e^{-iE_0T}\;|\Omega\rangle\langle\Omega|0\rangle
+\]
+
+<p>
+i.e.<br />
+</p>
+
+\[
+\Rightarrow\;\lim_{T\to\infty(1-i\epsilon)} e^{-iHT}\,|0\rangle = \lim_{T\to\infty(1-i\epsilon)} e^{-iE_0T}\,|\Omega\rangle\langle\Omega|0\rangle
+\qquad\left\{\;\text{or,}\quad |\Omega\rangle \propto \lim_{T\to\infty(1-i\epsilon)} e^{-iHT}\,|0\rangle\right.
+\]
+
+<p>
+\(\Big\{\)If we start with free vacuum state \(|0\rangle\) and evolve it using full hamiltonian for very long time, we get interacting vacuum in the end.\(\Big\}\)<br />
+</p>
+
+\[
+|\Omega\rangle = \lim_{T\to\infty(1-i\epsilon)}\;\frac{1}{\underbrace{\langle\Omega|0\rangle\, e^{-iE_0T}}_{\hookrightarrow\;\text{Normalisation}}}\;\; e^{-iHT}\,|0\rangle
+\]
+
+<p>
+Normalisation is just a proportionality factor, we are looking for quantum state. \(\left(\langle\Omega|\Omega\rangle = 1 \Rightarrow \text{Normalisation factor}\right)\)<br />
+So,<br />
+</p>
+
+\[
+\boxed{\;|\Omega\rangle = \lim_{T\to\infty(1-i\epsilon)}\; e^{-iHT}\,|0\rangle\;}
+\qquad\text{Job (1) is also complete.}
+\]
+
+<p>
+Is \(|\Omega\rangle\) normalizable?<br />
+Yes. In perturbation theory we expect it to be <span id="Lecture 5 (Sunil Mukhi) --- Part 1-Lecture 5 --- Part 2-normalizable"></span><strong id="normalizable">normalizable</strong>.<br />
+Interacting vacuum is what free vacuum will reach, if we wait long enough, when we let it evolve under the interacting theory.<br />
+Since \(T\to\infty\) is not possible, \(|\Omega\rangle\) we get is close enough approximation in reality.<br />
+We can further write<br />
+</p>
+
+\[
+\begin{gathered}
+|\Omega\rangle = \lim_{T\to\infty(1-i\epsilon)} e^{-iHT}\cdot 1\cdot|0\rangle = \lim_{T\to\infty(1-i\epsilon)} e^{-iHT}\, e^{iH_0T}\,|0\rangle\\
+\left(\text{as}\quad e^{iH_0T}|0\rangle = e^{0}\,|0\rangle = |0\rangle\right)
+\end{gathered}
+\]
+
+<p>
+So<br />
+</p>
+
+\[
+|\Omega\rangle = \lim_{T\to\infty(1-i\epsilon)}\; U^\dagger(-T)\,|0\rangle
+\qquad\left\{
+\begin{aligned}
+\text{Since}\quad U(t) &amp;= e^{iH_0t}\, e^{-iHt}\\
+U^\dagger(t) &amp;= e^{+iHt}\, e^{-iH_0t}\\
+U^\dagger(-T) &amp;= e^{-iHT}\, e^{iH_0T}
+\end{aligned}
+\right.
+\]
+
+\[
+\begin{aligned}
+|v\rangle &amp;= AB\,|r\rangle\\
+\langle v| &amp;= \langle r|(AB)^\dagger = \langle r|\,B^\dagger A^\dagger
+\end{aligned}
+\]
+
+<p>
+We have following result ---<br />
+</p>
+
+\[
+1)\quad
+\begin{aligned}
+|\Omega\rangle &amp;= \lim_{T\to\infty(1-i\epsilon)} U^\dagger(-T)\,|0\rangle\\
+\langle\Omega| &amp;= \lim_{T\to\infty(1-i\epsilon)} \langle 0|\,U(T)
+\end{aligned}
+\qquad\Bigg|\quad
+\begin{aligned}
+U(t) &amp;= e^{iH_0t}e^{-iHt}\\
+|\Omega\rangle &amp;= \lim_{T\to\infty(1-i\epsilon)} e^{-iHT} e^{iH_0T}|0\rangle\\
+\langle\Omega| &amp;\equiv \lim_{T\to\infty(1-i\epsilon)} \langle 0|\,e^{iH_0T}\,e^{-iHT}\\
+&amp;= \lim_{T\to\infty(1-i\epsilon)} \langle 0|\,U(T)
+\end{aligned}
+\]
+
+<p>
+Now we can write \(\langle\Omega|T\{\varphi(x_1)\varphi(x_2)\}|\Omega\rangle\) in term of free field quantities:<br />
+</p>
+
+\[
+\begin{aligned}
+\langle\Omega|T\left(\varphi(x)\varphi(y)\right)|\Omega\rangle
+&amp;= \theta(x^0-y^0)\,\langle\Omega|\varphi(x)\,\varphi(y)|\Omega\rangle\\
+&amp;\qquad + \theta(y^0-x^0)\,\langle\Omega|\varphi(y)\,\varphi(x)|\Omega\rangle
+\end{aligned}
+\]
+
+<p>
+Let us choose 1st case \(x^0-y^0&gt;0\); i.e. \(x^0&gt;y^0\):<br />
+</p>
+
+\[
+\begin{aligned}
+\langle\Omega|T\left(\varphi(x)\varphi(y)\right)|\Omega\rangle
+&amp;= \langle\Omega|\,\varphi(x)\,\varphi(y)\,|\Omega\rangle\\
+&amp;= \lim_{T\to\infty(1-i\epsilon)}\langle 0|\,U(T)\left[U^\dagger(x^0)\,\varphi_0(x)\,U(x^0)\right]\left[U^\dagger(y^0)\,\varphi_0(y)\,U(y^0)\right]U^\dagger(-T)\,|0\rangle\\
+&amp;\qquad\qquad\left\{\;\text{where } \varphi_0(x), \varphi_0(y) \text{ are free field operators; } x = (x^0,\vec{x}),\; y = (y^0,\vec{y})\right.\\[1ex]
+&amp;= \lim_{T\to\infty(1-i\epsilon)}\langle 0|\;U(T,x^0)\;\varphi_0(x)\;U(x^0,y^0)\;\varphi_0(y)\;U(y^0,-T)\;|0\rangle
+\end{aligned}
+\]
+
+<p>
+We can see that every operator is in correct time ordering:<br />
+</p>
+
+\[
+= \lim_{T\to\infty(1-i\epsilon)}\langle 0|\;T\left[\,U(T,x^0)\;\varphi_0(x)\;U(x^0,y^0)\;\varphi_0(y)\;U(y^0,-T)\,\right]|0\rangle
+\]
+
+<p>
+We can interchange quantities inside Time ordering<br />
+\(T\left(\phi(t_1)\phi(t_2)\phi(t_3)\right) = T\left(\phi(t_3)\phi(t_2)\phi(t_1)\right)\):<br />
+</p>
+
+\[
+\begin{aligned}
+&amp;= \lim_{T\to\infty(1-i\epsilon)}\langle 0|\;T\Big[\varphi_0(x)\,\varphi_0(y)\;\underbrace{U(T,x^0)}\;\underbrace{U(x^0,y^0)}\;\underbrace{U(y^0,-T)}\Big]|0\rangle\\
+&amp;= \lim_{T\to\infty(1-i\epsilon)}\langle 0|\;T\Big[\varphi_0(x)\,\varphi_0(y)\;\overbrace{U(T)U^\dagger(x^0)\;U(x^0)U^\dagger(y^0)\;U(y^0)U^\dagger(-T)}\Big]|0\rangle\\
+&amp;= \lim_{T\to\infty(1-i\epsilon)}\langle 0|\;T\Big[\varphi_0(x)\,\varphi_0(y)\;\underline{U(T)\,U^\dagger(-T)}\;\cancelto{1}{U^\dagger(x^0)U(x^0)}\;\cancelto{1}{U^\dagger(y^0)U(y^0)}\Big]|0\rangle\\
+&amp;= \lim_{T\to\infty(1-i\epsilon)}\langle 0|\;T\Big[\varphi_0(x)\;\varphi_0(y)\;U(T,-T)\Big]|0\rangle\\
+&amp;= \lim_{T\to\infty(1-i\epsilon)}\langle 0|\;T\Big[\varphi_0(x)\;\varphi_0(y)\;e^{-i\int_{-T}^{T}H_I(t)\,dt}\Big]|0\rangle
+\end{aligned}
+\]
+
+<p>
+Normalisation of \(|\Omega\rangle\) is taken care of by dividing the above expression by<br />
+</p>
+
+\[
+\langle 0|\,T\Big[\,e^{-i\int_{-T}^{T}H_I(t)\,dt}\,\Big]|0\rangle
+\]
+
+<p>
+So, \(n\)-point function reduces to ---<br />
+</p>
+
+\[
+\langle\Omega|\,T\left[\varphi(x_1)\,\varphi(x_2)\ldots\varphi(x_n)\right]|\Omega\rangle
+= \lim_{T\to\infty(1-i\epsilon)}\frac{\langle 0|\,T\Big[\varphi_0(x_1)\,\varphi_0(x_2)\ldots\varphi_0(x_n)\; e^{-i\int_{-T}^{T}H_I(t)\,dt}\Big]|0\rangle}{\langle 0|\,T\Big[\exp\Big(-i\int_{-T}^{T}H_I(t)\,dt\Big)\Big]|0\rangle}
+\]
+
+<p>
+It says that vacuum expectation value of time ordered \(n\)-fields is equal to same quantity (vacuum expectation) in free field theory modified by exponential of the interaction, &amp; divided by vacuum expectation value of time ordered exponential of interaction.<br />
+For \(y^0 &gt; x^0\), we also get same answer.<br />
+Note that,<br />
+</p>
+
+\[
+H_I(t) = e^{iH_0t}\;H_{\text{int}}\;e^{-iH_0t}
+\qquad\left(\text{free }H_0\text{ evolution of interaction}\right)
+\]
+
+<p>
+For \(\varphi^4\) theory,<br />
+</p>
+
+\[
+\begin{aligned}
+H_{\text{int}} &amp;= \int\frac{\lambda}{4!}\,\varphi^4(\vec{x},0)\;d^3x\\
+H_I(t) &amp;= e^{iH_0t}\left(\int\frac{\lambda}{4!}\,\varphi^4(\vec{x},0)\,d^3x\right)e^{-iH_0t}\\
+H_I(t) &amp;= \int\frac{\lambda}{4!}\;\underline{e^{iH_0t}\;\varphi^4(\vec{x},0)\;e^{-iH_0t}}\;d^3x
+\qquad\left\{\,\varphi(x,0) = \varphi_0(x,0)\right.\\
+&amp;= \int\frac{\lambda}{4!}\;\varphi_0^4(\vec{x},t)\;d^3x
+\end{aligned}
+\]
+
+\[
+\boxed{\;H_I(t) = \frac{\lambda}{4!}\int\varphi_0^4(x)\;d^3x\;}
+\]
+
+<p>
+Note<br />
+</p>
+
+\[
+\begin{gathered}
+H_I(t) \neq H_{\text{int}}\\
+\underline{\text{as}\quad \varphi(\vec{x},t) = \varphi(x) \neq \varphi(\vec{x},0)}
+\end{gathered}
+\]
+
+<div id="Lecture 6"><h2 id="Lecture 6" class="header"><a href="#Lecture 6">Lecture 6</a></h2></div>
+
+<p>
+Result of the conceptually difficult talk is<br />
+(Things will be technically complex (not conceptually difficult) from here onwards)<br />
+</p>
+
+\[
+\langle\Omega|\,T[\varphi(x_1)\,\varphi(x_2)\ldots\varphi(x_n)]\,|\Omega\rangle
+= \lim_{T\to\infty(1-i\epsilon)}
+\frac{\langle 0|\,T\left(\varphi_0(x_1)\,\varphi_0(x_2)\cdots\varphi_0(x_n)\,e^{-i\int_{-T}^{T}H_I(t')\,dt'}\right)|0\rangle}
+{\langle 0|\,T\left[\exp\left(-i\int_{-T}^{T}H_I(t')\,dt'\right)\right]|0\rangle}
+\]
+
+<p>
+Note that this is completely Normalisation independent. (i.e. true even if \(|\Omega\rangle\) is not normalized. (Since expression takes care of it via dividing by \(\langle\Omega|\Omega\rangle\).)<br />
+The RHS can be computed using computers as all \(\varphi_0(x_i)\) are oscillators, but the exponential gives us so many terms rapidly that even computer finds it hard to do. (As we expand exponential to some order \(\left(1+x+\frac{x^2}{2!}+\cdots\right)\))<br />
+</p>
+
+<p>
+<span id="Lecture 6-Technique to calculate"></span><strong id="Technique to calculate">Technique to calculate</strong> \(\langle 0|\,T[\varphi_0(x_1)\,\varphi_0(x_2)\cdots\varphi_0(x_n)]\,|0\rangle\):<br />
+Since RHS reduces to above expression after expanding exponential.<br />
+</p>
+
+\[
+\begin{aligned}
+\text{Ex}\quad &amp;\langle 0|\,T\Big[\varphi_0(x_1)\,\varphi_0(x_2)\ldots\varphi_0(x_n)\Big(1 - i\int\varphi^4\,d^4y + \cdots\Big)\Big]|0\rangle\\
+&amp;= \langle 0|\,T\left[\varphi_0(x_1)\,\varphi_0(x_2)\ldots\varphi_0(x_n)\right]|0\rangle
+- \int d^4y\,\langle 0|T\left[\varphi_0(x_1)\varphi_0(x_2)\ldots\varphi_0(x_n)\,\varphi^4(y)\right]|0\rangle
+\end{aligned}
+\]
+
+<p>
+(1) <span id="Lecture 6-2 point correlator"></span><strong id="2 point correlator">2 point correlator</strong> \(\langle 0|\,T[\varphi_0(x_1)\,\varphi_0(x_2)]\,|0\rangle\)<br />
+</p>
+
+\[
+\varphi_0(x) = \varphi_+ + \varphi_-
+\qquad
+\begin{aligned}
+&amp;\downarrow\hspace{6em}\searrow\\
+&amp;\text{contains } \hat{a} \hspace{3em}\text{contains } \hat{a}^\dagger\\
+&amp;\int\frac{d^3k}{(2\pi)^3}\frac{1}{\sqrt{2\omega_k}}\,a_k\,e^{-ik\cdot x}
+\;\;\vdots\;\;
+\int\frac{d^3k}{(2\pi)^3}\frac{1}{\sqrt{2\omega_k}}\,a^\dagger_k\,e^{ik\cdot x}
+\end{aligned}
+\]
+
+<p>
+We have following fact ---<br />
+</p>
+
+\[
+T\left(\varphi_0(x_1)\,\varphi_0(x_2)\right)
+= \theta(t_1-t_2)\,\varphi_0(x_1)\,\varphi_0(x_2) + \theta(t_2-t_1)\,\varphi_0(x_2)\,\varphi_0(x_1)
+\]
+
+<p>
+Each \(\varphi_0(x_i)\) has two terms \(\varphi_+ + \varphi_-\):<br />
+</p>
+
+\[
+\begin{aligned}
+&amp;= \theta(t_1-t_2)\Big[\varphi_+(x_1)\varphi_+(x_2) + \varphi_+(x_1)\varphi_-(x_2) + \varphi_-(x_1)\varphi_+(x_2) + \varphi_-(x_1)\varphi_-(x_2)\Big]\\
+&amp;\quad + \theta(t_2-t_1)\Big[\varphi_+(x_2)\varphi_+(x_1) + \varphi_+(x_2)\varphi_-(x_1) + \varphi_-(x_2)\varphi_+(x_1) + \varphi_-(x_2)\varphi_-(x_1)\Big]
+\end{aligned}
+\]
+
+\[
+\varphi_+(x_1)\,\varphi_+(x_2) = \varphi_+(x_2)\,\varphi_+(x_1) \quad\text{as } [a_k, a_{k'}] = 0;
+\qquad\text{Similarly}\;\;
+\varphi_-(x_1)\,\varphi_-(x_2) = \varphi_-(x_2)\,\varphi_-(x_1) \quad\text{as } [a^\dagger_k, a^\dagger_{k'}] = 0
+\]
+
+\[
+\begin{aligned}
+&amp;= \Big[\cancelto{1}{\theta(t_1-t_2) + \theta(t_2-t_1)}\Big]\Big(\varphi_+(x_1)\varphi_+(x_2) + \varphi_-(x_1)\varphi_-(x_2)\Big)\\
+&amp;\quad + \theta(t_1-t_2)\Big[\varphi_+(x_1)\,\varphi_-(x_2) + \varphi_-(x_1)\varphi_+(x_2)\Big]
++ \theta(t_2-t_1)\Big[\varphi_+(x_2)\,\varphi_-(x_1) + \varphi_-(x_2)\varphi_+(x_1)\Big]
+\end{aligned}
+\]
+
+<p>
+We would like to compare it with normal ordering (which is important to define as will be of use later).<br />
+</p>
+
+<p>
+<span id="Lecture 6-Normal Ordering"></span><strong id="Normal Ordering">Normal Ordering</strong> ---<br />
+All destruction operators move to right and all creation operators move to left, so that<br />
+\(\langle 0|\, a^\dagger_k\, a_k\,|0\rangle = 0\).<br />
+Symbol for normal ordering is<br />
+</p>
+
+\[
+:\varphi_0(x_1)\,\varphi_0(x_2):\; = \;:\varphi_+(x_1)\varphi_+(x_2) + \varphi_+(x_1)\varphi_-(x_2) + \varphi_-(x_1)\varphi_+(x_2) + \varphi_-(x_1)\varphi_-(x_2):
+\]
+
+\[
+\begin{aligned}
+\langle 0|:\varphi_0(x_1)\,\varphi_0(x_2):|0\rangle
+&amp;= \cancelto{0}{\langle 0|:\varphi_+(x_1)\varphi_+(x_2):|0\rangle} + \langle 0|:\overset{a}{\varphi_+(x_1)}\overset{a^\dagger}{\varphi_-(x_2)}:|0\rangle\\
+&amp;\quad + \cancelto{0}{\langle 0|:\varphi_-(x_1)\varphi_+(x_2):|0\rangle} + \cancelto{0}{\langle 0|:\varphi_-(x_1)\varphi_-(x_2):|0\rangle}\\
+&amp;= \langle 0|\,\overset{a^\dagger}{\varphi_-(x_2)}\;\overset{a}{\varphi_+(x_1)}\,|0\rangle\\
+&amp;= 0
+\end{aligned}
+\]
+
+<p>
+Let us find \(T\left[\varphi_0(x_1)\,\varphi_0(x_2)\right]\; -\; :\varphi_0(x_1)\,\varphi_0(x_2):\)<br />
+</p>
+
+\[
+\begin{aligned}
+&amp;\Big[\varphi_+(x_1)\cancel{\varphi_+(x_2)} + \varphi_-(x_1)\cancel{\varphi_-(x_2)}\Big]
++ \theta(t_1-t_2)\Big[\varphi_+(x_1)\varphi_-(x_2) + \varphi_-(x_1)\varphi_+(x_2)\Big]\\
+&amp;\quad + \theta(t_2-t_1)\Big(\varphi_+(x_2)\varphi_-(x_1) + \varphi_-(x_2)\varphi_+(x_1)\Big)\\
+&amp;\quad - \underbrace{1}_{\;\rightarrow\; 1 = \theta(t_1-t_2)+\theta(t_2-t_1)}\Big(\varphi_+(x_1)\cancel{\varphi_+(x_2)} + \varphi_-(x_2)\varphi_+(x_1) + \varphi_-(x_1)\varphi_+(x_2) + \varphi_+(x_1)\cancel{\varphi_-(x_2)}\Big)\\[1ex]
+&amp;= \theta(t_1-t_2)\Big[\underline{\varphi_+(x_1)\varphi_-(x_2)} + \cancel{\varphi_-(x_1)\varphi_+(x_2)} - \underline{\varphi_-(x_2)\varphi_+(x_1)} - \cancel{\varphi_-(x_1)\varphi_+(x_2)}\Big]\\
+&amp;\quad + \theta(t_2-t_1)\Big[\underline{\varphi_+(x_2)\varphi_-(x_1)} + \cancel{\varphi_-(x_2)\varphi_+(x_1)} - \underline{\varphi_-(x_1)\varphi_+(x_2)} - \cancel{\varphi_-(x_2)\varphi_+(x_1)}\Big]\\[1ex]
+&amp;= \theta(t_1-t_2)\,\Big[\varphi_+(x_1),\,\varphi_-(x_2)\Big] + \theta(t_2-t_1)\,\Big[\varphi_+(x_2),\,\varphi_-(x_1)\Big]\\
+&amp;= \langle 0|\,T\left(\varphi_0(x_1)\,\varphi_0(x_2)\right)|0\rangle
+\qquad{\left(\text{difference of this operator turns out to be a complex number}\right)}
+\end{aligned}
+\]
+
+\[
+T\left(\varphi_0(x_1)\,\varphi_0(x_2)\right) = \;:\varphi_0(x_1)\,\varphi_0(x_2): + \langle 0|\,T\left[\varphi_0(x_1)\,\varphi_0(x_2)\right]|0\rangle
+\]
+
+<p>
+Taking vacuum expectation value makes it identity:<br />
+</p>
+
+\[
+\begin{gathered}
+\langle 0|T\left(\varphi_0(x_1)\varphi_0(x_2)\right)|0\rangle
+= \cancelto{0}{\langle 0|:\varphi_0(x_1)\varphi_0(x_2):|0\rangle} + \langle 0|T\left(\varphi_0(x_1)\varphi_0(x_2)\right)|0\rangle\,\langle 0|0\rangle\\
+\langle 0|T\left[\varphi_0(x_1)\,\varphi_0(x_2)\right]|0\rangle = \langle 0|T\left[\varphi_0(x_1)\,\varphi_0(x_2)\right]|0\rangle.
+\end{gathered}
+\]
+
+<p>
+Let us consider time ordered product of 4 point fields ---<br />
+</p>
+
+\[
+\begin{aligned}
+T\left(\varphi_0(x_1)\varphi_0(x_2)\varphi_0(x_3)\varphi_0(x_4)\right) &amp;= \;:\varphi_0(x_1)\,\varphi_0(x_2)\,\varphi_0(x_3)\,\varphi_0(x_4):\\
+&amp;\quad
+\underset{{\substack{\text{6 such}\\ \text{terms.}}}}{\left\{
+\begin{aligned}
+&amp;+ \;:\varphi_0(x_1)\,\varphi_0(x_2):\,\langle 0|T[\varphi_0(x_3)\,\varphi_0(x_4)]|0\rangle\\
+&amp;+ \;:\varphi_0(x_1)\,\varphi_0(x_3):\,\langle 0|T[\varphi_0(x_2)\,\varphi_0(x_4)]|0\rangle\\
+&amp;+ \;:\varphi_0(x_1)\,\varphi_0(x_4):\,\langle 0|T[\varphi_0(x_2)\,\varphi_0(x_3)]|0\rangle\\
+&amp;+ \;\cdots
+\end{aligned}
+\right.}\\
+&amp;\quad
+\underset{{\langle 0|T[\text{odd \# of free fields}]|0\rangle\, =\, 0}}{\left\{
+\begin{aligned}
+&amp;+ \;:\varphi_0(x_1):\,\cancelto{0}{\langle 0|T[\varphi_0(x_2)\,\varphi_0(x_3)\,\varphi_0(x_4)]|0\rangle}\\
+&amp;+ \;:\varphi_0(x_2):\,\cancelto{0}{\langle 0|T[\varphi_0(x_1)\,\varphi_0(x_3)\,\varphi_0(x_4)]|0\rangle}\\
+&amp;+ \;\cdots
+\end{aligned}
+\right.}\\
+&amp;\quad
+\underset{{\substack{\text{3 such}\\ \text{terms}}}}{\left\{
+\begin{aligned}
+&amp;+ \;:\varphi_0(x_1)\varphi_0(x_2)\varphi_0(x_3):\,\cancelto{0}{\langle 0|T[\varphi_0(x_4)]|0\rangle}\\
+&amp;+ \;:\varphi_0(x_2)\varphi_0(x_3)\varphi_0(x_4):\,\cancelto{0}{\langle 0|T[\varphi_0(x_1)]|0\rangle}\\
+&amp;+ \;\cdots
+\end{aligned}
+\right.}\\
+&amp;\quad + \langle 0|T[\varphi_0(x_1)\varphi_0(x_2)]|0\rangle\,\langle 0|T[\varphi_0(x_3)\varphi_0(x_4)]|0\rangle\\
+&amp;\quad + \langle 0|T[\varphi_0(x_1)\varphi_0(x_3)]|0\rangle\,\langle 0|T[\varphi_0(x_2)\varphi_0(x_4)]|0\rangle\\
+&amp;\quad + \langle 0|T[\varphi_0(x_1)\varphi_0(x_4)]|0\rangle\,\langle 0|T[\varphi_0(x_2)\varphi_0(x_3)]|0\rangle
+\end{aligned}
+\]
+
+<p>
+So the<br />
+</p>
+
+\[
+\begin{aligned}
+\langle 0|T\left[\varphi_0(x_1)\varphi_0(x_2)\varphi_0(x_3)\varphi_0(x_4)\right]|0\rangle
+&amp;= \cancelto{0}{\langle 0|:\varphi_0(x_1)\varphi_0(x_2)\varphi_0(x_3)\varphi_0(x_4):|0\rangle}\\
+&amp;\quad + \cancelto{0}{\langle 0|:\varphi_0(x_1)\varphi_0(x_2):|0\rangle}\,\langle 0|T[\varphi_0(x_3)\varphi_0(x_4)]|0\rangle
+\;+\; \text{All such combinations}\\
+&amp;\quad + \langle 0|T[\varphi_0(x_1)\,\varphi_0(x_2)]|0\rangle\,\langle 0|T[\varphi_0(x_3)\,\varphi_0(x_4)]|0\rangle\\
+&amp;\quad + \langle 0|T[\varphi_0(x_1)\,\varphi_0(x_3)]|0\rangle\,\langle 0|T[\varphi_0(x_2)\,\varphi_0(x_4)]|0\rangle\\
+&amp;\quad + \langle 0|T[\varphi_0(x_1)\,\varphi_0(x_4)]|0\rangle\,\langle 0|T[\varphi_0(x_2)\,\varphi_0(x_3)]|0\rangle
+\end{aligned}
+\]
+
+<p>
+So,<br />
+</p>
+
+\[
+$\displaystyle
+\begin{aligned}
+\langle 0|T[\varphi_0(x_1)\varphi_0(x_2)\varphi_0(x_3)\varphi_0(x_4)]|0\rangle
+&amp;= \phantom{+}\;\langle 0|T[\varphi_0(x_1)\varphi_0(x_2)]|0\rangle\;\langle 0|T[\varphi_0(x_3)\varphi_0(x_4)]|0\rangle\\
+&amp;\quad + \langle 0|T[\varphi_0(x_1)\varphi_0(x_3)]|0\rangle\;\langle 0|T[\varphi_0(x_2)\varphi_0(x_4)]|0\rangle\\
+&amp;\quad + \langle 0|T[\varphi_0(x_1)\varphi_0(x_4)]|0\rangle\;\langle 0|T[\varphi_0(x_2)\varphi_0(x_3)]|0\rangle
+\end{aligned}$
+\]
+
+<p>
+<span id="Lecture 6-Wicks theorem"></span><strong id="Wicks theorem">Wicks theorem</strong> ---<br />
+In free field theory \(\langle 0|T[\varphi_1\varphi_2\varphi_3\cdots\varphi_{2n}]|0\rangle\) (\(\nearrow\) even no. of fields)<br />
+</p>
+
+\[
+= \sum\;\langle 0|T[\varphi_1\varphi_2]|0\rangle\;\langle 0|T[\varphi_3\varphi_4]|0\rangle\cdots \;\text{---\,(2)}
+\qquad\text{ }+\text{ all distinct permutations.}
+\]
+
+<p>
+Also,<br />
+</p>
+
+\[
+\langle 0|T\left[\varphi_0(x_1)\,\varphi_0(x_2)\cdots\varphi_0(x_{2n+1})\right]|0\rangle = 0
+\qquad\hookrightarrow\;\text{odd no.\ of fields.}
+\]
+
+<p>
+Since one field will always be outside<br />
+</p>
+
+\[
+\sim\;\cancelto{0}{\langle 0|:\varphi_0(x_i):|0\rangle}\;\Big\langle 0\Big|T\Big[\prod_{j\neq i}^{2n}\varphi_0(x_j)\Big]\Big|0\Big\rangle
+\qquad\hookrightarrow\;\text{Non zero.}
+\]
+
+<p>
+To understand equation (2) we draw:<br />
+</p>
+
+<pre class="tikz">
+\begin{tikzpicture}
+\foreach \i/\l in {1/1,2/2,3/3,4/4,5/5}{
+  \fill (\i,0) circle (0.05);
+  \node[below] at (\i,-0.1) {$\l$};
+}
+\fill (6.2,0) circle (0.03); \fill (6.6,0) circle (0.03); \fill (7.0,0) circle (0.03);
+\fill (8,0) circle (0.05);
+\node[below] at (8,-0.1) {$2n$};
+\draw (3,0.2) -- (3,0.5) -- (5,0.5) -- (5,0.2);
+\draw (1,-0.5) -- (1,-0.8) -- (2,-0.8) -- (2,-0.5);
+\draw (4,-0.5) -- (4,-0.9) -- (6.6,-0.9) -- (6.6,-0.5);
+\end{tikzpicture}
+</pre>
+
+<p>
+We make pairs out of these \(2n\) points.<br />
+Total no. of such combination are ---<br />
+</p>
+
+\[
+(2n-1)(2n-3)\cdots 1 = (2n-1)!!
+\]
+
+<p>
+Lets write interacting theory propagator ---<br />
+</p>
+
+\[
+\frac{\langle\Omega|\,T[\varphi(x_1)\,\varphi(x_2)]\,|\Omega\rangle}{\langle\Omega|\Omega\rangle}
+= \frac{\langle 0|\,T\Big[\varphi_0(x_1)\,\varphi_0(x_2)\,e^{-i\int H_I(y)\,dy}\Big]|\Omega\rangle}{\langle 0|T\Big[\exp\left(-i\int H_I(y)\,dy\right)\Big]|0\rangle}
+\]
+
+<p>
+where,<br />
+</p>
+
+\[
+H_I(y) = \frac{\lambda}{4!}\,\varphi_0^4(y)
+\qquad\Bigg|\quad
+\begin{aligned}
+H_{\text{int}} &amp;= \varphi_0^4(0)\\
+H_I &amp;= e^{iH_0y^0}\,\varphi_0^4(0)\,e^{-iH_0y^0}
+\end{aligned}
+\]
+
+<p>
+So,<br />
+</p>
+
+\[
+\begin{aligned}
+\frac{\langle\Omega|\,T[\varphi(x_1)\,\varphi(x_2)]\,|\Omega\rangle}{\langle\Omega|\Omega\rangle}
+&amp;= \frac{\langle 0|\,T\Big[\varphi_0(x_1)\varphi_0(x_2)\Big(1 - \frac{i\lambda}{4!}\int d^4y\;\varphi_0^4(y) + \cdots\Big)\Big]|0\rangle}{\langle 0|T\Big[1 - \frac{i\lambda}{4!}\int d^4y\,\varphi_0^4(y) + \cdots\Big]|0\rangle}\\[1ex]
+&amp;= \frac{\langle 0|T[\varphi_0(x_1)\,\varphi_0(x_2)]|0\rangle - \frac{i\lambda}{4!}\,\langle 0|T\left[\varphi_0(x_1)\varphi_0(x_2)\int d^4y\,\varphi_0^4(y)\right]|0\rangle + \cdots}{\langle 0|0\rangle - \frac{i\lambda}{4!}\,\langle 0|T\left[\int d^4y\;\varphi_0^4(y)\right]|0\rangle + \cdots}
+\qquad\text{ }\hookleftarrow\text{ all 4 fields are at same time \&amp; space.}
+\end{aligned}
+\]
+
+<p>
+For upto 1st order<br />
+</p>
+
+\[
+\begin{aligned}
+&amp;= \frac{D_F(x_1-x_2) - \frac{i\lambda}{4!}\int d^4y\;\langle 0|T[\varphi_0(x_1)\varphi_0(x_2)\,\varphi_0^4(y)]|0\rangle}{\left(1 - \frac{i\lambda}{4!}\int d^4y\;\langle 0|T[\varphi_0^4(y)]|0\rangle\right)}\\[1ex]
+&amp;= \left(D_F(x_1-x_2) - \frac{i\lambda}{4!}\int d^4y\,\langle 0|T[\varphi_0(x_1)\varphi_0(x_2)\varphi_0^4(y)]|0\rangle\right)\left(1 + \frac{i\lambda}{4!}\int d^4y\,\langle 0|T[\varphi_0^4(y)]|0\rangle\right)
+\qquad{\left\{\;\frac{1}{1-x} = 1+x+x^2+\cdots\right.}\\[1ex]
+&amp;= D_F(x_1-x_2)\left(1 + \frac{i\lambda}{4!}\int d^4y\,\langle 0|T[\varphi_0^4(y)]|0\rangle\right)
+- \frac{i\lambda}{4!}\int d^4y\,\langle 0|T[\varphi_0(x_1)\,\varphi_0(x_2)\,\varphi_0^4(y)]|0\rangle
+\qquad{\left(\text{dropping }\lambda^2\text{ term}\right)}
+\end{aligned}
+\]
+
+<p>
+Since \(\langle 0|T[\varphi_0^4(y)]|0\rangle \Rightarrow\) loops \(\to\infty\).<br />
+Assume all UV divergences are ''regularized'' through a cut off. The cut off can be following ---<br />
+--- Either the cut off says no two points are allowed to get infinitely closed. So we split the hamiltonian and instead of \(\varphi^4(y)\) we use \(\varphi(y)\,\varphi(y+\epsilon)\,\varphi(y+2\epsilon)\,\varphi(y+3\epsilon)\).<br />
+So, we assume that \(\langle 0|T\left[\varphi_0(y)\,\varphi_0(y+\epsilon)\,\varphi_0(y+2\epsilon)\,\varphi_0(y+3\epsilon)\right]|0\rangle\)<br />
+can be handled later, but first we do the perturbation series in \(\lambda\). (So it is question of non-commuting limits).<br />
+In high energy --- short distance and high momentum are same, so short distance can be regularized by splitting the points or high momentum can be regularized by putting a finite cut off.<br />
+Naturally, it turns out that it is the only way to proceed, and it leads to sensible answers.<br />
+</p>
+
+\[
+\begin{aligned}
+\langle\Omega|\,T[\varphi(x_1)\,\varphi(x_2)]\,|\Omega\rangle
+&amp;= D_F(x_1-x_2) + \frac{i\lambda}{4!}\int D_F(x_1-x_2)\;\langle 0|T[\varphi_0^4(y)]|0\rangle
+\qquad{\nearrow\;\text{3 ways}}\\
+&amp;\quad - \frac{i\lambda}{4!}\int d^4y\;\langle 0|T[\varphi_0(x_1)\,\varphi_0(x_2)\,\varphi_0^4(y)]|0\rangle
+\qquad
+\left\{
+\begin{aligned}
+&amp;3\;D_{x_1x_2}\,D_{yy}\,D_{yy}\; +\\
+&amp;12\;D_{x_1y}\,D_{x_2y}\,D_{yy}
+\end{aligned}
+\right.
+\end{aligned}
+\]
+
+<p>
+Since we have 6 fields, Total no. of combinations \((2n-1)!! = 5!! = 5\cdot3\cdot1 = 15\);<br />
+ways to select \(y'\) for \(x_1\): \(4\times3 = 12\) ways, \(\to\) ways to select \(y\) for \(x_2\)<br />
+</p>
+
+\[
+\begin{aligned}
+&amp;= D_F(x_1-x_2) + \frac{i\lambda}{4!}\int\cancel{D_F(x_1-x_2)\;3\,D_F(y-y)\,D_F(y-y)}\\
+&amp;\quad - \frac{i\lambda}{4!}\int d^4y\;\cancel{3\,D_F(x_1-x_2)\,D_F(y-y)\,D_F(y\cdot y)}
+\qquad{\to\;\text{These completely disconnected diagram cancel from denominator}}\\
+&amp;\quad - \frac{i\lambda}{4!}\int d^4y\;(12)\;D_F(x_1-y)\;D_F(x_2-y)\;D_F(y-y)
+\end{aligned}
+\]
+
+<p>
+Assuming all expressions are regularized/finite we must cancel terms which are cancelling each other.<br />
+</p>
+
+\[
+= D_F(x_1-x_2) - \frac{i\lambda}{2}\int d^4y\;D_F(x_1-y)\;D_F(x_2-y)\;D_F(0)
+\]
+
+<div id="Pictorial Way (Feynman diagrams)"><h2 id="Pictorial Way (Feynman diagrams)" class="header"><a href="#Pictorial Way (Feynman diagrams)">Pictorial Way (Feynman diagrams)</a></h2></div>
+
+<p>
+Suppose we want to calculate <span id="Pictorial Way (Feynman diagrams)-2 point interacting theory propagator"></span><strong id="2 point interacting theory propagator">2 point interacting theory propagator</strong> (b/w \(x_1\) &amp; \(x_2\)) with \(H_I = \frac{1}{4!}\varphi_0^4(x)\).<br />
+We draw two points \(x_1\) &amp; \(x_2\) in space. (For 0th order)<br />
+</p>
+
+<pre class="tikz">
+\begin{tikzpicture}
+\fill (0,0) circle (0.05) node[left] {$x_1$};
+\fill (3,0) circle (0.05) node[right] {$x_2$};
+\draw (0,0) -- (3,0);
+\node[right, text width=5.5cm] at (4.5,0) {\footnotesize we join them via line \&amp; it is just $D_F(x_1-x_2)$};
+\end{tikzpicture}
+</pre>
+
+<p>
+For 1st order:<br />
+</p>
+
+<pre class="tikz">
+\begin{tikzpicture}
+\draw (0,0) node[left]{$x_1$} -- (3.4,0) node[right]{$x_2$};
+\draw (1.7,0.55) circle (0.28);
+\draw (1.7,1.1) circle (0.27);
+\node at (1.7,0.1) [below] {\footnotesize$y$};
+\node at (4.6,0.8) {$-\frac{i\lambda}{4!}$};
+\node[left, align=right, text width=3.4cm, color=red] at (-0.7,0.6) {\footnotesize 3 completely disconnected diagrams cancels out from denominator $\to$};
+\node at (1.7,-0.7) {$+$};
+\begin{scope}[yshift=-2.4cm]
+\draw (0,0) node[left]{$x_1$} -- (1.5,0.35);
+\draw (1.9,0.35) -- (3.4,0) node[right]{$x_2$};
+\draw (1.7,0.35) circle (0.2);
+\draw (1.7,0.9) circle (0.33);
+\node[below] at (1.7,0.1) {\footnotesize$y$};
+\node at (4.6,0.5) {$-\frac{i\lambda}{4!}$};
+\end{scope}
+\node[right, align=left, text width=5cm] at (6,-1.2) {\footnotesize Using jump \&amp; land rule we have such {\color{red}3} diagrams; we have such $4\times3$ diagrams $\Big\{$ particle starts at either $x_1$ or $x_2$, produce a virtual particle at $y$ \&amp; reach at $x_2$ or $x_1$.};
+\end{tikzpicture}
+</pre>
+
+<p>
+Now we add all<br />
+</p>
+
+\[
+\langle\Omega|\,T[\varphi(x_1)\varphi(x_2)]\,|\Omega\rangle
+= D_F(x_1-x_2) - \frac{i\lambda}{4}\int d^4y\;D_F(x_1-y)\;D_F(x_2-y)\;D_F(y-y)
+\]
+
+<p>
+Note that denominator cancels out completely disconnected diagrams (vacuum fluctuation) to all orders in \(\lambda\).<br />
+Note that the denominator only contains \(\varphi_0^4(y)\) fields which means denominator only tells us the vacuum fluctuations &amp; vacuum fluctuation do not affect particle of concern to us. (So normalizing the theory \(\langle\Omega|\Omega\rangle\) gave us the denominator which also cancels all completely disconnected diagrams).<br />
+So,<br />
+</p>
+
+\[
+D_F(y-y) = D_F(0) = \int\frac{d^4k}{(2\pi)^4}\;\frac{i}{k^2-m^2}\; e^{0}
+\quad\longrightarrow\;\text{divergent}
+\qquad\left\{\sim\frac{d^4k}{k^2}\sim\int k^2\,dk \to\infty\right.
+\]
+
+<p>
+We will deal with this divergence later.<br />
+All above procedure to find 2-point correlator in \(\varphi^4\) theory is valid for dirac theory, abelian/non-abelian gauge theory i.e. all quantum field theories. As long as we are doing perturbation theory, the relation b/w free fields and \(n\)-point function is true.<br />
+Vertex may not be 4 point always/it may be 3 point vertex. Ex. in electrodynamics we have 3 point vertex connecting \((e^-, e^+, \gamma)\). In scalar \(\varphi^4\) theory, since we have just one kind of field \(\varphi\), so we have one kind of particle representing all lines.<br />
+But when we have multiple fields one type of line will represent just one field/particle, so for feynman rules, we have \(D_F\) (for specific particle) \(\hookrightarrow\) came from that line.<br />
+</p>
+
+<div id="4-point Function"><h2 id="4-point Function" class="header"><a href="#4-point Function">4-point Function</a></h2></div>
+
+<p>
+Also we will try to get what kind of physical process we can get.<br />
+</p>
+
+\[
+\langle\Omega|\,T\left[\varphi_0(x_1)\,\varphi_0(x_2)\,\varphi_0(x_3)\,\varphi_0(x_4)\right]|\Omega\rangle
+\quad\text{shall describe two particles scattering with interaction.}
+\]
+
+<p>
+Using Feynman diagrams we can write the 4 point correlator (without writing the formula).<br />
+We have to fix the labels.<br />
+For 0th order:<br />
+</p>
+
+<pre class="tikz">
+\begin{tikzpicture}
+\fill (0,1) circle (0.04) node[left]{$x_1$};
+\fill (2,1) circle (0.04) node[right]{$x_3$};
+\fill (0,0) circle (0.04) node[left]{$x_2$};
+\fill (2,0) circle (0.04) node[right]{$x_4$};
+\draw (0,1) -- (2,1);
+\draw (0,0) -- (2,0);
+\node at (2.9,0.5) {$+$};
+\begin{scope}[xshift=3.7cm]
+\node[above] at (0,1) {$x_1$}; \node[above] at (1.2,1) {$x_1$};
+\node[below] at (0,-0.1) {$x_2$}; \node[below] at (1.2,-0.1) {$x_4$};
+\draw (0,0) -- (0,1);
+\draw (1.2,0) -- (1.2,1);
+\end{scope}
+\node at (5.8,0.5) {$+$};
+\begin{scope}[xshift=6.6cm]
+\node at (0,1) [left] {$x_1$}; \node at (2,1) [right] {$x_3$};
+\node at (0,0) [left] {$x_2$}; \node at (2,0) [right] {$x_4$};
+\draw (0,1) -- (2,0);
+\draw (0,0) -- (2,1);
+\end{scope}
+\end{tikzpicture}
+</pre>
+
+<p>
+(Free level diagrams) as both particles reaches final state without interaction<br />
+</p>
+
+<p>
+Not completely disconnected as Defn of completely disconnected is that virtual particles should not be connected to any external vertex.<br />
+For <span id="4-point Function-1st order"></span><strong id="1st order">1st order</strong>:<br />
+</p>
+
+<pre class="tikz">
+\begin{tikzpicture}
+\node at (-1.1,0) {(i)};
+\draw (0,1) node[above]{$x_1$} -- (2,-1) node[below]{$x_4$};
+\draw (0,-1) node[below]{$x_2$} -- (2,1) node[above]{$x_3$};
+\node at (3.1,0.4) {$-\frac{i\lambda}{4!}$};
+\node[right, text width=5.5cm] at (4.2,0.3) {$\Bigg\}$ \footnotesize here two particles interact at vertex and again was found to be at two another positions.};
+\node[below] at (1,-1.5) {{\color{red}Tree level (No loops)}};
+\end{tikzpicture}
+</pre>
+
+<p>
+We can choose any direction of time<br />
+This arrow represents dirn of time<br />
+</p>
+
+\[
+\text{i.e.}\quad {\leftarrow}\; x_1^0, x_2^0 &gt; x_3^0\, x_4^0
+\quad\text{or}\quad x_1^0, x_3^0 &lt; x_2^0, x_4^0\;{\downarrow}
+\quad\text{or}\quad {\uparrow}\; x_2^0, x_4^0 &lt; x_1^0\, x_3^0
+\quad\text{or}\quad x_1^0\, x_2^0 &lt; x_3^0\, x_4^0\;{\rightarrow}
+\]
+
+<p>
+Assuming \(x_1^0, x_2^0 &lt; x_3^0, x_4^0\):<br />
+</p>
+
+<pre class="tikz">
+\begin{tikzpicture}[&gt;=stealth]
+\node at (-1.6,0) {$\left(-\frac{i\lambda}{4!}\right)$};
+\draw[-&gt;] (0,1) node[above]{$x_1$} -- (1,0.08);
+\draw (1,0.08) -- (2,-0.85) node[below]{$x_4$};
+\draw[-&gt;] (0,-1) node[below]{$x_2$} -- (1,-0.08);
+\draw (1,-0.08) -- (2,0.85) node[above]{$x_3$};
+\node[below] at (1,0) {\footnotesize$y$};
+\node[right, red, text width=3cm] at (0.2,-1.7) {\footnotesize $4!$ such diagrams possible.};
+\node[right, text width=6cm] at (3.4,0) {$\Rightarrow$ \footnotesize particle at 1,2 interacted at vertex and were found at 3,4 with some probability amplitude given by};
+\end{tikzpicture}
+</pre>
+
+\[
+-\frac{i\lambda}{4!}\int d^4y\;D_F(x_1-y)\;D_F(x_2-y)\;D_F(x_3-y)\;D_F(x_4-y)\times 4!
+\qquad
+\left\{
+\begin{aligned}
+&amp;\text{If we start at }x_1\text{ we can land at }y\text{ in}\\
+&amp;\text{4 ways.\ then }x_2\text{ has 3 ways}\\
+&amp;\text{}x_3\text{ has 2 ways \&amp; }x_4\text{ has 1 way.}\\
+&amp;4\times3\times2\times1 = 4!
+\end{aligned}
+\right.
+\]
+
+<p>
+[1ex]<br />
+</p>
+
+<pre class="tikz">
+\begin{tikzpicture}
+\node at (-1.6,0.3) {(ii)\;{\color{red}$(4\times3)$}};
+\draw (0,1) node[left]{$x_1$} -- (3,1) node[right]{$x_3$};
+\draw (0,-0.6) node[left]{$x_2$} -- (1.4,0.05);
+\draw (1.75,0.05) -- (3,-0.6) node[right]{$x_4$};
+\draw (1.58,0.22) circle (0.19);
+\node[below] at (1.58,-0.1) {\footnotesize$y$};
+\node[right, red] at (2.0,0.5) {\footnotesize$\leftarrow$ self interaction};
+\node[right, text width=5.4cm] at (4.6,0.3) {\footnotesize 1 particle moves freely, another particle undergoes self interaction and reach another point.};
+\end{tikzpicture}
+</pre>
+
+<pre class="tikz">
+\begin{tikzpicture}
+\node at (-1.1,0) {{\color{red}$(4\times3)$}};
+\draw (0,-0.9) node[below]{$x_2$} -- (0,0.9) node[above]{$x_1$};
+\draw (1.3,0) circle (0.18);
+\draw (1.46,0.1) -- (2.6,0.85) node[right]{$x_3$};
+\draw (1.46,-0.1) -- (2.6,-0.85) node[right]{$x_4$};
+\node at (3.9,0) {$+$\;{\color{red}$(4\times3)$}};
+\begin{scope}[xshift=5.2cm]
+\draw (0,0.85) node[left]{$x_1$} -- (1.1,0.12);
+\draw (0,-0.85) node[left]{$x_2$}
+ -- (1.1,-0.12);
+\draw (1.28,0) circle (0.2);
+\draw (1.28,-0.2) -- (2.8,-0.85);
+\node[right] at (2.8,-0.85) {$x_4$};
+\draw (1.28,0.2) -- (2.8,0.85);
+\node[right] at (2.8,0.85) {$x_3$};
+\end{scope}
+\node at (9.2,0) {$+$\;{\color{red}$(4\times3)$}};
+\begin{scope}[xshift=10.6cm]
+\draw (0,0.85) node[left]{$x_1$} -- (1.2,0.85);
+\draw (1.4,0.85) circle (0.2);
+\draw (1.6,0.85) -- (1.6,0.85);
+\node[right] at (1.62,0.85) {$x_3$};
+\draw (0,-0.85) node[left]{$x_2$} -- (1.62,-0.85) node[right]{$x_4$};
+\end{scope}
+\end{tikzpicture}
+</pre>
+
+<p>
+In total we have \(4\times4\times3 = 48\) such diagrams.<br />
+For <span id="4-point Function-2nd order"></span><strong id="2nd order">2nd order</strong> \(\left(O(\lambda^2)\right)\):<br />
+</p>
+
+<pre class="tikz">
+\begin{tikzpicture}
+\draw (0,1) node[left]{1} -- (1.2,0.15);
+\draw (0,-1) node[left]{2} -- (1.2,-0.15);
+\node at (1.35,0.05) {$\times$};
+\node[below] at (1.35,-0.05) {\footnotesize$y_1$};
+\draw (1.5,0.1) .. controls (2.2,0.5) .. (2.9,0.1);
+\draw (1.5,-0.1) .. controls (2.2,-0.5) .. (2.9,-0.1);
+\node at (3.05,0.05) {$\times$};
+\node[below] at (3.05,-0.05) {\footnotesize$y_2$};
+\draw (3.2,0.15) -- (4.4,1) node[right]{3};
+\draw (3.2,-0.15) -- (4.4,-1) node[right]{4};
+\begin{scope}[xshift=6.6cm]
+\draw (0,1) node[left]{$x_1$} -- (1,0.2);
+\draw (0,-1) node[left]{$x_2$} -- (1,-0.2);
+\node[left] at (1,0.35) {\footnotesize$y_1$};
+\node[right] at (1.75,0.35) {\footnotesize$y_2$};
+\draw (1.4,0) ellipse (0.42 and 0.24);
+\draw (1.85,0.2) -- (2.9,1) node[right]{$x_3$};
+\draw (1.85,-0.2) -- (2.9,-1) node[right]{$x_4$};
+\end{scope}
+\begin{scope}[xshift=11.2cm]
+\draw (0,1) node[left]{$x_1$} -- (1,0.2);
+\draw (0,-1) node[left]{$x_2$} -- (1,-0.2);
+\node[left] at (1,0.4) {\footnotesize$y_1$};
+\node[right] at (1.8,0.4) {\footnotesize$y_2$};
+\draw (1.42,0.05) ellipse (0.4 and 0.22);
+\draw (1.86,0.15) -- (2.9,1) node[right]{$x_3$};
+\draw (1.86,-0.1) -- (2.9,-1) node[right]{$x_4$};
+\end{scope}
+\end{tikzpicture}
+</pre>
+
+<p>
+We can write combinatorial factors along with the diagrams to evaluate propagator in momentum space.<br />
+We have not discussed physical interpretation of 4-point function. There is one step to go from 4-point function to \(\mathcal{M}\), couple of steps to find scattering matrix which will take us to Crossection.<br />
+So using this quantity we can calculate scattering crossection of 2 particles \(\longrightarrow\) 2 particles.<br />
+{We can give physical interpretation to these diagrams, but originally we are expanding interacting fields in language of free fields, (nature does not do that, nature has some interacting fields which interact) its the technique we are using to understand the field theory. If it helps us we should give its physical interpretation. &amp; if physical interpretation is confusing we should not make it.<br />
+Physical interpretation is something we give to understand better. It is not there to be in theory. There is no obligation that it has to have some physical interpretation.}<br />
+Physical Interpretation are just ways of thinking about these diagrams. Look around us, there are no interaction vertices in space. But if we calculate something to order \((\lambda^2)\) which is equal to 1 millionth of measured answer, then we can say that all higher order \(O(\lambda^4)\), \(O(\lambda^3)\)... don't contribute.<br />
+We concentrate on lowest order/tree level processes. This is the spirit of taking physical interpretation.<br />
+We know that<br />
+</p>
+
+\[
+D_F(x-y) = \int\frac{d^4k}{(2\pi)^4}\;\frac{i}{k^2-m^2}\;e^{-i\vec{k}\cdot(x-y)}
+\qquad
+\begin{aligned}
+&amp;{\swarrow\;\text{Position space Feynman propagator}}\\
+&amp;\left\{\,x,y,k \text{ four vectors.}\right.
+\end{aligned}
+\]
+
+<p>
+\(\downarrow\) Fourier transform of \(\dfrac{i}{k^2-m^2}\). So,<br />
+</p>
+
+\[
+\widetilde{D}_F(k) = \frac{i}{k^2-m^2}
+\qquad\left\{\text{is called momentum space Feynman propagator.}\right.
+\]
+
+<p>
+Suppose \(G(x_1, x_2\cdots x_{2n}) = \langle\Omega|\,T\left[\varphi(x_1)\,\varphi(x_2)\ldots\varphi(x_{2n})\right]|\Omega\rangle\): we have a \(2n\)-point function. Then we can transform it to momentum space as follows.<br />
+</p>
+
+\[
+G(x_1\, x_2\ldots x_{2n}) = \langle\Omega|\,T\left[\varphi(x_1)\,\varphi(x_2)\cdots\varphi(x_{2n})\right]|\Omega\rangle
+\]
+
+<p>
+\(G(x_1 x_2\ldots x_{2n})\) is translation invariant, i.e. if we shift origin of all fields, we get same answer:<br />
+</p>
+
+\[
+G(x_1+a_1,\, x_2+a_2\ldots x_{2n}+a_{2n}) = G(x_1\, x_2\ldots x_{2n})
+\]
+
+<p>
+\(\underset{\substack{\text{momentum}\\ \text{conservation}\\ \text{come from}\\ \text{Translational}\\ \text{invariance.}}}{\downarrow}\)<br />
+We can convert it using fourier transform ---<br />
+</p>
+
+\[
+\delta^4\Big(\sum k_i\Big)\times\widetilde{G}\left(k_1\,k_2\cdots k_{2n}\right) = \int\prod_{i=1}^{2n}\left(d^4x_i\right)\; e^{ik_i\cdot x_i}\;G\left(x_1\,x_2\cdots x_{2n}\right)
+\]
+
+<p>
+Now it become extremely easy, --- (We don't use \(x_1\,x_2\cdots x_{2n}\) anymore. We use momentum lines \(k_1\,k_2\cdots k_{2n}\).)<br />
+</p>
+
+<pre class="tikz">
+\begin{tikzpicture}
+\draw (0,1) node[left]{$k_1$} -- (1.6,-1) node[right]{$k_2$};
+\draw (0,-1) node[left]{$k_2$} -- (0.9,0.15);
+\draw (0.9,0.15) -- (1.6,1) node[right]{$k_3$};
+\node[right] at (1.7,0.35) {$k_4$};
+\end{tikzpicture}
+</pre>
+
+<p>
+$\widetilde{G}(k_1 k_2 k_3 k_4) = (\frac{-i\lambda}{4!})\delta^4(k_1+k_2+k_3+k_4)<br />
+\frac{i}{k_1<sup><small>2-m</small></sup>2} \frac{i}{k_2<sup><small>2-m</small></sup>2} \frac{i}{k_3<sup><small>2-m</small></sup>2} \frac{i}{k_4<sup><small>2-m</small></sup>2}\times 4!$ [1ex]<br />
+There are \(4!\) such ways.<br />
+</p>
+
+\[
+\widetilde{G}(k_1\cdots k_4) = \left(\frac{-i\lambda}{4!}\right)\delta^4\left(k_1+k_2-k_3-k_4\right)\;
+\frac{i}{k_1^2-m^2}\;\frac{i}{k_2^2-m^2}\;\frac{i}{k_3^2-m^2}\;\frac{i}{k_4^2-m^2}\;\times 4!
+\]
+
+<p>
+The above is contribution to first order in \(\lambda\). Note that, we don't have any integral, it is the final answer to first order contribution.<br />
+Note that in position space we had integral over '\(y\)' but that integral gave us \(\delta^4\left(\sum k_i\right)\) term.<br />
+</p>
+
+\[
+\begin{aligned}
+\langle\Omega|T[\varphi(x_1)\varphi(x_2)\varphi(x_3)\varphi(x_4)]|\Omega\rangle
+&amp;= \left(\frac{-i\lambda}{4!}\right)4!\int d^4y\;D_F(x_1-y)\,D_F(x_2-y)\,D_F(x_3-y)\,D_F(x_4-y)\\
+&amp;\qquad\qquad\text{ (RHS is first order expansion. Not }\mathcal{M}\text{)}\\
+&amp;= (-i\lambda)\int d^4y\;\prod_{i=1}^{4}\frac{d^4k_i}{(2\pi)^4}\;\frac{i}{k_1^2-m^2}\,\frac{i}{k_2^2-m^2}\,\frac{i}{k_3^2-m^2}\,\frac{i}{k_4^2-m^2}\\
+&amp;\qquad\qquad\times\; e^{ik_1\cdot(x_1-y)}\; e^{ik_2\cdot(x_2-y)}\; e^{ik_3\cdot(x_3-y)}\; e^{ik_4\cdot(x_4-y)}\\
+&amp;= (-i\lambda)\int d^4y\; e^{-iy\cdot(k_1+k_2+k_3+k_4)}\; e^{i(k_1x_1 + k_2\cdot x_2 + k_3\cdot x_3 + k_4\cdot x_4)}\\
+&amp;\qquad\qquad\times\;\frac{i}{k_1^2-m^2}\;\frac{i}{k_2^2-m^2}\;\frac{i}{k_3^2-m^2}\;\frac{i}{k_4^2-m^2}
+\end{aligned}
+\]
+
+<p>
+Lets move to more difficult example ---<br />
+</p>
+
+<pre class="tikz">
+\begin{tikzpicture}
+\draw (0,0.9) node[left]{$k_1$} -- (0.9,0.15);
+\draw (0,-0.9) node[left]{$k_2$} -- (0.9,-0.15);
+\draw (1.35,0) ellipse (0.45 and 0.26);
+\node[above] at (1.1,0.2) {\footnotesize$k_5$};
+\node[below] at (1.35,-0.26) {\footnotesize$k_6$};
+\draw (1.8,0.15) -- (2.8,0.9) node[right]{$k_3$};
+\draw (1.8,-0.15) -- (2.8,-0.9) node[right]{$k_4$};
+\end{tikzpicture}
+</pre>
+
+<p>
+At each vertex we have \(\delta^4\left(\Sigma k\right)\), So, we have<br />
+</p>
+
+\[
+\delta^4\left(k_1+k_2-k_5+k_6\right)\times\delta^4\left(k_5-k_6+k_3+k_4\right)
+\]
+
+<p>
+We have to integrate over undetermined momenta. Using 2nd dirac delta we have<br />
+</p>
+
+\[
+k_6 = k_5 + k_3 + k_4
+\]
+
+<p>
+So 2nd order correction to \(\langle\Omega|\,T\left[\varphi(x_1)\,\varphi(x_2)\,\varphi(x_3)\,\varphi(x_4)\right]|\Omega\rangle\) is given by<br />
+</p>
+
+\[
+\int d^4k_5\;\frac{i}{k_5^2-m^2}\;\frac{i}{\left(k_5+k_3+k_4\right)^2 - m^2}
+\]
+
+<p>
+Note that loop diagrams involve one momentum integral per loop. \(k_5\) ''do not'' satisfy \(k_5^2 = m^2\), that is why we have poles in above integral.<br />
+{External particle satisfy \(k_i^2 = m^2\) (on-shell)<br />
+Internal particles (loop) ''do not'' satisfy \(k^2 = m^2\) (off-shell)}<br />
+It means when we try to calculate physical processes in perturbation theory we can express them as if there are some free particles propagating in loops which are virtual, which does not have physical momenta (off shell \(k^2\neq m^2\)), and whose only job is to communicate the interaction between incoming and outgoing particles. So they contribute to the process, it is interpretation of diagram. Its not that we are writing diagrams knowing there are virtual particles., we write diagram using Wick's theorem &amp; we interprete the diagram in language of virtual particles.<br />
+</p>
+
+
+<p>
+<a href="lecture 7-9-sunil-mukhi-qft.html">lecture 7-9-sunil-mukhi-qft</a><br />
+</p>
+
+    </div>
+
+    <!-- 1. Turn vimwiki {{{class="tikz"}}} blocks into TikZJax script tags (must run BEFORE tikzjax.js) -->
+    <script>
+        document.querySelectorAll('pre.tikz').forEach(function (pre) {
+            var s = document.createElement('script');
+            s.type = 'text/tikz';
+            s.textContent = pre.textContent; // browser decodes HTML entities here
+            pre.replaceWith(s);
+        });
+    </script>
+
+    <!-- 2. Syntax-highlight code blocks, but skip diagram blocks -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre:not(.mermaid):not(.tikz)').forEach(function (block) {
+            hljs.highlightBlock(block);
+        });
+    </script>
+
+    <!-- 3. TikZJax: renders <script type="text/tikz"> into SVG -->
+    <script src="https://tikzjax.com/v1/tikzjax.js"></script>
+
+    <!-- 4. Mermaid: renders <pre class="mermaid"> into SVG -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+</body>
+</html>
