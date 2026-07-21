@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="../style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
+    <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
+    <title>2025-06-09</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm;
+        }
+        #content {
+            color: #333;
+            font-size: 20px;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+        h1 { font-size: 28px; }
+        h2 { font-size: 24px; }
+        h3 { font-size: 20px; }
+        h4, h5, h6 { font-size: 18px; }
+        img {
+            display: block;
+            max-width: 100%;
+            max-height: 500px;
+            margin: 30px auto;
+        }
+        /* Diagram blocks (Mermaid + TikZ): centered, no code-box background */
+        pre.mermaid, pre.tikz {
+            background: none;
+            border: none;
+            text-align: center;
+        }
+        #content svg {
+            max-width: 100%;
+            height: auto;
+        }
+        /* Breadcrumb trail */
+        .breadcrumb {
+            font-size: 15px;
+            line-height: 1.4;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+            color: #555;
+            word-break: break-word;
+        }
+        .breadcrumb:empty { display: none; }
+        .breadcrumb a { color: #6b4f2a; text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        .breadcrumb .breadcrumb-sep { color: #999; margin: 0 4px; }
+        .breadcrumb .breadcrumb-current { color: #333; font-weight: bold; }
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body { padding: 1cm; }
+            #content { padding: 10px; max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        <!-- Breadcrumb: Home > section > ... > current. Change data-home if your home moves. -->
+        <nav id="breadcrumb" class="breadcrumb" aria-label="Breadcrumb"
+             data-home="/" data-home-label="Home"></nav>
+        
+<p>
+OFF axis wilson loops calculations using SIMULATeQCD<br />
+</p>
+
+<p>
+The x_y exchange and mu_nu exhange is giving same results for the off axis wilson loops, but is not matching for x==y or y==z or x==z or x==y==z. For these cases, we can take average over the two paths for same \(R=\sqrt{x^2+y^2+z^2}\) or just leave it as it might not change the potential and pseudo potentials and string tensions.<br />
+</p>
+
+
+
+<p>
+The planer wilson loops are matching with MILC results, in order to check the off axis wilson loops, I have created two algorithms , <br />
+</p>
+<ol>
+<li>
+two dimensional bresenham algorithm
+
+<li>
+three dimensional bresenham algorithms
+
+</ol>
+<p>
+The two dimensional bresenham algorithm is used to calculate the off axis wilson loops in the 2D space and 1d space/time, while the three dimensional bresenham algorithm is used to calculate the off axis wilson loops in the 4D space-time.<br />
+</p>
+
+<p>
+The results from 2d case shall be able to obtained from the 3d case. <br />
+</p>
+
+<p>
+The results from 2d case also varies with the following funciton calling:<br />
+</p>
+<ol>
+<li>
+
+<pre cpp>
+case 3: for(nu=1;nu&lt;3;nu++)
+		{
+			for(mu=0;mu&lt;nu;mu++)
+			{ 
+				temp1=BresenhamLoopXYL_2d(_x,_y,_z,site,mu,nu,_ex_dir);
+				temp2=BresenhamLoopXYU_2d(_x,_y,_z,site,mu,nu,_ex_dir);
+				result+=tr_d(temp1*dagger(temp2));
+		//replacing x&lt;-&gt;y
+				/* temp1=BresenhamLoopXYL_2d(_y,_x,_z,site,mu,nu,_ex_dir); */
+				/* temp2=BresenhamLoopXYU_2d(_y,_x,_z,site,mu,nu,_ex_dir); */
+				temp1=BresenhamLoopXYL_2d(_x,_y,_z,site,nu,mu,_ex_dir);
+				temp2=BresenhamLoopXYU_2d(_x,_y,_z,site,nu,mu,_ex_dir);
+				result+=tr_d(temp1*dagger(temp2));
+			}
+		}
+		return result/6.0;
+		break;
+
+</pre>
+
+</ol>
+<p>
+2.<br />
+</p>
+<pre cpp>
+case 3: for(nu=1;nu&lt;3;nu++)
+		{
+			for(mu=0;mu&lt;nu;mu++)
+			{ 
+				temp1=BresenhamLoopXYL_2d(_x,_y,_z,site,mu,nu,_ex_dir);
+				temp2=BresenhamLoopXYU_2d(_x,_y,_z,site,mu,nu,_ex_dir);
+				result+=tr_d(temp1*dagger(temp2));
+		//replacing x&lt;-&gt;y
+				temp1=BresenhamLoopXYL_2d(_y,_x,_z,site,mu,nu,_ex_dir);
+				temp2=BresenhamLoopXYU_2d(_y,_x,_z,site,mu,nu,_ex_dir);
+				/* temp1=BresenhamLoopXYL_2d(_x,_y,_z,site,nu,mu,_ex_dir); */
+				/* temp2=BresenhamLoopXYU_2d(_x,_y,_z,site,nu,mu,_ex_dir); */
+				result+=tr_d(temp1*dagger(temp2));
+			}
+		}
+		return result/6.0;
+		break;
+</pre>
+
+
+
+<p>
+The first one just changes the directions but the second one swapes the x and y coordinates.<br />
+</p>
+
+<div id="Results from 1st case: (changing directions)"><h2 id="Results from 1st case: (changing directions)" class="header"><a href="#Results from 1st case: (changing directions)">Results from 1st case: (changing directions)</a></h2></div>
+
+<p>
+Node:0,Smear_count:0,x=0,y=1,Length=1.000000,Height=1,ex_dir=3,Wilson Loop:5.415310497463935e-01<br />
+Node:0,Smear_count:0,x=0,y=1,Length=1.000000,Height=2,ex_dir=3,Wilson Loop:2.989843084939524e-01<br />
+Node:0,Smear_count:0,x=0,y=1,Length=1.000000,Height=3,ex_dir=3,Wilson Loop:1.683720211814673e-01<br />
+Node:0,Smear_count:0,x=0,y=1,Length=1.000000,Height=4,ex_dir=3,Wilson Loop:9.513755112092502e-02<br />
+Node:0,Smear_count:0,x=0,y=2,Length=2.000000,Height=1,ex_dir=3,Wilson Loop:2.988292105397755e-01<br />
+Node:0,Smear_count:0,x=0,y=2,Length=2.000000,Height=2,ex_dir=3,Wilson Loop:1.036251536262440e-01<br />
+Node:0,Smear_count:0,x=0,y=2,Length=2.000000,Height=3,ex_dir=3,Wilson Loop:3.934422556804130e-02<br />
+Node:0,Smear_count:0,x=0,y=2,Length=2.000000,Height=4,ex_dir=3,Wilson Loop:1.534567048782771e-02<br />
+Node:0,Smear_count:0,x=0,y=3,Length=3.000000,Height=1,ex_dir=3,Wilson Loop:1.683097768375253e-01<br />
+Node:0,Smear_count:0,x=0,y=3,Length=3.000000,Height=2,ex_dir=3,Wilson Loop:3.952744879497768e-02<br />
+Node:0,Smear_count:0,x=0,y=3,Length=3.000000,Height=3,ex_dir=3,Wilson Loop:1.129745493249806e-02<br />
+Node:0,Smear_count:0,x=0,y=3,Length=3.000000,Height=4,ex_dir=3,Wilson Loop:3.495959058142938e-03<br />
+Node:0,Smear_count:0,x=0,y=4,Length=4.000000,Height=1,ex_dir=3,Wilson Loop:9.509986024471435e-02<br />
+Node:0,Smear_count:0,x=0,y=4,Length=4.000000,Height=2,ex_dir=3,Wilson Loop:1.532669443767490e-02<br />
+Node:0,Smear_count:0,x=0,y=4,Length=4.000000,Height=3,ex_dir=3,Wilson Loop:3.419764739416865e-03<br />
+Node:0,Smear_count:0,x=0,y=4,Length=4.000000,Height=4,ex_dir=3,Wilson Loop:7.796308238129630e-04<br />
+Node:0,Smear_count:0,x=1,y=1,Length=1.414214,Height=1,ex_dir=3,Wilson Loop:3.479741961411804e-01<br />
+Node:0,Smear_count:0,x=1,y=1,Length=1.414214,Height=2,ex_dir=3,Wilson Loop:1.453837667666475e-01<br />
+Node:0,Smear_count:0,x=1,y=1,Length=1.414214,Height=3,ex_dir=3,Wilson Loop:6.563371464165794e-02<br />
+Node:0,Smear_count:0,x=1,y=1,Length=1.414214,Height=4,ex_dir=3,Wilson Loop:3.017105852160809e-02<br />
+Node:0,Smear_count:0,x=1,y=2,Length=2.236068,Height=1,ex_dir=3,Wilson Loop:2.207222968648315e-01<br />
+Node:0,Smear_count:0,x=1,y=2,Length=2.236068,Height=2,ex_dir=3,Wilson Loop:6.792344696820346e-02<br />
+Node:0,Smear_count:0,x=1,y=2,Length=2.236068,Height=3,ex_dir=3,Wilson Loop:2.394174427484879e-02<br />
+Node:0,Smear_count:0,x=1,y=2,Length=2.236068,Height=4,ex_dir=3,Wilson Loop:8.737576050305213e-03<br />
+Node:0,Smear_count:0,x=1,y=3,Length=3.162278,Height=1,ex_dir=3,Wilson Loop:1.269590315734095e-01<br />
+Node:0,Smear_count:0,x=1,y=3,Length=3.162278,Height=2,ex_dir=3,Wilson Loop:2.751369434715729e-02<br />
+Node:0,Smear_count:0,x=1,y=3,Length=3.162278,Height=3,ex_dir=3,Wilson Loop:7.528610445847035e-03<br />
+Node:0,Smear_count:0,x=1,y=3,Length=3.162278,Height=4,ex_dir=3,Wilson Loop:2.275467219509008e-03<br />
+Node:0,Smear_count:0,x=1,y=4,Length=4.123106,Height=1,ex_dir=3,Wilson Loop:7.302148572342397e-02<br />
+Node:0,Smear_count:0,x=1,y=4,Length=4.123106,Height=2,ex_dir=3,Wilson Loop:1.119225959266536e-02<br />
+Node:0,Smear_count:0,x=1,y=4,Length=4.123106,Height=3,ex_dir=3,Wilson Loop:2.408397375147882e-03<br />
+Node:0,Smear_count:0,x=1,y=4,Length=4.123106,Height=4,ex_dir=3,Wilson Loop:4.720684023649508e-04<br />
+Node:0,Smear_count:0,x=2,y=2,Length=2.828427,Height=1,ex_dir=3,Wilson Loop:1.421079996197134e-01<br />
+Node:0,Smear_count:0,x=2,y=2,Length=2.828427,Height=2,ex_dir=3,Wilson Loop:3.385622608208851e-02<br />
+Node:0,Smear_count:0,x=2,y=2,Length=2.828427,Height=3,ex_dir=3,Wilson Loop:1.015315988776403e-02<br />
+Node:0,Smear_count:0,x=2,y=2,Length=2.828427,Height=4,ex_dir=3,Wilson Loop:3.190247666421482e-03<br />
+Node:0,Smear_count:0,x=2,y=3,Length=3.605551,Height=1,ex_dir=3,Wilson Loop:8.468717998213722e-02<br />
+Node:0,Smear_count:0,x=2,y=3,Length=3.605551,Height=2,ex_dir=3,Wilson Loop:1.528402673868381e-02<br />
+Node:0,Smear_count:0,x=2,y=3,Length=3.605551,Height=3,ex_dir=3,Wilson Loop:3.691426209264199e-03<br />
+Node:0,Smear_count:0,x=2,y=3,Length=3.605551,Height=4,ex_dir=3,Wilson Loop:8.774445386751247e-04<br />
+Node:0,Smear_count:0,x=2,y=4,Length=4.472136,Height=1,ex_dir=3,Wilson Loop:5.393557100198080e-02<br />
+Node:0,Smear_count:0,x=2,y=4,Length=4.472136,Height=2,ex_dir=3,Wilson Loop:7.246089970549818e-03<br />
+Node:0,Smear_count:0,x=2,y=4,Length=4.472136,Height=3,ex_dir=3,Wilson Loop:1.538623074674748e-03<br />
+Node:0,Smear_count:0,x=2,y=4,Length=4.472136,Height=4,ex_dir=3,Wilson Loop:3.492485230801360e-04<br />
+Node:0,Smear_count:0,x=3,y=3,Length=4.242641,Height=1,ex_dir=3,Wilson Loop:5.887790283320022e-02<br />
+Node:0,Smear_count:0,x=3,y=3,Length=4.242641,Height=2,ex_dir=3,Wilson Loop:8.428507072353165e-03<br />
+Node:0,Smear_count:0,x=3,y=3,Length=4.242641,Height=3,ex_dir=3,Wilson Loop:1.813602914510841e-03<br />
+Node:0,Smear_count:0,x=3,y=3,Length=4.242641,Height=4,ex_dir=3,Wilson Loop:3.298736519044532e-04<br />
+Node:0,Smear_count:0,x=3,y=4,Length=5.000000,Height=1,ex_dir=3,Wilson Loop:3.519563294174048e-02<br />
+Node:0,Smear_count:0,x=3,y=4,Length=5.000000,Height=2,ex_dir=3,Wilson Loop:3.789589670139042e-03<br />
+Node:0,Smear_count:0,x=3,y=4,Length=5.000000,Height=3,ex_dir=3,Wilson Loop:7.511445102987512e-04<br />
+Node:0,Smear_count:0,x=3,y=4,Length=5.000000,Height=4,ex_dir=3,Wilson Loop:2.194875653005857e-04<br />
+Node:0,Smear_count:0,x=4,y=4,Length=5.656854,Height=1,ex_dir=3,Wilson Loop:2.449969910992774e-02<br />
+Node:0,Smear_count:0,x=4,y=4,Length=5.656854,Height=2,ex_dir=3,Wilson Loop:2.259314389388597e-03<br />
+Node:0,Smear_count:0,x=4,y=4,Length=5.656854,Height=3,ex_dir=3,Wilson Loop:3.949639229747959e-04<br />
+Node:0,Smear_count:0,x=4,y=4,Length=5.656854,Height=4,ex_dir=3,Wilson Loop:4.821896331187788e-05<br />
+ 2d bresenham results end here <br />
+Node:0,Smear_count:0,Length=1.000000,Height=1,ex_dir=3,Wilson Loop:5.415310497463935e-01<br />
+Node:0,Smear_count:0,Length=1.000000,Height=2,ex_dir=3,Wilson Loop:2.989843084939524e-01<br />
+Node:0,Smear_count:0,Length=1.000000,Height=3,ex_dir=3,Wilson Loop:1.683720211814673e-01<br />
+Node:0,Smear_count:0,Length=1.000000,Height=4,ex_dir=3,Wilson Loop:9.513755112092502e-02<br />
+Node:0,Smear_count:0,Length=2.000000,Height=1,ex_dir=3,Wilson Loop:2.988292105397755e-01<br />
+Node:0,Smear_count:0,Length=2.000000,Height=2,ex_dir=3,Wilson Loop:1.036251536262440e-01<br />
+Node:0,Smear_count:0,Length=2.000000,Height=3,ex_dir=3,Wilson Loop:3.934422556804130e-02<br />
+Node:0,Smear_count:0,Length=2.000000,Height=4,ex_dir=3,Wilson Loop:1.534567048782771e-02<br />
+Node:0,Smear_count:0,Length=3.000000,Height=1,ex_dir=3,Wilson Loop:1.683097768375253e-01<br />
+Node:0,Smear_count:0,Length=3.000000,Height=2,ex_dir=3,Wilson Loop:3.952744879497768e-02<br />
+Node:0,Smear_count:0,Length=3.000000,Height=3,ex_dir=3,Wilson Loop:1.129745493249806e-02<br />
+Node:0,Smear_count:0,Length=3.000000,Height=4,ex_dir=3,Wilson Loop:3.495959058142938e-03<br />
+Node:0,Smear_count:0,Length=4.000000,Height=1,ex_dir=3,Wilson Loop:9.509986024471435e-02<br />
+Node:0,Smear_count:0,Length=4.000000,Height=2,ex_dir=3,Wilson Loop:1.532669443767490e-02<br />
+Node:0,Smear_count:0,Length=4.000000,Height=3,ex_dir=3,Wilson Loop:3.419764739416865e-03<br />
+Node:0,Smear_count:0,Length=4.000000,Height=4,ex_dir=3,Wilson Loop:7.796308238129630e-04<br />
+Node:0,Smear_count:0,Length=1.414214,Height=1,ex_dir=3,Wilson Loop:3.478524630355460e-01<br />
+Node:0,Smear_count:0,Length=1.414214,Height=2,ex_dir=3,Wilson Loop:1.452627579620166e-01<br />
+Node:0,Smear_count:0,Length=1.414214,Height=3,ex_dir=3,Wilson Loop:6.560547922366472e-02<br />
+Node:0,Smear_count:0,Length=1.414214,Height=4,ex_dir=3,Wilson Loop:3.006449758343626e-02<br />
+Node:0,Smear_count:0,Length=2.236068,Height=1,ex_dir=3,Wilson Loop:2.207222968648315e-01<br />
+Node:0,Smear_count:0,Length=2.236068,Height=2,ex_dir=3,Wilson Loop:6.792344696820346e-02<br />
+Node:0,Smear_count:0,Length=2.236068,Height=3,ex_dir=3,Wilson Loop:2.394174427484879e-02<br />
+Node:0,Smear_count:0,Length=2.236068,Height=4,ex_dir=3,Wilson Loop:8.737576050305213e-03<br />
+Node:0,Smear_count:0,Length=3.162278,Height=1,ex_dir=3,Wilson Loop:1.269590315734095e-01<br />
+Node:0,Smear_count:0,Length=3.162278,Height=2,ex_dir=3,Wilson Loop:2.751369434715729e-02<br />
+Node:0,Smear_count:0,Length=3.162278,Height=3,ex_dir=3,Wilson Loop:7.528610445847035e-03<br />
+Node:0,Smear_count:0,Length=3.162278,Height=4,ex_dir=3,Wilson Loop:2.275467219509008e-03<br />
+Node:0,Smear_count:0,Length=4.123106,Height=1,ex_dir=3,Wilson Loop:7.302148572342397e-02<br />
+Node:0,Smear_count:0,Length=4.123106,Height=2,ex_dir=3,Wilson Loop:1.119225959266536e-02<br />
+Node:0,Smear_count:0,Length=4.123106,Height=3,ex_dir=3,Wilson Loop:2.408397375147882e-03<br />
+Node:0,Smear_count:0,Length=4.123106,Height=4,ex_dir=3,Wilson Loop:4.720684023649508e-04<br />
+Node:0,Smear_count:0,Length=2.828427,Height=1,ex_dir=3,Wilson Loop:1.419193153520172e-01<br />
+Node:0,Smear_count:0,Length=2.828427,Height=2,ex_dir=3,Wilson Loop:3.370156398488239e-02<br />
+Node:0,Smear_count:0,Length=2.828427,Height=3,ex_dir=3,Wilson Loop:1.020813369097898e-02<br />
+Node:0,Smear_count:0,Length=2.828427,Height=4,ex_dir=3,Wilson Loop:3.110595408555808e-03<br />
+Node:0,Smear_count:0,Length=3.605551,Height=1,ex_dir=3,Wilson Loop:8.468717998213722e-02<br />
+Node:0,Smear_count:0,Length=3.605551,Height=2,ex_dir=3,Wilson Loop:1.528402673868381e-02<br />
+Node:0,Smear_count:0,Length=3.605551,Height=3,ex_dir=3,Wilson Loop:3.691426209264199e-03<br />
+Node:0,Smear_count:0,Length=3.605551,Height=4,ex_dir=3,Wilson Loop:8.774445386751247e-04<br />
+Node:0,Smear_count:0,Length=4.472136,Height=1,ex_dir=3,Wilson Loop:5.393557100198080e-02<br />
+Node:0,Smear_count:0,Length=4.472136,Height=2,ex_dir=3,Wilson Loop:7.246089970549817e-03<br />
+Node:0,Smear_count:0,Length=4.472136,Height=3,ex_dir=3,Wilson Loop:1.538623074674748e-03<br />
+Node:0,Smear_count:0,Length=4.472136,Height=4,ex_dir=3,Wilson Loop:3.492485230801360e-04<br />
+Node:0,Smear_count:0,Length=4.242641,Height=1,ex_dir=3,Wilson Loop:5.886688277777838e-02<br />
+Node:0,Smear_count:0,Length=4.242641,Height=2,ex_dir=3,Wilson Loop:8.357088014724416e-03<br />
+Node:0,Smear_count:0,Length=4.242641,Height=3,ex_dir=3,Wilson Loop:1.823944477897913e-03<br />
+Node:0,Smear_count:0,Length=4.242641,Height=4,ex_dir=3,Wilson Loop:2.885129031228969e-04<br />
+Node:0,Smear_count:0,Length=5.000000,Height=1,ex_dir=3,Wilson Loop:3.519563294174048e-02<br />
+Node:0,Smear_count:0,Length=5.000000,Height=2,ex_dir=3,Wilson Loop:3.789589670139042e-03<br />
+Node:0,Smear_count:0,Length=5.000000,Height=3,ex_dir=3,Wilson Loop:7.511445102987512e-04<br />
+Node:0,Smear_count:0,Length=5.000000,Height=4,ex_dir=3,Wilson Loop:2.194875653005858e-04<br />
+Node:0,Smear_count:0,Length=5.656854,Height=1,ex_dir=3,Wilson Loop:2.460185528998115e-02<br />
+Node:0,Smear_count:0,Length=5.656854,Height=2,ex_dir=3,Wilson Loop:2.280548448069865e-03<br />
+Node:0,Smear_count:0,Length=5.656854,Height=3,ex_dir=3,Wilson Loop:2.454432334364802e-04<br />
+Node:0,Smear_count:0,Length=5.656854,Height=4,ex_dir=3,Wilson Loop:-1.417845523514047e-04<br />
+Node:0,Smear_count:0,Length=1.732051,Height=1,ex_dir=3,Wilson Loop:2.323584539802566e-01<br />
+Node:0,Smear_count:0,Length=1.732051,Height=2,ex_dir=3,Wilson Loop:8.006702113996193e-02<br />
+Node:0,Smear_count:0,Length=1.732051,Height=3,ex_dir=3,Wilson Loop:3.181405632272664e-02<br />
+Node:0,Smear_count:0,Length=1.732051,Height=4,ex_dir=3,Wilson Loop:1.326117286861066e-02<br />
+Node:0,Smear_count:0,Length=2.449490,Height=1,ex_dir=3,Wilson Loop:1.538339706597785e-01<br />
+Node:0,Smear_count:0,Length=2.449490,Height=2,ex_dir=3,Wilson Loop:4.184440696907019e-02<br />
+Node:0,Smear_count:0,Length=2.449490,Height=3,ex_dir=3,Wilson Loop:1.391336201023652e-02<br />
+Node:0,Smear_count:0,Length=2.449490,Height=4,ex_dir=3,Wilson Loop:4.910984299235446e-03<br />
+Node:0,Smear_count:0,Length=3.316625,Height=1,ex_dir=3,Wilson Loop:8.942348744270423e-02<br />
+Node:0,Smear_count:0,Length=3.316625,Height=2,ex_dir=3,Wilson Loop:1.759755462346386e-02<br />
+Node:0,Smear_count:0,Length=3.316625,Height=3,ex_dir=3,Wilson Loop:4.846163955699981e-03<br />
+Node:0,Smear_count:0,Length=3.316625,Height=4,ex_dir=3,Wilson Loop:1.327808488575193e-03<br />
+Node:0,Smear_count:0,Length=4.242641,Height=1,ex_dir=3,Wilson Loop:5.191201830929035e-02<br />
+Node:0,Smear_count:0,Length=4.242641,Height=2,ex_dir=3,Wilson Loop:7.402214117360789e-03<br />
+Node:0,Smear_count:0,Length=4.242641,Height=3,ex_dir=3,Wilson Loop:1.717061134984803e-03<br />
+Node:0,Smear_count:0,Length=4.242641,Height=4,ex_dir=3,Wilson Loop:2.938044918773427e-04<br />
+Node:0,Smear_count:0,Length=3.000000,Height=1,ex_dir=3,Wilson Loop:9.930589878310135e-02<br />
+Node:0,Smear_count:0,Length=3.000000,Height=2,ex_dir=3,Wilson Loop:2.108975197267152e-02<br />
+Node:0,Smear_count:0,Length=3.000000,Height=3,ex_dir=3,Wilson Loop:6.009538254694365e-03<br />
+Node:0,Smear_count:0,Length=3.000000,Height=4,ex_dir=3,Wilson Loop:1.905836071580671e-03<br />
+Node:0,Smear_count:0,Length=3.741657,Height=1,ex_dir=3,Wilson Loop:6.438079130095083e-02<br />
+Node:0,Smear_count:0,Length=3.741657,Height=2,ex_dir=3,Wilson Loop:1.082060495845360e-02<br />
+Node:0,Smear_count:0,Length=3.741657,Height=3,ex_dir=3,Wilson Loop:2.672380238997035e-03<br />
+Node:0,Smear_count:0,Length=3.741657,Height=4,ex_dir=3,Wilson Loop:5.786291189731613e-04<br />
+Node:0,Smear_count:0,Length=4.582576,Height=1,ex_dir=3,Wilson Loop:4.125809978356904e-02<br />
+Node:0,Smear_count:0,Length=4.582576,Height=2,ex_dir=3,Wilson Loop:5.282381720655011e-03<br />
+Node:0,Smear_count:0,Length=4.582576,Height=3,ex_dir=3,Wilson Loop:1.164736883703600e-03<br />
+Node:0,Smear_count:0,Length=4.582576,Height=4,ex_dir=3,Wilson Loop:3.784746336948503e-04<br />
+Node:0,Smear_count:0,Length=4.358899,Height=1,ex_dir=3,Wilson Loop:4.255546582420177e-02<br />
+Node:0,Smear_count:0,Length=4.358899,Height=2,ex_dir=3,Wilson Loop:5.876139287874373e-03<br />
+Node:0,Smear_count:0,Length=4.358899,Height=3,ex_dir=3,Wilson Loop:1.034933492545645e-03<br />
+Node:0,Smear_count:0,Length=4.358899,Height=4,ex_dir=3,Wilson Loop:3.295591040450346e-04<br />
+Node:0,Smear_count:0,Length=5.099020,Height=1,ex_dir=3,Wilson Loop:2.555698326039416e-02<br />
+Node:0,Smear_count:0,Length=5.099020,Height=2,ex_dir=3,Wilson Loop:2.529803294191246e-03<br />
+Node:0,Smear_count:0,Length=5.099020,Height=3,ex_dir=3,Wilson Loop:4.281796021541677e-04<br />
+Node:0,Smear_count:0,Length=5.099020,Height=4,ex_dir=3,Wilson Loop:-1.562759680586854e-04<br />
+Node:0,Smear_count:0,Length=5.744563,Height=1,ex_dir=3,Wilson Loop:1.770978858540991e-02<br />
+Node:0,Smear_count:0,Length=5.744563,Height=2,ex_dir=3,Wilson Loop:1.468039965800867e-03<br />
+Node:0,Smear_count:0,Length=5.744563,Height=3,ex_dir=3,Wilson Loop:1.476326890372761e-04<br />
+Node:0,Smear_count:0,Length=5.744563,Height=4,ex_dir=3,Wilson Loop:9.665946952860879e-05<br />
+Node:0,Smear_count:0,Length=3.464102,Height=1,ex_dir=3,Wilson Loop:6.779105621515683e-02<br />
+Node:0,Smear_count:0,Length=3.464102,Height=2,ex_dir=3,Wilson Loop:1.273369956560854e-02<br />
+Node:0,Smear_count:0,Length=3.464102,Height=3,ex_dir=3,Wilson Loop:3.272078383851460e-03<br />
+Node:0,Smear_count:0,Length=3.464102,Height=4,ex_dir=3,Wilson Loop:5.980228416986084e-04<br />
+Node:0,Smear_count:0,Length=4.123106,Height=1,ex_dir=3,Wilson Loop:4.058556454825119e-02<br />
+Node:0,Smear_count:0,Length=4.123106,Height=2,ex_dir=3,Wilson Loop:5.661245822911845e-03<br />
+Node:0,Smear_count:0,Length=4.123106,Height=3,ex_dir=3,Wilson Loop:1.234203128978552e-03<br />
+Node:0,Smear_count:0,Length=4.123106,Height=4,ex_dir=3,Wilson Loop:3.388239801386483e-04<br />
+Node:0,Smear_count:0,Length=4.898979,Height=1,ex_dir=3,Wilson Loop:2.696368273734452e-02<br />
+Node:0,Smear_count:0,Length=4.898979,Height=2,ex_dir=3,Wilson Loop:3.234845276883074e-03<br />
+Node:0,Smear_count:0,Length=4.898979,Height=3,ex_dir=3,Wilson Loop:6.524998016982003e-04<br />
+Node:0,Smear_count:0,Length=4.898979,Height=4,ex_dir=3,Wilson Loop:1.579026491889378e-04<br />
+Node:0,Smear_count:0,Length=4.690416,Height=1,ex_dir=3,Wilson Loop:2.884943229379707e-02<br />
+Node:0,Smear_count:0,Length=4.690416,Height=2,ex_dir=3,Wilson Loop:3.178057484687282e-03<br />
+Node:0,Smear_count:0,Length=4.690416,Height=3,ex_dir=3,Wilson Loop:5.031258828212734e-04<br />
+Node:0,Smear_count:0,Length=4.690416,Height=4,ex_dir=3,Wilson Loop:1.317989831511726e-04<br />
+Node:0,Smear_count:0,Length=5.385165,Height=1,ex_dir=3,Wilson Loop:1.903957899548749e-02<br />
+Node:0,Smear_count:0,Length=5.385165,Height=2,ex_dir=3,Wilson Loop:1.679988583422119e-03<br />
+Node:0,Smear_count:0,Length=5.385165,Height=3,ex_dir=3,Wilson Loop:3.437611241726383e-04<br />
+Node:0,Smear_count:0,Length=5.385165,Height=4,ex_dir=3,Wilson Loop:5.166813119514661e-05<br />
+Node:0,Smear_count:0,Length=6.000000,Height=1,ex_dir=3,Wilson Loop:1.233987120927505e-02<br />
+Node:0,Smear_count:0,Length=6.000000,Height=2,ex_dir=3,Wilson Loop:8.043048675692978e-04<br />
+Node:0,Smear_count:0,Length=6.000000,Height=3,ex_dir=3,Wilson Loop:2.323050121998040e-04<br />
+Node:0,Smear_count:0,Length=6.000000,Height=4,ex_dir=3,Wilson Loop:2.840353268904505e-04<br />
+Node:0,Smear_count:0,Length=5.196152,Height=1,ex_dir=3,Wilson Loop:1.992332552753873e-02<br />
+Node:0,Smear_count:0,Length=5.196152,Height=2,ex_dir=3,Wilson Loop:2.079031655675860e-03<br />
+Node:0,Smear_count:0,Length=5.196152,Height=3,ex_dir=3,Wilson Loop:1.755339643704426e-04<br />
+Node:0,Smear_count:0,Length=5.196152,Height=4,ex_dir=3,Wilson Loop:-2.936127237526064e-04<br />
+Node:0,Smear_count:0,Length=5.830952,Height=1,ex_dir=3,Wilson Loop:1.221350507302980e-02<br />
+Node:0,Smear_count:0,Length=5.830952,Height=2,ex_dir=3,Wilson Loop:8.044403437736970e-04<br />
+Node:0,Smear_count:0,Length=5.830952,Height=3,ex_dir=3,Wilson Loop:-1.406735385787728e-04<br />
+Node:0,Smear_count:0,Length=5.830952,Height=4,ex_dir=3,Wilson Loop:3.238427416860720e-04<br />
+Node:0,Smear_count:0,Length=6.403124,Height=1,ex_dir=3,Wilson Loop:8.495988381667964e-03<br />
+Node:0,Smear_count:0,Length=6.403124,Height=2,ex_dir=3,Wilson Loop:6.750722530508155e-04<br />
+Node:0,Smear_count:0,Length=6.403124,Height=3,ex_dir=3,Wilson Loop:5.838194704659824e-05<br />
+Node:0,Smear_count:0,Length=6.403124,Height=4,ex_dir=3,Wilson Loop:3.014625642239870e-05<br />
+Node:0,Smear_count:0,Length=6.928203,Height=1,ex_dir=3,Wilson Loop:6.055938588323193e-03<br />
+Node:0,Smear_count:0,Length=6.928203,Height=2,ex_dir=3,Wilson Loop:3.240536490416562e-04<br />
+Node:0,Smear_count:0,Length=6.928203,Height=3,ex_dir=3,Wilson Loop:-3.265545649646180e-04<br />
+Node:0,Smear_count:0,Length=6.928203,Height=4,ex_dir=3,Wilson Loop:-1.129371884983702e-04<br />
+</p>
+<ul>
+<li>
+[2025-06-09 08:33:46] INFO: Finalizing MPI
+
+</ul>
+<div id="Results from second case: (swapping x and y coordinates)"><h2 id="Results from second case: (swapping x and y coordinates)" class="header"><a href="#Results from second case: (swapping x and y coordinates)">Results from second case: (swapping x and y coordinates)</a></h2></div>
+
+
+<p>
+Node:0,Smear_count:0,x=0,y=1,Length=1.000000,Height=1,ex_dir=3,Wilson Loop:5.415310497463935e-01<br />
+Node:0,Smear_count:0,x=0,y=1,Length=1.000000,Height=2,ex_dir=3,Wilson Loop:2.989843084939524e-01<br />
+Node:0,Smear_count:0,x=0,y=1,Length=1.000000,Height=3,ex_dir=3,Wilson Loop:1.683720211814673e-01<br />
+Node:0,Smear_count:0,x=0,y=1,Length=1.000000,Height=4,ex_dir=3,Wilson Loop:9.513755112092502e-02<br />
+Node:0,Smear_count:0,x=0,y=2,Length=2.000000,Height=1,ex_dir=3,Wilson Loop:2.988292105397755e-01<br />
+Node:0,Smear_count:0,x=0,y=2,Length=2.000000,Height=2,ex_dir=3,Wilson Loop:1.036251536262440e-01<br />
+Node:0,Smear_count:0,x=0,y=2,Length=2.000000,Height=3,ex_dir=3,Wilson Loop:3.934422556804130e-02<br />
+Node:0,Smear_count:0,x=0,y=2,Length=2.000000,Height=4,ex_dir=3,Wilson Loop:1.534567048782771e-02<br />
+Node:0,Smear_count:0,x=0,y=3,Length=3.000000,Height=1,ex_dir=3,Wilson Loop:1.683097768375253e-01<br />
+Node:0,Smear_count:0,x=0,y=3,Length=3.000000,Height=2,ex_dir=3,Wilson Loop:3.952744879497768e-02<br />
+Node:0,Smear_count:0,x=0,y=3,Length=3.000000,Height=3,ex_dir=3,Wilson Loop:1.129745493249806e-02<br />
+Node:0,Smear_count:0,x=0,y=3,Length=3.000000,Height=4,ex_dir=3,Wilson Loop:3.495959058142938e-03<br />
+Node:0,Smear_count:0,x=0,y=4,Length=4.000000,Height=1,ex_dir=3,Wilson Loop:9.509986024471435e-02<br />
+Node:0,Smear_count:0,x=0,y=4,Length=4.000000,Height=2,ex_dir=3,Wilson Loop:1.532669443767490e-02<br />
+Node:0,Smear_count:0,x=0,y=4,Length=4.000000,Height=3,ex_dir=3,Wilson Loop:3.419764739416865e-03<br />
+Node:0,Smear_count:0,x=0,y=4,Length=4.000000,Height=4,ex_dir=3,Wilson Loop:7.796308238129630e-04<br />
+Node:0,Smear_count:0,x=1,y=1,Length=1.414214,Height=1,ex_dir=3,Wilson Loop:3.478309988745993e-01<br />
+Node:0,Smear_count:0,x=1,y=1,Length=1.414214,Height=2,ex_dir=3,Wilson Loop:1.454104143113652e-01<br />
+Node:0,Smear_count:0,x=1,y=1,Length=1.414214,Height=3,ex_dir=3,Wilson Loop:6.563398152506475e-02<br />
+Node:0,Smear_count:0,x=1,y=1,Length=1.414214,Height=4,ex_dir=3,Wilson Loop:3.018583980944410e-02<br />
+Node:0,Smear_count:0,x=1,y=2,Length=2.236068,Height=1,ex_dir=3,Wilson Loop:2.207222968648315e-01<br />
+Node:0,Smear_count:0,x=1,y=2,Length=2.236068,Height=2,ex_dir=3,Wilson Loop:6.792344696820346e-02<br />
+Node:0,Smear_count:0,x=1,y=2,Length=2.236068,Height=3,ex_dir=3,Wilson Loop:2.394174427484879e-02<br />
+Node:0,Smear_count:0,x=1,y=2,Length=2.236068,Height=4,ex_dir=3,Wilson Loop:8.737576050305213e-03<br />
+Node:0,Smear_count:0,x=1,y=3,Length=3.162278,Height=1,ex_dir=3,Wilson Loop:1.269590315734095e-01<br />
+Node:0,Smear_count:0,x=1,y=3,Length=3.162278,Height=2,ex_dir=3,Wilson Loop:2.751369434715729e-02<br />
+Node:0,Smear_count:0,x=1,y=3,Length=3.162278,Height=3,ex_dir=3,Wilson Loop:7.528610445847035e-03<br />
+Node:0,Smear_count:0,x=1,y=3,Length=3.162278,Height=4,ex_dir=3,Wilson Loop:2.275467219509008e-03<br />
+Node:0,Smear_count:0,x=1,y=4,Length=4.123106,Height=1,ex_dir=3,Wilson Loop:7.302148572342397e-02<br />
+Node:0,Smear_count:0,x=1,y=4,Length=4.123106,Height=2,ex_dir=3,Wilson Loop:1.119225959266536e-02<br />
+Node:0,Smear_count:0,x=1,y=4,Length=4.123106,Height=3,ex_dir=3,Wilson Loop:2.408397375147882e-03<br />
+Node:0,Smear_count:0,x=1,y=4,Length=4.123106,Height=4,ex_dir=3,Wilson Loop:4.720684023649508e-04<br />
+Node:0,Smear_count:0,x=2,y=2,Length=2.828427,Height=1,ex_dir=3,Wilson Loop:1.421269129883017e-01<br />
+Node:0,Smear_count:0,x=2,y=2,Length=2.828427,Height=2,ex_dir=3,Wilson Loop:3.376059768522414e-02<br />
+Node:0,Smear_count:0,x=2,y=2,Length=2.828427,Height=3,ex_dir=3,Wilson Loop:1.019921049972849e-02<br />
+Node:0,Smear_count:0,x=2,y=2,Length=2.828427,Height=4,ex_dir=3,Wilson Loop:3.130921934195334e-03<br />
+Node:0,Smear_count:0,x=2,y=3,Length=3.605551,Height=1,ex_dir=3,Wilson Loop:8.468717998213722e-02<br />
+Node:0,Smear_count:0,x=2,y=3,Length=3.605551,Height=2,ex_dir=3,Wilson Loop:1.528402673868381e-02<br />
+Node:0,Smear_count:0,x=2,y=3,Length=3.605551,Height=3,ex_dir=3,Wilson Loop:3.691426209264199e-03<br />
+Node:0,Smear_count:0,x=2,y=3,Length=3.605551,Height=4,ex_dir=3,Wilson Loop:8.774445386751247e-04<br />
+Node:0,Smear_count:0,x=2,y=4,Length=4.472136,Height=1,ex_dir=3,Wilson Loop:5.393557100198080e-02<br />
+Node:0,Smear_count:0,x=2,y=4,Length=4.472136,Height=2,ex_dir=3,Wilson Loop:7.246089970549818e-03<br />
+Node:0,Smear_count:0,x=2,y=4,Length=4.472136,Height=3,ex_dir=3,Wilson Loop:1.538623074674748e-03<br />
+Node:0,Smear_count:0,x=2,y=4,Length=4.472136,Height=4,ex_dir=3,Wilson Loop:3.492485230801360e-04<br />
+Node:0,Smear_count:0,x=3,y=3,Length=4.242641,Height=1,ex_dir=3,Wilson Loop:5.883669905303618e-02<br />
+Node:0,Smear_count:0,x=3,y=3,Length=4.242641,Height=2,ex_dir=3,Wilson Loop:8.396826765200625e-03<br />
+Node:0,Smear_count:0,x=3,y=3,Length=4.242641,Height=3,ex_dir=3,Wilson Loop:1.869233003590909e-03<br />
+Node:0,Smear_count:0,x=3,y=3,Length=4.242641,Height=4,ex_dir=3,Wilson Loop:2.515534000178141e-04<br />
+Node:0,Smear_count:0,x=3,y=4,Length=5.000000,Height=1,ex_dir=3,Wilson Loop:3.519563294174048e-02<br />
+Node:0,Smear_count:0,x=3,y=4,Length=5.000000,Height=2,ex_dir=3,Wilson Loop:3.789589670139042e-03<br />
+Node:0,Smear_count:0,x=3,y=4,Length=5.000000,Height=3,ex_dir=3,Wilson Loop:7.511445102987512e-04<br />
+Node:0,Smear_count:0,x=3,y=4,Length=5.000000,Height=4,ex_dir=3,Wilson Loop:2.194875653005857e-04<br />
+Node:0,Smear_count:0,x=4,y=4,Length=5.656854,Height=1,ex_dir=3,Wilson Loop:2.442737871076606e-02<br />
+Node:0,Smear_count:0,x=4,y=4,Length=5.656854,Height=2,ex_dir=3,Wilson Loop:2.296892672336099e-03<br />
+Node:0,Smear_count:0,x=4,y=4,Length=5.656854,Height=3,ex_dir=3,Wilson Loop:3.981138036947671e-04<br />
+Node:0,Smear_count:0,x=4,y=4,Length=5.656854,Height=4,ex_dir=3,Wilson Loop:-8.436587852575061e-05<br />
+ 2d bresenham results end here <br />
+Node:0,Smear_count:0,Length=1.000000,Height=1,ex_dir=3,Wilson Loop:5.415310497463935e-01<br />
+Node:0,Smear_count:0,Length=1.000000,Height=2,ex_dir=3,Wilson Loop:2.989843084939524e-01<br />
+Node:0,Smear_count:0,Length=1.000000,Height=3,ex_dir=3,Wilson Loop:1.683720211814673e-01<br />
+Node:0,Smear_count:0,Length=1.000000,Height=4,ex_dir=3,Wilson Loop:9.513755112092502e-02<br />
+Node:0,Smear_count:0,Length=2.000000,Height=1,ex_dir=3,Wilson Loop:2.988292105397755e-01<br />
+Node:0,Smear_count:0,Length=2.000000,Height=2,ex_dir=3,Wilson Loop:1.036251536262440e-01<br />
+Node:0,Smear_count:0,Length=2.000000,Height=3,ex_dir=3,Wilson Loop:3.934422556804130e-02<br />
+Node:0,Smear_count:0,Length=2.000000,Height=4,ex_dir=3,Wilson Loop:1.534567048782771e-02<br />
+Node:0,Smear_count:0,Length=3.000000,Height=1,ex_dir=3,Wilson Loop:1.683097768375253e-01<br />
+Node:0,Smear_count:0,Length=3.000000,Height=2,ex_dir=3,Wilson Loop:3.952744879497768e-02<br />
+Node:0,Smear_count:0,Length=3.000000,Height=3,ex_dir=3,Wilson Loop:1.129745493249806e-02<br />
+Node:0,Smear_count:0,Length=3.000000,Height=4,ex_dir=3,Wilson Loop:3.495959058142938e-03<br />
+Node:0,Smear_count:0,Length=4.000000,Height=1,ex_dir=3,Wilson Loop:9.509986024471435e-02<br />
+Node:0,Smear_count:0,Length=4.000000,Height=2,ex_dir=3,Wilson Loop:1.532669443767490e-02<br />
+Node:0,Smear_count:0,Length=4.000000,Height=3,ex_dir=3,Wilson Loop:3.419764739416865e-03<br />
+Node:0,Smear_count:0,Length=4.000000,Height=4,ex_dir=3,Wilson Loop:7.796308238129630e-04<br />
+Node:0,Smear_count:0,Length=1.414214,Height=1,ex_dir=3,Wilson Loop:3.478524630355460e-01<br />
+Node:0,Smear_count:0,Length=1.414214,Height=2,ex_dir=3,Wilson Loop:1.452627579620166e-01<br />
+Node:0,Smear_count:0,Length=1.414214,Height=3,ex_dir=3,Wilson Loop:6.560547922366472e-02<br />
+Node:0,Smear_count:0,Length=1.414214,Height=4,ex_dir=3,Wilson Loop:3.006449758343626e-02<br />
+Node:0,Smear_count:0,Length=2.236068,Height=1,ex_dir=3,Wilson Loop:2.207222968648315e-01<br />
+Node:0,Smear_count:0,Length=2.236068,Height=2,ex_dir=3,Wilson Loop:6.792344696820346e-02<br />
+Node:0,Smear_count:0,Length=2.236068,Height=3,ex_dir=3,Wilson Loop:2.394174427484879e-02<br />
+Node:0,Smear_count:0,Length=2.236068,Height=4,ex_dir=3,Wilson Loop:8.737576050305213e-03<br />
+Node:0,Smear_count:0,Length=3.162278,Height=1,ex_dir=3,Wilson Loop:1.269590315734095e-01<br />
+Node:0,Smear_count:0,Length=3.162278,Height=2,ex_dir=3,Wilson Loop:2.751369434715729e-02<br />
+Node:0,Smear_count:0,Length=3.162278,Height=3,ex_dir=3,Wilson Loop:7.528610445847035e-03<br />
+Node:0,Smear_count:0,Length=3.162278,Height=4,ex_dir=3,Wilson Loop:2.275467219509008e-03<br />
+Node:0,Smear_count:0,Length=4.123106,Height=1,ex_dir=3,Wilson Loop:7.302148572342397e-02<br />
+Node:0,Smear_count:0,Length=4.123106,Height=2,ex_dir=3,Wilson Loop:1.119225959266536e-02<br />
+Node:0,Smear_count:0,Length=4.123106,Height=3,ex_dir=3,Wilson Loop:2.408397375147882e-03<br />
+Node:0,Smear_count:0,Length=4.123106,Height=4,ex_dir=3,Wilson Loop:4.720684023649508e-04<br />
+Node:0,Smear_count:0,Length=2.828427,Height=1,ex_dir=3,Wilson Loop:1.419193153520172e-01<br />
+Node:0,Smear_count:0,Length=2.828427,Height=2,ex_dir=3,Wilson Loop:3.370156398488239e-02<br />
+Node:0,Smear_count:0,Length=2.828427,Height=3,ex_dir=3,Wilson Loop:1.020813369097898e-02<br />
+Node:0,Smear_count:0,Length=2.828427,Height=4,ex_dir=3,Wilson Loop:3.110595408555808e-03<br />
+Node:0,Smear_count:0,Length=3.605551,Height=1,ex_dir=3,Wilson Loop:8.468717998213722e-02<br />
+Node:0,Smear_count:0,Length=3.605551,Height=2,ex_dir=3,Wilson Loop:1.528402673868381e-02<br />
+Node:0,Smear_count:0,Length=3.605551,Height=3,ex_dir=3,Wilson Loop:3.691426209264199e-03<br />
+Node:0,Smear_count:0,Length=3.605551,Height=4,ex_dir=3,Wilson Loop:8.774445386751247e-04<br />
+Node:0,Smear_count:0,Length=4.472136,Height=1,ex_dir=3,Wilson Loop:5.393557100198080e-02<br />
+Node:0,Smear_count:0,Length=4.472136,Height=2,ex_dir=3,Wilson Loop:7.246089970549817e-03<br />
+Node:0,Smear_count:0,Length=4.472136,Height=3,ex_dir=3,Wilson Loop:1.538623074674748e-03<br />
+Node:0,Smear_count:0,Length=4.472136,Height=4,ex_dir=3,Wilson Loop:3.492485230801360e-04<br />
+Node:0,Smear_count:0,Length=4.242641,Height=1,ex_dir=3,Wilson Loop:5.886688277777838e-02<br />
+Node:0,Smear_count:0,Length=4.242641,Height=2,ex_dir=3,Wilson Loop:8.357088014724416e-03<br />
+Node:0,Smear_count:0,Length=4.242641,Height=3,ex_dir=3,Wilson Loop:1.823944477897913e-03<br />
+Node:0,Smear_count:0,Length=4.242641,Height=4,ex_dir=3,Wilson Loop:2.885129031228969e-04<br />
+Node:0,Smear_count:0,Length=5.000000,Height=1,ex_dir=3,Wilson Loop:3.519563294174048e-02<br />
+Node:0,Smear_count:0,Length=5.000000,Height=2,ex_dir=3,Wilson Loop:3.789589670139042e-03<br />
+Node:0,Smear_count:0,Length=5.000000,Height=3,ex_dir=3,Wilson Loop:7.511445102987512e-04<br />
+Node:0,Smear_count:0,Length=5.000000,Height=4,ex_dir=3,Wilson Loop:2.194875653005858e-04<br />
+Node:0,Smear_count:0,Length=5.656854,Height=1,ex_dir=3,Wilson Loop:2.460185528998115e-02<br />
+Node:0,Smear_count:0,Length=5.656854,Height=2,ex_dir=3,Wilson Loop:2.280548448069865e-03<br />
+Node:0,Smear_count:0,Length=5.656854,Height=3,ex_dir=3,Wilson Loop:2.454432334364802e-04<br />
+Node:0,Smear_count:0,Length=5.656854,Height=4,ex_dir=3,Wilson Loop:-1.417845523514047e-04<br />
+Node:0,Smear_count:0,Length=1.732051,Height=1,ex_dir=3,Wilson Loop:2.323584539802566e-01<br />
+Node:0,Smear_count:0,Length=1.732051,Height=2,ex_dir=3,Wilson Loop:8.006702113996193e-02<br />
+Node:0,Smear_count:0,Length=1.732051,Height=3,ex_dir=3,Wilson Loop:3.181405632272664e-02<br />
+Node:0,Smear_count:0,Length=1.732051,Height=4,ex_dir=3,Wilson Loop:1.326117286861066e-02<br />
+Node:0,Smear_count:0,Length=2.449490,Height=1,ex_dir=3,Wilson Loop:1.538339706597785e-01<br />
+Node:0,Smear_count:0,Length=2.449490,Height=2,ex_dir=3,Wilson Loop:4.184440696907019e-02<br />
+Node:0,Smear_count:0,Length=2.449490,Height=3,ex_dir=3,Wilson Loop:1.391336201023652e-02<br />
+Node:0,Smear_count:0,Length=2.449490,Height=4,ex_dir=3,Wilson Loop:4.910984299235446e-03<br />
+Node:0,Smear_count:0,Length=3.316625,Height=1,ex_dir=3,Wilson Loop:8.942348744270423e-02<br />
+Node:0,Smear_count:0,Length=3.316625,Height=2,ex_dir=3,Wilson Loop:1.759755462346386e-02<br />
+Node:0,Smear_count:0,Length=3.316625,Height=3,ex_dir=3,Wilson Loop:4.846163955699981e-03<br />
+Node:0,Smear_count:0,Length=3.316625,Height=4,ex_dir=3,Wilson Loop:1.327808488575193e-03<br />
+Node:0,Smear_count:0,Length=4.242641,Height=1,ex_dir=3,Wilson Loop:5.191201830929035e-02<br />
+Node:0,Smear_count:0,Length=4.242641,Height=2,ex_dir=3,Wilson Loop:7.402214117360789e-03<br />
+Node:0,Smear_count:0,Length=4.242641,Height=3,ex_dir=3,Wilson Loop:1.717061134984803e-03<br />
+Node:0,Smear_count:0,Length=4.242641,Height=4,ex_dir=3,Wilson Loop:2.938044918773427e-04<br />
+Node:0,Smear_count:0,Length=3.000000,Height=1,ex_dir=3,Wilson Loop:9.930589878310135e-02<br />
+Node:0,Smear_count:0,Length=3.000000,Height=2,ex_dir=3,Wilson Loop:2.108975197267152e-02<br />
+Node:0,Smear_count:0,Length=3.000000,Height=3,ex_dir=3,Wilson Loop:6.009538254694365e-03<br />
+Node:0,Smear_count:0,Length=3.000000,Height=4,ex_dir=3,Wilson Loop:1.905836071580671e-03<br />
+Node:0,Smear_count:0,Length=3.741657,Height=1,ex_dir=3,Wilson Loop:6.438079130095083e-02<br />
+Node:0,Smear_count:0,Length=3.741657,Height=2,ex_dir=3,Wilson Loop:1.082060495845360e-02<br />
+Node:0,Smear_count:0,Length=3.741657,Height=3,ex_dir=3,Wilson Loop:2.672380238997035e-03<br />
+Node:0,Smear_count:0,Length=3.741657,Height=4,ex_dir=3,Wilson Loop:5.786291189731613e-04<br />
+Node:0,Smear_count:0,Length=4.582576,Height=1,ex_dir=3,Wilson Loop:4.125809978356904e-02<br />
+Node:0,Smear_count:0,Length=4.582576,Height=2,ex_dir=3,Wilson Loop:5.282381720655011e-03<br />
+Node:0,Smear_count:0,Length=4.582576,Height=3,ex_dir=3,Wilson Loop:1.164736883703600e-03<br />
+Node:0,Smear_count:0,Length=4.582576,Height=4,ex_dir=3,Wilson Loop:3.784746336948503e-04<br />
+Node:0,Smear_count:0,Length=4.358899,Height=1,ex_dir=3,Wilson Loop:4.255546582420177e-02<br />
+Node:0,Smear_count:0,Length=4.358899,Height=2,ex_dir=3,Wilson Loop:5.876139287874373e-03<br />
+Node:0,Smear_count:0,Length=4.358899,Height=3,ex_dir=3,Wilson Loop:1.034933492545645e-03<br />
+Node:0,Smear_count:0,Length=4.358899,Height=4,ex_dir=3,Wilson Loop:3.295591040450346e-04<br />
+Node:0,Smear_count:0,Length=5.099020,Height=1,ex_dir=3,Wilson Loop:2.555698326039416e-02<br />
+Node:0,Smear_count:0,Length=5.099020,Height=2,ex_dir=3,Wilson Loop:2.529803294191246e-03<br />
+Node:0,Smear_count:0,Length=5.099020,Height=3,ex_dir=3,Wilson Loop:4.281796021541677e-04<br />
+Node:0,Smear_count:0,Length=5.099020,Height=4,ex_dir=3,Wilson Loop:-1.562759680586854e-04<br />
+Node:0,Smear_count:0,Length=5.744563,Height=1,ex_dir=3,Wilson Loop:1.770978858540991e-02<br />
+Node:0,Smear_count:0,Length=5.744563,Height=2,ex_dir=3,Wilson Loop:1.468039965800867e-03<br />
+Node:0,Smear_count:0,Length=5.744563,Height=3,ex_dir=3,Wilson Loop:1.476326890372761e-04<br />
+Node:0,Smear_count:0,Length=5.744563,Height=4,ex_dir=3,Wilson Loop:9.665946952860879e-05<br />
+Node:0,Smear_count:0,Length=3.464102,Height=1,ex_dir=3,Wilson Loop:6.779105621515683e-02<br />
+Node:0,Smear_count:0,Length=3.464102,Height=2,ex_dir=3,Wilson Loop:1.273369956560854e-02<br />
+Node:0,Smear_count:0,Length=3.464102,Height=3,ex_dir=3,Wilson Loop:3.272078383851460e-03<br />
+Node:0,Smear_count:0,Length=3.464102,Height=4,ex_dir=3,Wilson Loop:5.980228416986084e-04<br />
+Node:0,Smear_count:0,Length=4.123106,Height=1,ex_dir=3,Wilson Loop:4.058556454825119e-02<br />
+Node:0,Smear_count:0,Length=4.123106,Height=2,ex_dir=3,Wilson Loop:5.661245822911845e-03<br />
+Node:0,Smear_count:0,Length=4.123106,Height=3,ex_dir=3,Wilson Loop:1.234203128978552e-03<br />
+Node:0,Smear_count:0,Length=4.123106,Height=4,ex_dir=3,Wilson Loop:3.388239801386483e-04<br />
+Node:0,Smear_count:0,Length=4.898979,Height=1,ex_dir=3,Wilson Loop:2.696368273734452e-02<br />
+Node:0,Smear_count:0,Length=4.898979,Height=2,ex_dir=3,Wilson Loop:3.234845276883074e-03<br />
+Node:0,Smear_count:0,Length=4.898979,Height=3,ex_dir=3,Wilson Loop:6.524998016982003e-04<br />
+Node:0,Smear_count:0,Length=4.898979,Height=4,ex_dir=3,Wilson Loop:1.579026491889378e-04<br />
+Node:0,Smear_count:0,Length=4.690416,Height=1,ex_dir=3,Wilson Loop:2.884943229379707e-02<br />
+Node:0,Smear_count:0,Length=4.690416,Height=2,ex_dir=3,Wilson Loop:3.178057484687282e-03<br />
+Node:0,Smear_count:0,Length=4.690416,Height=3,ex_dir=3,Wilson Loop:5.031258828212734e-04<br />
+Node:0,Smear_count:0,Length=4.690416,Height=4,ex_dir=3,Wilson Loop:1.317989831511726e-04<br />
+Node:0,Smear_count:0,Length=5.385165,Height=1,ex_dir=3,Wilson Loop:1.903957899548749e-02<br />
+Node:0,Smear_count:0,Length=5.385165,Height=2,ex_dir=3,Wilson Loop:1.679988583422119e-03<br />
+Node:0,Smear_count:0,Length=5.385165,Height=3,ex_dir=3,Wilson Loop:3.437611241726383e-04<br />
+Node:0,Smear_count:0,Length=5.385165,Height=4,ex_dir=3,Wilson Loop:5.166813119514661e-05<br />
+Node:0,Smear_count:0,Length=6.000000,Height=1,ex_dir=3,Wilson Loop:1.233987120927505e-02<br />
+Node:0,Smear_count:0,Length=6.000000,Height=2,ex_dir=3,Wilson Loop:8.043048675692978e-04<br />
+Node:0,Smear_count:0,Length=6.000000,Height=3,ex_dir=3,Wilson Loop:2.323050121998040e-04<br />
+Node:0,Smear_count:0,Length=6.000000,Height=4,ex_dir=3,Wilson Loop:2.840353268904505e-04<br />
+Node:0,Smear_count:0,Length=5.196152,Height=1,ex_dir=3,Wilson Loop:1.992332552753873e-02<br />
+Node:0,Smear_count:0,Length=5.196152,Height=2,ex_dir=3,Wilson Loop:2.079031655675860e-03<br />
+Node:0,Smear_count:0,Length=5.196152,Height=3,ex_dir=3,Wilson Loop:1.755339643704426e-04<br />
+Node:0,Smear_count:0,Length=5.196152,Height=4,ex_dir=3,Wilson Loop:-2.936127237526064e-04<br />
+Node:0,Smear_count:0,Length=5.830952,Height=1,ex_dir=3,Wilson Loop:1.221350507302980e-02<br />
+Node:0,Smear_count:0,Length=5.830952,Height=2,ex_dir=3,Wilson Loop:8.044403437736970e-04<br />
+Node:0,Smear_count:0,Length=5.830952,Height=3,ex_dir=3,Wilson Loop:-1.406735385787728e-04<br />
+Node:0,Smear_count:0,Length=5.830952,Height=4,ex_dir=3,Wilson Loop:3.238427416860720e-04<br />
+Node:0,Smear_count:0,Length=6.403124,Height=1,ex_dir=3,Wilson Loop:8.495988381667964e-03<br />
+Node:0,Smear_count:0,Length=6.403124,Height=2,ex_dir=3,Wilson Loop:6.750722530508155e-04<br />
+Node:0,Smear_count:0,Length=6.403124,Height=3,ex_dir=3,Wilson Loop:5.838194704659824e-05<br />
+Node:0,Smear_count:0,Length=6.403124,Height=4,ex_dir=3,Wilson Loop:3.014625642239870e-05<br />
+Node:0,Smear_count:0,Length=6.928203,Height=1,ex_dir=3,Wilson Loop:6.055938588323193e-03<br />
+Node:0,Smear_count:0,Length=6.928203,Height=2,ex_dir=3,Wilson Loop:3.240536490416562e-04<br />
+Node:0,Smear_count:0,Length=6.928203,Height=3,ex_dir=3,Wilson Loop:-3.265545649646180e-04<br />
+Node:0,Smear_count:0,Length=6.928203,Height=4,ex_dir=3,Wilson Loop:-1.129371884983702e-04<br />
+</p>
+<ul>
+<li>
+[2025-06-09 08:35:38] INFO: Finalizing MPI
+
+</ul>
+
+    </div>
+
+    <!-- Breadcrumb trail (referrer-aware, labels from each page's <h1>) -->
+    <script>
+    (function () {
+        var nav = document.getElementById('breadcrumb');
+        if (!nav || !window.sessionStorage) return;
+
+        var STORAGE_KEY = 'vimwiki_breadcrumb_trail';
+        var homeHref = nav.getAttribute('data-home') || '/';
+        var homeLabel = nav.getAttribute('data-home-label') || 'Home';
+
+        function toPath(href) {
+            try { return new URL(href, window.location.href).pathname; }
+            catch (e) { return href; }
+        }
+        function pageLabel() {
+            var h1 = document.querySelector('#content h1');
+            var t = h1 ? h1.textContent.replace(/\s+/g, ' ').trim() : '';
+            if (t) return t;
+            t = (document.title || '').replace(/_+/g, ' ').trim();
+            if (t && t.toLowerCase() !== 'index') return t;
+            var segs = window.location.pathname.split('/').filter(Boolean).map(function (s) {
+                try { return decodeURIComponent(s); } catch (e) { return s; }
+            });
+            var last = segs.pop() || '';
+            if (/^index\.html?$/i.test(last)) last = segs.pop() || 'index';
+            return last.replace(/\.html?$/i, '').replace(/_+/g, ' ').trim() || 'Page';
+        }
+
+        var home = { path: toPath(homeHref), title: homeLabel, href: homeHref };
+        var current = {
+            path: window.location.pathname,
+            title: pageLabel(),
+            href: window.location.pathname + window.location.search
+        };
+
+        var ref = null;
+        if (document.referrer) {
+            try {
+                var r = new URL(document.referrer);
+                if (r.origin === window.location.origin) ref = r.pathname;
+            } catch (e) { ref = null; }
+        }
+
+        var stored = [];
+        try { stored = JSON.parse(sessionStorage.getItem(STORAGE_KEY)) || []; }
+        catch (e) { stored = []; }
+        if (!Array.isArray(stored)) stored = [];
+
+        function homeCrumb() { return { path: home.path, title: home.title, href: home.href }; }
+        function idxOf(arr, p) { for (var i = 0; i < arr.length; i++) if (arr[i].path === p) return i; return -1; }
+
+        var trail;
+        if (current.path === home.path) {
+            trail = [homeCrumb()];
+        } else {
+            var anchored = stored.length && stored[0].path === home.path;
+            var base;
+            if (ref) {
+                var ri = idxOf(stored, ref);
+                base = (ri >= 0 && anchored) ? stored.slice(0, ri + 1) : [homeCrumb()];
+            } else {
+                var ci = idxOf(stored, current.path);
+                base = (ci >= 0 && anchored) ? stored.slice(0, ci) : [homeCrumb()];
+            }
+            var existing = idxOf(base, current.path);
+            if (existing >= 0) {
+                trail = base.slice(0, existing + 1);
+                trail[existing] = { path: current.path, title: current.title, href: current.href };
+            } else {
+                trail = base.concat([{ path: current.path, title: current.title, href: current.href }]);
+            }
+            if (!trail.length || trail[0].path !== home.path) trail = [homeCrumb()].concat(trail);
+        }
+
+        try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(trail)); } catch (e) {}
+
+        if (trail.length <= 1) return;
+        trail.forEach(function (crumb, i) {
+            if (i === trail.length - 1) {
+                var span = document.createElement('span');
+                span.className = 'breadcrumb-current';
+                span.setAttribute('aria-current', 'page');
+                span.textContent = crumb.title;
+                nav.appendChild(span);
+            } else {
+                var a = document.createElement('a');
+                a.href = crumb.href;
+                a.textContent = crumb.title;
+                nav.appendChild(a);
+                var sep = document.createElement('span');
+                sep.className = 'breadcrumb-sep';
+                sep.textContent = '\u203A';
+                nav.appendChild(sep);
+            }
+        });
+    })();
+    </script>
+
+    <!-- Image safety net: upgrade any http:// image to https:// so it isn't
+         blocked as mixed content on your https site. (Does not fix 404/path
+         problems — see the notes if an image still doesn't appear.) -->
+    <script>
+    (function () {
+        document.querySelectorAll('#content img[src^="http://"]').forEach(function (img) {
+            img.src = img.src.replace(/^http:\/\//i, 'https://');
+        });
+    })();
+    </script>
+
+    <!-- 1. Turn vimwiki {{{class="tikz"}}} blocks into TikZJax script tags (must run BEFORE tikzjax.js) -->
+    <script>
+        document.querySelectorAll('pre.tikz').forEach(function (pre) {
+            var s = document.createElement('script');
+            s.type = 'text/tikz';
+            s.textContent = pre.textContent; // browser decodes HTML entities here
+            pre.replaceWith(s);
+        });
+    </script>
+    <!-- 2. Syntax-highlight code blocks, but skip diagram blocks -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre:not(.mermaid):not(.tikz)').forEach(function (block) {
+            hljs.highlightBlock(block);
+        });
+    </script>
+    <!-- 3. TikZJax: renders <script type="text/tikz"> into SVG -->
+    <script src="https://tikzjax.com/v1/tikzjax.js"></script>
+    <!-- 4. Mermaid: renders <pre class="mermaid"> into SVG -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+</body>
+</html>

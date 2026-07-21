@@ -29,18 +29,10 @@
             padding: 10px;
             background-color: rgba(255, 255, 255, 0.5);
         }
-        h1 {
-            font-size: 28px;
-        }
-        h2 {
-            font-size: 24px;
-        }
-        h3 {
-            font-size: 20px;
-        }
-        h4, h5, h6 {
-            font-size: 18px;
-        }
+        h1 { font-size: 28px; }
+        h2 { font-size: 24px; }
+        h3 { font-size: 20px; }
+        h4, h5, h6 { font-size: 18px; }
         img {
             display: block;
             max-width: 100%;
@@ -67,41 +59,23 @@
             color: #555;
             word-break: break-word;
         }
-        .breadcrumb:empty {
-            display: none;   /* hides the bar on the home page / single-crumb pages */
-        }
-        .breadcrumb a {
-            color: #6b4f2a;
-            text-decoration: none;
-        }
-        .breadcrumb a:hover {
-            text-decoration: underline;
-        }
-        .breadcrumb .breadcrumb-sep {
-            color: #999;
-            margin: 0 4px;
-        }
-        .breadcrumb .breadcrumb-current {
-            color: #333;
-            font-weight: bold;
-        }
+        .breadcrumb:empty { display: none; }
+        .breadcrumb a { color: #6b4f2a; text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        .breadcrumb .breadcrumb-sep { color: #999; margin: 0 4px; }
+        .breadcrumb .breadcrumb-current { color: #333; font-weight: bold; }
         /* Mobile Styles */
         @media only screen and (max-width: 600px) {
-            body {
-                padding: 1cm;
-            }
-            #content {
-                padding: 10px;
-                max-width: 100%;
-            }
+            body { padding: 1cm; }
+            #content { padding: 10px; max-width: 100%; }
         }
     </style>
 </head>
 <body>
     <div id="content">
-        <!-- Breadcrumb trail: home > link1 > link2 > current. Filled in by JS below. -->
+        <!-- Breadcrumb: Home > section > ... > current. Change data-home if your home moves. -->
         <nav id="breadcrumb" class="breadcrumb" aria-label="Breadcrumb"
-             data-home="index.html" data-home-label="Home"></nav>
+             data-home="/" data-home-label="Home"></nav>
         
 <div id="Wiki 3: Lecture Notes"><h1 id="Wiki 3: Lecture Notes" class="header"><a href="#Wiki 3: Lecture Notes">Wiki 3: Lecture Notes</a></h1></div>
 
@@ -148,65 +122,83 @@
 
     </div>
 
-    <!-- 0. Breadcrumb trail: builds "home > link1 > link2 > current" from the pages
-            visited in this browser tab, each clickable to jump straight there. -->
+    <!-- Breadcrumb trail (referrer-aware, labels from each page's <h1>) -->
     <script>
     (function () {
         var nav = document.getElementById('breadcrumb');
         if (!nav || !window.sessionStorage) return;
 
         var STORAGE_KEY = 'vimwiki_breadcrumb_trail';
-        var homeHref = nav.getAttribute('data-home') || 'index.html';
+        var homeHref = nav.getAttribute('data-home') || '/';
         var homeLabel = nav.getAttribute('data-home-label') || 'Home';
 
-        // Resolve a (possibly relative) href to an absolute path for comparison.
         function toPath(href) {
             try { return new URL(href, window.location.href).pathname; }
             catch (e) { return href; }
+        }
+        function pageLabel() {
+            var h1 = document.querySelector('#content h1');
+            var t = h1 ? h1.textContent.replace(/\s+/g, ' ').trim() : '';
+            if (t) return t;
+            t = (document.title || '').replace(/_+/g, ' ').trim();
+            if (t && t.toLowerCase() !== 'index') return t;
+            var segs = window.location.pathname.split('/').filter(Boolean).map(function (s) {
+                try { return decodeURIComponent(s); } catch (e) { return s; }
+            });
+            var last = segs.pop() || '';
+            if (/^index\.html?$/i.test(last)) last = segs.pop() || 'index';
+            return last.replace(/\.html?$/i, '').replace(/_+/g, ' ').trim() || 'Page';
         }
 
         var home = { path: toPath(homeHref), title: homeLabel, href: homeHref };
         var current = {
             path: window.location.pathname,
-            title: (document.title || 'Current').trim(),
+            title: pageLabel(),
             href: window.location.pathname + window.location.search
         };
 
-        // Load the trail saved for this tab.
-        var trail = [];
-        try { trail = JSON.parse(sessionStorage.getItem(STORAGE_KEY)) || []; }
-        catch (e) { trail = []; }
-
-        // Always anchor the trail at Home.
-        if (!trail.length || trail[0].path !== home.path) {
-            trail = [{ path: home.path, title: home.title, href: home.href }];
+        var ref = null;
+        if (document.referrer) {
+            try {
+                var r = new URL(document.referrer);
+                if (r.origin === window.location.origin) ref = r.pathname;
+            } catch (e) { ref = null; }
         }
 
+        var stored = [];
+        try { stored = JSON.parse(sessionStorage.getItem(STORAGE_KEY)) || []; }
+        catch (e) { stored = []; }
+        if (!Array.isArray(stored)) stored = [];
+
+        function homeCrumb() { return { path: home.path, title: home.title, href: home.href }; }
+        function idxOf(arr, p) { for (var i = 0; i < arr.length; i++) if (arr[i].path === p) return i; return -1; }
+
+        var trail;
         if (current.path === home.path) {
-            // On the home page, the trail is just Home.
-            trail = [{ path: home.path, title: home.title, href: home.href }];
+            trail = [homeCrumb()];
         } else {
-            // If we've been here before in this trail, cut back to it
-            // (so jumping "up" doesn't leave stale crumbs). Otherwise append.
-            var idx = -1;
-            for (var i = 0; i < trail.length; i++) {
-                if (trail[i].path === current.path) { idx = i; break; }
-            }
-            if (idx >= 0) {
-                trail = trail.slice(0, idx + 1);
-                trail[idx].title = current.title; // refresh in case the title changed
+            var anchored = stored.length && stored[0].path === home.path;
+            var base;
+            if (ref) {
+                var ri = idxOf(stored, ref);
+                base = (ri >= 0 && anchored) ? stored.slice(0, ri + 1) : [homeCrumb()];
             } else {
-                trail.push(current);
+                var ci = idxOf(stored, current.path);
+                base = (ci >= 0 && anchored) ? stored.slice(0, ci) : [homeCrumb()];
             }
+            var existing = idxOf(base, current.path);
+            if (existing >= 0) {
+                trail = base.slice(0, existing + 1);
+                trail[existing] = { path: current.path, title: current.title, href: current.href };
+            } else {
+                trail = base.concat([{ path: current.path, title: current.title, href: current.href }]);
+            }
+            if (!trail.length || trail[0].path !== home.path) trail = [homeCrumb()].concat(trail);
         }
 
-        try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(trail)); }
-        catch (e) { /* private mode / quota: still render below */ }
+        try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(trail)); } catch (e) {}
 
-        // Render. Leave the bar empty (hidden via .breadcrumb:empty) if we're
-        // only showing Home with nothing to navigate back to.
         if (trail.length <= 1) return;
-
         trail.forEach(function (crumb, i) {
             if (i === trail.length - 1) {
                 var span = document.createElement('span');
@@ -221,9 +213,20 @@
                 nav.appendChild(a);
                 var sep = document.createElement('span');
                 sep.className = 'breadcrumb-sep';
-                sep.textContent = '\u203A'; // ›
+                sep.textContent = '\u203A';
                 nav.appendChild(sep);
             }
+        });
+    })();
+    </script>
+
+    <!-- Image safety net: upgrade any http:// image to https:// so it isn't
+         blocked as mixed content on your https site. (Does not fix 404/path
+         problems — see the notes if an image still doesn't appear.) -->
+    <script>
+    (function () {
+        document.querySelectorAll('#content img[src^="http://"]').forEach(function (img) {
+            img.src = img.src.replace(/^http:\/\//i, 'https://');
         });
     })();
     </script>

@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="../style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
+    <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
+    <title>2025-09-24</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm;
+        }
+        #content {
+            color: #333;
+            font-size: 20px;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+        h1 { font-size: 28px; }
+        h2 { font-size: 24px; }
+        h3 { font-size: 20px; }
+        h4, h5, h6 { font-size: 18px; }
+        img {
+            display: block;
+            max-width: 100%;
+            max-height: 500px;
+            margin: 30px auto;
+        }
+        /* Diagram blocks (Mermaid + TikZ): centered, no code-box background */
+        pre.mermaid, pre.tikz {
+            background: none;
+            border: none;
+            text-align: center;
+        }
+        #content svg {
+            max-width: 100%;
+            height: auto;
+        }
+        /* Breadcrumb trail */
+        .breadcrumb {
+            font-size: 15px;
+            line-height: 1.4;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+            color: #555;
+            word-break: break-word;
+        }
+        .breadcrumb:empty { display: none; }
+        .breadcrumb a { color: #6b4f2a; text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        .breadcrumb .breadcrumb-sep { color: #999; margin: 0 4px; }
+        .breadcrumb .breadcrumb-current { color: #333; font-weight: bold; }
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body { padding: 1cm; }
+            #content { padding: 10px; max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        <!-- Breadcrumb: Home > section > ... > current. Change data-home if your home moves. -->
+        <nav id="breadcrumb" class="breadcrumb" aria-label="Breadcrumb"
+             data-home="/" data-home-label="Home"></nav>
+        
+<div id="WIlson Loop code for smear_all"><h1 id="WIlson Loop code for smear_all" class="header"><a href="#WIlson Loop code for smear_all">WIlson Loop code for smear_all</a></h1></div>
+<pre cpp>
+
+
+/*****************************************************************************
+* File:             main_plaquette.cpp
+*
+* Author:           Vishal Rao  
+* Created:          02/08/24 
+* Description:      This program contains the function to calculate the wilson loop with hyp smearing and generation of more points using bresenham algorithm described in :https://arxiv.org/pdf/hep-lat/0005018.pdf
+*****************************************************************************
+ * main_plaquette.cpp
+ * This is just an example how a very very basic program works. Look at src/testing/main_GeneralOperatorTest.cpp to see
+ * how to write more advanced GPU code.
+ *
+ */
+#include "../simulateqcd.h"
+/* #include "../modules/hyp/hypParameters.h" was already included in ../modules/hypSmearing.h */
+/* #include "../modules/hyp/smearParameters.h" */
+#include "../modules/hyp/hypSmearing.h"
+#include "../modules/gaugeFixing/gfix.h"
+#include "../modules/observables/polyakovLoop.h"
+#include "../modules/observables/polyakovLoop.cpp"
+#include "../modules/hyp/hypSmearing.cpp"
+#include &lt;algorithm&gt;
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+#include &lt;vector&gt;
+#include &lt;cmath&gt;
+#define PREC double
+int main(int argc, char *argv[]) {
+
+    stdLogger.setVerbosity(DEBUG);
+
+    /// Initialize parameter class. This class can also read parameter from textfiles!
+    LatticeParameters param;
+    /// Initialize the Lattice dimension
+    /* const int LatDim[] = {40, 40, 40, 10}; */
+    const int LatDim[] = {32, 32, 32, 8};
+    /* const int LatDim[] = {32, 32, 32, 32}; */
+    const int NodeDim[] = {1, 1, 1, 1};
+    /// Just pass these dimensions to the parameter class
+    param.latDim.set(LatDim);
+    param.nodeDim.set(NodeDim);
+    /// Initialize a timer
+    StopWatch&lt;true&gt; timer;
+    /// Initialize the CommunicationBase. This class handles the communitation between different Cores/GPU's.
+    CommunicationBase commBase(&amp;argc, &amp;argv );
+    commBase.init(param.nodeDim());
+    const size_t HaloDepth = 1; //since it is not multi-gpu code
+    /// highlight the output differently.
+    rootLogger.info("Initialize Lattice");
+    /// Initialize the Indexer on GPU and CPU.
+    initIndexer(HaloDepth,param,commBase);
+    rootLogger.info("Initialize Gaugefield");
+    Gaugefield&lt;PREC, true,HaloDepth,R18&gt; gauge(commBase);
+    /// Initialize gaugefield with unity-matrices.
+    gauge.one();
+    typedef double floatT;
+    int node;
+    sscanf(argv[1], "%d", &amp;node);
+    int eqm_point=1;
+    int jump=1;
+    int n_gauge_conf_per_node=28;
+    int x_max=21,y_max=21,z_max=21;
+    /* bool avg_dir_results=true; //if true, then the average of the results in all directions is taken */
+    /* bool spatial_wloop=true; //if true, then the spatial wilson loop is calculated */
+    int no_smearing_steps=4;
+    int start_conf,end_conf;
+    int break_conf_no=1; //if we stop the calculation and want to resume; it will begun with reading the configuration number written here.; 1 is default if starting from 1st configuration again
+    start_conf=eqm_point+(node*n_gauge_conf_per_node*jump)+break_conf_no-1;
+    end_conf= start_conf +1 -break_conf_no + n_gauge_conf_per_node*jump;
+    for (int i=start_conf; i&lt;end_conf;i+=jump)
+        {
+            rootLogger.info("Read configuration");
+            try {
+            gauge.readconf_milc("/root/project1/build_SIMULATeQCD/work/petreczk/l328f21b8400m0004875m009750/conf."+std::to_string(i));
+            /* gauge.readconf_nersc("/root/project1/build_SIMULATeQCD/applications/try_4_output_dir/after_eqm/links/conf."+std::to_string(i)); */
+            } 
+            catch(const std::runtime_error&amp; e) {
+                continue;
+
+            }
+            gauge.updateAll();
+            Gaugefield&lt;PREC, true,HaloDepth,R18&gt; gauge_out(commBase);
+            gauge_out.one(); //initialize the gauge field variable
+            Gaugefield&lt;PREC, true,HaloDepth,R18&gt; gauge_original(commBase);
+            gauge_original.one(); //initialize the gauge field variable
+            gauge_original=gauge;
+            GaugeAction&lt;floatT, true, HaloDepth, R18&gt; gaugeaction(gauge);
+            printf("plaquette=%.16f\n",gaugeaction.plaquette());
+            printf("plaquette_ss=%.16f\n",gaugeaction.plaquetteSS());
+            printf("plaquette_st=%.16f\n",gaugeaction.plaquetteST());
+            printf("rectangle=%.16f\n",gaugeaction.rectangle());
+            printf("gauge action density (symanzik_staggered) =%.16f\n",gaugeaction.symanzik_staggered()/(LatDim[0]*LatDim[1]*LatDim[2]*LatDim[3]));
+            printf("gauge action density =%.16f\n",gaugeaction.symanzik()/(LatDim[0]*LatDim[1]*LatDim[2]*LatDim[3]));
+            PolyakovLoop&lt;floatT, true, HaloDepth,R18&gt; ploop(gauge);
+            rootLogger.info("Smear Steps = 0,Polyakov Loop = ",ploop.getPolyakovLoop());
+            /* for(int ex_dir=0;ex_dir&lt;3;ex_dir++) */
+           /* { */
+            /* rootLogger.info("Polyakov Loop (in ex_dir) in before smearing (Real) =",gaugeaction.Planer_Wloop(0,LatDim[ex_dir],ex_dir)); */ 
+            for(int j=1;j&lt;=no_smearing_steps;j++)
+            {
+                HypSmearing&lt;floatT, true, HaloDepth, R18&gt; hypsmearing(gauge); //smearing of gauge
+                hypsmearing.SmearAll(gauge_out,-1); //and storing at gauge_out
+                /* HypSmearing_spatial&lt;floatT, true, HaloDepth,R18&gt; HypSmearing(gauge); */
+                /* HypSmearing.SmearAll_spatial(gauge_out,ex_dir); */
+                gauge=gauge_out;
+            /* for(int ex_dir=0;ex_dir&lt;3;ex_dir++) */
+           /* { */
+            /* GaugeAction&lt;floatT, true, HaloDepth, R18&gt; gaugeaction1(gauge_out); */
+            /* rootLogger.info("Polyakov Loop (in ex_dir) in after smearing (Real) =",gaugeaction.Planer_Wloop(0,LatDim[ex_dir]),ex_dir); */
+            rootLogger.info("Smear Steps = ",j,",Polyakov Loop = ",ploop.getPolyakovLoop());
+            }
+            /* TwoGaugeAction&lt;floatT, true, HaloDepth,R18&gt; Twogaugeaction(gauge_out,gauge_original); */
+            /* int sum=Twogaugeaction.HypSmearExDir_Checker(ex_dir); */
+            /* printf("Number of links smeared in ex_dir(mu=%d) = %d \n",ex_dir,sum); */
+            /* printf("finding 2d bresenham results \n"); */
+            for(int ex_dir=0;ex_dir&lt;3;ex_dir++)
+           {
+            for (int a=0;a&lt;x_max;a++)
+            {
+                for(int b=a;b&lt;y_max;b++)
+                {
+                    for(int c=1;c&lt;z_max;c++)
+                    { if (a==0 and b==0) {continue;} //skip the case where a=0, b=0 and c=1
+                        PREC Wloop=gaugeaction.wLoopBresenham(a,b,c,ex_dir);
+                        printf("Node:%d,Smear_count:%d,Length=%f,Height=%d,ex_dir=%d,Wilson Loop:%1.15e\n",node,no_smearing_steps,pow((a*a+b*b),0.5),c,ex_dir,Wloop);
+                    }
+                }
+            }
+            /* gauge=gauge_original; //reset the gauge field to original after calculating the bresenham results */
+           }
+            
+            /* printf(" 2d bresenham results end here \n"); */
+            /* int &amp;t_dir=ex_dir; */
+             // calculating planer wilson loops in all directions and averaging the results
+                /* for (int length=1; length&lt;x_max; length++) */
+                /* { */      
+                /*     for (int height=1; height&lt;t_max; height++) */
+                /*     { */
+
+                /*         PREC Wloop = gaugeaction.Planer_Wloop(length,height,t_dir); */
+                /*         printf("Node:%d,Smear_count:%d,Length=%d,Height=%d,ex_dir=%d,Wilson Loop:%1.15e\n",node,no_smearing_steps,length, height,t_dir,Wloop); */
+
+                /*     } */
+                /* } */
+
+            /* int t_plus=spatial_wloop ? t_max:1; */
+            /* for (int x=0;x&lt;x_max;x+=1) */
+            /* { */ 
+            /*    int y_min = avg_dir_results ? x : 0; */
+            /*     for ( int y=y_min; y&lt;y_max;y+=1) */
+            /*     { */
+            /*       int z_min = avg_dir_results ? y : 0; */
+            /*       z_min = spatial_wloop ? 1 : z_min; //if spatial_wloop is true, then z_min should be 1, otherwise it should be 0 */
+            /*         for (int z=z_min; z&lt;z_max;z+=1) */
+            /*         { */
+            /*             for (int t=1; t&lt; t_max; t+=t_plus) */
+            /*             { */ 
+                            
+
+            /*                 if (spatial_wloop and x==0 and y==0){continue;} */
+            /*                 else if (!spatial_wloop and x==0 and y==0 and z==0) {continue;} */
+
+            /*                 if (spatial_wloop and avg_dir_results) */
+            /*                 { */
+            /*                     //CalcWilsonBresenham */
+            /*                     //the spatial wilson loop is calculated in 3 spaces only, so if x==y==0 then its just a polyakovLoop in fictitious time direction. */
+            /*                     PREC Wloop=gaugeaction.WilsonLoop(x,y,z,t,t_dir,avg_dir_results,spatial_wloop); */
+            /*                     printf("Node:%d,Smear_count:%d,Length=%f,Height=%d,ex_dir=%d,Wilson Loop:%1.15e\n",node,no_smearing_steps,pow((x*x+y*y),0.5),z,t_dir,Wloop); */
+            /*                  } */
+            /*                 else if (spatial_wloop and !avg_dir_results) */
+            /*                 { */
+            /*                     PREC Wloop=gaugeaction.WilsonLoop(x,y,z,t,t_dir,avg_dir_results,spatial_wloop); */
+            /*                     /1* printf("Node:%d,Smear_count:%d,x=%d,y=%d,z=%d,t=%d,ex_dir=%d,Wilson Loop:%1.15e\n",node,no_smearing_steps,x,y,0,z,t_dir,Wloop); *1/ */
+            /*                     printf("WILS_LOOP_%d  %d  %d  %d\t%d\t%1.15e\n",no_smearing_steps,x,y,z,t,Wloop); */
+            /*                 } */
+            /*                 else if (!spatial_wloop and avg_dir_results) */
+            /*                 {   t_dir=3; //not a spatial wilson loop, so t_dir is always 3 */
+            /*                     PREC Wloop=gaugeaction.WilsonLoop(x,y,z,t,t_dir,avg_dir_results,spatial_wloop); */
+            /*                     printf("Node:%d,Smear_count:%d,Length=%f,Height=%d,ex_dir=%d,Wilson Loop:%1.15e\n",node,no_smearing_steps,pow((x*x+y*y+z*z),0.5),t,t_dir,Wloop); */
+            /*                 } */
+            /*                 else if(!spatial_wloop and !avg_dir_results) */
+            /*                 {   t_dir=3; // not a spatial wilson loop, so t_dir is always 3 */
+            /*                     PREC Wloop=gaugeaction.WilsonLoop(x,y,z,t,t_dir,avg_dir_results,spatial_wloop); */
+            /*                     /1* printf("Node:%d,Smear_count:%d,x=%d,y=%d,z=%d,t=%d,ex_dir=%d,Wilson Loop:%1.15e\n",node,no_smearing_steps,x,y,z,t,t_dir,Wloop); *1/ */
+            /*                     printf("WILS_LOOP_%d  %d  %d  %d\t%d\t%1.15e\n",no_smearing_steps,x,y,z,t,Wloop); */
+            /*                 } */
+
+            /*             } */
+            /*         } */
+            /*     } */
+            /* } */
+            /* gauge=gauge_original; */
+           /* } */
+
+        }
+    return 0;
+}
+            
+
+
+</pre>
+
+<div id="Wilson Loop code for 2 level HYP"><h1 id="Wilson Loop code for 2 level HYP" class="header"><a href="#Wilson Loop code for 2 level HYP">Wilson Loop code for 2 level HYP</a></h1></div>
+<pre cpp>
+
+
+
+
+</pre>
+
+    </div>
+
+    <!-- Breadcrumb trail (referrer-aware, labels from each page's <h1>) -->
+    <script>
+    (function () {
+        var nav = document.getElementById('breadcrumb');
+        if (!nav || !window.sessionStorage) return;
+
+        var STORAGE_KEY = 'vimwiki_breadcrumb_trail';
+        var homeHref = nav.getAttribute('data-home') || '/';
+        var homeLabel = nav.getAttribute('data-home-label') || 'Home';
+
+        function toPath(href) {
+            try { return new URL(href, window.location.href).pathname; }
+            catch (e) { return href; }
+        }
+        function pageLabel() {
+            var h1 = document.querySelector('#content h1');
+            var t = h1 ? h1.textContent.replace(/\s+/g, ' ').trim() : '';
+            if (t) return t;
+            t = (document.title || '').replace(/_+/g, ' ').trim();
+            if (t && t.toLowerCase() !== 'index') return t;
+            var segs = window.location.pathname.split('/').filter(Boolean).map(function (s) {
+                try { return decodeURIComponent(s); } catch (e) { return s; }
+            });
+            var last = segs.pop() || '';
+            if (/^index\.html?$/i.test(last)) last = segs.pop() || 'index';
+            return last.replace(/\.html?$/i, '').replace(/_+/g, ' ').trim() || 'Page';
+        }
+
+        var home = { path: toPath(homeHref), title: homeLabel, href: homeHref };
+        var current = {
+            path: window.location.pathname,
+            title: pageLabel(),
+            href: window.location.pathname + window.location.search
+        };
+
+        var ref = null;
+        if (document.referrer) {
+            try {
+                var r = new URL(document.referrer);
+                if (r.origin === window.location.origin) ref = r.pathname;
+            } catch (e) { ref = null; }
+        }
+
+        var stored = [];
+        try { stored = JSON.parse(sessionStorage.getItem(STORAGE_KEY)) || []; }
+        catch (e) { stored = []; }
+        if (!Array.isArray(stored)) stored = [];
+
+        function homeCrumb() { return { path: home.path, title: home.title, href: home.href }; }
+        function idxOf(arr, p) { for (var i = 0; i < arr.length; i++) if (arr[i].path === p) return i; return -1; }
+
+        var trail;
+        if (current.path === home.path) {
+            trail = [homeCrumb()];
+        } else {
+            var anchored = stored.length && stored[0].path === home.path;
+            var base;
+            if (ref) {
+                var ri = idxOf(stored, ref);
+                base = (ri >= 0 && anchored) ? stored.slice(0, ri + 1) : [homeCrumb()];
+            } else {
+                var ci = idxOf(stored, current.path);
+                base = (ci >= 0 && anchored) ? stored.slice(0, ci) : [homeCrumb()];
+            }
+            var existing = idxOf(base, current.path);
+            if (existing >= 0) {
+                trail = base.slice(0, existing + 1);
+                trail[existing] = { path: current.path, title: current.title, href: current.href };
+            } else {
+                trail = base.concat([{ path: current.path, title: current.title, href: current.href }]);
+            }
+            if (!trail.length || trail[0].path !== home.path) trail = [homeCrumb()].concat(trail);
+        }
+
+        try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(trail)); } catch (e) {}
+
+        if (trail.length <= 1) return;
+        trail.forEach(function (crumb, i) {
+            if (i === trail.length - 1) {
+                var span = document.createElement('span');
+                span.className = 'breadcrumb-current';
+                span.setAttribute('aria-current', 'page');
+                span.textContent = crumb.title;
+                nav.appendChild(span);
+            } else {
+                var a = document.createElement('a');
+                a.href = crumb.href;
+                a.textContent = crumb.title;
+                nav.appendChild(a);
+                var sep = document.createElement('span');
+                sep.className = 'breadcrumb-sep';
+                sep.textContent = '\u203A';
+                nav.appendChild(sep);
+            }
+        });
+    })();
+    </script>
+
+    <!-- Image safety net: upgrade any http:// image to https:// so it isn't
+         blocked as mixed content on your https site. (Does not fix 404/path
+         problems — see the notes if an image still doesn't appear.) -->
+    <script>
+    (function () {
+        document.querySelectorAll('#content img[src^="http://"]').forEach(function (img) {
+            img.src = img.src.replace(/^http:\/\//i, 'https://');
+        });
+    })();
+    </script>
+
+    <!-- 1. Turn vimwiki {{{class="tikz"}}} blocks into TikZJax script tags (must run BEFORE tikzjax.js) -->
+    <script>
+        document.querySelectorAll('pre.tikz').forEach(function (pre) {
+            var s = document.createElement('script');
+            s.type = 'text/tikz';
+            s.textContent = pre.textContent; // browser decodes HTML entities here
+            pre.replaceWith(s);
+        });
+    </script>
+    <!-- 2. Syntax-highlight code blocks, but skip diagram blocks -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre:not(.mermaid):not(.tikz)').forEach(function (block) {
+            hljs.highlightBlock(block);
+        });
+    </script>
+    <!-- 3. TikZJax: renders <script type="text/tikz"> into SVG -->
+    <script src="https://tikzjax.com/v1/tikzjax.js"></script>
+    <!-- 4. Mermaid: renders <pre class="mermaid"> into SVG -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+</body>
+</html>

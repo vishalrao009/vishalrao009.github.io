@@ -4,13 +4,12 @@
     <link rel="stylesheet" type="text/css" href="style.css">
     <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
+    <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
     <title>Lattice QCD at finite temperature</title>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <style>
         body {
             background-image: url('../Images/parchment.jpg');
@@ -19,66 +18,64 @@
             background-attachment: fixed;
             margin: 0;
             font-family: Arial, sans-serif;
-            padding: 3cm; /* Add 3cm padding on all sides */
+            padding: 3cm;
         }
-
         #content {
             color: #333;
-            font-size: 20px; /* Increase base font size */
+            font-size: 20px;
             line-height: 1.6;
             max-width: 1200px;
             margin: 0 auto;
             padding: 10px;
             background-color: rgba(255, 255, 255, 0.5);
         }
-
-        h1 {
-            font-size: 28; /* Smaller size for h1 */
-                color: black;
-        }
-
-        h2 {
-            font-size: 26px; /* Smaller size for h2 */
-                color: blue;
-        }
-
-        h3 {
-            font-size: 24px; /* Smaller size for h3 */
-                color: orange;
-        }
-
-        h4 {
-            font-size: 20; /* Smaller size for h3 */
-                color: purple;
-        }
-        
-        h5,h6 {
-            font-size: 18;
-                color: red;
-        }
-
+        h1 { font-size: 28px; }
+        h2 { font-size: 24px; }
+        h3 { font-size: 20px; }
+        h4, h5, h6 { font-size: 18px; }
         img {
             display: block;
             max-width: 100%;
             max-height: 500px;
-            margin: 30px auto; /* Add space above and below images */
+            margin: 30px auto;
         }
-
+        /* Diagram blocks (Mermaid + TikZ): centered, no code-box background */
+        pre.mermaid, pre.tikz {
+            background: none;
+            border: none;
+            text-align: center;
+        }
+        #content svg {
+            max-width: 100%;
+            height: auto;
+        }
+        /* Breadcrumb trail */
+        .breadcrumb {
+            font-size: 15px;
+            line-height: 1.4;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+            color: #555;
+            word-break: break-word;
+        }
+        .breadcrumb:empty { display: none; }
+        .breadcrumb a { color: #6b4f2a; text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        .breadcrumb .breadcrumb-sep { color: #999; margin: 0 4px; }
+        .breadcrumb .breadcrumb-current { color: #333; font-weight: bold; }
         /* Mobile Styles */
         @media only screen and (max-width: 600px) {
-            body {
-                padding: 0.5cm; /* Adjust padding for smaller screens */
-            }
-
-            #content {
-                padding: 10px; /* Adjust padding for smaller screens */
-                max-width: 100%; /* Set maximum width for smaller devices */
-            }
+            body { padding: 1cm; }
+            #content { padding: 10px; max-width: 100%; }
         }
     </style>
 </head>
 <body>
     <div id="content">
+        <!-- Breadcrumb: Home > section > ... > current. Change data-home if your home moves. -->
+        <nav id="breadcrumb" class="breadcrumb" aria-label="Breadcrumb"
+             data-home="/" data-home-label="Home"></nav>
         
 
 <div id="Lattice QCD at finite temperature"><h1 id="Lattice QCD at finite temperature" class="header"><a href="#Lattice QCD at finite temperature">Lattice QCD at finite temperature</a></h1></div>
@@ -291,10 +288,138 @@ So the true continuum limit is studied by first taking lattice sites \(N\to\inft
 </ul>
 
     </div>
+
+    <!-- Breadcrumb trail (referrer-aware, labels from each page's <h1>) -->
+    <script>
+    (function () {
+        var nav = document.getElementById('breadcrumb');
+        if (!nav || !window.sessionStorage) return;
+
+        var STORAGE_KEY = 'vimwiki_breadcrumb_trail';
+        var homeHref = nav.getAttribute('data-home') || '/';
+        var homeLabel = nav.getAttribute('data-home-label') || 'Home';
+
+        function toPath(href) {
+            try { return new URL(href, window.location.href).pathname; }
+            catch (e) { return href; }
+        }
+        function pageLabel() {
+            var h1 = document.querySelector('#content h1');
+            var t = h1 ? h1.textContent.replace(/\s+/g, ' ').trim() : '';
+            if (t) return t;
+            t = (document.title || '').replace(/_+/g, ' ').trim();
+            if (t && t.toLowerCase() !== 'index') return t;
+            var segs = window.location.pathname.split('/').filter(Boolean).map(function (s) {
+                try { return decodeURIComponent(s); } catch (e) { return s; }
+            });
+            var last = segs.pop() || '';
+            if (/^index\.html?$/i.test(last)) last = segs.pop() || 'index';
+            return last.replace(/\.html?$/i, '').replace(/_+/g, ' ').trim() || 'Page';
+        }
+
+        var home = { path: toPath(homeHref), title: homeLabel, href: homeHref };
+        var current = {
+            path: window.location.pathname,
+            title: pageLabel(),
+            href: window.location.pathname + window.location.search
+        };
+
+        var ref = null;
+        if (document.referrer) {
+            try {
+                var r = new URL(document.referrer);
+                if (r.origin === window.location.origin) ref = r.pathname;
+            } catch (e) { ref = null; }
+        }
+
+        var stored = [];
+        try { stored = JSON.parse(sessionStorage.getItem(STORAGE_KEY)) || []; }
+        catch (e) { stored = []; }
+        if (!Array.isArray(stored)) stored = [];
+
+        function homeCrumb() { return { path: home.path, title: home.title, href: home.href }; }
+        function idxOf(arr, p) { for (var i = 0; i < arr.length; i++) if (arr[i].path === p) return i; return -1; }
+
+        var trail;
+        if (current.path === home.path) {
+            trail = [homeCrumb()];
+        } else {
+            var anchored = stored.length && stored[0].path === home.path;
+            var base;
+            if (ref) {
+                var ri = idxOf(stored, ref);
+                base = (ri >= 0 && anchored) ? stored.slice(0, ri + 1) : [homeCrumb()];
+            } else {
+                var ci = idxOf(stored, current.path);
+                base = (ci >= 0 && anchored) ? stored.slice(0, ci) : [homeCrumb()];
+            }
+            var existing = idxOf(base, current.path);
+            if (existing >= 0) {
+                trail = base.slice(0, existing + 1);
+                trail[existing] = { path: current.path, title: current.title, href: current.href };
+            } else {
+                trail = base.concat([{ path: current.path, title: current.title, href: current.href }]);
+            }
+            if (!trail.length || trail[0].path !== home.path) trail = [homeCrumb()].concat(trail);
+        }
+
+        try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(trail)); } catch (e) {}
+
+        if (trail.length <= 1) return;
+        trail.forEach(function (crumb, i) {
+            if (i === trail.length - 1) {
+                var span = document.createElement('span');
+                span.className = 'breadcrumb-current';
+                span.setAttribute('aria-current', 'page');
+                span.textContent = crumb.title;
+                nav.appendChild(span);
+            } else {
+                var a = document.createElement('a');
+                a.href = crumb.href;
+                a.textContent = crumb.title;
+                nav.appendChild(a);
+                var sep = document.createElement('span');
+                sep.className = 'breadcrumb-sep';
+                sep.textContent = '\u203A';
+                nav.appendChild(sep);
+            }
+        });
+    })();
+    </script>
+
+    <!-- Image safety net: upgrade any http:// image to https:// so it isn't
+         blocked as mixed content on your https site. (Does not fix 404/path
+         problems — see the notes if an image still doesn't appear.) -->
+    <script>
+    (function () {
+        document.querySelectorAll('#content img[src^="http://"]').forEach(function (img) {
+            img.src = img.src.replace(/^http:\/\//i, 'https://');
+        });
+    })();
+    </script>
+
+    <!-- 1. Turn vimwiki {{{class="tikz"}}} blocks into TikZJax script tags (must run BEFORE tikzjax.js) -->
+    <script>
+        document.querySelectorAll('pre.tikz').forEach(function (pre) {
+            var s = document.createElement('script');
+            s.type = 'text/tikz';
+            s.textContent = pre.textContent; // browser decodes HTML entities here
+            pre.replaceWith(s);
+        });
+    </script>
+    <!-- 2. Syntax-highlight code blocks, but skip diagram blocks -->
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
     <script type="text/javascript">
-        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+        document.querySelectorAll('pre:not(.mermaid):not(.tikz)').forEach(function (block) {
+            hljs.highlightBlock(block);
+        });
+    </script>
+    <!-- 3. TikZJax: renders <script type="text/tikz"> into SVG -->
+    <script src="https://tikzjax.com/v1/tikzjax.js"></script>
+    <!-- 4. Mermaid: renders <pre class="mermaid"> into SVG -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
     </script>
 </body>
 </html>
-
