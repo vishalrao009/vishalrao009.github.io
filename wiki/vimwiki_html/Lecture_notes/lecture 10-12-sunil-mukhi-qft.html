@@ -1,0 +1,2617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
+    <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
+    <title>lecture 10-12-sunil-mukhi-qft</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm;
+        }
+        #content {
+            color: #333;
+            font-size: 20px;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+        h1 {
+            font-size: 28px;
+        }
+        h2 {
+            font-size: 24px;
+        }
+        h3 {
+            font-size: 20px;
+        }
+        h4, h5, h6 {
+            font-size: 18px;
+        }
+        img {
+            display: block;
+            max-width: 100%;
+            max-height: 500px;
+            margin: 30px auto;
+        }
+        /* Diagram blocks (Mermaid + TikZ): centered, no code-box background */
+        pre.mermaid, pre.tikz {
+            background: none;
+            border: none;
+            text-align: center;
+        }
+        #content svg {
+            max-width: 100%;
+            height: auto;
+        }
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 1cm;
+            }
+            #content {
+                padding: 10px;
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        
+
+<p>
+<span id="-Majorana representation"></span><strong id="Majorana representation">Majorana representation</strong> ---<br />
+</p>
+
+<div id="Lecture 10"><h2 id="Lecture 10" class="header"><a href="#Lecture 10">Lecture 10</a></h2></div>
+
+<p>
+While it may not be visible/manifest for other representation than weyl basis, but the 4 component spinor is always reducible. It is not just visible to the eye that matrices has probability of reducibility in other basis.<br />
+</p>
+
+\[
+\begin{aligned}
+\text{For weyl basis;}\qquad
+\gamma_5\,\Psi &amp;= \Psi \qquad\overset{\swarrow\;\text{right handed}}{\Psi = \begin{pmatrix} 0\\ \Psi_R \end{pmatrix}}\\
+\gamma_5\,\Psi &amp;= -\Psi \qquad \Psi = \begin{pmatrix} \Psi_L\\ 0 \end{pmatrix}\\
+&amp;\hookrightarrow\;\text{left handed}
+\end{aligned}
+\]
+
+<p>
+In any basis dirac equation does not couple modes which satisfy \(\gamma_5\Psi = \Psi\) &amp; \(\gamma_5\Psi = -\Psi\), (when it is massless) if it is massive \(\Psi\), then it couples through mass term. So it is representation independent physics, physics has to be representation independent.<br />
+All representations of clifford algebra are related by unitary transformation.<br />
+Let's go to another representation where a different property is visible/manifest. Again the property hold in this reps. will also hold in all reps. but won't be manifest in those reps.<br />
+</p>
+
+<p>
+<span id="Lecture 10-Majorana representation"></span><strong id="Majorana representation">Majorana representation</strong> ---<br />
+</p>
+
+\[
+\begin{aligned}
+\gamma^{0} &amp;= \sigma^{1} \otimes \sigma^{2} = \begin{pmatrix} 0 &amp; 1\\ 1 &amp; 0 \end{pmatrix}\otimes\sigma_2 = \begin{pmatrix} 0 &amp; \sigma_2\\ \sigma_2 &amp; 0 \end{pmatrix}\\
+\gamma^{1} &amp;= i\left(\sigma^{3} \otimes \sigma^{1}\right) = \begin{pmatrix} i &amp; 0\\ 0 &amp; -i \end{pmatrix}\otimes\sigma^{1} = \begin{pmatrix} i\sigma^{1} &amp; 0\\ 0 &amp; -i\sigma^{1} \end{pmatrix}\\
+\gamma^{2} &amp;= -i\,\sigma^{2} \otimes \sigma^{2} = -i\begin{pmatrix} 0 &amp; -i\sigma^{2}\\ i\sigma^{2} &amp; 0 \end{pmatrix} = \begin{pmatrix} 0 &amp; -\sigma^{2}\\ \sigma^{2} &amp; 0 \end{pmatrix}\\
+\gamma^{3} &amp;= -i\;I \otimes \sigma^{1} = -i\begin{pmatrix} \sigma^{1} &amp; 0\\ 0 &amp; \sigma^{1} \end{pmatrix} = \begin{pmatrix} -i\sigma^{1} &amp; 0\\ 0 &amp; -i\sigma^{1} \end{pmatrix}
+\end{aligned}
+\]
+
+<p>
+We can check that \(\left(\gamma^{\mu}\right)^{2} = \left\{\begin{aligned} -1\quad &amp;\mu \neq 0\\ +1\quad &amp;\mu = 0 \end{aligned}\right.\)<br />
+and all \(\gamma^{\mu}\) anticommute with each other.<br />
+</p>
+
+\[
+\begin{gathered}
+\text{i.e.}\quad \left\{\gamma^{\mu},\, \gamma^{\nu}\right\} = 2\eta^{\mu\nu} = 0 \qquad (\mu\neq\nu)\\
+\text{as}\quad \left\{\sigma_j\,,\ \sigma_k\right\} = 2\,\delta_{jk}\, I
+\end{gathered}
+\]
+
+<p>
+<span id="Lecture 10-We can write another rep. in majorana basis."></span><strong id="We can write another rep. in majorana basis.">We can write another rep. in majorana basis.</strong><br />
+</p>
+
+\[
+\left.
+\begin{aligned}
+\gamma^{0} &amp;= \sigma^{2} \otimes \sigma^{1}\\
+\gamma^{1} &amp;= i\,\sigma^{3} \otimes \sigma^{1}\\
+\gamma^{2} &amp;= i\,\sigma^{1} \otimes \sigma^{1}\\
+\gamma^{3} &amp;= i\,I \otimes \sigma^{3}
+\end{aligned}
+\right\}
+\quad
+\begin{aligned}
+&amp;\text{All } \gamma^{\mu}\text{ are purely imaginary}\\
+&amp;\text{satisfying}\quad \left(\gamma^{\mu}\right)^{2} = +1\ \ \mu = 0\\
+&amp;\phantom{\text{satisfying}\quad \left(\gamma^{\mu}\right)^{2}} = -1\ \ \mu \neq 0\\
+&amp;\&amp;\ \left\{\gamma^{\mu}, \gamma^{\nu}\right\} = 0\quad \mu\neq\nu.
+\end{aligned}
+\]
+
+<p>
+\(S^{\mu\nu} = \frac{1}{4}\left[\gamma^{\mu},\, \gamma^{\nu}\right]\) are real.<br />
+Dirac eq\(^{\text{n}}\): \(i\left(\underline{\gamma^{\mu}}\,\partial_{\mu} - m\right)\Psi = 0\)<br />
+Since \(\gamma^{\mu}\) are purely imaginary, \(i\gamma^{\mu}\) has to be purely real.<br />
+So operator *\(i\left(\gamma^{\mu}\partial_{\mu} - m\right)\) is real.*<br />
+So, solutions of dirac equation '\(\Psi\)' can be chosen to be real. \(\Big\{\)Since \(S^{\mu\nu} = \frac{1}{4}\left[\gamma^{\mu},\gamma^{\nu}\right]\) has to be real (\(\frac{1}{4}\left(\gamma^{\mu}\gamma^{\nu} - \gamma^{\nu}\gamma^{\mu}\right)\) is product of two purely imaginary numbers).\(\Big\}\) The lorentz transformation of \(\Psi\)<br />
+</p>
+
+\[
+\Psi \;\longrightarrow\; \Psi' = \left(e^{\frac{1}{2}\,\omega S}\right)_{ab}\Psi_{b}
+\quad\text{is always real. (If we choose } \Psi_{b} \text{ to be real).}
+\]
+
+<p>
+then, '\(\Psi\)' remains real in any frame of reference.<br />
+So, we can choose real solutions, and those solutions which are real in majorana basis are called majorana spinors.<br />
+That means there must be some property, that I can choose in any basis, such that the property is preserved, and it reduces to being real in this basis, that property has a name called charge conjugation.<br />
+In general basises of gamma matrices, majorana spinors are not real, but they satisfy a condition:<br />
+</p>
+
+\[
+\Psi^{C}_{m} = \Psi_{m} \;{\swarrow\;\text{majorana}}
+\qquad\qquad C:\ \text{charge conjugate}
+\]
+
+<p>
+(i.e. they are same as their antiparticle in any basis)<br />
+For real \(\Psi\), \(C\) is replaced by just '\(*\)' \(\left(\text{i.e.\ } \Psi^{*} = \Psi \Rightarrow \Psi = \text{real}\right)\)<br />
+</p>
+<ol>
+<li>
+Majorana spinors are real in majorana basis '\(\Psi_m\)', suppose we want to find '\(\Psi\)' in some other basis, (weyl or dirac or any).. also we know they satisfy \(\Psi^{C}_{m} = \Psi_{m}\) in any basis.
+
+</ol>
+<p>
+(or) Suppose we want to see the condition of being majorana spinors when we have '\(\Psi\)' of weyl basis reps.<br />
+Ans) Since all representations of gamma matrices are equivalent this means, \(\exists\) a similarity transformation from one gamma matrices rep to another.<br />
+</p>
+
+\[
+\text{then}\quad
+\boxed{\;S\,\Psi_{m} = \left(\Psi\right)_{\text{in other basis}}\;}
+\qquad S:\ \text{Similarity transformation.}
+\]
+
+<p>
+With that we can derive cond\(^{\text{n}}\) of charge conjugation in another choice.<br />
+</p>
+
+\[
+\begin{gathered}
+\Psi^{T}_{m} = \Psi_{m}\\
+\left(S^{-1}\,\Psi_{\text{other basis}}\right)^{T} = S^{-1}\,\Psi_{\text{other basis}}\\
+\Psi^{T}\left(S^{-1}\right)^{T} = S^{-1}\,\Psi
+\end{gathered}
+\]
+
+<p>
+<span id="Lecture 10-Lecture (10)"></span><strong id="Lecture (10)">Lecture (10)</strong><br />
+Note: When we talk about '\(\gamma\)' matrices, we say sometimes weyl representation and majorana reps, &amp; dirac rep. They all are equivalent, which means, they are similarity transforms of each other. So it is better to call them basis rather than representation, because representation of clifford algebra \(\left(\Gamma^{\mu}\right)\) \(\left\{\text{which satisfies } \left[\Gamma^{\mu}, \Gamma^{\nu}\right] = 2\eta^{\mu\nu}\right\}\) are dimension dependent. We can have \(2\times2\), \(8\times8\) reps. of \(\gamma^{\mu}\) as well, so same reps. in different basis is what we studied (dirac basis, weyl basis &amp; majorana basis).<br />
+--- The condition that \(\gamma^{0}\) is hermitian &amp; \(\gamma^{i}\) is anti-hermitian is also basis dependent. (Only thing which is basis independent is \(\left(\gamma^{0}\right)^{2} = +1\), \(\left(\gamma^{i}\right)^{2} = -1\) &amp; \(\left\{\gamma^{\mu}, \gamma^{\nu}\right\} = 2\eta^{\mu\nu}\).) It turns out that \(\gamma^{0}\) &amp; \(\gamma^{i}\) remains hermitian &amp; antihermitian if similarity transformations are unitary. So we always look for unitary similarity transforms of \(\gamma\) matrices so that \(\gamma^{0}\) is always hermitian &amp; \(\gamma^{i}\) is always antihermitian.<br />
+--- Comment on Majorana reps (Remember that majorana basis is basis where \(\gamma^{\mu}\) are imaginary therefore spinors can be real, does not mean they have to be real, but if we choose them real then they are called majorana spinors.) \(\left(\Psi^{*}_{a} = \Psi_{a}\right)\)<br />
+Majorana spinors have a property that they are ''real'' in majorana basis, we will have analogue of that property in other basis.<br />
+(Majorana spinors physically mean Particle = antiparticle) &amp; in majoran basis they have property that \(\Psi^{*} = \Psi\) (i.e. \(\Psi\) is real) and in other basis they have property like \(\Psi^{*} = \left(\ \right)\Psi\) \(\hookrightarrow\) 4 matrix.<br />
+\(\Rightarrow\) \(\Psi, \Psi^{*}\) are ''not'' independent fields. It means physically particle \(=\) antiparticle. Since particle &amp; antiparticle have opposite charge this implies majorana spinor has no-charge (neutral).<br />
+There is another way to see it, charge is related to a symmetry under change of phase of \(\Psi\).<br />
+</p>
+
+\[
+\begin{gathered}
+\Psi \longrightarrow \Psi' = e^{i\alpha}\,\Psi\\
+\Psi^{*} \longrightarrow \left(\Psi'\right)^{*} = e^{-i\alpha}\,\Psi^{*}\\
+\text{So,}\quad \left(\Psi^{*}\right)' = \Psi'\;;\qquad
+e^{-i\alpha}\,\underline{\Psi^{*}} = \left(\ \right)e^{i\alpha}\,\Psi
+\end{gathered}
+\]
+
+<p>
+But this eq\(^{\text{n}}\) can not be correct. as \(\underline{\Psi^{*} = (\;)\Psi}\),<br />
+</p>
+
+\[
+\Rightarrow\qquad e^{-i\alpha}\left(\ \right)\Psi \;\neq\; \left(\ \right)e^{i\alpha}\,\Psi
+\]
+
+<p>
+\(\Rightarrow\) symmetry under such phase don't exist \(\Rightarrow\) charge does not exist.<br />
+So, only neutrinos have possibility of being majorana spinors.<br />
+</p>
+
+<p>
+<span id="Lecture 10-Mass term"></span><strong id="Mass term">Mass term</strong> --- mass term for a majorana spinor \(=\) ?<br />
+For any spinor, mass term in dirac lagrangian is \(m\overline{\Psi}\Psi\).<br />
+</p>
+
+\[
+\begin{aligned}
+\mathcal{L}_{\text{mass}} = m\,\overline{\Psi}\,\Psi &amp;= m\,\Psi^{\dagger}_{a}\,\gamma^{0}_{\;ab}\,\Psi_{b}\\
+\mathcal{L}_{\text{mass}}\big)_{\text{majorana}} &amp;= m\,\Psi^{\dagger}_{a}\,\gamma^{0}_{\;ab}\,\Psi_{b}
+\qquad\left(\Psi^{\dagger}_{a} = \Psi_{a}\ \text{ majorana basis}\right)\\
+&amp;= m\,\Psi_{a}\left(\gamma^{0}\right)_{ab}\Psi_{b}
+\qquad
+\left(
+\begin{aligned}
+\gamma^{0} &amp;= \sigma_2 \otimes \sigma_1\\
+&amp;= \begin{pmatrix} 0 &amp; -i\\ i &amp; 0 \end{pmatrix}\otimes\sigma^{1}
+= \begin{pmatrix} 0 &amp; -i\sigma^{1}\\ i\sigma^{1} &amp; 0 \end{pmatrix}\\
+\gamma^{0} &amp;= \text{anti symmetric}
+\end{aligned}
+\right)\\
+&amp;= m\left(\Psi_1\ \Psi_2\ \Psi_3\ \Psi_4\right)
+\left(\begin{array}{c|c}
+\text{ 0} &amp; \begin{matrix} 0 &amp; -i\\ -i &amp; 0 \end{matrix}\\
+\hline
+\begin{matrix} 0 &amp; i\\ i &amp; 0 \end{matrix} &amp; \text{ 0}
+\end{array}\right)
+\begin{pmatrix} \Psi_1\\ \Psi_2\\ \Psi_3\\ \Psi_4 \end{pmatrix}\\
+&amp;= m\left(\Psi_1\ \Psi_2\ \Psi_3\ \Psi_4\right)
+\begin{pmatrix} -i\,\Psi_4\\ -i\,\Psi_3\\ i\,\Psi_2\\ i\,\Psi_1 \end{pmatrix}
+= -i\,m\left(\Psi_1\Psi_4 + \Psi_2\Psi_3 - \Psi_3\Psi_2 - \Psi_4\Psi_1\right)
+\end{aligned}
+\]
+
+\[
+\mathcal{L}_{\text{mass}} = \underline{\;0\;} \qquad (?)\quad (\times).
+\]
+
+<p>
+<span id="Lecture 10-Iff"></span><strong id="Iff">Iff</strong> \(\Psi_a\Psi_b = \Psi_b\Psi_a\) ie. \(\left(\Psi_1\Psi_2 = \Psi_2\Psi_1\right)\)<br />
+$(\begin{aligned}<br />
+&amp;later we will see that in order to have \mathcal{L}<br />
+&amp;\Psi_a's should be grassmann numbers.<br />
+\end{aligned}.$<br />
+\(\mathcal{L}_{\text{mass}}\big)_{\text{majorana}} = 0\) is not correct conclusion.<br />
+We can say that probably such particles are massless.<br />
+</p>
+
+<p>
+<span id="Lecture 10-Kinetic term"></span><strong id="Kinetic term">Kinetic term</strong> ---<br />
+</p>
+
+\[
+\begin{aligned}
+\mathcal{L}_{\text{kinetic}} &amp;= i\,\overline{\Psi}\,\gamma^{\mu}\,\partial_{\mu}\Psi_{b}\\
+&amp;= i\,\Psi^{\dagger}\left(\gamma^{0}\gamma^{\mu}\right)\partial\,\Psi
+\end{aligned}
+\]
+
+\[
+\begin{aligned}
+\mathcal{L}_{\text{kinetic}}\Big)_{\text{majorana}}
+&amp;= i\,\Psi^{a}_{a}\left(\gamma^{0}\gamma^{\mu}\right)_{ac}\partial^{\mu}_{\;\;2}\Psi^{2}_{c}
+\qquad
+\left(\begin{aligned}
+&amp;\Psi^{\dagger}_{a} = \Psi_{a}\\
+&amp;\text{for majorana}
+\end{aligned}\right)\\
+&amp;= \frac{i}{2}\;\partial_{\mu}\left(\Psi_{a}\left(\gamma^{0}\gamma^{\mu}\right)_{ab}\Psi_{b}\right)
+\end{aligned}
+\]
+
+<p>
+\(\Rightarrow\) kinetic term is total derivative. (True for every basis)<br />
+</p>
+
+\[
+\Rightarrow\qquad \text{Action} \;=\; \left(\frac{i}{2}\;\Psi_{a}\left(\gamma^{0}\gamma^{\mu}\right)_{ab}\Psi_{b}\right)^{x_2}_{x_1}
+\]
+
+<p>
+at boundary \(\Psi_{a}(x_1) = \Psi_{b}(x_2) = 0\)<br />
+\(\Rightarrow\) No lagrangian. This is true for majorana spinors in any basis.<br />
+This is worrying as \(\mathcal{L} = 0\) in all basis.<br />
+</p>
+
+<p>
+<span id="Lecture 10-Solution"></span><strong id="Solution">Solution</strong> --- Assume classical fields \(\Psi(x)\) satisfies<br />
+</p>
+
+\[
+\Psi_{a}(x)\,\Psi_{b}(x) = -\Psi_{b}(x)\,\Psi_{a}(x)
+\qquad\text{(for all spinors)}
+\]
+
+<p>
+Grassmann numbers --- Fermion fields should be valued in grassmann numbers. (classically)<br />
+When we quantize we should use <span id="Lecture 10-anti-commutators."></span><strong id="anti-commutators.">anti-commutators.</strong> i.e.<br />
+</p>
+
+\[
+\begin{gathered}
+\left\{\Pi_{a}\left(t,\vec{x}\right)\,,\ \Psi_{a}\left(t,\vec{y}\right)\right\} = i\hbar\,\delta^{3}\left(\vec{x}-\vec{y}\right)
+\qquad \Pi_{a} = i\,\Psi^{\dagger}_{a}\\
+\Pi_{a} = \Psi^{\dagger}_{a}\left(t,\vec{x}\right)
+\qquad
+\left.\begin{aligned}
+&amp;\text{For majorana basis } \Psi^{\dagger}_{a} = \Psi_{a}\\
+\end{aligned}\right\}\;
+i\left\{\Psi(x), \Psi(y)\right\} = i\hbar\,\delta^{3}(x-y)\\
+\Rightarrow\quad \Psi^{\dagger}_{a}\,\Psi_{a} + \Psi_{a}\,\Psi^{\dagger}_{a} = 0 \qquad (?
+\end{gathered}
+\]
+
+<p>
+In Quantum mechanics \([x, p] = i\hbar\); in classical limit we use \(\hbar = 0\) thus \(xp = px\) (in classical limit). But in classical limit (\(\hbar = 0\)) we require that the fields anticommute.<br />
+We require \(\Psi_{a}\,\Psi_{b} = -\Psi_{b}\,\Psi_{a}\)<br />
+So we use anticommutators for fermionic fields quantisation.<br />
+</p>
+
+\[
+\begin{gathered}
+\left\{\Psi_{a}(x)\,,\ \Pi_{b}(y)\right\} = i\hbar\,\delta^{4}(x-y)\,\delta_{ab}\\
+\Rightarrow\quad \left\{\Psi_{a}(x)\,,\ \Psi^{\dagger}_{b}(y)\right\} = \hbar\,\delta_{a,b}\,\delta^{3}(x-y)
+\end{gathered}
+\]
+
+<p>
+in classical limit we set \(\hbar = 0\) at \(x = y\) \(\Rightarrow\) \(\underline{\Psi_{a}(x)\,\Psi^{\dagger}_{b}(x) = -\Psi^{\dagger}_{b}(x)\,\Psi_{a}(x)}\) \(\downarrow\) Classically.<br />
+</p>
+
+<p>
+*Solutions of Dirac eq\(^{\text{n}}\)* ---<br />
+Remember that for scalar fields we found solution as superposition of all sol\(^{\text{n}}\) for fixed momenta \(\vec{k}\).<br />
+</p>
+
+\[
+\phi(t,x) = \sum_{k} a\,\underbrace{e^{-ik\cdot x}}_{} + \left(a^{\dagger}\cdots\right)\;\text{free particle sol}^{\text{n}}.
+\qquad
+\hookrightarrow\;\text{Also called mode expansion of field.}
+\]
+
+<p>
+it satisfies K.G. eq\(^{\text{n}}\) if \(k^{2} = m^{2}\).<br />
+For fermions we need to find free particle solution \(\Psi_{a}(x)\), multiply them with oscillators &amp; quantize the oscillators by anticommutation relation.<br />
+Now diff. is that since fermion has index, \(\Psi_{a}(x)\), the free particle sol\(^{\text{n}}\) (for fixed momentum \(\vec{k}\)) are not just \(e^{-ik\cdot x}\).<br />
+</p>
+
+\[
+\Psi_{a} \longrightarrow \sum_{k}\ \underbrace{\underline{u_{a}(k)}}_{\downarrow}\, e^{-ik\cdot x}
+\qquad
+\text{assuming } k^{2} = m^{2}
+\quad
+as field satisfying dirac eq$^{\text{n}}$ also satisfies K.G.\ eq$^{\text{n}}$. $\hookleftarrow$ prove it!
+\]
+
+<p>
+mode expansion. Spinor coefficient (to carry label; &amp; this coefficient \(u_a\) shall depend on \(k\)) (as in end we will do summation over \(k\))<br />
+</p>
+
+\[
+\begin{gathered}
+\Rightarrow\quad \left(i\,\gamma^{\mu}\partial_{\mu} - m\right)\Psi_{a} = 0\\
+\left(i\,\gamma^{\mu}\partial_{\mu} - m\right) u_{a}(k)\, e^{-ik\cdot x} = 0\\
+\left(i(-i)\,\gamma^{\mu}\,k_{\mu} - m\right)_{ab}\, u_{b}(k) = 0
+\end{gathered}
+\]
+
+\[
+\left|
+\begin{aligned}
+k\cdot x &amp;= k_{\mu}\,x^{\mu}\\
+\partial_{\mu}\,e^{-ik\cdot x} &amp;= \partial_{\mu}\,e^{-ik_{\mu}x^{\mu}}\\
+&amp;= \partial_{\mu}\,e^{-i\left(k_0 x^0 + k_1 x^1 + \cdots\right)}\\
+&amp;= -i\,k_{\mu}\,e^{-ik\cdot x}
+\end{aligned}
+\right.
+\]
+
+<p>
+We can solve it by going into the rest frame<br />
+</p>
+
+\[
+k_{\mu} = \left(m, 0, 0, 0\right)
+\]
+
+<p>
+above eq\(^{\text{n}}\) becomes ---<br />
+</p>
+
+\[
+\begin{gathered}
+\left(\gamma^{0}k_0 + 0 + 0 + 0 - m\right)_{ab} u_{b}(k) = 0\\
+m\left(\gamma^{0} - I\right) u_{b}(k) = 0\\
+\left(I - \gamma^{0}\right) u_{b}(k) = 0
+\end{gathered}
+\]
+
+<p>
+So we see that free particle sol\(^{\text{n}}\) of Dirac eq\(^{\text{n}}\) depend upon basis of gamma matrices.<br />
+<span id="Lecture 10-Weyl basis"></span><strong id="Weyl basis">Weyl basis</strong> ---<br />
+</p>
+
+\[
+\begin{gathered}
+\gamma^{0} = \begin{pmatrix} 0 &amp; I\\ I &amp; 0 \end{pmatrix}\\
+I - \gamma^{0} = \begin{pmatrix} I &amp; -I\\ -I &amp; I \end{pmatrix}
+\quad\text{i.e.}\quad
+\underset{4\times4}{\begin{pmatrix} I &amp; 0\\ 0 &amp; I \end{pmatrix}}
+\qquad
+\begin{bmatrix}
+1 &amp; 0 &amp; -1 &amp; 0\\
+0 &amp; 1 &amp; 0 &amp; -1\\
+-1 &amp; 0 &amp; 1 &amp; 0\\
+0 &amp; -1 &amp; 0 &amp; 1
+\end{bmatrix}
+\end{gathered}
+\]
+
+\[
+\left(I - \gamma^{0}\right) u_{a}(k) = 0 \;=\; 0\left(I - \gamma^{0}\right)
+\qquad
+{\downarrow\;\text{seems like eigen value eq}^{\text{n}}.}
+\]
+
+<p>
+\(\to\) Implies that \(u_a(k)\) is zero eigen vector of \(\left(I - \gamma^{0}\right)\).<br />
+\(\left(I - \gamma^{0}\right)\) has two eigenvector for eigenvalue zero, which are<br />
+</p>
+
+\[
+u = \begin{bmatrix} 1\\ 0\\ 1\\ 0 \end{bmatrix},\
+\begin{bmatrix} 0\\ 1\\ 0\\ 1 \end{bmatrix}\cdots
+\qquad
+(true for rest frame of particle)
+\]
+
+<p>
+For in general/any frame ---<br />
+'\(u\)' is linear combination of two zero eigen kets.<br />
+</p>
+
+\[
+u = a\begin{pmatrix} 1\\ 0\\ 1\\ 0 \end{pmatrix} + b\begin{pmatrix} 0\\ 1\\ 0\\ 1 \end{pmatrix}
+= \begin{pmatrix} a\\ b\\ a\\ b \end{pmatrix}
+= \begin{pmatrix} \chi\\ \chi \end{pmatrix}
+\]
+
+<p>
+So, \(u =\) two --- (two component spinor) \(=\)<br />
+where \(\chi = \begin{pmatrix} a\\ b \end{pmatrix}\) a two component spinor.<br />
+Any general 4 component spinor can be written as \(\begin{pmatrix} \chi\\ \chi' \end{pmatrix}\) i.e. two different 2-component spinors.<br />
+But for free particle we see that those two component spinors are same.<br />
+</p>
+
+\[
+u = \begin{pmatrix} \chi\\ \chi \end{pmatrix}
+\]
+
+<p>
+We normalize \(u(k) = \sqrt{m}\begin{pmatrix} \chi\\ \chi \end{pmatrix}\)<br />
+where \(\chi^{\dagger}\chi = 1\) \(\downarrow\) \(|a|^{2} + |b|^{2} = 1\)<br />
+How (?) Normalization of \(\chi\)<br />
+We can go to general lorentz frame.<br />
+</p>
+
+\[
+k^{\mu} = \left(E,\, 0,\, 0,\, k_3\right)
+\qquad
+\text{Any arbitrary } \vec{k} \text{ can be rotated to just have momentum in } z\text{-direction.}
+\]
+
+<p>
+Then \(\Psi_{a}(x) = u_{a}(k)\,e^{-ik\cdot x}\) will satisfy K.G. eq\(^{\text{n}}\) as well \(\Rightarrow\) \(k^{2} = m^{2}\), \(E^{2} - k_3^{2} = m^{2}\)<br />
+From same procedure \(\left(i\not{\partial} - m\right)\Psi = 0\) results in eigen value eq\(^{\text{n}}\), which gives us<br />
+</p>
+
+\[
+u^{(1)}(k) = \begin{pmatrix} \sqrt{\sigma^{\mu}k_{\mu}}\;\chi^{(1)}\\ \sqrt{\bar{\sigma}^{\mu}k_{\mu}}\;\chi^{(1)} \end{pmatrix}
+\qquad
+u^{(2)}(k) = \begin{pmatrix} \sqrt{\sigma^{\mu}k_{\mu}}\;\chi^{(2)}\\ \sqrt{\bar{\sigma}^{\mu}k_{\mu}}\;\chi^{(2)} \end{pmatrix}
+\qquad
+\left|
+\begin{aligned}
+\chi^{(1)} &amp;= \begin{pmatrix} 1\\ 0 \end{pmatrix}\\
+\chi^{(2)} &amp;= \begin{pmatrix} 0\\ 1 \end{pmatrix}
+\end{aligned}
+\right.
+\]
+
+<p>
+where \(\sigma^{\mu}\) &amp; \(\bar{\sigma}^{\mu}\) can help us expressing dirac eq\(^{\text{n}}\).<br />
+</p>
+
+\[
+\begin{gathered}
+\sigma^{\mu} = \left(1,\, \vec{\sigma}\right)
+\qquad\qquad
+\sigma^{0} = 1,\ \sigma^{i} = \sigma^{i}\\
+\bar{\sigma}^{\mu} = \left(1,\, -\vec{\sigma}\right)
+\qquad\quad\;\,
+\bar{\sigma}^{0} = 1,\ \bar{\sigma}^{i} = -\sigma^{i}\\
+\left\{\sigma^{\mu}, \sigma^{\nu}\right\} \neq 2\eta^{\mu\nu}
+\qquad\text{does not satisfy clifford algebra.}\\
+\text{But}\quad \left\{\sigma^{\mu},\, \bar{\sigma}^{\nu}\right\} = 2\eta^{\mu\nu}
+\qquad\text{satisfies clifford algebra.}
+\end{gathered}
+\]
+
+<p>
+where,<br />
+</p>
+
+\[
+\left.
+\begin{aligned}
+\sqrt{\sigma^{\mu}k_{\mu}} &amp;= \sqrt{E+k_3}\left(\frac{1-\sigma^{3}}{2}\right) + \sqrt{E-k_3}\left(\frac{1+\sigma^{3}}{2}\right)\\
+\&amp;\quad \sqrt{\bar{\sigma}^{\mu}k_{\mu}} &amp;= \sqrt{E+k_3}\left(\frac{1+\sigma^{3}}{2}\right) + \sqrt{E-k_3}\left(\frac{1-\sigma^{3}}{2}\right)
+\end{aligned}
+\right\}
+\;{\text{left as Exercise.}}
+\]
+
+<p>
+where<br />
+</p>
+
+\[
+\begin{gathered}
+\sigma^{3}\chi^{(1)} = \begin{pmatrix} 1 &amp; 0\\ 0 &amp; -1 \end{pmatrix}\begin{pmatrix} 1\\ 0 \end{pmatrix} = \begin{pmatrix} 1\\ 0 \end{pmatrix}
+\;\Rightarrow\; \left(1-\sigma^{3}\right)\chi^{(1)} = 0
+\;\Rightarrow\; \frac{\left(1+\sigma^{3}\right)}{2}\,\chi^{(1)} = \chi^{(1)}\\
+\sigma^{3}\chi^{(2)} = \begin{pmatrix} 1 &amp; 0\\ 0 &amp; -1 \end{pmatrix}\begin{pmatrix} 0\\ 1 \end{pmatrix} = -\begin{pmatrix} 0\\ 1 \end{pmatrix} = -\chi^{(2)}\\
+\Rightarrow\; \frac{\left(1-\sigma^{3}\right)}{2}\,\chi^{(2)} = \chi^{(2)}
+\quad\&amp;\quad \left(\frac{1+\sigma^{3}}{2}\right)\chi^{(2)} = 0
+\end{gathered}
+\]
+
+<p>
+So,<br />
+</p>
+
+\[
+u^{(1)}(k) = \begin{bmatrix} \sqrt{E-k_3}\\ 0\\ \sqrt{E+k_3}\\ 0 \end{bmatrix}
+\qquad\&amp;\qquad
+u^{(2)}(k) = \begin{bmatrix} 0\\ \sqrt{E+k_3}\\ 0\\ \sqrt{E-k_3} \end{bmatrix}
+\]
+
+<p>
+So, there are 2 solutions to dirac eq\(^{\text{n}}\) \(\left(i\not{\partial} - m\right)\Psi = 0\)<br />
+When we make a mode expansion of \(\Psi\) to quantize it, we should add \(u^{(1)}(k)\,e^{-ik\cdot x}\,a^{\dagger}_{(1)}\) &amp; \(u^{(2)}\,e^{-ik\cdot x}\,a^{\dagger}_{(2)}\), where \(a^{\dagger}_{(1)}\) &amp; \(a^{\dagger}_{(2)}\) shall create spin up &amp; spin down states, of same particle.<br />
+So, we should think label (1)&amp;(2) in \(u^{(1)}\) &amp; \(u^{(2)}\) as some spin index \(u^{(s)}(k)\).<br />
+</p>
+
+\[
+u^{(s)}(k) = \text{Free particle sol}^{\text{n}}\text{ for momentum } k \text{ \&amp; spin } s
+\]
+
+\[
+s = +1/2 \;\text{ or }\; -1/2
+\qquad\qquad\text{here } s \text{ represents spin state } m_s.
+\]
+
+<p>
+When we learned scalar fields we noticed that there was no spin degeneracy in mode expansion, that's why we said that they must be scalar fields.<br />
+Here due to spin degeneracy, we can be sure that these are not scalar particles.<br />
+We define weyl Basis \(\downarrow\)<br />
+</p>
+
+\[
+\begin{aligned}
+\overline{u}^{(1)}(k) = \left(u^{(1)}\right)^{\dagger}(k)\cdot\gamma^{0} &amp;= \left(u^{(1)}\right)^{T}(k)\,\gamma^{0}
+\qquad \left(\gamma^{0} = \sigma_1 \otimes I\right)\\
+&amp;= \left[\sqrt{E-k_3}\;\ 0\;\ \sqrt{E+k_3}\;\ 0\right]
+\begin{bmatrix}
+0 &amp; 0 &amp; 1 &amp; 0\\
+0 &amp; 0 &amp; 0 &amp; 1\\
+1 &amp; 0 &amp; 0 &amp; 0\\
+0 &amp; 1 &amp; 0 &amp; 0
+\end{bmatrix}\\
+&amp;= \left(\sqrt{E+k_3}\;\quad 0\;\quad \sqrt{E-k_3}\;\quad 0\right)
+\end{aligned}
+\]
+
+\[
+\begin{aligned}
+\overline{u}^{(2)}(k) = u^{\dagger(2)}(k)\,\gamma^{0} = u^{T(2)}(k)\,\gamma^{0}
+&amp;= \left(0\;\ \sqrt{E+k_3}\;\ 0\;\ \sqrt{E-k_3}\right)
+\begin{bmatrix}
+0 &amp; 0 &amp; 1 &amp; 0\\
+0 &amp; 0 &amp; 0 &amp; 1\\
+1 &amp; 0 &amp; 0 &amp; 0\\
+0 &amp; 1 &amp; 0 &amp; 0
+\end{bmatrix}\\
+&amp;= \left(0\;\quad \sqrt{E-k_3}\;\quad 0\;\quad \sqrt{E+k_3}\right)
+\end{aligned}
+\]
+
+<p>
+<span id="Lecture 10-Note that,"></span><strong id="Note that,">Note that,</strong><br />
+</p>
+<ol>
+<li>
+Just swap the nonzero numbers to get the \(\overline{u}\) from \(u\)
+
+</ol>
+<p>
+2)<br />
+</p>
+
+\[
+{\overline{u}^{(r)}_{\vec{k}}\; u^{(s)}_{\vec{k}} = 2m\,\delta^{rs}}
+\;\Rightarrow\; 2\sqrt{\left(E^{2}-k^{2}\right)}\;\delta^{rs}
+\qquad
+\Rightarrow\;\overline{u}^{(1)}\,u^{(2)} = 2m\,\delta^{12} = 0
+\]
+
+\[
+{\left(r, s = 1, 2\right)}
+\]
+
+<p>
+*Antiparticle sol\(^{\text{n}}\)* ---<br />
+We can get antiparticle solution from complex conjugate of dirac eq\(^{\text{n}}\).<br />
+</p>
+
+\[
+\begin{gathered}
+\left(i\not{\partial} + m\right)\Psi = 0
+\qquad\qquad
+\Psi = V(k)\,e^{-ik\cdot x}\\
+\left(i\,\gamma^{\mu}\partial_{\mu} + m\right) V(k)\, e^{-ik\cdot x} = 0\\
+\Rightarrow\qquad \left(\gamma^{\mu}k_{\mu} + m\right) V(k) = 0\\
+\hookrightarrow\;\text{eigen value eq}^{\text{n}}\text{ gives again two eigen vectors}
+\end{gathered}
+\]
+
+\[
+V^{(1)}(k)\ \&amp;\ V^{(2)}(k) \;\longrightarrow\; \text{free antiparticle sol}^{\text{n}}.
+\]
+
+<p>
+We can find \(V^{(r)}(k)\) &amp; \(\overline{V}^{(r)}(k)\), they will satisfy<br />
+</p>
+
+\[
+\overline{V}^{r}(k)\; V^{(s)}(k) = -2m\,\delta^{rs}
+\quad\Rightarrow\quad \overline{V}^{(1)}\,V^{(2)} = -2m\,\delta^{12} = 0
+\]
+
+<p>
+To summarize we found 4 free particle solution, (particle spin up, particle spin down, antiparticle spin up, antiparticle spin down)<br />
+</p>
+
+<p>
+Identity ---<br />
+</p>
+
+\[
+\begin{aligned}
+{\sum_{s=1}^{2}\; u^{s}_{a}\,\overline{u}^{s}_{b}} \;&amp;{=\; \left(\not{k}+m\right)_{ab}}\\
+{\sum_{s=1}^{2}\; V^{s}_{a}\,\overline{V}^{s}_{b}} \;&amp;{=\; \left(\not{k}-m\right)_{ab}}
+\end{aligned}
+\]
+
+<p>
+<span id="Lecture 10-Mode Expansion"></span><strong id="Mode Expansion">Mode Expansion</strong> ---<br />
+</p>
+
+\[
+\begin{aligned}
+\Psi_{a}(x) &amp;= \int\!\frac{d^{3}k}{\left(2\pi\right)^{3}}\;\frac{1}{\sqrt{2\omega_{k}}}\;\sum_{s=1}^{2}\Big[\,a^{(s)}_{\vec{k}}\; u^{(s)}_{(k)}\, e^{-ik\cdot x} + b^{\dagger}_{\vec{k}}\; V^{(s)}_{(k)}\, e^{ik\cdot x}\,\Big]\\
+&amp;\qquad\qquad{\hookrightarrow\;\text{creates antiparticle.}}\qquad{\nearrow\;\text{Annihilates particle}}\quad
+\begin{aligned}
+&amp;\text{Both charges}\\
+&amp;\text{charge by same amount;}
+\end{aligned}\\
+\overline{\Psi}_{a}(x) &amp;= \int\!\frac{d^{3}k'}{\left(2\pi\right)^{3}}\;\frac{1}{\sqrt{2\omega_{k'}}}\;\sum_{s=1}^{2}\left(a^{\dagger}_{\vec{k}'}\;\overline{u}^{(s)}_{k'}\, e^{ik\cdot x} + b_{\vec{k}'}\,\overline{V}^{(s)}(k)\, e^{-ik\cdot x}\right)
+\end{aligned}
+\]
+
+<p>
+\(u\) --- spin of particle; \(v\) --- '' '' Antiparticle<br />
+To quantise, we impose anti-commutation relation.<br />
+</p>
+
+\[
+\left\{\Psi_{a}\left(t,\vec{x}\right),\ \Pi_{b}\left(t,\vec{y}\right)\right\} = i\,\delta^{3}\left(\vec{x}-\vec{y}\right)
+\qquad;\quad
+\Pi_{a} = \frac{\partial\mathcal{L}}{\partial\dot{\Psi}_{a}} = \overline{\Psi}\left(i\gamma^{0}\right) = i\,\Psi^{\dagger}\left(\gamma^{0}\right)^{2} = i\,\Psi^{\dagger}
+\]
+
+<p>
+and<br />
+</p>
+
+\[
+\left\{\Psi_{a}\left(t,\vec{x}\right),\ \Psi^{\dagger}_{b}\left(t,\vec{y}\right)\right\} = \delta^{3}\left(\vec{x}-\vec{y}\right)\,\delta_{ab}
+\]
+
+<p>
+if we impose this, we find.<br />
+</p>
+
+\[
+\left\{a^{(s)}_{\vec{k}},\ a^{\dagger(s')}_{\vec{k}'}\right\} = \delta^{ss'}\left(2\pi\right)^{3}\,\delta^{3}\left(\vec{k}-\vec{k}'\right) = \left\{b^{s}_{\vec{k}},\ b^{s'}_{\vec{k}'}\right\}
+\]
+
+\[
+\begin{aligned}
+\Rightarrow\qquad \left\{a, a\right\} &amp;= \left\{b, b\right\} = \left\{a^{\dagger}, a^{\dagger}\right\} = \left\{b^{\dagger}, b^{\dagger}\right\}\\
+&amp;= \left\{a, b\right\} = \left\{a^{\dagger}, b\right\} = \left\{a, b^{\dagger}\right\} = 0
+\end{aligned}
+\]
+
+<p>
+<span id="Lecture 10-Hamiltonian"></span><strong id="Hamiltonian">Hamiltonian</strong> ---<br />
+</p>
+
+\[
+\begin{aligned}
+H &amp;= \int\! d^{3}x\,\left(\Pi_{a}\,\dot{\Psi}_{a} - \mathcal{L}\right)
+\qquad\qquad \mathcal{L} = \overline{\Psi}\left(i\not{\partial} - m\right)\Psi\\
+&amp;= \int\! d^{3}x\left(i\,\Psi^{\dagger}_{a}\,\dot{\Psi}_{a} - i\,\overline{\Psi}\,\gamma^{\mu}\,\partial_{\mu}\Psi + m\,\overline{\Psi}\Psi\right)\\
+{\boxed{Is $\gamma^{0} = I$ ?}}\quad
+&amp;= \int\! d^{3}x\left(i\,\Psi^{\dagger}_{a}\dot{\Psi}_{a} - \cancel{i\,\overline{\Psi}_{a}\,\gamma^{0}\left(\partial_{0}\Psi\right)} - i\,\overline{\Psi}_{a}\,\gamma^{i}\partial_{i}\Psi + m\,\overline{\Psi}\Psi\right)\\
+H &amp;= \int\! d^{3}x\,\left(-i\,\overline{\Psi}_{a}\,\gamma^{i}\partial_{i}\Psi + m\,\overline{\Psi}\Psi\right)
+\qquad
+\left\{
+\begin{aligned}
+&amp;\text{using } \partial_{0}\Psi = \dot{\Psi}\\
+&amp;\&amp;\ \left(\gamma^{0}\right)^{2} = +I
+\end{aligned}
+\right.
+\end{aligned}
+\]
+
+<p>
+Can't as '\(I\)' commutes with all operators/matrices. But we need \(\gamma^{0}\) such that it satisfies clifford algebra \(\left\{\gamma^{0}, \gamma^{i}\right\} = 2\eta^{0i} = 0\) <span id="Lecture 10-must anti-commute"></span><strong id="must anti-commute">must anti-commute</strong><br />
+</p>
+
+\[
+= \int\!\frac{d^{3}k}{\left(2\pi\right)^{3}}\;\omega_{k}\,\sum_{s=1}^{2}\left(a^{\dagger(s)}_{k}\, a^{(s)}_{k} \;+\; b^{\dagger(s)}_{k}\, b^{(s)}_{k}\right) \;-\; {\underbrace{\sum^{\infty}_{k=0}\text{const.}}_{\nearrow\,\infty}}
+\]
+
+<p>
+\(\downarrow\) fermionic creation operators<br />
+</p>
+
+<p>
+<span id="Lecture 10-Normalisation"></span><strong id="Normalisation">Normalisation</strong>:<br />
+</p>
+
+\[
+\left|\vec{k}, s\right\rangle = \sqrt{2\omega_{k}}\;\; a^{\dagger(s)}_{k}\left|0\right\rangle
+\]
+
+<p>
+\(\uparrow\) one particle state with spin \(s\) &amp; momentum \(\vec{k}\) (here, \(s\) means \(m_s\)).<br />
+\(\left\langle k', r\right| = \sqrt{2\omega_{k'}}\;\left\langle 0\right| a^{(r)}_{k'}\)<br />
+</p>
+
+\[
+\begin{aligned}
+\left\langle \vec{k}', r \,\middle|\, \vec{k}, s\right\rangle
+&amp;= \sqrt{2\omega_{\vec{k}}}\,\sqrt{2\omega_{\vec{k}'}}\;\left\langle 0\middle|\, a^{(r)}_{k'}\, a^{\dagger(s)}_{k}\,\middle|0\right\rangle\\
+&amp;= 2\sqrt{\omega_{k}\omega_{k'}}\;\left\langle 0\middle|\left\{a^{(r)}_{k'},\, a^{\dagger(s)}_{k}\right\} - a^{\dagger(s)}_{k}\, a^{(r)}_{k'}\,\middle|0\right\rangle\\
+&amp;= 2\sqrt{\omega_{k}\omega_{k'}}\;\left(2\pi\right)^{3}\delta^{rs}\,\delta^{3}\left(k'-k\right) \;-\; 0\\
+&amp;= 2\sqrt{\omega_{k}\omega_{k'}}\,\left(2\pi\right)^{3}\,\delta^{3}\left(\vec{k}'-\vec{k}\right)\,\delta^{rs}
+\end{aligned}
+\]
+
+<p>
+<span id="Lecture 10-Dirac propagator"></span><strong id="Dirac propagator">Dirac propagator</strong> ---<br />
+</p>
+
+\[
+\begin{aligned}
+T\left(\Psi(x)\,\overline{\Psi}(y)\right) &amp;= \Psi(x)\,\overline{\Psi}(y) \qquad\text{if}\quad x^{0} &gt; y^{0}\\
+&amp;= -\,\overline{\Psi}(y)\,\Psi(x) \qquad\text{if}\quad y^{0} &gt; x
+\end{aligned}
+\]
+
+<p>
+as \(\Psi(x)\) &amp; \(\overline{\Psi}(y)\) are valued in Grassmann numbers.<br />
+We would like to find<br />
+</p>
+
+\[
+\left\langle 0\middle|\, T\left(\Psi_{a}(x)\,\overline{\Psi}_{b}(y)\right)\middle|0\right\rangle \;=\; ?
+\]
+
+<p>
+Just like scalar field :<br />
+</p>
+
+\[
+\left\langle 0\middle|\, T\left(\phi(x)\,\phi(y)\right)\middle|0\right\rangle = D_{F}(x-y)
+\]
+
+<p>
+\(D_F(x-y)\) is Greens fun. for operator \(\left(-\left(\partial^{2}+m^{2}\right)\right)\).<br />
+</p>
+
+\[
+-\left(\partial^{2} + m^{2}\right) D_{F}(x-y) = i\,\delta^{4}(x-y)
+\]
+
+<p>
+Similarly, \(\Rightarrow\)<br />
+</p>
+
+\[
+\begin{gathered}
+\left(i\not{\partial} - m\right)\hat{S}_{F}(x-y) = i\,\delta^{4}(x-y)\\
+\left(i\not{\partial} + m\right)\left(i\not{\partial} - m\right) S_{F}(x-y) = i\left(i\not{\partial} + m\right) i\,\delta^{4}(x-y)\\
+\underbrace{\left(-\gamma^{\mu}\partial_{\mu}\,\gamma^{\nu}\partial_{\nu} - m^{2}\right)}_{\Downarrow\; -\left(\partial^{2}+m^{2}\right)\;{\underline{\text{How?}}}} S_{F}(x-y) = \underline{i\left(i\not{\partial} + m\right)\delta^{4}(x-y)}
+\qquad
+\begin{aligned}
+&amp;= -\left(i\not{\partial} + m\right)\\
+&amp;\left(\partial^{2}+m^{2}\right) D_{F}(x-y)
+\end{aligned}
+\end{gathered}
+\]
+
+\[
+\begin{gathered}
+\Rightarrow\qquad -\left(\partial^{2}+m^{2}\right) S_{F}(x-y) = -\left(i\not{\partial} + m\right)\left(\partial^{2}+m^{2}\right) D_{F}(x-y)\\
+\boxed{\;S_{F}(x-y) \;=\; \left(i\not{\partial} + m\right) D_{F}(x-y)\;}
+\end{gathered}
+\]
+
+<p>
+We have solved fermion propagator in terms of scalar propagator.<br />
+</p>
+
+\[
+\begin{aligned}
+S_{F}(x-y) &amp;= \left(i\not{\partial} + m\right) D_{F}(x-y)\\
+&amp;= \lim_{\epsilon\to0}\;\left(i\not{\partial} + m\right)\int\!\frac{d^{4}k}{\left(2\pi\right)^{4}}\;\frac{i\,e^{-ik\cdot(x-y)}}{k^{2}-m^{2}+i\epsilon}\\
+&amp;= \lim_{\epsilon\to0}\;\int\!\frac{d^{4}k}{\left(2\pi\right)^{4}}\;\frac{i\left(i(-i)\,\gamma^{\mu}k_{\mu}+m\right)e^{-ik\cdot(x-y)}}{\left(k^{2}-m^{2}+i\epsilon\right)}
+\end{aligned}
+\]
+
+\[
+\boxed{\displaystyle
+S_{F}(x-y) \;=\; \lim_{\epsilon\to0}\;\int\!\frac{d^{4}k}{\left(2\pi\right)^{4}}\;
+\boxed{\dfrac{i\left(\not{k}+m\right)}{\left(k^{2}-m^{2}+i\epsilon\right)}}\,
+e^{-ik\cdot(x-y)}}
+\qquad
+\longleftarrow\;
+\begin{aligned}
+&amp;\text{position space}\\
+&amp;\text{rep of } S_F(x-y)
+\end{aligned}
+\]
+
+\[
+{\downarrow\;\text{momentum space rep}^{\text{n}}\text{ of } S_F(x-y)}
+\]
+
+\[
+S_{F}(k) = \frac{i\left(\not{k}+m\right)}{k^{2}-m^{2}}
+= \frac{i\left(\not{k}+m\right)}{\left(\not{k}-m\right)\left(\not{k}+m\right)}
+= \frac{i}{\not{k}-m}
+\]
+
+<p>
+———<br />
+</p>
+
+<p>
+We have done every thing in detail so far. From here we have to change gears &amp; things will become sketchy.<br />
+What does \(\left\langle \Omega\middle|\, T\left(\varphi(x_1)\,\varphi(x_2)\cdots\varphi(x_n)\right)\middle|\Omega\right\rangle\) has to do with measurable quantities?<br />
+*\(S\)- matrix* - It is not a matrix but function of incoming and outgoing momenta.<br />
+</p>
+
+\[
+\text{i.e.}\qquad
+S_{\left(\vec{k}_1\vec{k}_2\cdots\vec{k}_n \,\middle|\, \vec{p}_1\,\vec{p}_2\right)}
+= \underset{\text{out}}{\left\langle \vec{k}_1\,\vec{k}_2\cdots\vec{k}_n \right|}\left|\vec{p}_1\,\vec{p}_2\right\rangle_{\text{in}}
+\qquad
+\begin{aligned}
+&amp;\text{}\to\text{ state at }t = -\infty\text{}\\
+&amp;\text{Interacting states}\;\swarrow
+\end{aligned}
+\]
+
+\[
+= \left\langle f \middle| i\right\rangle
+\qquad
+{\hookrightarrow\;\text{state at } t = +\infty.}
+\]
+
+<p>
+\(\downarrow\) Probability amplitude for \(\left\langle f\middle|i\right\rangle\)<br />
+Assume we have state \(\left|\vec{p}_1\,\vec{p}_2\right\rangle_{\text{in}}\) of interacting theory at \(t=-\infty\).<br />
+</p>
+
+\[
+\left(\text{For free theory}\quad \left|\vec{p}_1\,\vec{p}_2\right\rangle_{0} = a^{\dagger}_{p_1}\,a^{\dagger}_{p_2}\left|0\right\rangle\right).
+\]
+
+<p>
+We can produce \(\left|\vec{p}_1\,\vec{p}_2\right\rangle_{\text{in}}\) from \(\left(\vec{p}_1\,\vec{p}_2\right)_{0}\) if we assume that particles are so far apart that they don't interact in far past. (Assumption not valid in CFT, so CFT does not have S-matrix)<br />
+</p>
+
+\[
+\begin{gathered}
+\left|\vec{p}_1\,\vec{p}_2\right\rangle_{\text{in}} = \lim_{T\to\infty(1-i\epsilon)} e^{-iHT}\left|\vec{p}_1\,\vec{p}_2\right\rangle_{0}\\
+\underset{\text{out}}{\left\langle\vec{k}_1\,\vec{k}_2\cdots\vec{k}_n\right|} = \lim_{T\to\infty(1-i\epsilon)}\;\left\langle\vec{k}_1\,\vec{k}_2\cdots\vec{k}_n\right| e^{-iHT}
+\end{gathered}
+\]
+
+\[
+\boxed{\displaystyle
+S_{\left(\vec{k}_1\vec{k}_2\cdots\vec{k}_n\middle|\vec{p}_1\vec{p}_2\right)}
+= \underset{0}{\left\langle\vec{k}_1\,\vec{k}_2\cdots\vec{k}_n\right|}\,
+T\left(e^{-i\int_{-T}^{T} H_{I}(t')\,dt'}\right)
+\left|\vec{p}_1\,\vec{p}_2\right\rangle_{0}}
+\]
+
+<p>
+We have not devided by \(\left\langle k_1 k_2\cdots k_n\middle|\vec{p}_1\vec{p}_2\right\rangle_{0}\); instead we will drop disconnected diagrams.<br />
+We can apply same feynman diagrams but here we have two particle state \(\left|\vec{p}_1, \vec{p}_2\right\rangle_{0}\), in place of \(\left|0\right\rangle\) (i.e. free vacuum)<br />
+</p>
+
+\[
+\begin{gathered}
+\text{But}\quad \left|\vec{p}_1, \vec{p}_2\right\rangle_{0} = N\; a^{\dagger}_{p_1}\, a^{\dagger}_{p_2}\left|0\right\rangle
+\qquad\downarrow\;\text{Normalization}\\
+= \sqrt{2\omega_{p_1}}\,\sqrt{2\omega_{p_2}}\;\, a^{\dagger}_{p_1}\, a^{\dagger}_{p_2}\left|0\right\rangle
+\end{gathered}
+\]
+
+<p>
+<span id="Lecture 10-For lowest order"></span><strong id="For lowest order">For lowest order</strong> : (For 2 particles in final state).<br />
+</p>
+
+\[
+\begin{aligned}
+S_{\left(\vec{k}_1\vec{k}_2, \left(\vec{p}_1\vec{p}_2\right)\right)}
+&amp;= \underset{0}{\left\langle\vec{k}_1\,\vec{k}_2\middle|\vec{p}_1\,\vec{p}_2\right\rangle}\\
+&amp;= \sqrt{2\omega_{p_1}\,2\omega_{p_2}\,2\omega_{k_1}\,2\omega_{k_2}}\;\left\langle 0\middle|\,a_{k_1}\,a_{k_2}\,a^{\dagger}_{p_1}\,a^{\dagger}_{p_2}\,\middle|0\right\rangle\\
+&amp;= \sqrt{2\omega_{p_1}\,2\omega_{p_2}\,2\omega_{k_1}\,2\omega_{k_2}}\;\left\langle 0\middle|\,\underline{a_{k_1}\,a^{\dagger}_{p_1}}\;\underline{a_{k_2}\,a^{\dagger}_{p_2}}\,\middle|0\right\rangle\\
+&amp;= \left(2\pi\right)^{3}\left(2\pi\right)^{3}\sqrt{2\omega_{p_1}\,2\omega_{p_2}\,2\omega_{k_1}\,2\omega_{k_2}}\\
+&amp;\qquad\left(\delta^{3}\!\left(\vec{p}_1-\vec{k}_1\right)\delta^{3}\!\left(\vec{p}_2-\vec{k}_2\right) + \delta^{3}\!\left(\vec{p}_1-\vec{k}_2\right)\delta^{3}\!\left(\vec{p}_2-\vec{k}_1\right)\right)
+\end{aligned}
+\]
+
+<pre class="tikz">
+\begin{tikzpicture}[scale=0.9]
+\draw[thick] (0,1.2) -- (3,1.2) node[right]{$p_1$};
+\draw[thick,-&gt;] (1.7,1.2) -- (1.4,1.2);
+\node[left] at (0,1.2) {$k_1$};
+\draw[thick] (0,0.3) -- (3,0.3) node[right]{$p_2$};
+\draw[thick,-&gt;] (1.7,0.3) -- (1.4,0.3);
+\node[left] at (0,0.3) {$k_2$};
+\draw[very thick,&lt;-,color=teal] (0.6,-0.5) -- (2.4,-0.5);
+\node[below] at (1.5,-0.55) {$t$};
+\node at (4,0.75) {$+$};
+\begin{scope}[shift={(5,0)}]
+\draw[thick] (0,1.2) node[left]{$k_1$} -- (3,0.3) node[right]{$p_1$};
+\draw[thick] (0,0.3) node[left]{$k_2$} -- (3,1.2) node[right]{$p_1$};
+\draw[very thick,&lt;-,color=teal] (0.6,-0.5) -- (2.4,-0.5);
+\node[below] at (1.5,-0.55) {$t$};
+\end{scope}
+\end{tikzpicture}
+</pre>
+
+<p>
+\(\underbrace{\hspace{9cm}}_{\displaystyle \to\, I \;\equiv\; \text{No scattering}}\)<br />
+</p>
+
+\[
+S = I + i\,T
+\qquad
+\hookrightarrow\;\text{scattering (everything else)}
+\]
+
+<p>
+<span id="Lecture 10-(For First order)"></span><strong id="(For First order)">(For First order)</strong><br />
+</p>
+
+\[
+\begin{gathered}
+S_{\left(\vec{k}_1\vec{k}_2\middle|\vec{p}_1\vec{p}_2\right)}
+= \underset{0}{\left\langle\vec{k}_1\,\vec{k}_2\right|}\, -i\!\int_{-T}^{T}\! H_{I}(t')\,dt'\;\left|\vec{p}_1\,\vec{p}_2\right\rangle\\
+\text{For}\qquad H_{I}(t') = \lambda\,\frac{\varphi^{4}(t')}{4!}\\
+= \underset{0}{\left\langle\vec{k}_1\,\vec{k}_2\right|}\, T\!\left(-\frac{i\lambda}{4!}\int_{-T}^{T}\! d^{4}x'\;\varphi^{4}(x')\right)\left|\vec{p}_1\,\vec{p}_2\right\rangle_{0}
+\end{gathered}
+\]
+
+<p>
+using<br />
+</p>
+
+\[
+T\left(\varphi^{4}(y)\right) = \;:\!\varphi^{4}(y)\!:\; + \;4_{c_2}:\!\varphi^{2}(y)\!:\, D_{F}(y-y) \;+\; 3\,D_{F}^{2}(y-y)
+\]
+
+\[
+\left\langle 0\middle|:\!\varphi^{4}(y)\!:\middle|0\right\rangle = 0
+\qquad\text{but here we have}
+\]
+
+\[
+\underset{0}{\left\langle\vec{k}_1\,\vec{k}_2\right|}:\!\varphi^{4}(y)\!:\left|\vec{p}_1\,\vec{p}_2\right\rangle \;\neq\; 0.
+\qquad\left(\text{we can't apply wicks theorem}\right)
+\]
+
+<p>
+In fact we can check if \(\underset{0}{\left\langle\vec{k}\,\vec{k}_2\middle|\,\varphi^{4}\,\middle|\vec{p}_1\vec{p}_2\right\rangle}\) survives.<br />
+it seems that only term which contributes is the term which destroys 2 particles &amp; creates 2 particles. So in, \(\varphi^{4} = \left(\varphi^{+} + \varphi^{-}\right)^{4}\)<br />
+we have<br />
+</p>
+
+\[
+\underset{0}{\left\langle\vec{k}_1\,\vec{k}_2\right|}\left(\varphi^{-} + \varphi^{+}\right)^{4}\left|\vec{p}_1\,\vec{p}_2\right\rangle
+= 4_{c_2}\underset{0}{\left\langle\vec{k}_1\,\vec{k}_2\right|}\,\varphi_{-}^{2}\,\varphi_{+}^{2}\left|\vec{p}_1\,\vec{p}_2\right\rangle_{0} + 0 + 0\;\cdots
+\]
+
+\[
+\begin{aligned}
+\varphi_{+}\ \text{destroys a particle} &amp;= a_{k}\,e^{-ik\cdot x}\\
+\varphi_{-}\ \text{creates a particle} &amp;= a^{\dagger}_{k}\,e^{ik\cdot x}
+\end{aligned}
+\]
+
+\[
+\begin{aligned}
+&amp;= 6\cdot\underset{0}{\left\langle\vec{k}_1\vec{k}_2\right|}\,\varphi_{-}^{2}\;\varphi_{+}^{2}\left|\vec{p}_1\,\vec{p}_2\right\rangle_{0}\\
+&amp;= 6\int\!\frac{d^{3}k}{\left(2\pi\right)^{3}}\,\frac{1}{2\omega_{k}}\int\!\frac{d^{3}k'}{\left(2\pi\right)^{3}}\,\frac{1}{2\omega_{k'}}\;
+\left\langle 0\middle|\, a^{\dagger}_{k_1}\, a^{\dagger}_{k_2}\left(a_{k}\right)^{2}\left(a^{\dagger}_{k'}\right)^{2} a^{\dagger}_{p_1} a^{\dagger}_{p_2}\middle|0\right\rangle
+\end{aligned}
+\]
+
+<div id="Lecture 11"><h2 id="Lecture 11" class="header"><a href="#Lecture 11">Lecture 11</a></h2></div>
+
+<p>
+We saw that \(S\) matrix represents amplitude for set of particles in far past to evolve as set of some particles in far future via interactions.<br />
+There will always be a part in \(S\) which means particle travel freely from past to future. (I)<br />
+</p>
+
+\[
+S = I + i\,T_{\left(\vec{k}_1\vec{k}_2\cdots\vec{k}_n\middle|\vec{p}_1\vec{p}_2\right)}
+\]
+
+<p>
+where,<br />
+</p>
+
+\[
+T = \left(2\pi\right)^{4}\,\delta^{4}\!\left(\Sigma P\right)\left(i\mathcal{M}\right)
+\]
+
+<p>
+We are majorly interested in \((i\mathcal{M})\).<br />
+For \(\varphi^{4}\) scalar theory:<br />
+</p>
+
+\[
+i\mathcal{M} \;=\;
+\text{[diagram below]}
+\;=\; -i\lambda
+\qquad
+\begin{aligned}
+&amp;\text{No propagator for external}\\
+&amp;\text{legs in } (P\text{-space})\\
+&amp;\left(P_i^{2} = m^{2}\right)
+\end{aligned}
+\]
+
+<pre class="tikz">
+\begin{tikzpicture}[baseline={(0,-0.1)},scale=0.7]
+\draw[thick] (-1,0.8) node[above left]{$k_1$} -- (1,-0.8) node[below right]{$p_2$};
+\draw[thick] (-1,-0.8) node[below left]{$k_2$} -- (1,0.8) node[above right]{$p_1$};
+\draw[thick,-&gt;] (-0.75,0.6) -- (-0.45,0.36);
+\draw[thick,-&gt;] (-0.75,-0.6) -- (-0.45,-0.36);
+\draw[thick,-&gt;] (0.45,0.36) -- (0.75,0.6);
+\draw[thick,-&gt;] (0.45,-0.36) -- (0.75,-0.6);
+\draw[thick,-&gt;] (0.5,-1.3) -- (-0.5,-1.3);
+\node[below] at (0,-1.35) {$t$};
+\end{tikzpicture}
+</pre>
+
+<p>
+Feynman diagram calculation is different for correlation functions and for scattering matrix element (For momentum space).<br />
+</p>
+
+<table>
+<tr>
+<td>
+<span id="Lecture 11-Correlation functions"></span><strong id="Correlation functions">Correlation functions</strong>
+</td>
+<td>
+*\(S\)-matrix elements*
+</td>
+</tr>
+<tr>
+<td>
+---
+</td>
+<td>
+---
+</td>
+</tr>
+<tr>
+<td>
+1) off-shell
+</td>
+<td>
+on-shell
+</td>
+</tr>
+<tr>
+<td>
+2) external propagators
+</td>
+<td>
+No ext. propagators
+</td>
+</tr>
+<tr>
+<td>
+3) (''Building blocks'')
+</td>
+<td>
+(physical observables).
+</td>
+</tr>
+<tr>
+<td>
+4) Gauge dependent
+</td>
+<td>
+Gauge independent.
+</td>
+</tr>
+<tr>
+<td>
+&nbsp;
+</td>
+<td>
+(Gauge invariant).
+</td>
+</tr>
+</table>
+
+\[
+i\mathcal{M} \;=\;
+\text{[diagram below]}
+\;+\;
+\text{[diagram below]}
+\;+\;
+\text{[diagram below]}
+\;+\;
+\text{[diagram below]}
+\]
+
+<pre class="tikz">
+\begin{tikzpicture}[baseline={(0,-0.1)},scale=0.55]
+\draw[thick] (-1,0.9) node[above left]{$k_1$} -- (1,-0.9) node[below right]{$p_2$};
+\draw[thick] (-1,-0.9) node[below left]{$k_2$} -- (1,0.9) node[above right]{$p_1$};
+\end{tikzpicture}
+</pre>
+
+<pre class="tikz">
+\begin{tikzpicture}[baseline={(0,-0.1)},scale=0.55]
+\draw[thick] (-2,0.9) node[above left]{$k_1$} -- (-1,0);
+\draw[thick] (-2,-0.9) node[below left]{$k_2$} -- (-1,0);
+\draw[thick] (-1,0) to[bend left=60] node[above]{$k$} (1,0);
+\draw[thick] (-1,0) to[bend right=60] node[below]{$p_1+p_2-k$} (1,0);
+\draw[thick] (1,0) -- (2,0.9) node[above right]{$p_1$};
+\draw[thick] (1,0) -- (2,-0.9) node[below right]{$p_2$};
+\end{tikzpicture}
+</pre>
+
+<pre class="tikz">
+\begin{tikzpicture}[baseline={(0,-0.1)},scale=0.55]
+\draw[thick] (-1,1.4) node[above left]{$k_1$} -- (0,0.7);
+\draw[thick] (0.8,1.4) node[above right]{$p_1$} -- (0,0.7);
+\draw[thick] (0,0.7) to[bend left=70] (0,-0.7);
+\draw[thick] (0,0.7) to[bend right=70] (0,-0.7);
+\draw[thick] (0,-0.7) -- (-1,-1.4) node[below left]{$k_2$};
+\draw[thick] (0,-0.7) -- (0.8,-1.4) node[below right]{$p_2$};
+\end{tikzpicture}
+</pre>
+
+<pre class="tikz">
+\begin{tikzpicture}[baseline={(0,-0.1)},scale=0.55]
+\draw[thick] (-1,0.9) node[above left]{$k_1$} -- (1,-0.9) node[below right]{$p_2$};
+\draw[thick] (-1,-0.9) node[below left]{$k_2$} -- (1,0.9) node[above right]{$p_1$};
+\draw[thick] (0,0) circle (0.42);
+\end{tikzpicture}
+</pre>
+
+\[
+= \;-i\lambda \;+\; \left(\frac{-i\lambda}{4!}\right)^{2}\int\!\frac{d^{4}k}{\left(2\pi\right)^{4}}\;\frac{i\,e^{ik\cdot(x-y)}}{k^{2}-m^{2}} \;+\;\cdots
+\]
+
+<p>
+<span id="Lecture 11-Quantum Electrodynamics"></span><strong id="Quantum Electrodynamics">Quantum Electrodynamics</strong> :- Fermions \(+\) photons.<br />
+</p>
+
+\[
+\begin{gathered}
+\mathcal{L} = \overline{\Psi}(x)\left(i\not{D} - m\right)\Psi(x) \;-\; \frac{1}{4}\,F_{\mu\nu}(x)\,F^{\mu\nu}(x)\\
+F_{\mu\nu}(x) = \partial_{\mu}A_{\nu}(x) - \partial_{\nu}A_{\mu}(x)\\
+\not{D} = \gamma^{\mu}\,D_{\mu} = \gamma^{\mu}\left(\partial_{\mu} - ie\,A_{\mu}(x)\right)
+\end{gathered}
+\]
+
+<p>
+<span id="Lecture 11-Digression"></span><strong id="Digression">Digression</strong>:<br />
+Dirac \(\mathcal{L} = \overline{\Psi}(x)\left(i\not{\partial}-m\right)\Psi(x)\) is invariant under global phase transformation.<br />
+</p>
+
+\[
+\begin{gathered}
+\Psi(x) \to \Psi'(x) = e^{i\alpha}\,\Psi(x)\qquad
+\overline{\Psi}(x) \to \overline{\Psi}'(x) = \overline{\Psi}(x)\,e^{-i\alpha}\\
+\mathcal{L}' = \overline{\Psi}'(x)\left(i\not{\partial}-m\right)\Psi'(x)
+= \overline{\Psi}(x)\,e^{-i\alpha}\left(i\not{\partial}-m\right)e^{i\alpha}\,\Psi(x)
+= \overline{\Psi}(x)\,\cancel{e^{0}}\left(i\not{\partial}-m\right)\Psi(x) = \mathcal{L}
+\end{gathered}
+\]
+
+<p>
+If we impose the local gauge invariance<br />
+</p>
+
+\[
+\begin{gathered}
+\Psi(x) \to \Psi'(x) = e^{i\alpha(x)}\,\Psi(x)\qquad
+\overline{\Psi}(x) \to \overline{\Psi}'(x) = \overline{\Psi}(x)\,e^{-i\alpha(x)}
+\end{gathered}
+\]
+
+\[
+\begin{aligned}
+\mathcal{L}' &amp;= \overline{\Psi}'(x)\left(i\,\gamma^{\mu}\partial_{\mu} - m\right)\Psi(x)'\\
+&amp;= \overline{\Psi}(x)\,e^{-i\alpha(x)}\left(i\,\gamma^{\mu}\partial_{\mu} - m\right)e^{i\alpha(x)}\,\Psi(x)\\
+&amp;= \overline{\Psi}(x)\,e^{-i\alpha(x)}\left(i\,\gamma^{\mu}\,\partial_{\mu}\left(e^{i\alpha(x)}\Psi(x)\right)\right) - m\,\overline{\Psi}(x)\,\Psi(x)\\
+&amp;= \overline{\Psi}(x)\,e^{-i\alpha(x)}\left(i\,\gamma^{\mu}\,e^{i\alpha(x)}\left(\Psi(x)\left(i\,\partial_{\mu}\alpha(x)\right) + \partial_{\mu}\Psi(x)\right)\right) - m\,\overline{\Psi}(x)\,\Psi(x)\\
+&amp;= \overline{\Psi}(x)\left(i\left(\gamma^{\mu}\partial_{\mu} - m\right)\right)\Psi(x) \;-\; \overline{\Psi}(x)\,\gamma^{\mu}\,\Psi(x)\,\partial_{\mu}\alpha(x)\\
+&amp;= \mathcal{L} - \overline{\Psi}(x)\,\gamma^{\mu}\left(\partial_{\mu}\alpha(x)\right)\Psi(x)
+\end{aligned}
+\]
+
+<p>
+So, we look for \(\mathcal{L}\) which is gauge invariant (local); we require some \(\mathcal{L}_{\text{kinetic}} = \overline{\Psi}(x)\,i\,\gamma^{\mu} D_{\mu}\Psi(x)\)<br />
+such that under gauge transformation.<br />
+</p>
+
+\[
+D_{\mu}\Psi(x) \;\longrightarrow\; e^{i\alpha(x)}\left(D_{\mu}\Psi(x)\right)
+\]
+
+<p>
+If gauge transformation is \(U(x) \in U(N)\) then;<br />
+</p>
+
+\[
+\begin{gathered}
+D_{\mu}\Psi(x) \;\longrightarrow\; D'_{\mu}\Psi'(x) = U(x)\left(D_{\mu}\Psi(x)\right)\\
+D'_{\mu}\,U(x)\,\Psi(x) = U(x)\,D_{\mu}\,\Psi(x)\\
+D'_{\mu}\,U(x) = U(x)\,D_{\mu}\\
+D'_{\mu} = U(x)\,D_{\mu}\,U^{-1}(x)
+\end{gathered}
+\]
+
+<p>
+If we look for \(D_{\mu} = \partial_{\mu} + i\,A_{\mu}(x)\)<br />
+</p>
+
+\[
+\begin{aligned}
+\cancel{\partial_{\mu}} + i\,A'_{\mu}(x) &amp;= U(x)\left(\partial_{\mu} + i\,A_{\mu}(x)\right)U^{-1}(x)\\
+&amp;= U(x)\,\partial_{\mu}\,U^{-1}(x) + \cancel{\partial_{\mu}} + i\,U(x)\,A_{\mu}(x)\,U^{-1}(x)
+\end{aligned}
+\]
+
+\[
+\begin{gathered}
+i\,A'_{\mu}(x) = U(x)\,\partial_{\mu}U^{-1}(x) + i\,U(x)\,A_{\mu}\,U^{-1}(x)\\
+\boxed{\,A'_{\mu}(x) = U(x)\,A_{\mu}\,U^{-1}(x) - i\,U(x)\,\partial_{\mu}U^{-1}(x)\,}\quad\text{---}(1)
+\end{gathered}
+\]
+
+<p>
+If we are looking for \(D_{\mu}\) of type \(D_{\mu} = \partial_{\mu} - ie\,A_{\mu}(x)\): we replace \(A_{\mu} \to -e A_{\mu}\) in eq\(^{\text{n}}\) (1)<br />
+</p>
+
+\[
+A'_{\mu}(x) = (-e)\,U(x)\,A_{\mu}\,U^{-1}(x) - i\,U(x)\,\partial_{\mu}U^{-1}(x)
+\]
+
+<p>
+<span id="Lecture 11-Feynman Rules"></span><strong id="Feynman Rules">Feynman Rules</strong> :<br />
+(1) Fermion propagator \(\left(S_F\right)\) :<br />
+</p>
+
+<pre class="tikz">
+\begin{tikzpicture}[baseline=-2pt]
+\draw[thick] (0,0) -- (1.6,0);
+\draw[thick,-&gt;] (0.65,0) -- (0.95,0);
+\node[above] at (0.8,0.05) {$k$};
+\end{tikzpicture}
+</pre>
+
+<p>
+\(\dfrac{i}{\not{k}-m} \;=\; \dfrac{i\left(\not{k}+m\right)}{k^{2}-m^{2}+i\varepsilon}\)<br />
+(1) \(\equiv\) charge &amp; momentum flow to right<br />
+</p>
+
+<pre class="tikz">
+\begin{tikzpicture}[baseline=-2pt]\draw (0,0)--(0.9,0);\draw[-&gt;] (0.35,0)--(0.6,0);\node[above] at (0.45,0){\tiny $k$};\end{tikzpicture}
+</pre>
+
+<p>
+(2) \(\equiv\) charge flow to left &amp; momentum flow to right.<br />
+</p>
+
+<pre class="tikz">
+\begin{tikzpicture}[baseline=-2pt]\draw (0,0.08)--(0.9,0.08);\draw[-&gt;] (0.55,0.08)--(0.3,0.08);\draw[-&gt;] (0.3,-0.1)--(0.55,-0.1);\node[below] at (0.45,-0.1){\tiny $k$};\end{tikzpicture}
+</pre>
+
+<p>
+in fact \(k\) can take any value; it just helps in writing momentum conservation. (momentum flow has no physical meaning; on the other hand charge flow has definite physical meaning).<br />
+</p>
+
+\[
+\begin{gathered}
+S_{F} = \left(i\not{\partial} + m\right) D_{F}\\
+S_{F}(x-y) = \left(i\not{\partial} + m\right)\int\! d^{4}k\;\frac{i}{k^{2}-m^{2}+i\varepsilon}\;e^{-ik\cdot(x-y)}\\
+= \int\! d^{4}k\;\frac{i\left(\not{k}+m\right)}{k^{2}-m^{2}+i\varepsilon}\;e^{-ik\cdot(x-y)}\\
+\widetilde{S}_{F}(k) = \frac{i\left(\not{k}+m\right)}{k^{2}-m^{2}+i\varepsilon} = \frac{i}{\not{k}-m}
+\end{gathered}
+\]
+
+<p>
+(2) Vector field propagator ---<br />
+</p>
+
+\[
+\text{[diagram below]}
+\;\equiv\; \frac{-i\,\eta_{\mu\nu}}{k^{2}+i\varepsilon}
+\qquad
+\begin{aligned}
+&amp;\downarrow\\
+&amp;\left(\begin{aligned}
+&amp;\text{No mass term for } A_{\mu}\text{, as } m A^{\mu}A_{\mu}\text{ is}\\
+&amp;\text{not gauge invariant}
+\end{aligned}\right)
+\end{aligned}
+\]
+
+<pre class="tikz">
+\begin{tikzpicture}[baseline=-2pt]
+\draw[thick] (0,0) -- (1.8,0);
+\end{tikzpicture}
+</pre>
+
+<p>
+(For vector field we chose a gauge; here we choose Feynman gauge) \(\partial_{\mu}A^{\mu} = 0\)<br />
+When we do \(S\)-matrix calculations; we will have external lines; external lines are particles which are prepared or detected with definite polarisation (fermions are particle with spin). So we need info of polarisation of \(\left|\text{in}\right\rangle\) and \(\left|\text{out}\right\rangle\) states.<br />
+There are external polarisation factors.<br />
+In our convention the time flows from right to left and '\(x\)' is boundary (external point).<br />
+</p>
+
+\[
+\begin{gathered}
+\Psi(x) = \sum_{s}\int\!\frac{d^{3}p}{\left(2\pi\right)^{3}}\,\frac{1}{\sqrt{2\omega_{p}}}\left(a^{s}_{p}\,u^{s}_{p}\,e^{-ip\cdot x} + b^{s\dagger}_{p}\,v^{s}_{p}\,e^{ip\cdot x}\right)\\
+\overline{\Psi}(x) = \sum_{s}\int\!\frac{d^{3}p}{\left(2\pi\right)^{3}}\,\frac{1}{\sqrt{2\omega_{p}}}\left(b^{s}_{p}\,\overline{v}^{s}_{p}\,e^{-ip\cdot x} + a^{\dagger s}_{p}\,\overline{u}^{s}_{p}\,e^{ip\cdot x}\right)
+\end{gathered}
+\]
+
+<p>
+\(u^{s}_{p}\) is associated with annihilation of \(e^{-}\);<br />
+\(\overline{u}^{s}_{p}\) --- creation of \(e^{-}\);<br />
+\(v^{s}_{p}\) is associated with --- \(e^{+}\);<br />
+\(\overline{v}^{s}_{p}\) --- annihilation of \(e^{-}\)<br />
+\(\longrightarrow\) Annihilation of \(e^{-}\) at vertex.<br />
+</p>
+
+<pre class="tikz">
+\begin{tikzpicture}[scale=0.9]
+
+\draw[thick] (0,3) -- (2.2,3); \node at (0,3) {$\oslash$}; \node at (2.2,3) {$\times$};
+\draw[thick,-&gt;] (1.3,3) -- (0.9,3);
+\node[right] at (3.2,3) {incoming electron\qquad $u^{s}(p)$};
+\draw[thick] (0,2.2) -- (2.2,2.2); \node at (0,2.2) {$\oslash$}; \node at (2.2,2.2) {$\times$};
+\draw[thick,-&gt;] (0.9,2.2) -- (1.3,2.2);
+\node[above] at (1.1,2.25) {\scriptsize $p$};
+\node[right] at (3.2,2.2) {incoming positron\qquad $\overline{v}^{s}(p)$};
+\draw[thick] (0,1.1) -- (2.2,1.1); \node at (0,1.1) {$\times$}; \node at (2.2,1.1) {$\oslash$};
+\draw[thick,-&gt;] (1.3,1.1) -- (0.9,1.1);
+\node[right] at (3.2,1.1) {outgoing $e^{-}$\qquad\quad\; $\overline{u}^{s}(p)$};
+\draw[thick] (0,0.3) -- (2.2,0.3); \node at (0,0.3) {$\times$}; \node at (2.2,0.3) {$\oslash$};
+\draw[thick,-&gt;] (0.9,0.3) -- (1.3,0.3);
+\node[right] at (3.2,0.3) {outgoing $e^{+}$\qquad\quad\; $v^{s}(p)$};
+\draw[thick,-&gt;] (1.8,-0.4) -- (0.6,-0.4);
+\node[below] at (1.2,-0.45) {$t$};
+\end{tikzpicture}
+</pre>
+
+<pre class="tikz">
+\definecolor{ForestGreen}{rgb}{0.13,0.55,0.13}
+\begin{tikzpicture}[scale=0.85]
+\draw[thick] (0,2) node[left]{$\times$} -- (5.4,2) node[right]{$\times$};
+\draw[thick,-&gt;] (4.6,2) -- (4.2,2);
+\draw[thick,-&gt;] (1.4,2) -- (1,2);
+\draw[thick] (0,0) node[left]{$\times$} -- (5.4,0) node[right]{$\times$};
+\draw[thick,-&gt;] (1,0) -- (1.4,0);
+\draw[thick,-&gt;] (4.2,0) -- (4.6,0);
+\draw[thick] (2.4,2) -- (2.4,0);
+\draw[thick] (3.2,2) -- (3.2,0);
+\draw[thick,dash dot] (2.8,1) circle (1.35);
+\draw[thick,-&gt;,color=ForestGreen] (5.2,2.55) -- (4.4,2.55) node[left]{$e^{-}$};
+\draw[thick,-&gt;,color=ForestGreen] (4.4,0.6) node[below right]{$e^{+}$} -- (5.2,0.6);
+\draw[thick,-&gt;] (3.4,-0.9) -- (2.2,-0.9);
+\node[below] at (2.8,-0.95) {$t$};
+\node[right] at (6,-0.9) {$e^{-}e^{+} \to e^{-}e^{+}$ scattering};
+\end{tikzpicture}
+</pre>
+
+\[
+A_{\mu}(x) = \int\!\frac{d^{3}k}{\left(2\pi\right)^{3}}\;\frac{1}{\sqrt{2\omega_{k}}}\;\sum_{i=1}^{2}\left(\epsilon^{i}_{\mu}(k)\,a_{k,i}\,e^{-ikx} + \epsilon^{i\,*}_{\mu}(k)\,a^{\dagger}_{k,i}\,e^{ikx}\right)
+\]
+
+<pre class="tikz">
+\definecolor{ForestGreen}{rgb}{0.13,0.55,0.13}
+\begin{tikzpicture}[scale=0.9]
+\draw[thick,-&gt;,color=ForestGreen] (1.6,1.9) -- (0.6,1.9);
+\node[below,color=ForestGreen] at (1.1,1.85) {$t$};
+\draw[thick] (0,1) -- (2,1);
+\node at (0,1) {$\oslash$}; \node at (2,1) {$\times$};
+\node[right] at (3,1) {$\epsilon^{s}_{\mu}(p)$\qquad {\color{ForestGreen}(incoming)}};
+\draw[thick] (0,0) -- (2,0);
+\node at (0,0) {$\times$}; \node at (2,0) {$\oslash$};
+\node[right] at (3,0) {$\epsilon^{s\,*}_{\mu}(p)$\qquad {\color{ForestGreen}(outgoing)}};
+\node at (3.5,-0.8) {$\left(s = 1, 2\right)$};
+\end{tikzpicture}
+</pre>
+
+<p>
+<span id="Lecture 11-Interaction vertex"></span><strong id="Interaction vertex">Interaction vertex</strong> :<br />
+</p>
+
+<pre class="tikz">
+\begin{tikzpicture}[scale=0.9]
+\draw[thick] (-0.9,0.8) -- (0,0);
+\draw[thick,-&gt;] (-0.75,0.67) -- (-0.45,0.4);
+\draw[thick] (-0.9,-0.8) -- (0,0);
+\draw[thick,-&gt;] (-0.35,-0.31) -- (-0.65,-0.58);
+\node[above] at (0.15,0.25) {$e$};
+\draw[thick] (0,0) -- (1.4,-0.15);
+\end{tikzpicture}
+</pre>
+
+<p>
+Let us consider a case :<br />
+</p>
+
+<pre class="tikz">
+\begin{tikzpicture}[scale=0.95]
+\draw[thick] (-2.6,1.4) node[above left]{$\mu^{-}$} -- (-1.2,0);
+\draw[thick,-&gt;] (-1.7,0.52) -- (-2.1,0.9);
+\node at (-2.35,0.75) {$k$};
+\draw[thick] (-2.6,-1.4) node[below left]{$\mu^{+}$} -- (-1.2,0);
+\draw[thick,-&gt;] (-2.15,-0.95) -- (-1.75,-0.55);
+\node at (-2.35,-0.75) {$k'$};
+\draw[thick] (-1.2,0) -- (1.2,0);
+\draw[thick] (2.6,1.4) node[above right]{$e^{-}$} -- (1.2,0);
+\draw[thick,-&gt;] (2.1,0.9) -- (1.7,0.52);
+\node at (2.15,0.45) {$p$};
+\draw[thick] (2.6,-1.4) node[below right]{$e^{+}$} -- (1.2,0);
+\draw[thick,-&gt;] (1.55,-0.38) -- (1.95,-0.78);
+\node at (1.85,-1.05) {$p'$};
+\draw[thick,-&gt;] (0.9,-2) -- (-0.9,-2);
+\node[below] at (0,-2.05) {$t$};
+\node[right] at (4,0) {$e^{+}e^{-} \;\longrightarrow\; \mu^{+}\mu^{-}$};
+\end{tikzpicture}
+</pre>
+
+\[
+\mathcal{L} = i\,\overline{\Psi}_{i}\,\gamma^{\mu}\left(\partial_{\mu} - i\,e_{i}\,A_{\mu}\right)\Psi_{i}
+\;-\; m_{i}\,\overline{\Psi}_{i}\,\Psi_{i}
+\;-\; \frac{1}{4}\,F_{\mu\nu}\,F^{\mu\nu}
+\]
+
+\[
+i = \underset{\underset{e^{-}}{|}}{1},\ \underset{\underset{\mu^{-}}{|}}{2},
+\]
+
+<p>
+We can't have \(t\)-channel as to have \(t\)-channel we need coupling of \(e^{-}\) &amp; \(\mu^{-}\) via photon.<br />
+</p>
+
+\[
+\text{[diagram below]}
+\qquad
+i\,\overline{\Psi}_{1}\left(\gamma^{\mu}\partial_{\mu} - i\,e_{i}\,A_{\mu}\right)\Psi_{2}
+\qquad\text{which we don't have.}
+\]
+
+<pre class="tikz">
+\begin{tikzpicture}[baseline={(0,0)},scale=0.6]
+\draw[thick] (-1,1.2) node[above left]{$\mu^{-}$} -- (0,0.55);
+\draw[thick] (1,1.2) node[above right]{$e^{-}$} -- (0,0.55);
+\draw[thick] (0,0.55) -- (0,-0.55);
+\draw[thick] (-1,-1.2) node[below left]{$\mu^{+}$} -- (0,-0.55);
+\draw[thick] (1,-1.2) node[below right]{$e^{+}$} -- (0,-0.55);
+\draw[thick,-&gt;] (0.7,-1.9) -- (-0.7,-1.9);
+\node[below] at (0,-1.95) {$t$};
+\end{tikzpicture}
+</pre>
+
+<p>
+So, \(e^{-}\) number / lepton no. conservation holds here because of<br />
+</p>
+
+\[
+\mathcal{L}_{\text{int}} = \overline{\Psi}_{i}\,e_{i}\,A_{\mu}\,\Psi_{i}
+\qquad\text{where } A_{\mu}\text{ couples to fermions of same species.}
+\]
+
+\[
+\begin{aligned}
+\text{For}\qquad e^{-}e^{+} \longrightarrow e^{-}e^{+} &amp;\qquad\left(s, t\ \text{ channel}\right)\\
+\text{For}\qquad e^{-}e^{-} \longrightarrow e^{-}e^{-} &amp;\qquad\left(t, u\ \text{ channel}\right)
+\end{aligned}
+\]
+
+<p>
+Similarly we need all diagrams for \(e^{-}e^{+} \to \mu^{-}\mu^{+}\) diagram. We only have \(s\)-channel for this process.<br />
+</p>
+
+<pre class="tikz">
+\begin{tikzpicture}[scale=0.95]
+\draw[thick] (-2.6,1.4) -- (-1.2,0);
+\node[above left] at (-2.6,1.4) {$\mu^{-}$};
+\draw[thick,-&gt;] (-1.7,0.52) -- (-2.1,0.9);
+\node[fill=cyan!40,rounded corners=2pt,inner sep=1.5pt] at (-2.7,0.6) {$k, r$};
+\draw[thick] (-2.6,-1.4) -- (-1.2,0);
+\node[below left] at (-2.6,-1.4) {$\mu^{+}$};
+\draw[thick,-&gt;] (-2.15,-0.95) -- (-1.75,-0.55);
+\node[fill=yellow!50,rounded corners=2pt,inner sep=1.5pt] at (-2.75,-0.6) {$k', r'$};
+\node[fill=red!40,rounded corners=2pt,inner sep=1.5pt,below] at (-1.2,-0.25) {\scriptsize $\left(-ie\gamma^{\nu}\right)$};
+\node[above] at (-1.15,0.12) {\scriptsize $\nu$};
+\draw[thick] (-1.2,0) -- (1.2,0);
+\node[above] at (0,0.25) {$\frac{-i\,\eta^{\mu\nu}}{\left(p+p'\right)^{2}}$};
+\node[above] at (1.15,0.12) {\scriptsize $\mu$};
+\node[fill=blue!25,rounded corners=2pt,inner sep=1.5pt,below] at (1.35,-0.2) {\scriptsize $\left(-ie\gamma^{\mu}\right)$};
+\draw[thick] (2.6,1.4) -- (1.2,0);
+\node[fill=orange!40,rounded corners=2pt,inner sep=1.5pt] at (2.9,1.5) {$e^{-}$};
+\draw[thick,-&gt;] (2.1,0.9) -- (1.7,0.52);
+\node at (2.35,0.5) {$p, s$};
+\draw[thick] (2.6,-1.4) -- (1.2,0);
+\node[fill=green!40,rounded corners=2pt,inner sep=1.5pt] at (2.9,-1.5) {$e^{+}$};
+\draw[thick,-&gt;] (1.55,-0.38) -- (1.95,-0.78);
+\node at (2.5,-0.75) {$p', s'$};
+\draw[thick,-&gt;] (0.9,-2.1) -- (-0.9,-2.1);
+\node[below] at (0,-2.15) {$t$};
+\end{tikzpicture}
+</pre>
+
+\[
+\begin{aligned}
+\mathcal{M} &amp;= \overline{v}^{\,s'}\!(p')\,\left(-ie\gamma^{\mu}\right)\,u^{s}(p)\;\cdot\;\frac{\left(-i\,\eta_{\mu\nu}\right)}{\left(p+p'\right)^{2}}\;\cdot\;\overline{u}^{r}(k)\,\left(-ie\gamma^{\nu}\right)\,v^{r'}\!(k')\\[1ex]
+&amp;= \frac{i\,e^{2}}{\left(p+p'\right)^{2}}\;\;\overline{v}^{\,s'}\!(p')\,\gamma^{\mu}\,u^{s}(p)\;\cdot\;\overline{u}^{r}(k)\,\gamma_{\mu}\,v^{r'}\!(k')
+\end{aligned}
+\]
+
+<p>
+Physical quantity it represents is scattering crossection.<br />
+</p>
+
+\[
+\begin{gathered}
+\sigma \;\propto\; \left|\mathcal{M}\right|^{2}\\
+\text{(or)}\qquad \sigma \;\propto\; \mathcal{M}\,\mathcal{M}^{*}
+\end{gathered}
+\]
+
+<p>
+We know,<br />
+</p>
+
+\[
+\frac{d\sigma}{d\Omega} = \frac{1}{2\omega_{p}}\;\frac{1}{2\omega_{p'}}\;\frac{1}{\left|\vec{v}-\vec{v}'\right|}\;\frac{\left|\vec{k}\right|}{16\pi^{2}\,E_{cm}}\;\left|\mathcal{M}\right|^{2}
+\]
+
+<p>
+where \(\vec{v} = \dfrac{\vec{p}}{\omega_{p}}\) ; \(\vec{v}' = \dfrac{\vec{p}\,'}{\omega_{p'}}\)<br />
+in COM frame \(\left(\vec{p} + \vec{p}\,' = 0\right)\)<br />
+let us calculate \(\left|\mathcal{M}\right|^{2}\)<br />
+</p>
+
+\[
+\begin{aligned}
+\left|\mathcal{M}\right|^{2} = \frac{e^{4}}{\left(p+p'\right)^{4}}\;
+&amp;\left(\overline{v}^{\,s'}\!(p')\,\gamma^{\mu}\,u^{s}(p)\right)\left(\overline{v}^{\,s'}\!(p')\,\gamma^{\nu}\,u^{s}(p)\right)^{*}\\
+\cdot\;&amp;\left(\overline{u}^{r}(k)\,\gamma_{\mu}\,v^{r}(k')\right)\left(\overline{u}^{r}(k)\,\gamma_{\nu}\,v^{r'}\!(k')\right)^{*}
+\qquad\text{---}(1)
+\end{aligned}
+\]
+
+<p>
+here<br />
+</p>
+
+\[
+\left(\left(p+p'\right)^{2}\right)^{2} = \left(\left(p^{0}+p'^{0}\right)^{2} - \left(\vec{p}+\vec{p}\,'\right)^{2}\right)^{2}
+\]
+
+\[
+\left(\overline{v}_{a}\,\gamma^{\mu}_{\;ab}\,u_{b}\right)^{*} = \overline{u}_{c}\,\gamma^{\mu}_{\;cd}\,v_{d}
+\qquad
+{\left(\text{Prove it !}\right)}
+\]
+
+<p>
+Suppose we do experiment with unpolarised beams ---<br />
+For incoming unpolarised beams we take average<br />
+</p>
+
+\[
+\dfrac{1}{2}\sum_{s=1}^{2}\;\times\;\dfrac{1}{2}\sum_{s'=1}^{2}
+\qquad
+\left(s, s' \text{ can take } 2 \text{ values}\right)
+\]
+
+<p>
+For outgoing beams; if we don't detect the polarisation --- we include all possible states.<br />
+</p>
+
+\[
+\text{(i.e.)}\quad\text{sum over final states.}\qquad
+\left(\sum_{r=1}^{2}\;\sum_{r'=1}^{2}\right)
+\]
+
+<p>
+Using<br />
+</p>
+
+\[
+\sum_{s} u^{s}(p)\,\overline{u}^{s}(p) = \left(\not{p}+m\right)
+\;;\qquad
+\sum_{s} v^{s}(p)\,\overline{v}^{s}(p) = \not{p}'-m
+\]
+
+<p>
+Expression (1) becomes.<br />
+</p>
+
+\[
+\left|\mathcal{M}\right|^{2} = \frac{e^{4}}{\left(p+p'\right)^{4}}
+\left(\overline{v}^{\,s'}\!(p')\,\gamma^{\mu}\,\underline{u^{s}(p)\,\overline{u}^{s}(p)}\,\gamma^{\nu}\,\overline{v}^{\,s'}\!(p')\right)
+\left(\overline{u}^{r}(k)\,\gamma_{\mu}\,\underline{v^{r}(k')\,\overline{v}^{\,r'}\!(k')}\,\gamma_{\nu}\,u^{r}(k)\right)
+\]
+
+<div id="Lecture 12 --- (Higgs Mechanism and Non Abelian gauge theories)"><h2 id="Lecture 12 --- (Higgs Mechanism and Non Abelian gauge theories)" class="header"><a href="#Lecture 12 --- (Higgs Mechanism and Non Abelian gauge theories)">Lecture 12 --- (Higgs Mechanism and Non Abelian gauge theories)</a></h2></div>
+
+<p>
+Let's talk about complex scalar fields \(\left(\varphi, \varphi^{*}\right)\)<br />
+</p>
+
+\[
+\mathcal{L}\left(\varphi, \partial_{\mu}\varphi, \varphi^{*}, \partial_{\mu}\varphi^{*}\right)
+= \partial_{\mu}\varphi^{*}\,\partial^{\mu}\varphi \;-\; m^{2}\,\varphi\,\varphi^{*} \;-\; \frac{\lambda}{{(6)}}\left(\varphi\,\varphi^{*}\right)^{2}
+\]
+
+<p>
+We define new variables (we can work in any form of variables)<br />
+</p>
+
+\[
+\begin{aligned}
+&amp;\text{New field variables:}\\
+&amp;\text{(Polar Form)}
+\end{aligned}
+\qquad
+\left\{
+\begin{aligned}
+\varphi(x) &amp;= \tfrac{1}{\sqrt{2}}\,R(x)\,e^{i\theta(x)}\\
+\varphi^{*}(x) &amp;= \tfrac{1}{\sqrt{2}}\,R(x)\,e^{-i\theta(x)}
+\end{aligned}
+\right.
+\qquad
+\begin{aligned}
+&amp;\text{Any complex \# can be written in polar form as}\\
+&amp;\left(z = R\,e^{i\theta}\right)\quad\left(\theta, R \in \mathbb{R}\right)
+\end{aligned}
+\]
+
+<p>
+So,<br />
+</p>
+
+\[
+\begin{aligned}
+\mathcal{L}\left(R, \theta\right)
+&amp;= \frac{1}{2}\,\partial_{\mu}\left(R\,e^{-i\theta}\right)\partial^{\mu}\left(R\,e^{i\theta}\right)
+\;-\; \frac{1}{2}\,m^{2}R^{2} \;-\; \frac{\lambda}{4.6}\,R^{4}
+\qquad\cdots\left(R, \theta = R(x), \theta(x)\right)\\
+&amp;= \frac{1}{2}\left(e^{-i\theta}\,\partial_{\mu}R + (-iR)\,e^{-i\theta}\,\partial_{\mu}\theta\right)\left(e^{i\theta}\,\partial^{\mu}R + iR\,e^{i\theta}\,\partial^{\mu}\theta\right)
+\;-\; \frac{m^{2}R^{2}}{2} - \frac{\lambda}{4!}\,R^{4}\\
+&amp;= \frac{1}{2}\left(\partial_{\mu}R - iR\,\partial_{\mu}\theta\right)\left(\partial^{\mu}R + iR\,\partial^{\mu}\theta\right)
+\;-\; \frac{m^{2}R^{2}}{2} - \frac{\lambda}{4!}\,R^{4}
+\end{aligned}
+\]
+
+\[
+\begin{aligned}
+\mathcal{L}\left(R, \partial_{\mu}R, \theta, \partial_{\mu}\theta\right)
+&amp;= \frac{1}{2}\left(\partial_{\mu}R\,\partial^{\mu}R + R^{2}\,\partial_{\mu}\theta\,\partial^{\mu}\theta
++ \underline{iR\,\partial_{\mu}R\,\cancel{\partial^{\mu}\theta}} - \cancel{iR\,\partial_{\mu}\theta\,\partial^{\mu}R}\right)\\
+&amp;\qquad\qquad - \frac{m^{2}R^{2}}{2} - \frac{\lambda}{4!}\,R^{4}\\
+&amp;= \frac{1}{2}\Big(\underbrace{\partial_{\mu}R\,\partial^{\mu}R}_{\text{kinetic term for Real scalar field}} + R^{2}\,\partial_{\mu}\theta\,\partial^{\mu}\theta\Big)
+\;-\; \underbrace{\frac{m^{2}R^{2}}{2}}_{\text{free real}} - \frac{\lambda}{4!}\,R^{4}
+\end{aligned}
+\]
+
+<p>
+Use of new variables gives us another way of thinking; &amp; we might run into problems if new variables has some problems; here these plane polar coordinates have well known problem of being singular at origin.<br />
+These coordinates are not convenient as as \(R \to 0\) the kinetic term for \(\theta\) disappears. also \(\varphi(x) \to 0\) as \(R \to 0\).<br />
+--- It is convenient because \(\theta(x)\) field is not interacting with self. This is because of \(\mathcal{L}_{\text{int}} \propto \left(\varphi^{*}\varphi\right)^{2} \propto R^{4}\). So only \(R(x)\) is interacting with self.<br />
+Consider global symmetry ---<br />
+</p>
+
+\[
+\begin{gathered}
+\varphi \;\to\; e^{i\alpha}\,\varphi\\
+\varphi^{*} \;\to\; e^{-i\alpha}\,\varphi^{*}
+\end{gathered}
+\]
+
+<p>
+We know that this \(U(1)\) symmetry implies conserved charge, and after coupling to photon that conserved charge became the electric charge.<br />
+Same global symmetry \(\Rightarrow\) \(R\,e^{i\theta} \;\longrightarrow\; e^{i\alpha}\,R\,e^{i\theta}\)<br />
+</p>
+
+\[
+\begin{gathered}
+\Rightarrow\qquad \theta \;\to\; \theta + \alpha\\
+\theta(x) \;\to\; \theta(x) + \alpha\\
+\alpha = \left[0, 2\pi\right)
+\qquad\qquad
+\downarrow\;\text{Const shift of angle}
+\end{gathered}
+\]
+
+<p>
+Such transformations form group \(U(1)\).<br />
+If we can fix \(R\) (in term \(\frac{R^{2}}{2}\,\partial_{\mu}\theta(x)\,\partial^{\mu}\theta(x)\) of \(\mathcal{L}(R,\theta,\partial R,\partial\theta)\)) to be some finite value then there will be a quadratic term for \(\theta(x)\). \(\left(R = \text{const.}\right)\)<br />
+We will take value of \(R\) at which potential is minimum.<br />
+We take same \(\mathcal{L}\left(R, \theta, \partial_{\mu}R, \partial_{\mu}\theta\right)\) but replace \(m^{2} \to -m^{2}\) Why (?)<br />
+Initially<br />
+</p>
+
+\[
+\begin{aligned}
+\mathcal{L} &amp;= T - V\\
+&amp;= \frac{1}{2}\,\partial_{\mu}R\,\partial^{\mu}R + \frac{R^{2}}{2}\,\partial_{\mu}\theta\,\partial^{\mu}\theta
+\;-\;\left(\frac{1}{2}\,m^{2}R^{2} + \lambda\,\frac{R^{4}}{4!}\right)
+\end{aligned}
+\]
+
+<p>
+after replacing \(m^{2} \to -m^{2}\)<br />
+</p>
+
+\[
+\mathcal{L} = \frac{1}{2}\,\partial_{\mu}R\,\partial^{\mu}R + \frac{R^{2}}{2}\,\partial_{\mu}\theta\,\partial^{\mu}\theta
+\;-\;\left(\frac{-m^{2}R^{2}}{2} + \lambda\,\frac{R^{4}}{4!}\right)
+\]
+
+\[
+V(R) = \frac{-m^{2}R^{2}}{2} + \frac{R^{4}}{4!}
+\qquad
+\text{[diagram below]}
+\]
+
+<pre class="tikz">
+\definecolor{ForestGreen}{rgb}{0.13,0.55,0.13}
+\begin{tikzpicture}[baseline={(0,0.4)},scale=0.75]
+\draw[-&gt;] (-0.3,0) -- (2.6,0) node[right]{$R$};
+\draw[-&gt;] (0,-1.1) -- (0,1.6) node[above]{$V(R)$};
+\draw[thick,color=ForestGreen] (0,0) .. controls (0.5,-1.0) and (1.1,-1.0) .. (1.5,-0.35) .. controls (1.8,0.25) and (2.0,0.9) .. (2.2,1.5);
+\node[below,font=\scriptsize] at (1.05,-1.0) {$R=\sqrt{\frac{6m^{2}}{\lambda}}$};
+\node[below,font=\scriptsize] at (1.2,-1.55) {$(R\geq0)$};
+\end{tikzpicture}
+</pre>
+
+<p>
+We do perturbation theory by expanding around \(R = 0\), but since we have replaced \(m^{2} \to -m^{2}\); \(R = 0\) now has become unstable point, we must then find a stable point about which we do perturbation.<br />
+$\{<br />
+</p>
+
+\[
+\begin{aligned}
+R(x) &amp;= \text{Radion}\ \text{{(particles which describe radial fluctuations in field)}}\\
+\theta(x) &amp;= \text{Axion}\ \text{{(hypothetical particles which describe angular fluctuations in field space)}}
+\end{aligned}
+\]
+
+<p>
+.$<br />
+</p>
+
+\[
+\begin{gathered}
+\left.\frac{\partial V}{\partial R}\right|_{R} = -\,\frac{2m^{2}R}{2} + \lambda\,\frac{4\,R^{3}}{4\cdot3!} \;=\; 0\\
+-m^{2}R + \lambda\,\frac{R^{3}}{3!} = 0\\
+R\left(-m^{2} + \lambda\,\frac{R^{2}}{3!}\right) = 0\\
+\Rightarrow\qquad R = 0 \qquad\underline{\text{or}}\qquad R^{2} = 6m^{2}/\lambda\\
+R = +\sqrt{\frac{6m^{2}}{\lambda}}
+\qquad
+\left(R \geq 0\right)\quad{\text{how }(?)}
+\end{gathered}
+\]
+
+<p>
+This tells us that field theory looks bad, it will have propagator with a wrong sign, it will have classical solution of the form \(p^{2} = -m^{2}\), (instead of \(p^{2} = m^{2}\)); but they will be solved if we take<br />
+</p>
+
+\[
+R(x) = \widetilde{R}(x) + \sqrt{\frac{6m^{2}}{\lambda}}
+\]
+
+<p>
+We will be expanding around \(\widetilde{R}(x) = 0\); i.e. \(R(x) = \sqrt{\frac{6m^{2}}{\lambda}}\)<br />
+</p>
+
+\[
+\widetilde{R}(x) = R(x) - \sqrt{\frac{6m^{2}}{\lambda}}
+\]
+
+\[
+\mathcal{L} = \frac{1}{2}\,\partial_{\mu}\widetilde{R}\,\partial^{\mu}\widetilde{R}
++ \frac{1}{2}\left(\widetilde{R}+\sqrt{\frac{6m^{2}}{\lambda}}\right)^{2}\partial_{\mu}\theta\,\partial^{\mu}\theta
+- \left(-\frac{m^{2}}{2}\left(\widetilde{R}+\sqrt{\frac{6m^{2}}{\lambda}}\right)^{2} + \frac{\lambda}{4!}\left(\widetilde{R}+\sqrt{\frac{6m^{2}}{\lambda}}\right)^{4}\right)
+\]
+
+\[
+\begin{aligned}
+\mathcal{L} = \frac{1}{2}\,\partial_{\mu}\widetilde{R}\,\partial^{\mu}\widetilde{R}
+&amp;+ \frac{1}{2}\,\widetilde{R}^{2}\,\partial_{\mu}\theta\,\partial^{\mu}\theta
+- \left(-\frac{m^{2}\,\widetilde{R}^{2}}{2} + \frac{\lambda}{4!}\,\widetilde{R}^{4}\right)\\
+&amp;+ \frac{1}{2}\,\frac{6m^{2}}{\lambda}\,\partial_{\mu}\theta\,\partial^{\mu}\theta
++ \widetilde{R}\,\sqrt{\frac{6m^{2}}{\lambda}}\,\partial_{\mu}\theta\,\partial^{\mu}\theta\\
+&amp;+ \widetilde{R}\,m^{2}\sqrt{\frac{6m^{2}}{\lambda}} + \frac{1}{2}\,m^{2}\,\frac{6m^{2}}{\lambda}\\
+&amp;- \frac{\lambda}{4!}\Bigg(\underbrace{{}^{4}c_{0}\,\cancel{\left(\sqrt{\tfrac{6m^{2}}{\lambda}}\right)^{4}}}_{\nearrow\,\text{ Const}}
++ \,{}^{4}c_{1}\,\widetilde{R}\left(\sqrt{\tfrac{6m^{2}}{\lambda}}\right)^{3}
++ \,{}^{4}c_{2}\,\widetilde{R}^{2}\left(\sqrt{\tfrac{6m^{2}}{\lambda}}\right)^{2}
++ \,{}^{4}c_{3}\,\widetilde{R}^{3}\,\sqrt{\tfrac{6m^{2}}{\lambda}}\Bigg)
+\end{aligned}
+\]
+
+\[
+\begin{aligned}
+= \frac{1}{2}\,\partial_{\mu}\widetilde{R}\,\partial^{\mu}\widetilde{R}
+&amp;+ \frac{\widetilde{R}^{2}}{2}\,\partial_{\mu}\theta\,\partial^{\mu}\theta
++ \frac{3m^{2}}{\lambda}\,\partial_{\mu}\theta\,\partial^{\mu}\theta
++ \widetilde{R}\,\sqrt{\frac{6m^{2}}{\lambda}}\,\partial_{\mu}\theta\,\partial^{\mu}\theta\\
+&amp;+ \left(\frac{m^{2}\,\widetilde{R}^{2}}{2} - \frac{\cancel{4!}}{2!\,2!}\,\frac{\lambda}{\cancel{4!}}\,\frac{\widetilde{R}^{2}\;6m^{2}}{\lambda}\right)
+- \frac{\lambda}{4!}\,\widetilde{R}^{4}\\
+&amp;+ \widetilde{R}\left(\cancel{m^{2}\sqrt{\tfrac{6m^{2}}{\lambda}}} - \frac{\lambda}{4!}\,4\,\cancel{\frac{6m^{2}}{\lambda}\sqrt{\tfrac{6m^{2}}{\lambda}}}\right)\\
+&amp;- \frac{\lambda}{4!}\,\widetilde{R}^{3}\,\sqrt{\frac{6m^{2}}{\lambda}}
+\end{aligned}
+\]
+
+\[
+\begin{aligned}
+\mathcal{L} = \frac{1}{2}\,\partial_{\mu}\widetilde{R}\,\partial^{\mu}\widetilde{R}
+&amp;+ \left(\frac{\widetilde{R}^{2}}{2} + \frac{3m^{2}}{\lambda} + \widetilde{R}\,\sqrt{\frac{6m^{2}}{\lambda}}\right)\partial_{\mu}\theta\,\partial^{\mu}\theta
+\;-\; m^{2}\,\widetilde{R}^{2} - \frac{\lambda}{4!}\,\widetilde{R}^{4}\\
+&amp;- \frac{\lambda}{4!}\,\widetilde{R}^{3}\,\sqrt{\frac{6m^{2}}{\lambda}}
+\end{aligned}
+\]
+
+\[
+\begin{gathered}
+\Rightarrow\qquad \text{mass of}\ \widetilde{R} \;=\; \frac{1}{2}\,m^{2}_{\widetilde{R}}\,\widetilde{R}^{2} \;=\; m^{2}\,\widetilde{R}^{2}\\
+\Rightarrow\qquad \boxed{\,m_{\widetilde{R}} = \sqrt{2}\,m\,}
+\end{gathered}
+\]
+
+<p>
+<span id="Lecture 12 --- (Higgs Mechanism and Non Abelian gauge theories)-Observations/features"></span><strong id="Observations/features">Observations/features</strong> ---<br />
+\(\theta(x)\) now has well defined kinetic term at \(\widetilde{R}(x) = 0\).<br />
+</p>
+
+\[
+\begin{gathered}
+\text{Mass of}\ \widetilde{\theta}(x) \;=\; 0.\\
+\text{potential of}\ \theta(x) \;=\; 0
+\qquad\left(\text{No potential at all for } \theta(x)\right).
+\end{gathered}
+\]
+
+<p>
+here \(V\left(\theta(x)\right) = 0\) because of \(U(1)\) symmetry<br />
+(or) i.e. \(\mathcal{L}\) is invariant under \(\theta(x) \to \theta(x) + \alpha\)<br />
+(No functions of \(\theta(x)\) can be invariant under \(\theta \to \theta+\alpha\); only functions of derivatives of \(\theta(x)\) can be invariant).<br />
+</p>
+
+\[
+\partial_{\mu}\theta' = \partial_{\mu}\theta \qquad \left(\partial_{\mu}\alpha = 0\right).
+\]
+
+<p>
+So we don't have potential term.<br />
+This implies Axionic fields have only derivative couplings. (Goldstone theorem)<br />
+</p>
+
+\[
+\theta(x)\ :\quad \text{Goldstone boson (spinless)}
+\qquad
+\hookrightarrow\;\theta(x)\text{ does not have any index}
+\]
+
+\[
+\left\{
+\begin{aligned}
+A(x) &amp;= \text{boson (spinless).}\\
+A_{\mu}(x) &amp;= \text{vector boson (spin 1 as 1 index } \mu\text{)}\\
+A_{\mu\nu}(x) &amp;= \text{tensor boson. (spin 2).}
+\end{aligned}
+\right.
+\]
+
+<p>
+<span id="Lecture 12 --- (Higgs Mechanism and Non Abelian gauge theories)-Goldstone Theorem"></span><strong id="Goldstone Theorem">Goldstone Theorem</strong> :<br />
+Whenever a (global) continuous symmetry is spontaneously broken, there is a massless particle in the theory.<br />
+</p>
+
+<p>
+(Here \(\theta(x)\) is massless).<br />
+</p>
+
+<p>
+Spontaneously broken means; If we try to minimize the energy (to find ground state of classical system). Any choice we make for ground state will fail to respect the symmetry.<br />
+i.e. \(\mathcal{L}\) is still symmetric/invariant under \(\theta(x) \to \theta(x) + \alpha\) but ground state is not.<br />
+Ground state is \(\left(\widetilde{R},\theta\right)\) at which \(V(R,\theta)\) is minimum.<br />
+\(V\left(\widetilde{R}\right)\) is minimum at \(\widetilde{R} = 0\) \(\left(\text{i.e.\ } R = \sqrt{\tfrac{6m^{2}}{\lambda}}\right)\)<br />
+but \(\theta\) can be anything.<br />
+say \(\left(0, \theta'\right)\) be ground state of fields.<br />
+</p>
+
+\[
+\theta' \neq \theta' + \alpha
+\qquad\text{but } \theta'\ \left(\text{any value}\right)\text{ is not equal to } \theta'+\alpha.
+\]
+
+<p>
+So Ground state is not symmetric under \(U(1)\). This is called spontaneous symmetry breaking<br />
+<span id="Lecture 12 --- (Higgs Mechanism and Non Abelian gauge theories)-Analogy"></span><strong id="Analogy">Analogy</strong>: Consider a water drop falls on perfect sphere it will choose any one path on sphere but that any path on surface of sphere will not respect the rotational symmetry of sphere and we say that symmetry is spontaneously broken.<br />
+</p>
+
+<pre class="tikz">
+\begin{tikzpicture}[scale=0.8]
+\draw[thick] (0,2.2) -- (0.5,2.2) -- (0.5,1.9) -- (0.15,1.9);
+\node at (0.05,1.6) {$\circ$};
+\node at (0.05,1.25) {$\circ$};
+\draw[thick] (0,0) circle (0.75);
+\draw[dashed] (0,0.75) -- (0,1.0);
+\draw[dashed] (0,0) -- (0.75,0);
+\draw[dashed] (0.75,0) -- (1.3,0);
+\draw[thick,-&gt;] (-0.9,-0.35) -- (-0.62,-0.42);
+\node[right,text width=6cm] at (2.2,0.6) {But if we make a path through center then that path will respect the rotational symmetry of sphere.};
+\end{tikzpicture}
+</pre>
+
+<p>
+<span id="Lecture 12 --- (Higgs Mechanism and Non Abelian gauge theories)-Imposing local gauge Invariance"></span><strong id="Imposing local gauge Invariance">Imposing local gauge Invariance</strong> :<br />
+let us impose local gauge invariance<br />
+</p>
+
+\[
+\begin{gathered}
+\alpha \;\to\; \alpha(x)\\
+\varphi \;\to\; e^{i\alpha(x)}\,\varphi
+\qquad\qquad \varphi = R\,e^{i\theta}\\
+\varphi^{*} \;\to\; e^{-i\alpha(x)}\,\varphi^{*}
+\end{gathered}
+\]
+
+<p>
+To have gauge invariance<br />
+</p>
+
+\[
+\begin{gathered}
+\mathcal{L}' = \mathcal{L}\\
+\mathcal{L}' = \mathcal{L}'\left(\widetilde{R}, \theta, \partial_{\mu}\widetilde{R}, \partial_{\mu}\theta\right)\ \downarrow
+\end{gathered}
+\]
+
+\[
+\mathcal{L}' = \frac{1}{2}\,\partial_{\mu}\widetilde{R}\,\partial^{\mu}\widetilde{R}
++ \left(\frac{\widetilde{R}^{2}}{2} + \frac{3m^{2}}{\lambda} + \widetilde{R}\,\sqrt{\frac{6m^{2}}{\lambda}}\right)\partial_{\mu}\theta\,\partial^{\mu}\theta
+- m^{2}\,\widetilde{R}^{2} - \frac{\lambda}{4!}\,\widetilde{R}^{4}
+- \frac{\lambda}{4!}\,\widetilde{R}^{3}\sqrt{\frac{6m^{2}}{\lambda}}
+\]
+
+<p>
+under \(\theta(x) \;\longrightarrow\; \theta(x) + \alpha(x)\)<br />
+but \(\widetilde{R} \;\longrightarrow\; \widetilde{R}\) (\(R\) is independent of \(\theta\))<br />
+We check if : \(\partial_{\mu}\theta'\,\partial^{\mu}\theta' = \partial_{\mu}\theta\,\partial^{\mu}\theta\) under local gauge transf.<br />
+</p>
+
+\[
+\theta' = \theta(x) + \alpha(x)
+\]
+
+<p>
+i.e. <span id="Lecture 12 --- (Higgs Mechanism and Non Abelian gauge theories)-LHS"></span><strong id="LHS">LHS</strong><br />
+</p>
+
+\[
+\begin{aligned}
+&amp;\quad\partial_{\mu}\left(\theta(x)+\alpha(x)\right)\,\partial^{\mu}\left(\theta(x)+\alpha(x)\right)\\
+&amp;= \left(\partial_{\mu}\theta + \partial_{\mu}\alpha\right)\left(\partial^{\mu}\theta + \partial^{\mu}\alpha\right)\\
+&amp;= \partial_{\mu}\theta\,\partial^{\mu}\theta + \partial_{\mu}\alpha\,\partial^{\mu}\theta + \partial_{\mu}\theta\,\partial^{\mu}\alpha + \partial_{\mu}\alpha\,\partial^{\mu}\alpha
+\end{aligned}
+\]
+
+<p>
+to be equal to \(\partial_{\mu}\theta\,\partial^{\mu}\theta\)<br />
+</p>
+
+\[
+\Rightarrow\qquad \partial_{\mu}\alpha\,\partial^{\mu}\theta + \partial_{\mu}\theta\,\partial^{\mu}\alpha + \partial_{\mu}\alpha\,\partial^{\mu}\alpha \;=\; 0
+\]
+
+<p>
+So, we need to discard \(\partial_{\mu}\theta\,\partial^{\mu}\theta\) term for gauge transformed \(\theta\);<br />
+we need to make \(\mathcal{L}\), which is invariant under \(\theta(x) \to \theta(x) + \alpha(x)\).<br />
+under gauge transf:<br />
+</p>
+
+\[
+\begin{aligned}
+\partial_{\mu}\theta(x) \;&amp;\longrightarrow\; \partial_{\mu}\left(\theta + \alpha(x)\right)\\
+&amp;\longrightarrow\; \partial_{\mu}\theta + \partial_{\mu}\alpha(x) \;\neq\; \partial_{\mu}\theta(x)
+\end{aligned}
+\]
+
+<p>
+but we can make \(D_{\mu}\theta(x)\) such that \(D_{\mu}\theta(x) \longrightarrow D_{\mu}\theta(x)\) under gauge transformation.<br />
+redefine:<br />
+</p>
+
+\[
+\begin{gathered}
+D_{\mu}\theta(x) = \partial_{\mu}\theta(x) - A_{\mu}(x)\\
+\text{Where}\quad A'_{\mu}(x) = A_{\mu} + \partial_{\mu}\alpha(x)
+\qquad
+{\left\{\theta \in \mathbb{R} \Rightarrow A_{\mu} \in \mathbb{R}\right\}\ A_{\mu}(x)\text{ is real.}}
+\end{gathered}
+\]
+
+\[
+\begin{aligned}
+\left(D_{\mu}\theta\right)' &amp;= \partial_{\mu}\theta'(x) - A'_{\mu}(x)\\
+&amp;= \partial_{\mu}\left(\theta + \alpha(x)\right) - \left(A_{\mu} + \partial_{\mu}\alpha(x)\right)\\
+&amp;= \partial_{\mu}\theta - A_{\mu}\\
+&amp;= D_{\mu}\theta(x)
+\qquad\text{which is gauge invariant!}
+\end{aligned}
+\]
+
+<p>
+So local Gauge invariant \(\mathcal{L}\) becomes : \(\left\{\partial_{\mu}\theta \to D_{\mu}\theta = \partial_{\mu}\theta - A_{\mu}\right\}\)<br />
+</p>
+
+\[
+\begin{aligned}
+\mathcal{L} = \frac{1}{2}\,\partial_{\mu}\widetilde{R}\,\partial^{\mu}\widetilde{R}
+&amp;+ \left(\frac{\widetilde{R}^{2}}{2} + \frac{3m^{2}}{\lambda} + \widetilde{R}\,\sqrt{\frac{6m^{2}}{\lambda}}\right)\left(\partial_{\mu}\theta - A_{\mu}\right)^{2}
+- m^{2}\,\widetilde{R}^{2} - \frac{\lambda}{4!}\,\widetilde{R}^{4}\\
+&amp;- \frac{\lambda}{4!}\,\widetilde{R}^{3}\sqrt{\frac{6m^{2}}{\lambda}}
+\;\underbrace{-\;\frac{1}{4}\,F_{\mu\nu}\,F^{\mu\nu}}_{\text{To allow gauge field to propagate.}}
+\end{aligned}
+\]
+
+<p>
+Note that \(\left(\partial_{\mu}\theta - A_{\mu}\right)^{2} = \left(\partial_{\mu}\theta\right)^{2} + A_{\mu}^{2} - 2\,A_{\mu}\,\partial_{\mu}\theta\) is not diagonal, we can diagonalise it by field redefination of \(A_{\mu}\).<br />
+</p>
+
+\[
+A_{\mu} \;\longrightarrow\; A_{\mu} + \partial_{\mu}\theta
+\]
+
+<p>
+So that,<br />
+</p>
+
+\[
+\begin{aligned}
+\partial_{\mu}\theta - A_{\mu} &amp;= \partial_{\mu}\theta - A_{\mu} - \partial_{\mu}\theta\\
+&amp;= -A_{\mu}
+\qquad
+{\left(\theta(x)\text{ has disappeared!}\right)}
+\end{aligned}
+\]
+
+<p>
+and,<br />
+</p>
+
+\[
+\begin{aligned}
+F_{\mu\nu} = \partial_{\mu}A_{\nu} - \partial_{\nu}A_{\mu}
+&amp;= \partial_{\mu}\left(A_{\nu} + \partial_{\nu}\theta\right) - \partial_{\nu}\left(A_{\mu} + \partial_{\mu}\theta\right)\\
+\left(F_{\mu\nu}\text{ remains same}\right)\qquad
+&amp;= \partial_{\mu}A_{\nu} + \cancel{\partial_{\mu}\partial_{\nu}\theta} - \partial_{\nu}A_{\mu} - \cancel{\partial_{\nu}\partial_{\mu}\theta}\\
+&amp;= \partial_{\mu}A_{\nu} - \partial_{\nu}A_{\mu}\\
+&amp;= F_{\mu\nu}
+\end{aligned}
+\]
+
+\[
+\begin{aligned}
+\mathcal{L} = \frac{1}{2}\,\partial_{\mu}\widetilde{R}\,\partial^{\mu}\widetilde{R}
+&amp;+ \dfrac{3m^{2}}{\lambda}\,A_{\mu}A^{\mu}
++ \left(\frac{\widetilde{R}^{2}}{2} + \widetilde{R}\,\sqrt{\frac{6m^{2}}{\lambda}}\right)A_{\mu}A^{\mu}
+- m^{2}\,\widetilde{R}^{2} - \frac{\lambda}{4!}\,\widetilde{R}^{4}\\
+&amp;- \frac{\lambda}{4!}\,\widetilde{R}^{3}\sqrt{\frac{6m^{2}}{\lambda}}
+\;-\;\frac{1}{4}\,F_{\mu\nu}F^{\mu\nu}
+\end{aligned}
+\]
+
+\[
+{\swarrow\;\text{mass term for } A_{\mu}}
+\]
+
+<p>
+This is what higgs mechanism does, \(A_{\mu}\) becomes massive even in gauge theory. (Also \(\theta(x)\) has disappeared!)<br />
+With local gauge invariance, Goldstone theorem no longer true, (as we could not find massless field); instead if we try to spontaneously break a local symmetry the gauge field \(A_{\mu}(x)\) becomes massive.<br />
+We know that in relativistic theory a massless vector particle has only two polarisations. For massive we have \(2J+1\) for spin \(J\). (For \(A_{\mu}\), \(J=1\) so we have 3 polarisations)<br />
+So the disappearance of \(\theta(x)\) turns as third polarisation of massive \(A_{\mu}(x)\). It is complete rearrangement of d.o.f in lorentz covariant way.<br />
+\(\widetilde{R}(x)\) is known as Higgs field (it's not the field which participates in higgs mechanism; it's the one which does not participates (therefore it survives); \(\theta(x)\) is called ''would be Goldstone boson (which it was in global gauge invariance)''; since we coupled theory to a gauge field \(A_{\mu}\) (via imposing local gauge invariance); The \(A_{\mu}\) (gauge field) eat \(\theta(x)\) &amp; it went away.<br />
+End result is Higgs field \(\overset{\widetilde{R}(x)}{}\) &amp; gauge field \(\overset{(A_{\mu})}{}\) has mass.<br />
+Instead of just \(A_{\mu}\) we have 3 massive gauge fields in real world called as \(W^{+}, W^{-}, Z\), For that case there could be 1 or many higgs field \(\left(\widetilde{R}(x)\right)\).<br />
+</p>
+
+<p>
+——— End of Higgs Mechanism ———<br />
+</p>
+
+<p>
+<span id="Lecture 12 --- (Higgs Mechanism and Non Abelian gauge theories)-Non Abelian Gauge Symmetries"></span><strong id="Non Abelian Gauge Symmetries">Non Abelian Gauge Symmetries</strong><br />
+Suppose our scalar fields are complex with index \(I\).<br />
+</p>
+
+\[
+\begin{gathered}
+\varphi = \varphi_{I}(x) \qquad I = 1,2,3\ldots N.\\
+\varphi^{*} = \varphi^{*}_{I}(x)\\
+\varphi = \begin{pmatrix} \varphi_1\\ \varphi_2\\ \vdots\\ \varphi_N \end{pmatrix}
+\end{gathered}
+\]
+
+<p>
+analogue of \(e^{i\theta}\varphi\) here is taking \(U\varphi\), where '\(U\)' is unitary matrix \(\left(U U^{\dagger} = I\right)\)<br />
+</p>
+
+\[
+\varphi_{i} = U_{ij}\,\varphi_{j}
+\]
+
+\[
+\mathcal{L} = \partial_{\mu}\varphi^{*}_{i}\,\partial^{\mu}\varphi_{i} \;-\; m^{2}\,\varphi^{*}_{i}\varphi_{i} \;-\; \frac{\lambda}{6}\left(\varphi^{*}_{i}\varphi_{i}\right)^{2}
+\]
+
+<p>
+i.e. under<br />
+</p>
+
+\[
+\begin{gathered}
+\varphi_{i} \;\to\; U\varphi_{i}\\
+\varphi^{*}_{i} \;\to\; \varphi^{*T}_{i}\,U^{\dagger}\\
+\text{thus,}\quad \varphi^{*T}_{i}\varphi_{i} \;\longrightarrow\; \varphi^{*T}_{i}\,\underline{U^{\dagger}U}\,\varphi_{i} = \varphi^{*T}_{i}\,\varphi_{i}
+\end{gathered}
+\]
+
+<p>
+We could use \(U = \begin{pmatrix} e^{i\alpha} &amp; &amp; &amp;\\ &amp; e^{i\alpha} &amp; &amp;\\ &amp; &amp; \ddots &amp;\\ &amp; &amp; &amp; e^{i\alpha} \end{pmatrix}\) to do global phase rotation of each \(\varphi_{i}(x)\)<br />
+(or) \(U = \begin{pmatrix} e^{i\alpha_1} &amp; &amp; &amp;\\ &amp; e^{i\alpha_2} &amp; &amp;\\ &amp; &amp; \ddots &amp;\\ &amp; &amp; &amp; e^{i\alpha_n} \end{pmatrix}\) to do independent global phase rotation of \(\varphi_{i}\)<br />
+But fun comes when we use general unitary matrix which mixes all \(\varphi_{i}\) and corresponding to that global symmetry we can find conserved current &amp; so on.<br />
+</p>
+
+<p>
+*Try promoting \(U = U(x)\) local gauge invariance of each field \(\varphi_{i}(x)\)*<br />
+our \(\mathcal{L} = \partial_{\mu}\varphi_{i}\,\partial^{\mu}\varphi^{*}_{i} - m^{2}\varphi^{*}_{i}\varphi_{i} - \frac{\lambda}{6}\left(\varphi^{*}_{i}\varphi_{i}\right)\) is not gauge invariant under<br />
+</p>
+
+\[
+\begin{gathered}
+\varphi'_{i}(x) = U(x)_{ij}\,\varphi_{i}(x)\\
+\varphi'^{*}_{i}(x) = \varphi^{*}_{j}\,U^{*}_{ji}(x)
+\end{gathered}
+\]
+
+\[
+\left(\text{under dagger op.}\quad U \longrightarrow U^{\dagger}\;;\quad U_{ij} \longrightarrow U^{*}_{ji}\right)
+\]
+
+\[
+\begin{aligned}
+\partial_{\mu}\varphi'_{i} &amp;= \partial_{\mu}\left(U_{ij}(x)\,\varphi_{i}(x)\right)\\
+&amp;= \varphi_{i}\,\partial_{\mu}U_{ij}(x) + U_{ij}(x)\,\partial_{\mu}\varphi_{i}(x)\\
+&amp;\neq \partial_{\mu}\varphi_{i}
+\end{aligned}
+\]
+
+<p>
+We thus look for \(D'_{\mu}\varphi' = U\,D_{\mu}\varphi\) under \(\varphi(x) \to U(x)\,\varphi(x)\).<br />
+so that \(D'^{\mu}\varphi'^{*}\,D'_{\mu}\varphi' = D^{\mu}\varphi^{*}\,D_{\mu}\varphi\)<br />
+We look for \(D_{\mu}\) of type \(D_{\mu} = \partial_{\mu} + i\,A_{\mu}(x)\)<br />
+</p>
+
+\[
+\begin{gathered}
+D'_{\mu}\,U\varphi = U\,D_{\mu}\varphi\\
+D'_{\mu}\,U = U\,D_{\mu}\\
+D'_{\mu} = U\,D_{\mu}\,U^{\dagger}\\
+\cancel{\partial_{\mu}} + i\,A'_{\mu}(x) = U\left(\partial_{\mu}\,\mathbb{I} + i\,A_{\mu}(x)\right)U^{\dagger}
+= U\,\partial_{\mu}U^{\dagger} + U\,U^{\dagger}\,\cancel{\partial_{\mu}\mathbb{I}} + i\,U\,A_{\mu}(x)\,U^{\dagger}
+\end{gathered}
+\]
+
+\[
+\boxed{\;A'_{\mu}(x) \;=\; U(x)\,A_{\mu}(x)\,U^{\dagger}(x) \;-\; i\,U\,\partial_{\mu}U^{\dagger}\;}
+\quad\uparrow
+\]
+
+<p>
+or \(U U^{\dagger} = I\):<br />
+</p>
+
+\[
+\left(\partial_{\mu}U\right)U^{\dagger} + U\,\partial_{\mu}U^{\dagger} = 0
+\quad\Rightarrow\quad
+U\,\partial_{\mu}U^{\dagger} = -\left(\partial_{\mu}U\right)U^{\dagger}
+\]
+
+\[
+\begin{aligned}
+\mathcal{L} &amp;= \left(D_{\mu}\varphi\right)^{\dagger}D^{\mu}\varphi - m^{2}\,\varphi^{\dagger}\varphi - \frac{\lambda}{6}\left(\varphi^{\dagger}\varphi\right)^{2}\\
+\text{(or)}\qquad
+\mathcal{L} &amp;= D_{\mu}\varphi_{i}\,D^{\mu}\varphi^{*}_{i} - m^{2}\,\varphi^{*}_{i}\varphi_{i} - \frac{\lambda}{6}\left(\varphi^{*}_{i}\varphi_{i}\right)^{2}
+\end{aligned}
+\]
+
+<p>
+is invariant under<br />
+</p>
+
+\[
+\begin{gathered}
+\varphi_{i} \;\to\; U_{ij}(x)\,\varphi_{j}(x)\\
+\varphi^{*}_{i} \;\to\; \varphi^{*}_{j}(x)\,U^{*}_{ji}(x)
+\end{gathered}
+\]
+
+<p>
+This can be applied to single complex scalar field \(\mathcal{L}\). (i.e.) \(N = 1\)<br />
+</p>
+
+\[
+\begin{gathered}
+A_{\mu} \;\to\; U A_{\mu} U^{\dagger} - i\,U\,\partial_{\mu}U^{\dagger}
+\qquad\qquad U = e^{i\alpha(x)}\\
+A'_{\mu} = A_{\mu} - i\,e^{i\alpha(x)}\,e^{-i\alpha(x)}\left(i\,\partial_{\mu}\alpha(x)\right)\\
+A'_{\mu} = A_{\mu} + \partial_{\mu}\alpha(x)
+\end{gathered}
+\]
+
+<p>
+Which is what we get in abelian \(A_{\mu}(x)\)<br />
+Any unitary matrix can be written as<br />
+</p>
+
+\[
+\begin{gathered}
+U(x) = \exp\left(i\,\Lambda(x)\right)\\
+U(x)\,U^{\dagger}(x) = e^{i\Lambda(x)}\,e^{-i\Lambda^{\dagger}(x)} = I.
+\qquad
+\left(\text{provided } \Lambda^{\dagger}(x) = \Lambda(x)\ \left(\text{hermitian}\right)\right)
+\end{gathered}
+\]
+
+<p>
+So,<br />
+</p>
+
+\[
+\begin{aligned}
+A'_{\mu}(x) &amp;= U A_{\mu} U^{\dagger} + i\left(\partial_{\mu}U\right)U^{\dagger}\\
+&amp;= e^{i\Lambda(x)}\,A_{\mu}(x)\,e^{-i\Lambda(x)} + i\left(\partial_{\mu}\,e^{i\Lambda(x)}\right)e^{-i\Lambda(x)}
+\end{aligned}
+\]
+
+<p>
+For \(1^{\text{st}}\) order<br />
+</p>
+
+\[
+\begin{aligned}
+&amp;= \left(1 + i\Lambda(x)\right)A_{\mu}(x)\left(1 - i\Lambda(x)\right) + i\left(\partial_{\mu}\left(1 - i\Lambda(x)\right)\right)\left(1 - i\Lambda(x)\right)\\
+&amp;= \left(A_{\mu} + i\Lambda(x)\,A_{\mu}(x)\right)\left(1 - i\Lambda(x)\right) \;+\; \partial_{\mu}\Lambda(x)\\
+&amp;= A_{\mu} - i\,A_{\mu}(x)\,\Lambda(x) + i\Lambda(x)\,A_{\mu}(x) + \partial_{\mu}\Lambda(x)
+\qquad\left(\Lambda(x)\text{ is small}\right)
+\end{aligned}
+\]
+
+\[
+\boxed{\;A'_{\mu} \;=\; A_{\mu} + i\left[\Lambda(x),\, A_{\mu}(x)\right] + \partial_{\mu}\Lambda(x)\;}
+\]
+
+<p>
+(or)<br />
+</p>
+
+\[
+\delta A_{\mu} = \partial_{\mu}\Lambda(x) + i\left[\Lambda(x),\, A_{\mu}(x)\right]
+\]
+
+<p>
+So,<br />
+</p>
+
+\[
+\mathcal{L} = \left(D_{\mu}\varphi\right)^{\dagger}\left(D^{\mu}\varphi\right) - V\left(\varphi^{\dagger}\varphi\right)
+\qquad\text{is invariant under}
+\]
+
+\[
+\begin{gathered}
+\varphi \;\to\; U\varphi\\
+\left(\text{Matrix valued}\right)\hookleftarrow\quad
+A_{\mu} \;\to\; U A_{\mu} U^{\dagger} + i\left(\partial_{\mu}U\right)U^{\dagger}
+\end{gathered}
+\]
+
+<p>
+To allow propagation of \(A_{\mu}(x)\); we need analogue of \(F_{\mu\nu}\).<br />
+In scalar QED:<br />
+</p>
+
+\[
+\begin{aligned}
+\left[D_{\mu},\, D_{\nu}\right]\varphi &amp;= \left[\partial_{\mu} + iA_{\mu}\,,\ \partial_{\nu} + iA_{\nu}\right)\varphi\\
+&amp;= \Big(\cancelto{0}{\left[\partial_{\mu},\partial_{\nu}\right]} + i\left[\partial_{\mu},\, A_{\nu}\right] + i\left[A_{\mu},\, \partial_{\nu}\right]
++ \cancelto{0}{i^{2}\left[A_{\mu},\, A_{\nu}\right]}\ \left(\text{Abelian}\right)\Big)\,\varphi\\
+&amp;= i\left(\partial_{\mu}A_{\nu} - A_{\nu}\partial_{\mu} + A_{\mu}\partial_{\nu} - \partial_{\nu}A_{\mu}\right)\varphi
+\end{aligned}
+\]
+
+\[
+\begin{gathered}
+\left[D_{\mu},\, D_{\nu}\right]\varphi = i\,F_{\mu\nu}\,\varphi\\
+\text{So}\qquad F_{\mu\nu} = -i\left[D_{\mu},\, D_{\nu}\right]\\
+{\text{Here } F_{\mu\nu} \text{ is gauge invariant.}}
+\end{gathered}
+\]
+
+<p>
+if we impose \(F_{\mu\nu} = -i\left[D_{\mu},\, D_{\nu}\right]\) on non abelian case<br />
+</p>
+
+\[
+\begin{gathered}
+F_{\mu\nu}\,\varphi = \left(\partial_{\mu}A_{\nu}(x) - \partial_{\nu}A_{\mu}(x) - i\left[A_{\mu}(x),\, A_{\nu}(x)\right]\right)\varphi\\
+F_{\mu\nu} = \partial_{\mu}A_{\nu}(x) - \partial_{\nu}A_{\mu}(x) - i\left[A_{\mu}(x),\, A_{\nu}(x)\right]
+\end{gathered}
+\]
+
+\[
+{\swarrow\;\text{Here } F_{\mu\nu}\text{ is not gauge invariant.}}
+\qquad\qquad
+\downarrow\;
+\begin{aligned}
+&amp;A_{\mu}(x)\text{ is matrix valued \&amp; matrices}\\
+&amp;\text{don't commute in general.}
+\end{aligned}
+\]
+
+\[
+F'_{\mu\nu}(x) = U\,F_{\mu\nu}(x)\,U^{\dagger}
+\qquad\text{under gauge transformation}
+\quad
+\left\{
+\begin{aligned}
+\varphi &amp;\to U\varphi\\
+A_{\mu} &amp;\to U A_{\mu} U^{\dagger} + i\left(\partial_{\mu}U\right)U^{\dagger}
+\end{aligned}
+\right.
+\]
+
+<p>
+To add kinetic term for \(A_{\mu}(x)\) we try<br />
+</p>
+
+\[
+-\frac{1}{4}\,F_{\mu\nu}\,F^{\mu\nu}
+\qquad\text{But this is not gauge invariant.}
+\]
+
+<p>
+However,<br />
+</p>
+
+\[
+\mathrm{Tr}\left(-\frac{1}{4}\,F_{\mu\nu}\,F^{\mu\nu}\right) = -\frac{1}{4}\,\mathrm{Tr}\left(F_{\mu\nu}\,F^{\mu\nu}\right)
+\qquad\text{is gauge invariant}
+\]
+
+\[
+\begin{aligned}
+\mathrm{Tr}\left(F_{\mu\nu}\,F^{\mu\nu}\right) \;\longrightarrow\;
+\mathrm{Tr}\left(U F_{\mu\nu}\,U^{\dagger}U\,F^{\mu\nu}\,U^{\dagger}\right)
+&amp;= \mathrm{Tr}\left(U\,F_{\mu\nu}\,F^{\mu\nu}\,U^{\dagger}\right)\\
+&amp;= \mathrm{Tr}\left(F_{\mu\nu}\,F^{\mu\nu}\,U^{\dagger}\,U\right)\\
+&amp;= \mathrm{Tr}\left(F_{\mu\nu}\,F^{\mu\nu}\right)
+\end{aligned}
+\]
+
+<p>
+So,<br />
+</p>
+
+\[
+\mathcal{L} = \left(D_{\mu}\varphi\right)^{\dagger}D^{\mu}\varphi \;-\; V\left(\varphi^{\dagger}\varphi\right)
+\;-\; \dfrac{1}{4}\,\mathrm{Tr}\left(F_{\mu\nu}\,F^{\mu\nu}\right)
+\qquad
+{\uparrow\;\text{Yang-Mills lagrangian.}}
+\]
+
+<p>
+is invariant under local non abelian gauge transformation.<br />
+Note that \(-\frac{1}{4}\,\mathrm{Tr}\left(F_{\mu\nu}\,F^{\mu\nu}\right)\) is an interacting theory.<br />
+Unlike abelian case, here \(A_{\mu}(x)\) is non abelian &amp; it turns out here \(A_{\mu}(x)\) is interacting with itself.<br />
+</p>
+
+\[
+\begin{aligned}
+-\frac{1}{4}\,\mathrm{Tr}\left(F_{\mu\nu}\,F^{\mu\nu}\right)
+= &amp;\;-\frac{1}{4}\,\mathrm{Tr}\underset{{(1)}}{\left(\partial_{\mu}A_{\nu} - \partial_{\nu}A_{\mu}\right)^{2}}
+\;+\; -\frac{1}{4}\,\mathrm{Tr}\underset{{(2)}}{\left(\left[A_{\mu},\, A_{\nu}\right]\left[A^{\mu},\, A^{\nu}\right]\right)}\\
+&amp;\;+\frac{i}{4}\,\mathrm{Tr}\underset{{(3)}}{\left(\left(\partial_{\mu}A_{\nu} - \partial_{\nu}A_{\mu}\right)\left[A^{\mu},\, A^{\nu}\right] + \left[A_{\mu},\, A_{\nu}\right]\left(\partial^{\mu}A^{\nu} - \partial^{\nu}A^{\mu}\right)\right)}
+\end{aligned}
+\]
+
+\[
+\begin{aligned}
+(1)\ &amp;\text{--- Free (quadratic)}\\
+(2)\ &amp;\text{--- interacting (quartic fields)}\\
+(3)\ &amp;\text{--- interacting (cubic fields)}
+\end{aligned}
+\qquad
+\text{[diagram below]}
+\quad
+\text{[diagram below]}
+\]
+
+<pre class="tikz">
+\begin{tikzpicture}[baseline={(0,0)},scale=0.55]
+\draw[thick] (-1,0.7) -- (0,0);
+\draw[thick] (-1,-0.7) -- (0,0);
+\draw[thick] (0,0) -- (1,0.7);
+\draw[thick] (0,0) -- (1,-0.7);
+\end{tikzpicture}
+</pre>
+
+<pre class="tikz">
+\begin{tikzpicture}[baseline={(0,0)},scale=0.55]
+\draw[thick] (-1,0.7) -- (0,0);
+\draw[thick] (-1,-0.7) -- (0,0);
+\draw[thick] (0,0) -- (1.1,0);
+\end{tikzpicture}
+</pre>
+
+<p>
+This theory describes strong interaction and weak interaction in 2 different ways.<br />
+</p>
+
+<p>
+<span id="Lecture 12 --- (Higgs Mechanism and Non Abelian gauge theories)-For strong interactions"></span><strong id="For strong interactions">For strong interactions</strong><br />
+we have Quarks : \(\Psi_{I}\) \(I = 1,2,3\) \(\swarrow\) color index.<br />
+</p>
+
+\[
+\begin{gathered}
+\text{Gauge symmetry}\qquad \Psi_{I} \to U_{IJ}\,\Psi_{J}
+\qquad\left(U U^{\dagger} = I\right)\\
+U \in SU(3)
+\end{gathered}
+\]
+
+<p>
+\(A_{\mu}(x) \in SU(3)\) i.e. independent parameters are \(3^{2}-1 = 8\)<br />
+so there are 8 gauge fields called gluons.<br />
+</p>
+
+\[
+\begin{gathered}
+\mathcal{L} = \sum_{f=1}^{6}\; i\,\overline{\Psi}^{(f)}_{\alpha a}\left(\left(\gamma^{\mu}\right)_{\alpha\beta}\left(\partial_{\mu}\,\delta_{ab} + i\left(A_{\mu}\right)_{ab}\right) - m\,\delta_{ab}\,\delta_{\alpha\beta}\right)\Psi^{(f)}_{\beta b}\\
+-\frac{1}{4}\,\mathrm{Tr}\left(F^{\mu\nu}\,F_{\mu\nu}\right)\\
+\hookrightarrow\;\left(\text{Total } \mathcal{L} \text{ for QCD}\right)
+\end{gathered}
+\]
+
+<p>
+<span id="Lecture 12 --- (Higgs Mechanism and Non Abelian gauge theories)-Since"></span><strong id="Since">Since</strong> there is no mass term for \(\left(A_{\mu}(x)\right)_{ab}\). If we add mass term \(m\,A_{\mu}A^{\mu}\) then it would <span id="Lecture 12 --- (Higgs Mechanism and Non Abelian gauge theories)-not"></span><strong id="not">not</strong> be gauge invariant. But question of weather \(A_{\mu}(x)\)/gluons are massless or not does not make sense as \(A_{\mu}(x)\) is always <span id="Lecture 12 --- (Higgs Mechanism and Non Abelian gauge theories)-confined"></span><strong id="confined">confined</strong> (by strong Force; They never propagate freely unless at high Temp &amp; density)<br />
+So we don't know mass of \(\left(A_{\mu}(x)\right)_{ab}\); despite theory predicts that they are massless.<br />
+</p>
+
+<p>
+<span id="Lecture 12 --- (Higgs Mechanism and Non Abelian gauge theories)-For weak interaction"></span><strong id="For weak interaction">For weak interaction</strong> ---<br />
+We use same \(\mathcal{L}\).<br />
+</p>
+
+\[
+\mathcal{L} = -\frac{1}{4}\,\mathrm{Tr}\left(F^{\mu\nu}\,F_{\mu\nu}\right)
+\qquad
+\left(
+\begin{aligned}
+&amp;\text{This time it couples to}\\
+&amp;\text{weakly interacting particles.}\\
+&amp;\text{i.e.\ all fermions quarks \&amp;}\\
+&amp;\text{leptons}\,\text{).}
+\end{aligned}
+\right.
+\]
+
+<p>
+Here \(U(x) \;\in\; SU(2) \times U(1)\)<br />
+\(\longrightarrow\) Total \(3+1 = 4\) generators. i.e. 4 gauge fields/particles.<br />
+Again we have massless theory (due to gauge invariance!) however since theory is short range we can look for mass via higgs mechanism.<br />
+Out of 4 \(A_{\mu}(x)\) we get <span id="Lecture 12 --- (Higgs Mechanism and Non Abelian gauge theories)-1"></span><strong id="1">1</strong> massless particle (photon) &amp; other 3 \(A_{\mu}(x)\) \(\left(W^{+}, W^{-}, Z^{0}\right)\) gets mass.<br />
+Here we have ''sort of'' unified EM &amp; weak interaction; as we used Yang Mills Lagrangian based on \(SU(2)\times U(1)\); but unified means have one coupling const. but in \(SU(2)\times U(1)\) coupling const of two groups can be independent of each other (because \(SU(2)\times U(1)\) is not simple group; its a group made up of 2 factors; True unification require simple group!)<br />
+</p>
+
+    </div>
+
+    <!-- 1. Turn vimwiki {{{class="tikz"}}} blocks into TikZJax script tags (must run BEFORE tikzjax.js) -->
+    <script>
+        document.querySelectorAll('pre.tikz').forEach(function (pre) {
+            var s = document.createElement('script');
+            s.type = 'text/tikz';
+            s.textContent = pre.textContent; // browser decodes HTML entities here
+            pre.replaceWith(s);
+        });
+    </script>
+
+    <!-- 2. Syntax-highlight code blocks, but skip diagram blocks -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre:not(.mermaid):not(.tikz)').forEach(function (block) {
+            hljs.highlightBlock(block);
+        });
+    </script>
+
+    <!-- 3. TikZJax: renders <script type="text/tikz"> into SVG -->
+    <script src="https://tikzjax.com/v1/tikzjax.js"></script>
+
+    <!-- 4. Mermaid: renders <pre class="mermaid"> into SVG -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+</body>
+</html>
