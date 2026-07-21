@@ -333,13 +333,22 @@ Please note that package availability and commands may change, and it's always a
     })();
     </script>
 
-    <!-- Image safety net: upgrade any http:// image to https:// so it isn't
-         blocked as mixed content on your https site. (Does not fix 404/path
-         problems — see the notes if an image still doesn't appear.) -->
+    <!-- Image normalization: rewrite baked-in local export paths to their web
+         location, trim stray spaces, and upgrade http:// -> https://.
+         The FILES must exist on the server at the mapped location
+         (e.g. /wiki/vimwiki_html/Blogs/cric/) — upload that folder. -->
     <script>
     (function () {
-        document.querySelectorAll('#content img[src^="http://"]').forEach(function (img) {
-            img.src = img.src.replace(/^http:\/\//i, 'https://');
+        var LOCAL_ANCHOR = '/vimwiki/';
+        var WEB_ROOT = '/wiki/vimwiki_html/';
+        document.querySelectorAll('#content img').forEach(function (img) {
+            var raw = img.getAttribute('src');
+            if (!raw) return;
+            var s = raw.trim();
+            var i = s.indexOf(LOCAL_ANCHOR);
+            if (i !== -1) s = WEB_ROOT + s.slice(i + LOCAL_ANCHOR.length);
+            if (/^http:\/\//i.test(s)) s = s.replace(/^http:\/\//i, 'https://');
+            if (s !== raw) img.setAttribute('src', s);
         });
     })();
     </script>
