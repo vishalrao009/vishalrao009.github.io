@@ -4,13 +4,12 @@
     <link rel="stylesheet" type="text/css" href="style.css">
     <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
+    <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
     <title>Cricket Journey</title>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> 
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <style>
         body {
             background-image: url('../Images/parchment.jpg');
@@ -19,81 +18,95 @@
             background-attachment: fixed;
             margin: 0;
             font-family: Arial, sans-serif;
-            padding: 3cm; /* Add 3cm padding on all sides */
+            padding: 3cm;
         }
-
         #content {
             color: #333;
-            font-size: 20px; /* Increase base font size */
+            font-size: 20px;
             line-height: 1.6;
             max-width: 1200px;
             margin: 0 auto;
             padding: 10px;
             background-color: rgba(255, 255, 255, 0.5);
         }
-
         h1 {
-            font-size: 28; /* Smaller size for h1 */
-                color: black;
+            font-size: 28px;
         }
-
         h2 {
-            font-size: 26px; /* Smaller size for h2 */
-                color: blue;
+            font-size: 24px;
         }
-
         h3 {
-            font-size: 24px; /* Smaller size for h3 */
-                color: orange;
+            font-size: 20px;
         }
-
-        h4 {
-            font-size: 20; /* Smaller size for h3 */
-                color: purple;
+        h4, h5, h6 {
+            font-size: 18px;
         }
-        
-        h5,h6 {
-            font-size: 18;
-                color: red;
-        }
-
         img {
             display: block;
             max-width: 100%;
             max-height: 500px;
-            margin: 30px auto; /* Add space above and below images */
-        }
-        figure {
-            text-align: center;
             margin: 30px auto;
         }
-
-        figcaption {
-            margin-top: 1px;
-            color: green;
-            font-size: 0.9em;
+        /* Diagram blocks (Mermaid + TikZ): centered, no code-box background */
+        pre.mermaid, pre.tikz {
+            background: none;
+            border: none;
+            text-align: center;
         }
-
+        #content svg {
+            max-width: 100%;
+            height: auto;
+        }
+        /* Breadcrumb trail */
+        .breadcrumb {
+            font-size: 15px;
+            line-height: 1.4;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+            color: #555;
+            word-break: break-word;
+        }
+        .breadcrumb:empty {
+            display: none;   /* hides the bar on the home page / single-crumb pages */
+        }
+        .breadcrumb a {
+            color: #6b4f2a;
+            text-decoration: none;
+        }
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        .breadcrumb .breadcrumb-sep {
+            color: #999;
+            margin: 0 4px;
+        }
+        .breadcrumb .breadcrumb-current {
+            color: #333;
+            font-weight: bold;
+        }
         /* Mobile Styles */
         @media only screen and (max-width: 600px) {
             body {
-                padding: 0.5cm; /* Adjust padding for smaller screens */
+                padding: 1cm;
             }
-
             #content {
-                padding: 10px; /* Adjust padding for smaller screens */
-                max-width: 100%; /* Set maximum width for smaller devices */
+                padding: 10px;
+                max-width: 100%;
             }
         }
     </style>
 </head>
 <body>
     <div id="content">
+        <!-- Breadcrumb trail: home > link1 > link2 > current. Filled in by JS below. -->
+        <nav id="breadcrumb" class="breadcrumb" aria-label="Breadcrumb"
+             data-home="index.html" data-home-label="Home"></nav>
         
 <div id="Cricket Journey"><h1 id="Cricket Journey" class="header"><a href="#Cricket Journey">Cricket Journey</a></h1></div>
 
 <p>
-I started playing cricket when I was 4 years old, the year was 1999. We used to play with rubber balls which costed 10 ruppes back then, instead of proper cricket bats, we used to ask our grandfather or uncles to prepare some cricket bat for us. <br />
+I started playing cricket when I was 4 years old, the year was 1999. we used to play with rubber balls which costed 10 ruppes back then, instead of proper bats, we used to ask our grandfather to prepare a bat for us. <br />
 I still remember those days we used to play from morning to evening on weekends and holidays. <br />
 </p>
 
@@ -146,7 +159,7 @@ My paraents were not in favour of cricket as they thought it will affect my stud
 
 <p>
 I completed my Masters in 2019 and started preparing for various jobs, covid gave me time to explore multilple things like programming, ethical hacking, quantum computing, fitness etc.<br />
-In 2021, I was selected as a PhD scholar in IISc Bangalore. I then thought to play cricket again as I was financially independent now and IISc had a cricket club and is Institute Member of KSCA.<br />
+In 2021, I was selected as a PhD scholar in IISc Bangalore. I then thought to play cricket again as I was financially independent now and IISc had a cricket club and is Institute Member for KSCA.<br />
 </p>
 
 <p>
@@ -157,158 +170,140 @@ I came on 31st December 2021 to Bangalore and started playing cricket from 1st J
 Below are some captured moments :<br />
 </p>
 
-<figure>
-<img src="cric/a.jpg" alt="MCL finals 2018" />
-<figcaption> MCL finals (2018)</figcaption>
-</figure>
-<br />
-<figure>
-<img src="cric/b.jpg " alt="Runner Up MCL 2018" />
-<figcaption> Runner Up MCL (2018)</figcaption>
-</figure>
-<br />
-<figure>
-<img src="cric/c.jpeg " alt=" Nets with prio" />
-<figcaption> Unstoppables of (2022)</figcaption>
-</figure>
-<br />
-<figure>
-<img src="cric/d.jpg " alt=" IIPL 2022" />
-<figcaption> IIPL (2022)</figcaption>
-</figure>
-<br />
-<figure>
-<img src="cric/e.jpg " alt=" Getting jersey of IISc gymkhana" />
-<figcaption> Getting jersey of IISc gymkhana (2022)</figcaption>
-</figure>
-<br />
-<figure>
-<img src="cric/h.jpeg " alt=" Birthday 2022" />
-<figcaption> First time a cake was cut for my Birthday (2022).</figcaption>
-</figure>
-<br />
-<figure>
-<img src="cric/I.jpeg " alt=" team at Alur " />
-<figcaption>  Final League match at Alur Oval Ground (2022)</figcaption>
-</figure>
-<br />
-<figure>
-<img src="cric/ALUR.jpg " alt=" Alur ground" />
-<figcaption> Alur ground (2022)</figcaption>
-</figure>
-<br />
-<figure>
-<img src="cric/IISM1.JPG " alt=" IISER bhopal" />
-<figcaption> We won Bronze at IISER Bhopal (2022)</figcaption>
-</figure>
-<br />
-<figure>
-<img src="cric/FIT.jpg " alt=" fitness appearence 2022" />
-<figcaption> When you train like an athlete (2022).</figcaption>
-</figure>
-<br />
-<figure>
-<img src="cric/J.jpg " alt=" RCB vs LSG " />
-<figcaption> First experience of live match inside a stadium (RCB vs LSG 2023) </figcaption>
-</figure>
-<br />
-<figure>
-<img src="cric/INDAFG.jpg " alt=" IND vs AFG 17 Jan 2024" />
-<figcaption> IND vs AFG T20: Double super over match (17 Jan 2024)</figcaption>
-</figure>
-<br />
-<figure>
-<img src="cric/YSR.jpg " alt=" YSR 2024" />
-<figcaption> YSR 2024</figcaption>
-</figure>
-<br />
-<figure>
-    <img src="cric/IAF.jpeg " alt=" IAF 2024 " />
-    <figcaption> First League match of life at Indian Airforce cricket ground, Bangalore. (7* (110))</figcaption>
-</figure>
-<br />
-<figure>
-<img src="cric/IN.jpg " alt=" cricket ground inaguration" />
-<figcaption> Cricket ground inaguration at IISc</figcaption>
-</figure>
-<br />
-<figure>
-<img src="cric/IISC.jpg " />
-<figcaption> IISc cricket ground</figcaption>
-</figure>
-<br />
-<figure>
-<img src="cric/IISC2.jpg" />
-<figcaption> IISc cricket ground</figcaption>
-</figure>
-<br />
-<figure>
-<img src="cric/CS1.jpg" alt=" chinnaswamy 1" />
-<figcaption> Got a chance to go very close to Chinnaswamy </figcaption>
-</figure>
-<br />
-<figure>
-<img src="cric/CS2.jpg " alt=" chinnaswamy 2" />
-<figcaption> Another perks of being club convener</figcaption>
-</figure>
-<br />
-<figure>
-<img src="cric/IISM3.JPG " alt=" IISER pune 1" />
-<figcaption> Contigent of IISM (2024)</figcaption>
-</figure>
-<br />
-<figure>
-<img src="cric/IISM4.JPG " alt=" IISER pune 2" />
-<figcaption> IISM cricket team (2024)</figcaption>
-</figure>
-<br />
-<figure>
-<img src="cric/IISM5.JPG " alt=" IISER pune 3" />
-<figcaption> IISM and IICM 2024</figcaption>
-</figure>
-<br />
-<figure>
-<img src="cric/INDNZ1.jpg " alt=" IND vs NZ test day 1" />
-<figcaption> IND vs NZ test day 1</figcaption>
-</figure>
-<br />
-<figure>
-<img src="cric/CHAMP.jpg " alt=" CHAMPIONS challenger series 2025" />
-<figcaption> Winners of Challenger series (white ball intra college cricket tournament-2025)</figcaption>
-</figure>
-<br />
-<figure>
-<img src="cric/CS.jpg " alt=" trophy with self" />
-<figcaption> First final win as a captain</figcaption>
-</figure>
-<br />
-<!-- <figure> -->
-<!-- <img src="cric/CSP.jpg " alt=" trophy with SP" /> -->
-<!-- <figcaption> A pic with bestie (Srikant Praneeth) </figcaption> -->
-<!-- </figure> -->
-<!-- <br /> -->
-<figure>
-<img src="cric/VINCERE_SEMI.jpeg " alt=" Vincere semi final 2024" />
-<figcaption> Vincere semi final (2025)</figcaption>
-</figure>
-<br />
-<figure>
-<img src="cric/VINCERE_FIN.jpg " alt=" Vincere finale 2024" />
-<figcaption> Vincere finale (2025-runner ups)</figcaption>
-</figure>
-<br />
-<figure>
-    <img src="cric/bb.png " alt="Dr Praveen" />
-    <figcaption> A pic with current coach (Dr. Praveen) of IISc Gymkhana CC</figcaption>
-</figure>
-<br />
+<p>
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/a.jpg" alt="MCL finals 2018" /><br />
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/b.jpg " alt="Runner Up MCL 2018" /><br />
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/c.jpg " alt=" Nets with prio" /><br />
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/d.jpg " alt=" IIPL 2022" /><br />
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/e.jpg " alt=" Getting jersey of IISc gymkhana" /><br />
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/h.jpeg " alt=" Birthday 2022" /><br />
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/I.jpeg " alt=" team at Alur " /><br />
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/ALUR.jpg " alt=" Alur ground" /><br />
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/IISM1.JPG " alt=" IISER bhopal" /><br />
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/FIT.jpg " alt=" fitness appearence 2022" /><br />
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/J.jpg " alt=" RCB vs LSG " /><br />
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/INDAFG.jpg " alt=" IND vs AFG 17 Jan 2024" /><br />
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/YSR.jpg " alt=" YSR 2024" /><br />
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/IN.jpg " alt=" cricket ground inaguration" /><br />
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/IISC.jpg " /><br />
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/IISC2.jpg" /><br />
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/CS.jpg " alt=" chinnaswamy 1" /><br />
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/CS2.jpg " alt=" chinnaswamy 2" /><br />
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/IISM3.JPG " alt=" IISER pune 1" /><br />
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/IISM4.JPG " alt=" IISER pune 2" /><br />
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/IISM5.JPG " alt=" IISER pune 3" /><br />
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/INDNZ1.jpg " alt=" IND vs NZ test day 1" /><br />
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/CHAMP.jpg " alt=" CHAMPIONS challenger series 2025" /><br />
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/CS.jpg " alt=" trophy with self" /><br />
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/CSP.jpg " alt=" trophy with SP" /><br />
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/VINCERE_SEMI.jpeg " alt=" Vincere semi final 2024" /><br />
+<img src="/Users/vishalrao/Documents/phd_work/notes/vimwiki/Blogs/cric/VINCERE_FIN.jpeg " alt=" Vincere finale 2024" /><br />
 </p>
 
     </div>
+
+    <!-- 0. Breadcrumb trail: builds "home > link1 > link2 > current" from the pages
+            visited in this browser tab, each clickable to jump straight there. -->
+    <script>
+    (function () {
+        var nav = document.getElementById('breadcrumb');
+        if (!nav || !window.sessionStorage) return;
+
+        var STORAGE_KEY = 'vimwiki_breadcrumb_trail';
+        var homeHref = nav.getAttribute('data-home') || 'index.html';
+        var homeLabel = nav.getAttribute('data-home-label') || 'Home';
+
+        // Resolve a (possibly relative) href to an absolute path for comparison.
+        function toPath(href) {
+            try { return new URL(href, window.location.href).pathname; }
+            catch (e) { return href; }
+        }
+
+        var home = { path: toPath(homeHref), title: homeLabel, href: homeHref };
+        var current = {
+            path: window.location.pathname,
+            title: (document.title || 'Current').trim(),
+            href: window.location.pathname + window.location.search
+        };
+
+        // Load the trail saved for this tab.
+        var trail = [];
+        try { trail = JSON.parse(sessionStorage.getItem(STORAGE_KEY)) || []; }
+        catch (e) { trail = []; }
+
+        // Always anchor the trail at Home.
+        if (!trail.length || trail[0].path !== home.path) {
+            trail = [{ path: home.path, title: home.title, href: home.href }];
+        }
+
+        if (current.path === home.path) {
+            // On the home page, the trail is just Home.
+            trail = [{ path: home.path, title: home.title, href: home.href }];
+        } else {
+            // If we've been here before in this trail, cut back to it
+            // (so jumping "up" doesn't leave stale crumbs). Otherwise append.
+            var idx = -1;
+            for (var i = 0; i < trail.length; i++) {
+                if (trail[i].path === current.path) { idx = i; break; }
+            }
+            if (idx >= 0) {
+                trail = trail.slice(0, idx + 1);
+                trail[idx].title = current.title; // refresh in case the title changed
+            } else {
+                trail.push(current);
+            }
+        }
+
+        try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(trail)); }
+        catch (e) { /* private mode / quota: still render below */ }
+
+        // Render. Leave the bar empty (hidden via .breadcrumb:empty) if we're
+        // only showing Home with nothing to navigate back to.
+        if (trail.length <= 1) return;
+
+        trail.forEach(function (crumb, i) {
+            if (i === trail.length - 1) {
+                var span = document.createElement('span');
+                span.className = 'breadcrumb-current';
+                span.setAttribute('aria-current', 'page');
+                span.textContent = crumb.title;
+                nav.appendChild(span);
+            } else {
+                var a = document.createElement('a');
+                a.href = crumb.href;
+                a.textContent = crumb.title;
+                nav.appendChild(a);
+                var sep = document.createElement('span');
+                sep.className = 'breadcrumb-sep';
+                sep.textContent = '\u203A'; // ›
+                nav.appendChild(sep);
+            }
+        });
+    })();
+    </script>
+
+    <!-- 1. Turn vimwiki {{{class="tikz"}}} blocks into TikZJax script tags (must run BEFORE tikzjax.js) -->
+    <script>
+        document.querySelectorAll('pre.tikz').forEach(function (pre) {
+            var s = document.createElement('script');
+            s.type = 'text/tikz';
+            s.textContent = pre.textContent; // browser decodes HTML entities here
+            pre.replaceWith(s);
+        });
+    </script>
+    <!-- 2. Syntax-highlight code blocks, but skip diagram blocks -->
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
     <script type="text/javascript">
-        document.querySelectorAll('pre').forEach(block => hljs.highlightBlock(block));
+        document.querySelectorAll('pre:not(.mermaid):not(.tikz)').forEach(function (block) {
+            hljs.highlightBlock(block);
+        });
+    </script>
+    <!-- 3. TikZJax: renders <script type="text/tikz"> into SVG -->
+    <script src="https://tikzjax.com/v1/tikzjax.js"></script>
+    <!-- 4. Mermaid: renders <pre class="mermaid"> into SVG -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
     </script>
 </body>
 </html>
-
