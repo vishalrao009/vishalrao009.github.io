@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="../style.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
+    <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
+    <title>2025-04-22</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            background-image: url('../Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm;
+        }
+        #content {
+            color: #333;
+            font-size: 20px;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+        h1 { font-size: 28px; }
+        h2 { font-size: 24px; }
+        h3 { font-size: 20px; }
+        h4, h5, h6 { font-size: 18px; }
+        img {
+            display: block;
+            max-width: 100%;
+            max-height: 500px;
+            margin: 30px auto;
+        }
+        /* Diagram blocks (Mermaid + TikZ): centered, no code-box background */
+        pre.mermaid, pre.tikz {
+            background: none;
+            border: none;
+            text-align: center;
+        }
+        #content svg {
+            max-width: 100%;
+            height: auto;
+        }
+        /* Breadcrumb trail */
+        .breadcrumb {
+            font-size: 15px;
+            line-height: 1.4;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+            color: #555;
+            word-break: break-word;
+        }
+        .breadcrumb:empty { display: none; }
+        .breadcrumb a { color: #6b4f2a; text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        .breadcrumb .breadcrumb-sep { color: #999; margin: 0 4px; }
+        .breadcrumb .breadcrumb-current { color: #333; font-weight: bold; }
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body { padding: 1cm; }
+            #content { padding: 10px; max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        <!-- Breadcrumb: Home > section > ... > current. Change data-home if your home moves. -->
+        <nav id="breadcrumb" class="breadcrumb" aria-label="Breadcrumb"
+             data-home="/" data-home-label="Home"></nav>
+        
+<div id="2d bresenham"><h2 id="2d bresenham" class="header"><a href="#2d bresenham">2d bresenham</a></h2></div>
+
+<p>
+cmax2 := 2*cmax<br />
+cmin2 := 2*cmin<br />
+chi := cmin2 -cmax<br />
+FOR i := 1 TO cmax DO<br />
+step in max-direction<br />
+IF chi ≥ 0 THEN<br />
+chi := chi - cmax2<br />
+step in min-direction<br />
+ENDIF<br />
+chi := chi + cmin2<br />
+ENDDO<br />
+The generalisation to three dimensions is achieved by<br />
+combining two of these 2d-algorithms with different χ’s<br />
+for max-mid and max-min in just one loop over the maxdirection<br />
+</p>
+
+
+<div id="3d bresenham from 2d case:"><h2 id="3d bresenham from 2d case:" class="header"><a href="#3d bresenham from 2d case:">3d bresenham from 2d case:</a></h2></div>
+
+
+<p>
+// Initialize variables<br />
+cmax := maximum of (dx, dy, dz)<br />
+cmed := median of (dx, dy, dz)<br />
+cmin := minimum of (dx, dy, dz)<br />
+</p>
+
+<p>
+cmax2 := 2 * cmax<br />
+cmed2 := 2 * cmed<br />
+cmin2 := 2 * cmin<br />
+</p>
+
+<p>
+chi_mid := cmed2 - cmax       // Decision variable for mid-direction<br />
+chi_min := cmin2 - cmax       // Decision variable for min-direction<br />
+</p>
+
+<p>
+FOR i := 1 TO cmax DO<br />
+</p>
+<pre><code>step in max-direction
+
+// Handle mid-direction step
+IF chi_mid ≥ 0 THEN
+chi_mid := chi_mid - cmax2
+step in mid-direction
+ENDIF
+chi_mid := chi_mid + cmed2
+
+// Handle min-direction step
+IF chi_min ≥ 0 THEN
+chi_min := chi_min - cmax2
+step in min-direction
+ENDIF
+chi_min := chi_min + cmin2
+</code></pre>
+<p>
+ENDDO<br />
+</p>
+
+
+
+<p>
+2d bresenham:<br />
+ _<em>device</em>_  _<em>host</em>_  SU3&lt;floatT&gt; BresenhamLoopXYL(int &amp;x,int &amp;y, int &amp;z, int &amp;t, gSite site, int &amp;mu, int &amp;nu, int &amp;rho)<br />
+</p>
+<pre><code>{
+SU3&lt;floatT&gt; temp;
+temp=SU3&lt;floatT&gt;(1, 0, 0, 0, 1, 0, 0, 0, 1); //initialize to identity matrix
+int cmax,cmin,cmax_dir,cmin_dir;
+if (x&gt;=y) {cmax=x; cmin=y; cmax_dir=mu; cmin_dir=nu;}
+else {cmax=y; cmin=x; cmax_dir=nu; cmin_dir=mu;}
+typedef GIndexer&lt;All, HaloDepth&gt; GInd;
+int cmax2=2*cmax;
+int cmin2=2*cmin;
+int chi=cmin2-cmax; 
+for (int ix=0;ix&lt;cmax;ix++)
+{
+temp*=SU3Accessor.getLink(GInd::getSiteMu(site,cmax_dir));//step in cmax
+site=GInd::site_up(site,cmax_dir);
+if(chi&gt;=0)
+{
+chi-=cmax2;
+temp*=SU3Accessor.getLink(GInd::getSiteMu(site,cmin_dir)); //step in cmin
+site=GInd::site_up(site,cmin_dir);
+}
+chi+=cmin2;
+}
+for(int iz=0;iz&lt;z;iz++)
+{
+temp*=SU3Accessor.getLink(GInd::getSiteMu(site,3-mu-nu)); //step in cmin
+site=GInd::site_up(site,3-mu-nu);
+}
+return temp; 
+}
+</code></pre>
+
+<p>
+  _<em>device</em>_  _<em>host</em>_  SU3&lt;floatT&gt; BresenhamLoopXYU(int &amp;x,int &amp;y, int &amp;z, gSite site, int &amp;mu, int &amp;nu)<br />
+</p>
+<pre><code>{
+SU3&lt;floatT&gt; temp;
+temp=SU3&lt;floatT&gt;(1, 0, 0, 0, 1, 0, 0, 0, 1); //initialize to identity matrix
+int cmax,cmin,cmax_dir,cmin_dir;
+if (x&gt;=y) {cmax=x; cmin=y; cmax_dir=mu; cmin_dir=nu;}
+else {cmax=y; cmin=x; cmax_dir=nu; cmin_dir=mu;}
+typedef GIndexer&lt;All, HaloDepth&gt; GInd;
+int cmax2=2*cmax;
+int cmin2=2*cmin;
+int chi=cmin2-cmax; 
+for(int iz=0;iz&lt;z;iz++)
+{
+temp*=SU3Accessor.getLink(GInd::getSiteMu(site,3-mu-nu)); //step in cmin
+site=GInd::site_up(site,3-mu-nu);
+}
+for (int ix=0;ix&lt;cmax;ix++)
+{
+temp*=SU3Accessor.getLink(GInd::getSiteMu(site,cmax_dir));//step in cmax
+site=GInd::site_up(site,cmax_dir);
+if(chi&gt;=0)
+{
+chi-=cmax2;
+temp*=SU3Accessor.getLink(GInd::getSiteMu(site,cmin_dir)); //step in cmin
+site=GInd::site_up(site,cmin_dir);
+}
+chi+=cmin2;
+}
+return temp; 
+}
+_<em>device</em>_ _<em>host</em>_ floatT operator()(gSite site) {
+</code></pre>
+<pre><code>typedef GIndexer&lt;All, HaloDepth&gt; GInd;
+/// Define a SU(3) matrix
+floatT result = 0;
+SU3&lt;floatT&gt; temp1,temp2;
+int mu,nu;
+switch (_ex_dir) {
+case 0: mu=1;nu=2;break;
+case 1: mu=0;nu=2;break;
+case 2: mu=0;nu=1;break;
+case 3: for(nu=1;nu&lt;3;nu++)
+{
+for(mu=0;mu&lt;nu;mu++)
+{
+temp1=BresenhamLoopXYL(_x,_y,_z,site,mu,nu);
+temp2=BresenhamLoopXYU(_x,_y,_z,site,mu,nu);
+result+=tr_d(temp1*dagger(temp2));
+//replacing x&lt;-&gt;y
+temp1=BresenhamLoopXYL(_y,_x,_z,site,mu,nu);
+temp2=BresenhamLoopXYU(_y,_x,_z,site,mu,nu);
+result+=tr_d(temp1*dagger(temp2));
+}
+}
+return result/6.0;
+break;
+default: for (nu=1;nu&lt;3;nu++)
+{
+for(mu=0;mu&lt;nu;mu++)
+{
+temp1=BresenhamLoopXYL(_x,_y,_z,site,mu,nu);
+temp2=BresenhamLoopXYU(_x,_y,_z,site,mu,nu);
+result+=tr_d(temp1*dagger(temp2));
+//replacing x&lt;-&gt;y
+temp1=BresenhamLoopXYL(_y,_x,_z,site,mu,nu);
+temp2=BresenhamLoopXYU(_y,_x,_z,site,mu,nu);
+result+=tr_d(temp1*dagger(temp2));
+}
+}
+return result/6.0;
+break;
+}        
+temp1=BresenhamLoopXYL(_x,_y,_z,site,mu,nu);
+temp2=BresenhamLoopXYU(_x,_y,_z,site,mu,nu);
+result+=tr_d(temp1*dagger(temp2));
+</code></pre>
+<p>
+//replacing x&lt;-&gt;y<br />
+</p>
+<pre><code>temp1=BresenhamLoopXYL(_y,_x,_z,site,mu,nu);
+temp2=BresenhamLoopXYU(_y,_x,_z,site,mu,nu);
+result+=tr_d(temp1*dagger(temp2));
+return result/2.0;
+}
+</code></pre>
+<p>
+};<br />
+</p>
+
+    </div>
+
+    <!-- Breadcrumb trail (referrer-aware, labels from each page's <h1>) -->
+    <script>
+    (function () {
+        var nav = document.getElementById('breadcrumb');
+        if (!nav || !window.sessionStorage) return;
+
+        var STORAGE_KEY = 'vimwiki_breadcrumb_trail';
+        var homeHref = nav.getAttribute('data-home') || '/';
+        var homeLabel = nav.getAttribute('data-home-label') || 'Home';
+
+        function toPath(href) {
+            try { return new URL(href, window.location.href).pathname; }
+            catch (e) { return href; }
+        }
+        function pageLabel() {
+            var h1 = document.querySelector('#content h1');
+            var t = h1 ? h1.textContent.replace(/\s+/g, ' ').trim() : '';
+            if (t) return t;
+            t = (document.title || '').replace(/_+/g, ' ').trim();
+            if (t && t.toLowerCase() !== 'index') return t;
+            var segs = window.location.pathname.split('/').filter(Boolean).map(function (s) {
+                try { return decodeURIComponent(s); } catch (e) { return s; }
+            });
+            var last = segs.pop() || '';
+            if (/^index\.html?$/i.test(last)) last = segs.pop() || 'index';
+            return last.replace(/\.html?$/i, '').replace(/_+/g, ' ').trim() || 'Page';
+        }
+
+        var home = { path: toPath(homeHref), title: homeLabel, href: homeHref };
+        var current = {
+            path: window.location.pathname,
+            title: pageLabel(),
+            href: window.location.pathname + window.location.search
+        };
+
+        var ref = null;
+        if (document.referrer) {
+            try {
+                var r = new URL(document.referrer);
+                if (r.origin === window.location.origin) ref = r.pathname;
+            } catch (e) { ref = null; }
+        }
+
+        var stored = [];
+        try { stored = JSON.parse(sessionStorage.getItem(STORAGE_KEY)) || []; }
+        catch (e) { stored = []; }
+        if (!Array.isArray(stored)) stored = [];
+
+        function homeCrumb() { return { path: home.path, title: home.title, href: home.href }; }
+        function idxOf(arr, p) { for (var i = 0; i < arr.length; i++) if (arr[i].path === p) return i; return -1; }
+
+        var trail;
+        if (current.path === home.path) {
+            trail = [homeCrumb()];
+        } else {
+            var anchored = stored.length && stored[0].path === home.path;
+            var base;
+            if (ref) {
+                var ri = idxOf(stored, ref);
+                base = (ri >= 0 && anchored) ? stored.slice(0, ri + 1) : [homeCrumb()];
+            } else {
+                var ci = idxOf(stored, current.path);
+                base = (ci >= 0 && anchored) ? stored.slice(0, ci) : [homeCrumb()];
+            }
+            var existing = idxOf(base, current.path);
+            if (existing >= 0) {
+                trail = base.slice(0, existing + 1);
+                trail[existing] = { path: current.path, title: current.title, href: current.href };
+            } else {
+                trail = base.concat([{ path: current.path, title: current.title, href: current.href }]);
+            }
+            if (!trail.length || trail[0].path !== home.path) trail = [homeCrumb()].concat(trail);
+        }
+
+        try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(trail)); } catch (e) {}
+
+        if (trail.length <= 1) return;
+        trail.forEach(function (crumb, i) {
+            if (i === trail.length - 1) {
+                var span = document.createElement('span');
+                span.className = 'breadcrumb-current';
+                span.setAttribute('aria-current', 'page');
+                span.textContent = crumb.title;
+                nav.appendChild(span);
+            } else {
+                var a = document.createElement('a');
+                a.href = crumb.href;
+                a.textContent = crumb.title;
+                nav.appendChild(a);
+                var sep = document.createElement('span');
+                sep.className = 'breadcrumb-sep';
+                sep.textContent = '\u203A';
+                nav.appendChild(sep);
+            }
+        });
+    })();
+    </script>
+
+    <!-- Image safety net: upgrade any http:// image to https:// so it isn't
+         blocked as mixed content on your https site. (Does not fix 404/path
+         problems — see the notes if an image still doesn't appear.) -->
+    <script>
+    (function () {
+        document.querySelectorAll('#content img[src^="http://"]').forEach(function (img) {
+            img.src = img.src.replace(/^http:\/\//i, 'https://');
+        });
+    })();
+    </script>
+
+    <!-- 1. Turn vimwiki {{{class="tikz"}}} blocks into TikZJax script tags (must run BEFORE tikzjax.js) -->
+    <script>
+        document.querySelectorAll('pre.tikz').forEach(function (pre) {
+            var s = document.createElement('script');
+            s.type = 'text/tikz';
+            s.textContent = pre.textContent; // browser decodes HTML entities here
+            pre.replaceWith(s);
+        });
+    </script>
+    <!-- 2. Syntax-highlight code blocks, but skip diagram blocks -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre:not(.mermaid):not(.tikz)').forEach(function (block) {
+            hljs.highlightBlock(block);
+        });
+    </script>
+    <!-- 3. TikZJax: renders <script type="text/tikz"> into SVG -->
+    <script src="https://tikzjax.com/v1/tikzjax.js"></script>
+    <!-- 4. Mermaid: renders <pre class="mermaid"> into SVG -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+</body>
+</html>
