@@ -39,6 +39,21 @@
             max-height: 500px;
             margin: 30px auto;
         }
+        /* Image + caption (built from each image's alt text) */
+        figure.img-figure {
+            margin: 30px auto;
+            text-align: center;
+            max-width: 100%;
+        }
+        figure.img-figure img {
+            margin: 0 auto 8px auto;   /* caption sits right under the image */
+        }
+        figure.img-figure figcaption {
+            font-size: 15px;
+            color: #555;
+            font-style: italic;
+            line-height: 1.4;
+        }
         /* Diagram blocks (Mermaid + TikZ): centered, no code-box background */
         pre.mermaid, pre.tikz {
             background: none;
@@ -272,22 +287,40 @@ Images are produced by DALL-E.<br />
     })();
     </script>
 
-    <!-- Image normalization: rewrite baked-in local export paths to their web
-         location, trim stray spaces, and upgrade http:// -> https://.
-         The FILES must exist on the server at the mapped location
+    <!-- Images: (1) rewrite baked-in local export paths to their web location and
+         trim stray spaces, (2) upgrade http:// -> https://, (3) add a caption under
+         each image using its alt text. Images with no alt are left uncaptioned.
+         NOTE: the image FILES must exist on the server at the mapped location
          (e.g. /wiki/vimwiki_html/Blogs/cric/) — upload that folder. -->
     <script>
     (function () {
         var LOCAL_ANCHOR = '/vimwiki/';
         var WEB_ROOT = '/wiki/vimwiki_html/';
         document.querySelectorAll('#content img').forEach(function (img) {
+            // 1) normalise the src
             var raw = img.getAttribute('src');
-            if (!raw) return;
-            var s = raw.trim();
-            var i = s.indexOf(LOCAL_ANCHOR);
-            if (i !== -1) s = WEB_ROOT + s.slice(i + LOCAL_ANCHOR.length);
-            if (/^http:\/\//i.test(s)) s = s.replace(/^http:\/\//i, 'https://');
-            if (s !== raw) img.setAttribute('src', s);
+            if (raw) {
+                var s = raw.trim();
+                var i = s.indexOf(LOCAL_ANCHOR);
+                if (i !== -1) s = WEB_ROOT + s.slice(i + LOCAL_ANCHOR.length);
+                if (/^http:\/\//i.test(s)) s = s.replace(/^http:\/\//i, 'https://');
+                if (s !== raw) img.setAttribute('src', s);
+            }
+            // 2) caption from alt text
+            var alt = (img.getAttribute('alt') || '').trim();
+            if (!alt) return;
+            var parent = img.parentNode;
+            if (!parent || parent.tagName === 'FIGURE') return;
+            var fig = document.createElement('figure');
+            fig.className = 'img-figure';
+            var cap = document.createElement('figcaption');
+            cap.textContent = alt;
+            parent.insertBefore(fig, img);
+            fig.appendChild(img);
+            fig.appendChild(cap);
+            // tidy a <br> left immediately after the image
+            var nx = fig.nextSibling;
+            if (nx && nx.nodeType === 1 && nx.tagName === 'BR') nx.parentNode.removeChild(nx);
         });
     })();
     </script>
