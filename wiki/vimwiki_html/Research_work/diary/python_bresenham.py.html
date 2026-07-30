@@ -94,7 +94,7 @@
         .breadcrumb a:hover { color: #8a4a12; text-decoration: underline; }
         .breadcrumb .breadcrumb-sep { color: #c08a5a; margin: 0 8px; }
         .breadcrumb .breadcrumb-current { color: #1f3a5f; }
-        /* Floating navigation buttons (go back + scroll to top) */
+        /* Floating navigation buttons (ask this page + go back + scroll to top) */
         .floating-btns {
             position: fixed;
             right: 24px;
@@ -195,7 +195,8 @@ def bresenham(x0,y0,x1,y1):
 
     </div>
 
-    <!-- Floating buttons: go back to the previous page, and scroll to top of this page -->
+    <!-- Floating buttons: ask this page (added by pagebot.js), go back to the
+         previous page, and scroll to top of this page -->
     <div class="floating-btns">
         <button id="btn-back" type="button" title="Go back" aria-label="Go back">&#8592;</button>
         <button id="btn-top" type="button" title="Back to top" aria-label="Back to top">&#8593;</button>
@@ -382,5 +383,25 @@ def bresenham(x0,y0,x1,y1):
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
         mermaid.initialize({ startOnLoad: true });
     </script>
+
+    <!-- 5. Ask-this-page search. Purely local: it indexes the text already in
+         #content and shows the passages that match your question. The launcher
+         is added to the .floating-btns stack above, so it inherits those styles.
+         The index is built the first time the panel is opened, by which point
+         MathJax/TikZ/Mermaid have finished rewriting the DOM. -->
+    <script>
+        window.PAGEBOT_CONFIG = {
+            rootSelector: '#content',
+            extraSkip: 'pre.mermaid, pre.tikz, .breadcrumb',
+            launcherSelector: '.floating-btns',
+            launcherLabel: '?',
+            launcherTitle: 'Ask this page',
+            title: 'Ask this page',
+            accent: '#6b4f2a',
+            panelBg: '#fbf6e9',
+            results: 3
+        };
+    </script>
+    <script src="/wiki/assets/pagebot.js"></script>
 </body>
 </html>

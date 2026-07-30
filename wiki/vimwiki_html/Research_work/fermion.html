@@ -94,7 +94,7 @@
         .breadcrumb a:hover { color: #8a4a12; text-decoration: underline; }
         .breadcrumb .breadcrumb-sep { color: #c08a5a; margin: 0 8px; }
         .breadcrumb .breadcrumb-current { color: #1f3a5f; }
-        /* Floating navigation buttons (go back + scroll to top) */
+        /* Floating navigation buttons (ask this page + go back + scroll to top) */
         .floating-btns {
             position: fixed;
             right: 24px;
@@ -160,7 +160,7 @@
 <div id="Fermion"><h1 id="Fermion" class="header"><a href="#Fermion">Fermion</a></h1></div>
 
 <p>
-A fermion is a particle (or field) with half-integer spin \(s=\tfrac{1}{2},\tfrac{3}{2},\dots\) that obeys Fermi–Dirac statistics. All matter fields of the Standard Model — the <a href="quarks.html">quarks</a> and the leptons — are spin-\(\tfrac{1}{2}\) fermions, described by 4-component Dirac <a href="spinors.html">spinors</a>.<br />
+A fermion is a particle (or field; basically particles are excitations of fields) with half-integer spin \(s=\tfrac{1}{2},\tfrac{3}{2},\dots\) that obeys Fermi–Dirac statistics. All matter fields of the Standard Model — the <a href="quarks.html">quarks</a> and the leptons — are spin-\(\tfrac{1}{2}\) fermions, described by 4-component Dirac <a href="spinors.html">spinors</a>.<br />
 </p>
 
 <div id="Fermion-Antisymmetry and the exclusion principle"><h2 id="Antisymmetry and the exclusion principle" class="header"><a href="#Fermion-Antisymmetry and the exclusion principle">Antisymmetry and the exclusion principle</a></h2></div>
@@ -229,7 +229,8 @@ in contrast to the periodic conditions for bosonic fields. This is the origin of
 
     </div>
 
-    <!-- Floating buttons: go back to the previous page, and scroll to top of this page -->
+    <!-- Floating buttons: ask this page (added by pagebot.js), go back to the
+         previous page, and scroll to top of this page -->
     <div class="floating-btns">
         <button id="btn-back" type="button" title="Go back" aria-label="Go back">&#8592;</button>
         <button id="btn-top" type="button" title="Back to top" aria-label="Back to top">&#8593;</button>
@@ -416,5 +417,25 @@ in contrast to the periodic conditions for bosonic fields. This is the origin of
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
         mermaid.initialize({ startOnLoad: true });
     </script>
+
+    <!-- 5. Ask-this-page search. Purely local: it indexes the text already in
+         #content and shows the passages that match your question. The launcher
+         is added to the .floating-btns stack above, so it inherits those styles.
+         The index is built the first time the panel is opened, by which point
+         MathJax/TikZ/Mermaid have finished rewriting the DOM. -->
+    <script>
+        window.PAGEBOT_CONFIG = {
+            rootSelector: '#content',
+            extraSkip: 'pre.mermaid, pre.tikz, .breadcrumb',
+            launcherSelector: '.floating-btns',
+            launcherLabel: '?',
+            launcherTitle: 'Ask this page',
+            title: 'Ask this page',
+            accent: '#6b4f2a',
+            panelBg: '#fbf6e9',
+            results: 3
+        };
+    </script>
+    <script src="/wiki/assets/pagebot.js"></script>
 </body>
 </html>
