@@ -51,6 +51,18 @@ body {
     width: 190px;
     border-radius: 5px;
     border: 2px solid #003366;
+
+    filter: blur(8px);
+    -webkit-filter: blur(8px);
+    transition: filter 0.3s ease;
+    cursor: pointer;
+}
+
+.photo:hover,
+.photo:focus,
+.photo.is-visible {
+    filter: blur(0);
+    -webkit-filter: blur(0);
 }
 
 .header-text h1 {
@@ -152,7 +164,7 @@ footer {
 
 <div class="header">
 
-<img src="pp.jpg" alt="Vishal Rao" class="photo">
+<img src="pp.jpg" alt="Vishal Rao" class="photo" id="profile-photo" tabindex="0">
 
 <div class="header-text">
 
@@ -355,6 +367,13 @@ Bangalore, India
 </div>
 
 <script>
+
+const photo = document.getElementById('profile-photo');
+
+photo.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    photo.classList.toggle('is-visible');
+});
 
 const numImages = 2;
 
