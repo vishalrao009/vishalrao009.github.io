@@ -169,13 +169,11 @@ def render_panel(items):
     if not items:
         return '<p class="new-empty">Nothing new just yet.</p>'
     lines = ["<ul>"]
-    for url, title, date in items:
+    for url, title, _date in items:
         lines.append(
-            '<li><a href="/{url}">{title}</a>'
-            '<span class="new-date">{date}</span></li>'.format(
+            '<li><a href="/{url}">{title}</a></li>'.format(
                 url=html.escape(url, quote=True),
                 title=html.escape(title),
-                date=html.escape(fmt_date(date)),
             )
         )
     lines.append("</ul>")
