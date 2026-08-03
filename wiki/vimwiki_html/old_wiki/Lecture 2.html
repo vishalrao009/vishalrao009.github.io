@@ -285,15 +285,16 @@ we can use template using keyword <code>auto</code> which is just c++20 feature 
 
         addCrumb('/index.html', 'Home');
 
-        // Top-level folder gets the friendly section label + fixed section page.
+        // Section landing page (Know the Author for Blogs, Resources otherwise).
+        // This sits ABOVE the wiki folder, it does not replace it.
         addCrumb(sectionHref, section);
 
-        // Every folder BETWEEN the top-level folder and the current page,
-        // linked to that folder's own index.html so the full trail is clickable.
-        var acc = base + (segs.length ? segs[0] : '');
-        for (var i = 1; i < segs.length - 1; i++) {
-            acc += '/' + segs[i];
-            addCrumb(acc + '/index.html', prettify(segs[i]));
+        // Every folder from the top-level wiki folder down to (but not
+        // including) the current page, each linked to its own index.html so the
+        // full address is shown and every level is clickable.
+        for (var i = 0; i < segs.length - 1; i++) {
+            var href = base + segs.slice(0, i + 1).join('/') + '/index.html';
+            addCrumb(href, prettify(segs[i]));
         }
 
         var current = document.createElement('span');
