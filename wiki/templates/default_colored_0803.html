@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- <link rel="stylesheet" type="text/css" href="../style.css"> -->
+    <!-- <link rel="stylesheet" type="text/css" href="%root_path%%css%"> -->
     <link rel="stylesheet" href="/wiki/assets/style.css" />
-    <link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="%root_path%%rss%">
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
     <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
     <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
-    <title>node0</title>
+    <title>%title%</title>
     <!-- MathJax config: on phone-width screens, break long display equations onto
          multiple lines instead of overflowing the page. Desktop and tablet keep the
          default rendering (empty config), so their layout is unchanged. Must run
@@ -23,7 +23,7 @@
         })();
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=%encoding%">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body {
@@ -153,14 +153,10 @@
 </head>
 <body>
     <div id="content">
-        <!-- Breadcrumb: Home > section > current, based on which top-level wiki
-             folder this page lives under. See the script below for the mapping. -->
-        <nav id="breadcrumb" class="breadcrumb" aria-label="Breadcrumb"></nav>
-        
-<p>
-hi<br />
-</p>
-
+        <!-- Breadcrumb: Home > section > ... > current. Change data-home if your home moves. -->
+        <nav id="breadcrumb" class="breadcrumb" aria-label="Breadcrumb"
+             data-home="/" data-home-label="Home"></nav>
+        %content%
     </div>
 
     <!-- Floating buttons: ask this page (added by pagebot.js), go back to the
@@ -170,38 +166,27 @@ hi<br />
         <button id="btn-top" type="button" title="Back to top" aria-label="Back to top">&#8593;</button>
     </div>
 
-    <!-- Breadcrumb trail: Home > Resources|Know the Author > current page.
-         The middle segment is fixed by which top-level wiki folder the page is
-         under (Blogs -> Know the Author, everything else -> Resources) rather
-         than by how the visitor navigated here, so it's the same every time
-         the page loads, regardless of referrer or session. The current-page
-         label prefers the page's own <h1>, same as before. -->
+    <!-- Breadcrumb trail (referrer-aware, labels from each page's <h1>) -->
     <script>
     (function () {
         var nav = document.getElementById('breadcrumb');
-        if (!nav) return;
+        if (!nav || !window.sessionStorage) return;
 
-        var path = window.location.pathname;
-        var marker = 'vimwiki_html/';
-        var idx = path.indexOf(marker);
-        var topFolder = idx !== -1 ? path.slice(idx + marker.length).split('/')[0] : '';
+        var STORAGE_KEY = 'vimwiki_breadcrumb_trail';
+        var homeHref = nav.getAttribute('data-home') || '/';
+        var homeLabel = nav.getAttribute('data-home-label') || 'Home';
 
-        var section, sectionHref;
-        if (topFolder === 'Blogs') {
-            section = 'Know the Author';
-            sectionHref = '/author.html';
-        } else {
-            section = 'Resources';
-            sectionHref = '/resources.html';
+        function toPath(href) {
+            try { return new URL(href, window.location.href).pathname; }
+            catch (e) { return href; }
         }
-
         function pageLabel() {
             var h1 = document.querySelector('#content h1');
             var t = h1 ? h1.textContent.replace(/\s+/g, ' ').trim() : '';
             if (t) return t;
             t = (document.title || '').replace(/_+/g, ' ').trim();
             if (t && t.toLowerCase() !== 'index') return t;
-            var segs = path.split('/').filter(Boolean).map(function (s) {
+            var segs = window.location.pathname.split('/').filter(Boolean).map(function (s) {
                 try { return decodeURIComponent(s); } catch (e) { return s; }
             });
             var last = segs.pop() || '';
@@ -209,25 +194,73 @@ hi<br />
             return last.replace(/\.html?$/i, '').replace(/_+/g, ' ').trim() || 'Page';
         }
 
-        function addCrumb(href, text) {
-            var a = document.createElement('a');
-            a.href = href;
-            a.textContent = text;
-            nav.appendChild(a);
-            var sep = document.createElement('span');
-            sep.className = 'breadcrumb-sep';
-            sep.textContent = '\u203A';
-            nav.appendChild(sep);
+        var home = { path: toPath(homeHref), title: homeLabel, href: homeHref };
+        var current = {
+            path: window.location.pathname,
+            title: pageLabel(),
+            href: window.location.pathname + window.location.search
+        };
+
+        var ref = null;
+        if (document.referrer) {
+            try {
+                var r = new URL(document.referrer);
+                if (r.origin === window.location.origin) ref = r.pathname;
+            } catch (e) { ref = null; }
         }
 
-        addCrumb('/index.html', 'Home');
-        addCrumb(sectionHref, section);
+        var stored = [];
+        try { stored = JSON.parse(sessionStorage.getItem(STORAGE_KEY)) || []; }
+        catch (e) { stored = []; }
+        if (!Array.isArray(stored)) stored = [];
 
-        var current = document.createElement('span');
-        current.className = 'breadcrumb-current';
-        current.setAttribute('aria-current', 'page');
-        current.textContent = pageLabel();
-        nav.appendChild(current);
+        function homeCrumb() { return { path: home.path, title: home.title, href: home.href }; }
+        function idxOf(arr, p) { for (var i = 0; i < arr.length; i++) if (arr[i].path === p) return i; return -1; }
+
+        var trail;
+        if (current.path === home.path) {
+            trail = [homeCrumb()];
+        } else {
+            var anchored = stored.length && stored[0].path === home.path;
+            var base;
+            if (ref) {
+                var ri = idxOf(stored, ref);
+                base = (ri >= 0 && anchored) ? stored.slice(0, ri + 1) : [homeCrumb()];
+            } else {
+                var ci = idxOf(stored, current.path);
+                base = (ci >= 0 && anchored) ? stored.slice(0, ci) : [homeCrumb()];
+            }
+            var existing = idxOf(base, current.path);
+            if (existing >= 0) {
+                trail = base.slice(0, existing + 1);
+                trail[existing] = { path: current.path, title: current.title, href: current.href };
+            } else {
+                trail = base.concat([{ path: current.path, title: current.title, href: current.href }]);
+            }
+            if (!trail.length || trail[0].path !== home.path) trail = [homeCrumb()].concat(trail);
+        }
+
+        try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(trail)); } catch (e) {}
+
+        if (trail.length <= 1) return;
+        trail.forEach(function (crumb, i) {
+            if (i === trail.length - 1) {
+                var span = document.createElement('span');
+                span.className = 'breadcrumb-current';
+                span.setAttribute('aria-current', 'page');
+                span.textContent = crumb.title;
+                nav.appendChild(span);
+            } else {
+                var a = document.createElement('a');
+                a.href = crumb.href;
+                a.textContent = crumb.title;
+                nav.appendChild(a);
+                var sep = document.createElement('span');
+                sep.className = 'breadcrumb-sep';
+                sep.textContent = '\u203A';
+                nav.appendChild(sep);
+            }
+        });
     })();
     </script>
 
