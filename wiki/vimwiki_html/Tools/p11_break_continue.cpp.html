@@ -215,48 +215,19 @@ int main()
         <button id="btn-top" type="button" title="Back to top" aria-label="Back to top">&#8593;</button>
     </div>
 
-    <!-- Breadcrumb trail: Home > Resources|Know the Author > current page.
-         The middle segment is fixed by which top-level wiki folder the page is
-         under (Blogs -> Know the Author, everything else -> Resources) rather
-         than by how the visitor navigated here, so it's the same every time
-         the page loads, regardless of referrer or session. The current-page
-         label prefers the page's own <h1>, same as before. -->
+    <!-- Breadcrumb trail: the actual navigation chain the visitor clicked
+         through, in order (link1 > link2 > ... > current), NOT the folder path.
+         The chain is stored per-tab in sessionStorage: each page appends itself
+         when reached via a new link, and truncates back to itself when revisited
+         (e.g. clicking an earlier crumb or using the back button). Home is
+         always the root. The label prefers the page's own <h1>. -->
     <script>
     (function () {
         var nav = document.getElementById('breadcrumb');
         if (!nav) return;
 
+        var KEY = 'wikiBreadcrumbTrail';
         var path = window.location.pathname;
-        var marker = 'vimwiki_html/';
-        var idx = path.indexOf(marker);
-        var topFolder = idx !== -1 ? path.slice(idx + marker.length).split('/')[0] : '';
-
-        var section, sectionHref;
-        if (topFolder === 'Blogs') {
-            section = 'Know the Author';
-            sectionHref = '/author.html';
-        } else {
-            section = 'Resources';
-            sectionHref = '/resources.html';
-        }
-
-        // Base path up to and including the "vimwiki_html/" marker, so we can
-        // build hrefs for each intermediate folder along the way.
-        var base = idx !== -1 ? path.slice(0, idx + marker.length) : '/';
-
-        // Path segments after the marker, e.g. ["Blogs", "diary", "post.html"].
-        var segs = (idx !== -1 ? path.slice(idx + marker.length) : '')
-            .split('/').filter(Boolean);
-
-        // If the current page is a folder index, drop the "index.html" so the
-        // folder itself becomes the current page rather than a duplicate crumb.
-        if (segs.length && /^index\.html?$/i.test(segs[segs.length - 1])) segs.pop();
-
-        function prettify(seg) {
-            var s = seg;
-            try { s = decodeURIComponent(seg); } catch (e) {}
-            return s.replace(/\.html?$/i, '').replace(/_+/g, ' ').trim();
-        }
 
         function pageLabel() {
             var h1 = document.querySelector('#content h1');
@@ -264,11 +235,37 @@ int main()
             if (t) return t;
             t = (document.title || '').replace(/_+/g, ' ').trim();
             if (t && t.toLowerCase() !== 'index') return t;
-            var last = segs.length ? segs[segs.length - 1] : '';
-            return prettify(last) || 'Page';
+            var segs = path.split('/').filter(Boolean).map(function (s) {
+                try { return decodeURIComponent(s); } catch (e) { return s; }
+            });
+            var last = segs.pop() || '';
+            if (/^index\.html?$/i.test(last)) last = segs.pop() || 'index';
+            return last.replace(/\.html?$/i, '').replace(/_+/g, ' ').trim() || 'Page';
         }
 
-        function addCrumb(href, text) {
+        var current = { href: path, label: pageLabel() };
+
+        // Load the existing chain for this tab.
+        var trail = [];
+        try { trail = JSON.parse(sessionStorage.getItem(KEY)) || []; } catch (e) { trail = []; }
+        if (!Array.isArray(trail)) trail = [];
+
+        // If this page is already in the chain (visitor clicked an earlier crumb
+        // or hit back), cut the chain back to it. Otherwise extend the chain.
+        var found = -1;
+        for (var i = 0; i < trail.length; i++) {
+            if (trail[i] && trail[i].href === current.href) { found = i; break; }
+        }
+        if (found !== -1) {
+            trail = trail.slice(0, found + 1);
+            trail[found] = current;            // refresh the label
+        } else {
+            trail.push(current);
+        }
+
+        try { sessionStorage.setItem(KEY, JSON.stringify(trail)); } catch (e) {}
+
+        function addLink(href, text) {
             var a = document.createElement('a');
             a.href = href;
             a.textContent = text;
@@ -279,25 +276,19 @@ int main()
             nav.appendChild(sep);
         }
 
-        addCrumb('/index.html', 'Home');
+        // Home is always the root of the chain.
+        addLink('/index.html', 'Home');
 
-        // Section landing page (Know the Author for Blogs, Resources otherwise).
-        // This sits ABOVE the wiki folder, it does not replace it.
-        addCrumb(sectionHref, section);
-
-        // Every folder from the top-level wiki folder down to (but not
-        // including) the current page, each linked to its own index.html so the
-        // full address is shown and every level is clickable.
-        for (var i = 0; i < segs.length - 1; i++) {
-            var href = base + segs.slice(0, i + 1).join('/') + '/index.html';
-            addCrumb(href, prettify(segs[i]));
+        // Every page in the chain except the current one is a clickable link.
+        for (var j = 0; j < trail.length - 1; j++) {
+            addLink(trail[j].href, trail[j].label);
         }
 
-        var current = document.createElement('span');
-        current.className = 'breadcrumb-current';
-        current.setAttribute('aria-current', 'page');
-        current.textContent = pageLabel();
-        nav.appendChild(current);
+        var cur = document.createElement('span');
+        cur.className = 'breadcrumb-current';
+        cur.setAttribute('aria-current', 'page');
+        cur.textContent = trail.length ? trail[trail.length - 1].label : current.label;
+        nav.appendChild(cur);
     })();
     </script>
 
