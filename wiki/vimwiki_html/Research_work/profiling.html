@@ -197,18 +197,32 @@ Ready to use applications to profile and check performance of SIMULATeQCD. <br /
             sectionHref = '/resources.html';
         }
 
+        // Base path up to and including the "vimwiki_html/" marker, so we can
+        // build hrefs for each intermediate folder along the way.
+        var base = idx !== -1 ? path.slice(0, idx + marker.length) : '/';
+
+        // Path segments after the marker, e.g. ["Blogs", "diary", "post.html"].
+        var segs = (idx !== -1 ? path.slice(idx + marker.length) : '')
+            .split('/').filter(Boolean);
+
+        // If the current page is a folder index, drop the "index.html" so the
+        // folder itself becomes the current page rather than a duplicate crumb.
+        if (segs.length && /^index\.html?$/i.test(segs[segs.length - 1])) segs.pop();
+
+        function prettify(seg) {
+            var s = seg;
+            try { s = decodeURIComponent(seg); } catch (e) {}
+            return s.replace(/\.html?$/i, '').replace(/_+/g, ' ').trim();
+        }
+
         function pageLabel() {
             var h1 = document.querySelector('#content h1');
             var t = h1 ? h1.textContent.replace(/\s+/g, ' ').trim() : '';
             if (t) return t;
             t = (document.title || '').replace(/_+/g, ' ').trim();
             if (t && t.toLowerCase() !== 'index') return t;
-            var segs = path.split('/').filter(Boolean).map(function (s) {
-                try { return decodeURIComponent(s); } catch (e) { return s; }
-            });
-            var last = segs.pop() || '';
-            if (/^index\.html?$/i.test(last)) last = segs.pop() || 'index';
-            return last.replace(/\.html?$/i, '').replace(/_+/g, ' ').trim() || 'Page';
+            var last = segs.length ? segs[segs.length - 1] : '';
+            return prettify(last) || 'Page';
         }
 
         function addCrumb(href, text) {
@@ -223,7 +237,17 @@ Ready to use applications to profile and check performance of SIMULATeQCD. <br /
         }
 
         addCrumb('/index.html', 'Home');
+
+        // Top-level folder gets the friendly section label + fixed section page.
         addCrumb(sectionHref, section);
+
+        // Every folder BETWEEN the top-level folder and the current page,
+        // linked to that folder's own index.html so the full trail is clickable.
+        var acc = base + (segs.length ? segs[0] : '');
+        for (var i = 1; i < segs.length - 1; i++) {
+            acc += '/' + segs[i];
+            addCrumb(acc + '/index.html', prettify(segs[i]));
+        }
 
         var current = document.createElement('span');
         current.className = 'breadcrumb-current';
