@@ -24,8 +24,14 @@ localStorage.setItem("lastBackground", chosen);
 const photo = document.getElementById('profile-photo');
 
 if (photo) {
-    photo.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        photo.classList.toggle('is-visible');
-    });
+    const reveal = () => photo.classList.add('is-visible');
+    const hide = () => photo.classList.remove('is-visible');
+
+    // Press-and-hold to reveal; re-blur as soon as the finger lifts,
+    // mirroring the hover behaviour on desktop. preventDefault stops the
+    // browser from firing the synthetic hover/focus that would otherwise
+    // stick and keep the photo unblurred after the touch ends.
+    photo.addEventListener('touchstart', (e) => { e.preventDefault(); reveal(); }, { passive: false });
+    photo.addEventListener('touchend', hide);
+    photo.addEventListener('touchcancel', hide);
 }

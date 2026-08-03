@@ -48,8 +48,18 @@ body {
     cursor: pointer;
 }
 
-.photo:hover,
-.photo:focus,
+/* Reveal on hover/focus ONLY on devices with a real pointer (desktop).
+   On touch screens :hover and :focus "stick" after a tap, which is why the
+   photo stayed unblurred — so touch relies on the JS press-and-hold class. */
+@media (hover: hover) and (pointer: fine) {
+    .photo:hover,
+    .photo:focus {
+        filter: blur(0);
+        -webkit-filter: blur(0);
+    }
+}
+
+/* JS-controlled reveal: press-and-hold on touch, released on lift. */
 .photo.is-visible {
     filter: blur(0);
     -webkit-filter: blur(0);
