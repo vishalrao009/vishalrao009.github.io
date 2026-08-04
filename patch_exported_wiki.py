@@ -29,34 +29,29 @@ import sys
 REPO_ROOT = os.path.dirname(os.path.abspath(__file__))
 WIKI_DIR = os.path.join("wiki", "vimwiki_html")
 
+# Inline SVG line icons (Apple/SF-Symbols style): stroke-only, no fill, sized
+# and coloured entirely by CSS via stroke="currentColor".
+GLOBE_SVG = (
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" '
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    '<circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/>'
+    '<path d="M3 12h18"/>'
+    '<path d="M5.3 6.5c1.9 1 4.2 1.6 6.7 1.6s4.8-.6 6.7-1.6"/>'
+    '<path d="M5.3 17.5c1.9-1 4.2-1.6 6.7-1.6s4.8.6 6.7 1.6"/></svg>'
+)
+SEARCH_SVG = (
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" '
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    '<circle cx="11" cy="11" r="6.5"/><path d="M16.3 16.3 21 21"/></svg>'
+)
+
 # Each entry is (old, new). All of them must be present in a file for it to be
 # patched; otherwise the file is skipped and reported.
 REPLACEMENTS = [
 
-    # 1. CSS — add the top-right stack, and its mobile sizing.
+    # 1. CSS — plain monochrome icon buttons instead of filled coloured circles.
     (
-        """        .floating-btns button:hover { opacity: 1; transform: translateY(-2px); }
-        #btn-top { display: none; }   /* revealed after scrolling down */
-        @media (max-width: 600px) {
-            .floating-btns { right: 14px; bottom: 14px; }
-            .floating-btns button { width: 44px; height: 44px; font-size: 20px; line-height: 44px; }
-        }""",
-        """        .floating-btns button:hover { opacity: 1; transform: translateY(-2px); }
-        #btn-top { display: none; }   /* revealed after scrolling down */
-        /* Top-right button stack: site-wide tools (translate + search), kept
-           separate from the bottom-right stack above, which holds per-page
-           navigation (back / top / ask-this-page). The search launcher is
-           inserted here at runtime by search.js. */
-        .top-right-btns {
-            position: fixed;
-            top: 16px;
-            right: 24px;
-            display: flex;
-            flex-direction: row;
-            gap: 10px;
-            z-index: 1500;
-        }
-        .top-right-btns button {
+        """        .top-right-btns button {
             width: 48px;
             height: 48px;
             border: 2px solid rgba(255, 255, 255, 0.85);
@@ -71,74 +66,54 @@ REPLACEMENTS = [
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
             transition: transform 0.2s;
         }
-        .top-right-btns button:hover { transform: translateY(-2px); }
-        @media (max-width: 600px) {
-            .floating-btns { right: 14px; bottom: 14px; }
-            .floating-btns button { width: 44px; height: 44px; font-size: 20px; line-height: 44px; }
-            .top-right-btns { top: 12px; right: 14px; gap: 8px; }
-            .top-right-btns button { width: 44px; height: 44px; font-size: 18px; line-height: 40px; }
-        }""",
+        .top-right-btns button:hover { transform: translateY(-2px); }""",
+        """        /* Plain monochrome line icons — no fill, no coloured circle. The icons
+           are inline SVG using stroke: currentColor, so `color` is all that
+           drives their appearance. */
+        .top-right-btns button {
+            width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 8px;
+            background: none;
+            color: #4a4038;
+            padding: 0;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transition: color 0.15s ease, background-color 0.15s ease;
+        }
+        .top-right-btns button svg { width: 21px; height: 21px; display: block; }
+        .top-right-btns button:hover { color: #1f1a15; background: rgba(107, 79, 42, 0.12); }""",
     ),
 
-    # 2. CSS — the language panel now drops down from the top, not up from the bottom.
+    # 2. CSS — mobile sizing for the smaller icon buttons.
     (
-        """        #translate-panel {
-            display: none;
-            flex-direction: column;
-            position: fixed;
-            right: 24px;
-            bottom: 84px;""",
-        """        #translate-panel {
-            display: none;
-            flex-direction: column;
-            position: fixed;
-            right: 24px;
-            top: 72px;""",
-    ),
-    (
-        "            #translate-panel { right: 14px; bottom: 74px; width: 220px; max-height: 300px; }",
-        "            #translate-panel { right: 14px; top: 64px; width: 220px; max-height: 300px; }",
+        """            .top-right-btns { top: 12px; right: 14px; gap: 8px; }
+            .top-right-btns button { width: 44px; height: 44px; font-size: 18px; line-height: 40px; }""",
+        """            .top-right-btns { top: 12px; right: 14px; gap: 4px; }
+            .top-right-btns button { width: 32px; height: 32px; }
+            .top-right-btns button svg { width: 20px; height: 20px; }""",
     ),
 
-    # 3. HTML — move the globe out of the bottom stack into a new top-right one.
+    # 3. HTML — globe emoji becomes an SVG line icon.
     (
-        """    <div class="floating-btns">
-        <button id="btn-back" type="button" title="Go back" aria-label="Go back">&#8592;</button>
-        <button id="btn-top" type="button" title="Back to top" aria-label="Back to top">&#8593;</button>
-        <button id="btn-globe" type="button" title="Translate this page" aria-label="Translate this page">&#127760;</button>
-    </div>
-""",
-        """    <div class="floating-btns">
-        <button id="btn-back" type="button" title="Go back" aria-label="Go back">&#8592;</button>
-        <button id="btn-top" type="button" title="Back to top" aria-label="Back to top">&#8593;</button>
-    </div>
-
-    <!-- Top-right buttons: site-wide tools — search (docked here at runtime by
-         search.js) and translate. Kept out of the bottom-right stack above,
-         which is for navigating within the current page. -->
-    <div class="top-right-btns">
-        <button id="btn-globe" type="button" title="Translate this page" aria-label="Translate this page">&#127760;</button>
-    </div>
-""",
+        '<button id="btn-globe" type="button" title="Translate this page" '
+        'aria-label="Translate this page">&#127760;</button>',
+        '<button id="btn-globe" type="button" title="Translate this page" '
+        'aria-label="Translate this page">' + GLOBE_SVG + "</button>",
     ),
 
-    # 4. JS — dock the search launcher into the top-right stack instead.
-    #    Anchored on window.SEARCH_CONFIG so PAGEBOT_CONFIG's own
-    #    launcherSelector: '.floating-btns' is left alone.
+    # 4. JS — search launcher emoji becomes the same style of SVG line icon.
     (
-        """         The launcher is docked into the same .floating-btns stack. -->
-    <script>
-        window.SEARCH_CONFIG = {
-            launcherSelector: '.floating-btns',""",
-        """         The launcher is docked into the top-right stack, next to translate,
-         since both are site-wide rather than per-page tools. -->
-    <script>
-        window.SEARCH_CONFIG = {
-            launcherSelector: '.top-right-btns',""",
+        "            launcherLabel: '\U0001f50d',",
+        "            launcherLabel: '" + SEARCH_SVG + "',",
     ),
 ]
 
-ALREADY_DONE_MARKER = 'class="top-right-btns"'
+ALREADY_DONE_MARKER = 'aria-label="Translate this page"><svg'
 
 
 def main():

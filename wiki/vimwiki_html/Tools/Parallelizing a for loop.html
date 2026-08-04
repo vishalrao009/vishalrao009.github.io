@@ -135,27 +135,32 @@
             gap: 10px;
             z-index: 1500;
         }
+        /* Plain monochrome line icons — no fill, no coloured circle. The icons
+           are inline SVG using stroke: currentColor, so `color` is all that
+           drives their appearance. */
         .top-right-btns button {
-            width: 48px;
-            height: 48px;
-            border: 2px solid rgba(255, 255, 255, 0.85);
-            border-radius: 50%;
-            background: #6b4f2a;
-            color: #fff;
-            font-size: 20px;
-            line-height: 44px;
-            text-align: center;
+            width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 8px;
+            background: none;
+            color: #4a4038;
             padding: 0;
             cursor: pointer;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
-            transition: transform 0.2s;
+            -webkit-tap-highlight-color: transparent;
+            transition: color 0.15s ease, background-color 0.15s ease;
         }
-        .top-right-btns button:hover { transform: translateY(-2px); }
+        .top-right-btns button svg { width: 21px; height: 21px; display: block; }
+        .top-right-btns button:hover { color: #1f1a15; background: rgba(107, 79, 42, 0.12); }
         @media (max-width: 600px) {
             .floating-btns { right: 14px; bottom: 14px; }
             .floating-btns button { width: 44px; height: 44px; font-size: 20px; line-height: 44px; }
-            .top-right-btns { top: 12px; right: 14px; gap: 8px; }
-            .top-right-btns button { width: 44px; height: 44px; font-size: 18px; line-height: 40px; }
+            .top-right-btns { top: 12px; right: 14px; gap: 4px; }
+            .top-right-btns button { width: 32px; height: 32px; }
+            .top-right-btns button svg { width: 20px; height: 20px; }
         }
         /* Mobile Styles */
         @media only screen and (max-width: 600px) {
@@ -405,7 +410,7 @@ return 0;
          search.js) and translate. Kept out of the bottom-right stack above,
          which is for navigating within the current page. -->
     <div class="top-right-btns">
-        <button id="btn-globe" type="button" title="Translate this page" aria-label="Translate this page">&#127760;</button>
+        <button id="btn-globe" type="button" title="Translate this page" aria-label="Translate this page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/><path d="M5.3 6.5c1.9 1 4.2 1.6 6.7 1.6s4.8-.6 6.7-1.6"/><path d="M5.3 17.5c1.9-1 4.2-1.6 6.7-1.6s4.8.6 6.7 1.6"/></svg></button>
     </div>
 
     <!-- Globe language panel: the only UI the visitor interacts with. Selecting
@@ -881,7 +886,7 @@ return 0;
     <script>
         window.SEARCH_CONFIG = {
             launcherSelector: '.top-right-btns',
-            launcherLabel: '🔍',
+            launcherLabel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16.3 16.3 21 21"/></svg>',
             launcherTitle: 'Search this site',
             title: 'Search this site',
             accent: '#6b4f2a',
