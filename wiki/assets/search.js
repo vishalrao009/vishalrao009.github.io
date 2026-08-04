@@ -133,6 +133,14 @@
     return { words: words.slice(best, best + size), head: best > 0, tail: best + size < words.length };
   }
 
+  // launcherLabel may be either plain text ("Search") or inline SVG markup for
+  // an icon. Only ever called with our own constant from SEARCH_CONFIG, never
+  // with anything a visitor supplied.
+  function setLabel(el, label) {
+    if (/^\s*</.test(label)) el.innerHTML = label;
+    else el.textContent = label;
+  }
+
   function pathLabel(url) {
     if (url === "/index.html") return "Home";
     if (url === "/author.html") return "PII";
@@ -208,7 +216,7 @@
     var fab = document.createElement("button");
     fab.className = "fab";
     fab.type = "button";
-    fab.textContent = CFG.launcherLabel;
+    setLabel(fab, CFG.launcherLabel);
     fab.title = CFG.launcherTitle;
     fab.setAttribute("aria-label", CFG.launcherTitle);
     sh.appendChild(fab);
@@ -235,7 +243,7 @@
         docked = document.createElement("button");
         docked.type = "button";
         docked.id = "sitesearch-launcher";
-        docked.textContent = CFG.launcherLabel;
+        setLabel(docked, CFG.launcherLabel);
         docked.title = CFG.launcherTitle;
         docked.setAttribute("aria-label", CFG.launcherTitle);
         holder.insertBefore(docked, holder.firstChild);
