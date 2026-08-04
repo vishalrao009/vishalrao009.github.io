@@ -149,6 +149,66 @@
             }
             mjx-container { max-width: 100%; }
         }
+        /* Google Translate: the widget itself stays hidden. We drive it entirely
+           through our own globe button + language panel below, so hide every bit
+           of Google's default chrome (top banner, floating balloon, tooltips). */
+        #google_translate_element { display: none !important; }
+        .goog-te-banner-frame.skiptranslate { display: none !important; }
+        body { top: 0px !important; }
+        .goog-te-gadget { height: 0; overflow: hidden; }
+        .goog-te-gadget-icon, .goog-te-balloon-frame { display: none !important; }
+        .goog-tooltip, .goog-tooltip:hover { display: none !important; }
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
+        /* Globe language panel */
+        #translate-panel {
+            display: none;
+            flex-direction: column;
+            position: fixed;
+            right: 24px;
+            bottom: 84px;
+            width: 260px;
+            max-height: 360px;
+            background: #fbf6e9;
+            border-radius: 10px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+            z-index: 1001;
+            overflow: hidden;
+        }
+        #translate-panel.open { display: flex; }
+        #translate-panel .tp-header {
+            padding: 10px 12px 6px 12px;
+            font-weight: bold;
+            color: #6b4f2a;
+            border-bottom: 1px solid rgba(107, 79, 42, 0.2);
+        }
+        #translate-panel input[type="text"] {
+            margin: 8px 12px;
+            padding: 6px 8px;
+            border: 1px solid rgba(107, 79, 42, 0.3);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        #translate-panel .tp-list {
+            overflow-y: auto;
+            padding: 0 6px 8px 6px;
+        }
+        #translate-panel .tp-lang {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            padding: 7px 10px;
+            font-size: 14px;
+            color: #333;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+        #translate-panel .tp-lang:hover { background: rgba(107, 79, 42, 0.12); }
+        #translate-panel .tp-lang.active { background: #6b4f2a; color: #fff; }
+        @media (max-width: 600px) {
+            #translate-panel { right: 14px; bottom: 74px; width: 220px; max-height: 300px; }
+        }
     </style>
 </head>
 <body>
@@ -214,7 +274,28 @@ with covariant derivative \(D_\mu=\partial_\mu-igA_\mu\) and field strength \(F_
     <div class="floating-btns">
         <button id="btn-back" type="button" title="Go back" aria-label="Go back">&#8592;</button>
         <button id="btn-top" type="button" title="Back to top" aria-label="Back to top">&#8593;</button>
+        <button id="btn-globe" type="button" title="Translate this page" aria-label="Translate this page">&#127760;</button>
     </div>
+
+    <!-- Globe language panel: the only UI the visitor interacts with. Selecting
+         a language drives the hidden Google widget below (see script further
+         down) rather than showing Google's own default dropdown/banner. -->
+    <div id="translate-panel" aria-label="Choose a language">
+        <div class="tp-header">Translate this page</div>
+        <input type="text" id="tp-search" placeholder="Search language...">
+        <div class="tp-list" id="tp-list"></div>
+    </div>
+
+    <!-- Google Website Translator: loaded hidden. It is what actually performs
+         the translation once our panel sets its hidden <select> and fires a
+         change event on it (see script below). -->
+    <div id="google_translate_element"></div>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({ pageLanguage: 'en', autoDisplay: false }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
     <!-- Breadcrumb trail: the actual navigation chain the visitor clicked
          through, in order (link1 > link2 > ... > current), NOT the folder path.
@@ -312,6 +393,130 @@ with covariant derivative \(D_\mu=\partial_\mu-igA_\mu\) and field strength \(F_
             window.addEventListener('scroll', onScroll, { passive: true });
             onScroll();
         }
+    })();
+    </script>
+
+    <!-- Globe button: opens the language panel; selecting a language drives the
+         hidden Google Translate widget (loaded above). The chosen language is
+         remembered in localStorage and re-applied on every page the visitor
+         navigates to next, so translation persists across the whole site. -->
+    <script>
+    (function () {
+        var LANGS = [
+            ['af', 'Afrikaans'], ['sq', 'Albanian'], ['am', 'Amharic'], ['ar', 'Arabic'], ['hy', 'Armenian'],
+            ['as', 'Assamese'], ['ay', 'Aymara'], ['az', 'Azerbaijani'], ['bm', 'Bambara'], ['eu', 'Basque'],
+            ['be', 'Belarusian'], ['bn', 'Bengali'], ['bho', 'Bhojpuri'], ['bs', 'Bosnian'], ['bg', 'Bulgarian'],
+            ['ca', 'Catalan'], ['ceb', 'Cebuano'], ['ny', 'Chichewa'], ['zh-CN', 'Chinese (Simplified)'],
+            ['zh-TW', 'Chinese (Traditional)'], ['co', 'Corsican'], ['hr', 'Croatian'], ['cs', 'Czech'],
+            ['da', 'Danish'], ['dv', 'Dhivehi'], ['doi', 'Dogri'], ['nl', 'Dutch'], ['en', 'English'],
+            ['eo', 'Esperanto'], ['et', 'Estonian'], ['ee', 'Ewe'], ['fil', 'Filipino'], ['fi', 'Finnish'],
+            ['fr', 'French'], ['fy', 'Frisian'], ['gl', 'Galician'], ['ka', 'Georgian'], ['de', 'German'],
+            ['el', 'Greek'], ['gn', 'Guarani'], ['gu', 'Gujarati'], ['ht', 'Haitian Creole'], ['ha', 'Hausa'],
+            ['haw', 'Hawaiian'], ['he', 'Hebrew'], ['hi', 'Hindi'], ['hmn', 'Hmong'], ['hu', 'Hungarian'],
+            ['is', 'Icelandic'], ['ig', 'Igbo'], ['ilo', 'Ilocano'], ['id', 'Indonesian'], ['ga', 'Irish'],
+            ['it', 'Italian'], ['ja', 'Japanese'], ['jv', 'Javanese'], ['kn', 'Kannada'], ['kk', 'Kazakh'],
+            ['km', 'Khmer'], ['rw', 'Kinyarwanda'], ['gom', 'Konkani'], ['ko', 'Korean'], ['kri', 'Krio'],
+            ['ku', 'Kurdish'], ['ckb', 'Kurdish (Sorani)'], ['ky', 'Kyrgyz'], ['lo', 'Lao'], ['la', 'Latin'],
+            ['lv', 'Latvian'], ['ln', 'Lingala'], ['lt', 'Lithuanian'], ['lg', 'Luganda'], ['lb', 'Luxembourgish'],
+            ['mk', 'Macedonian'], ['mai', 'Maithili'], ['mg', 'Malagasy'], ['ms', 'Malay'], ['ml', 'Malayalam'],
+            ['mt', 'Maltese'], ['mi', 'Maori'], ['mr', 'Marathi'], ['mni-Mtei', 'Meiteilon (Manipuri)'],
+            ['lus', 'Mizo'], ['mn', 'Mongolian'], ['my', 'Myanmar (Burmese)'], ['ne', 'Nepali'],
+            ['no', 'Norwegian'], ['or', 'Odia (Oriya)'], ['om', 'Oromo'], ['ps', 'Pashto'], ['fa', 'Persian'],
+            ['pl', 'Polish'], ['pt', 'Portuguese'], ['pa', 'Punjabi'], ['qu', 'Quechua'], ['ro', 'Romanian'],
+            ['ru', 'Russian'], ['sm', 'Samoan'], ['sa', 'Sanskrit'], ['gd', 'Scots Gaelic'],
+            ['nso', 'Sepedi'], ['sr', 'Serbian'], ['st', 'Sesotho'], ['sn', 'Shona'], ['sd', 'Sindhi'],
+            ['si', 'Sinhala'], ['sk', 'Slovak'], ['sl', 'Slovenian'], ['so', 'Somali'], ['es', 'Spanish'],
+            ['su', 'Sundanese'], ['sw', 'Swahili'], ['sv', 'Swedish'], ['tg', 'Tajik'], ['ta', 'Tamil'],
+            ['tt', 'Tatar'], ['te', 'Telugu'], ['th', 'Thai'], ['ti', 'Tigrinya'], ['ts', 'Tsonga'],
+            ['tr', 'Turkish'], ['tk', 'Turkmen'], ['ak', 'Twi'], ['uk', 'Ukrainian'], ['ur', 'Urdu'],
+            ['ug', 'Uyghur'], ['uz', 'Uzbek'], ['vi', 'Vietnamese'], ['cy', 'Welsh'], ['xh', 'Xhosa'],
+            ['yi', 'Yiddish'], ['yo', 'Yoruba'], ['zu', 'Zulu']
+        ];
+
+        var STORAGE_KEY = 'wikiTranslateLang';
+        var btn = document.getElementById('btn-globe');
+        var panel = document.getElementById('translate-panel');
+        var search = document.getElementById('tp-search');
+        var list = document.getElementById('tp-list');
+        if (!btn || !panel || !list || !search) return;
+
+        function currentLang() {
+            try { return localStorage.getItem(STORAGE_KEY) || 'en'; } catch (e) { return 'en'; }
+        }
+
+        function renderList(filter) {
+            var f = (filter || '').trim().toLowerCase();
+            var active = currentLang();
+            list.innerHTML = '';
+            LANGS.forEach(function (pair) {
+                var code = pair[0], name = pair[1];
+                if (f && name.toLowerCase().indexOf(f) === -1) return;
+                var b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'tp-lang' + (code === active ? ' active' : '');
+                b.textContent = name;
+                b.addEventListener('click', function () { setLanguage(code); });
+                list.appendChild(b);
+            });
+        }
+
+        function setLanguage(code) {
+            try { localStorage.setItem(STORAGE_KEY, code); } catch (e) {}
+            panel.classList.remove('open');
+            applyLanguage(code);
+        }
+
+        function applyLanguage(code) {
+            if (code === 'en') {
+                // Reset to the original English text.
+                document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + location.hostname + ';';
+                if (document.querySelector('select.goog-te-combo')) location.reload();
+                return;
+            }
+            // The Google widget loads its <select> asynchronously, so poll
+            // briefly until it exists (covers both the click case and the
+            // "re-apply on new page load" case below).
+            var tries = 0;
+            (function tryApply() {
+                var combo = document.querySelector('select.goog-te-combo');
+                if (combo) {
+                    if (combo.value !== code) {
+                        combo.value = code;
+                        combo.dispatchEvent(new Event('change'));
+                    }
+                } else if (tries < 40) {
+                    tries++;
+                    setTimeout(tryApply, 250);
+                }
+            })();
+        }
+
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var opening = !panel.classList.contains('open');
+            panel.classList.toggle('open', opening);
+            if (opening) {
+                search.value = '';
+                renderList('');
+                search.focus();
+            }
+        });
+        document.addEventListener('click', function (e) {
+            if (panel.classList.contains('open') && !panel.contains(e.target) && e.target !== btn) {
+                panel.classList.remove('open');
+            }
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') panel.classList.remove('open');
+        });
+        search.addEventListener('input', function () { renderList(search.value); });
+
+        renderList('');
+
+        // Keep the whole site translated as the visitor moves between pages.
+        var saved = currentLang();
+        if (saved && saved !== 'en') applyLanguage(saved);
     })();
     </script>
 
