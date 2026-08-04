@@ -29,6 +29,10 @@ body {
     border-radius: 8px;
 
     box-shadow: 0 0 25px rgba(0,0,0,0.20);
+
+    /* Anchor for the search + translate buttons, which sit in this box's
+       top-right corner rather than floating over the page background. */
+    position: relative;
 }
 
 .header {
@@ -244,15 +248,17 @@ footer {
     }
 }
 
-/* Fixed top-right button stack: language translate + site search.
+/* Top-right button stack: language translate + site search.
    Shared across index.html, author.html, resources.html. The search button
    itself is inserted here at runtime by search.js (docked launcher), so this
    holds the shared circular-button look for both rather than styling
-   #btn-globe alone. Anchored on top of everything else on the page
-   (including the header photo on index.html), with a white ring so it stays
-   readable against any of the rotating background photos. */
+   #btn-globe alone.
+
+   Positioned absolutely against .container, so the buttons sit inside the
+   padded white content box (top-right corner of the card) rather than
+   floating over the page background outside it. They scroll with the card. */
 .top-right-btns {
-    position: fixed;
+    position: absolute;
     top: 16px;
     right: 20px;
     display: flex;
@@ -282,7 +288,9 @@ footer {
 #translate-panel {
     display: none;
     flex-direction: column;
-    position: fixed;
+    /* Absolute, like the buttons above: drops down inside the content card,
+       directly beneath the globe. */
+    position: absolute;
     right: 20px;
     top: 72px;
     width: 260px;
