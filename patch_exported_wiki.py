@@ -49,30 +49,56 @@ SEARCH_SVG = (
 # patched; otherwise the file is skipped and reported.
 REPLACEMENTS = [
 
-    # 1. CSS — icons scaled up ~1.5x (21px -> 32px, in a 48px hit area).
+    # 1. CSS — also hide Google's "Translated to … / Show original" banner,
+    #    which is injected as a top-level <iframe class="skiptranslate">.
     (
-        """        .top-right-btns button {
-            width: 34px;
-            height: 34px;""",
-        """        .top-right-btns button {
-            width: 48px;
-            height: 48px;""",
-    ),
-    (
-        "        .top-right-btns button svg { width: 21px; height: 21px; display: block; }",
-        "        .top-right-btns button svg { width: 32px; height: 32px; display: block; }",
-    ),
+        """        /* Google Translate: the widget itself stays hidden. We drive it entirely
+           through our own globe button + language panel below. Suppress every
+           bit of Google's own chrome in all cases — banner, floating balloon,
+           feedback tab, and the "suggest a better translation" hover tooltip —
+           none of it should ever surface. */
+        #google_translate_element { display: none !important; }
+        .goog-te-gadget { display: none !important; }
+        body { top: 0px !important; }
+        .goog-te-banner-frame,""",
+        """        /* Google Translate: the widget itself stays hidden. We drive it entirely
+           through our own globe button + language panel below. Suppress every
+           bit of Google's own chrome in all cases — the "Translated to … /
+           Show original" top banner, the floating balloon, the feedback tab,
+           and the "suggest a better translation" hover tooltip. None of it
+           should ever surface; the visitor switches back to English from our
+           own globe menu instead.
 
-    # 2. CSS — matching bump for the mobile sizes.
+           The banner is injected as a top-level <iframe class="skiptranslate">,
+           which is why hiding only the .goog-te-* classes wasn't enough. */
+        #google_translate_element { display: none !important; }
+        .goog-te-gadget { display: none !important; }
+        iframe.skiptranslate,
+        .skiptranslate > iframe,
+        .goog-te-banner-frame,""",
+    ),
     (
-        """            .top-right-btns button { width: 32px; height: 32px; }
-            .top-right-btns button svg { width: 20px; height: 20px; }""",
-        """            .top-right-btns button { width: 44px; height: 44px; }
-            .top-right-btns button svg { width: 30px; height: 30px; }""",
+        """        .goog-tooltip:hover {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }""",
+        """        .goog-tooltip:hover {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        /* Google pushes the page down with an inline body { top: 40px;
+           position: relative } to make room for that banner. !important here
+           outranks its inline style, so the layout never shifts. */
+        body {
+            top: 0px !important;
+            position: static !important;
+        }
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }""",
     ),
 ]
 
-ALREADY_DONE_MARKER = ".top-right-btns button svg { width: 32px;"
+ALREADY_DONE_MARKER = "iframe.skiptranslate,"
 
 
 def main():
