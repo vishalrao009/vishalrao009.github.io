@@ -187,12 +187,18 @@
         }
         /* Google Translate: the widget itself stays hidden. We drive it entirely
            through our own globe button + language panel below. Suppress every
-           bit of Google's own chrome in all cases — banner, floating balloon,
-           feedback tab, and the "suggest a better translation" hover tooltip —
-           none of it should ever surface. */
+           bit of Google's own chrome in all cases — the "Translated to … /
+           Show original" top banner, the floating balloon, the feedback tab,
+           and the "suggest a better translation" hover tooltip. None of it
+           should ever surface; the visitor switches back to English from our
+           own globe menu instead.
+
+           The banner is injected as a top-level <iframe class="skiptranslate">,
+           which is why hiding only the .goog-te-* classes wasn't enough. */
         #google_translate_element { display: none !important; }
         .goog-te-gadget { display: none !important; }
-        body { top: 0px !important; }
+        iframe.skiptranslate,
+        .skiptranslate > iframe,
         .goog-te-banner-frame,
         .goog-te-banner-frame.skiptranslate,
         .goog-te-ftab,
@@ -205,6 +211,13 @@
         .goog-tooltip:hover {
             display: none !important;
             visibility: hidden !important;
+        }
+        /* Google pushes the page down with an inline body { top: 40px;
+           position: relative } to make room for that banner. !important here
+           outranks its inline style, so the layout never shifts. */
+        body {
+            top: 0px !important;
+            position: static !important;
         }
         .goog-text-highlight { background: none !important; box-shadow: none !important; }
         /* Globe language panel */
