@@ -49,71 +49,30 @@ SEARCH_SVG = (
 # patched; otherwise the file is skipped and reported.
 REPLACEMENTS = [
 
-    # 1. CSS — plain monochrome icon buttons instead of filled coloured circles.
+    # 1. CSS — icons scaled up ~1.5x (21px -> 32px, in a 48px hit area).
     (
         """        .top-right-btns button {
-            width: 48px;
-            height: 48px;
-            border: 2px solid rgba(255, 255, 255, 0.85);
-            border-radius: 50%;
-            background: #6b4f2a;
-            color: #fff;
-            font-size: 20px;
-            line-height: 44px;
-            text-align: center;
-            padding: 0;
-            cursor: pointer;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
-            transition: transform 0.2s;
-        }
-        .top-right-btns button:hover { transform: translateY(-2px); }""",
-        """        /* Plain monochrome line icons — no fill, no coloured circle. The icons
-           are inline SVG using stroke: currentColor, so `color` is all that
-           drives their appearance. */
-        .top-right-btns button {
             width: 34px;
-            height: 34px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border: none;
-            border-radius: 8px;
-            background: none;
-            color: #4a4038;
-            padding: 0;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-            transition: color 0.15s ease, background-color 0.15s ease;
-        }
-        .top-right-btns button svg { width: 21px; height: 21px; display: block; }
-        .top-right-btns button:hover { color: #1f1a15; background: rgba(107, 79, 42, 0.12); }""",
+            height: 34px;""",
+        """        .top-right-btns button {
+            width: 48px;
+            height: 48px;""",
+    ),
+    (
+        "        .top-right-btns button svg { width: 21px; height: 21px; display: block; }",
+        "        .top-right-btns button svg { width: 32px; height: 32px; display: block; }",
     ),
 
-    # 2. CSS — mobile sizing for the smaller icon buttons.
+    # 2. CSS — matching bump for the mobile sizes.
     (
-        """            .top-right-btns { top: 12px; right: 14px; gap: 8px; }
-            .top-right-btns button { width: 44px; height: 44px; font-size: 18px; line-height: 40px; }""",
-        """            .top-right-btns { top: 12px; right: 14px; gap: 4px; }
-            .top-right-btns button { width: 32px; height: 32px; }
+        """            .top-right-btns button { width: 32px; height: 32px; }
             .top-right-btns button svg { width: 20px; height: 20px; }""",
-    ),
-
-    # 3. HTML — globe emoji becomes an SVG line icon.
-    (
-        '<button id="btn-globe" type="button" title="Translate this page" '
-        'aria-label="Translate this page">&#127760;</button>',
-        '<button id="btn-globe" type="button" title="Translate this page" '
-        'aria-label="Translate this page">' + GLOBE_SVG + "</button>",
-    ),
-
-    # 4. JS — search launcher emoji becomes the same style of SVG line icon.
-    (
-        "            launcherLabel: '\U0001f50d',",
-        "            launcherLabel: '" + SEARCH_SVG + "',",
+        """            .top-right-btns button { width: 44px; height: 44px; }
+            .top-right-btns button svg { width: 30px; height: 30px; }""",
     ),
 ]
 
-ALREADY_DONE_MARKER = 'aria-label="Translate this page"><svg'
+ALREADY_DONE_MARKER = ".top-right-btns button svg { width: 32px;"
 
 
 def main():
