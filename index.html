@@ -8,6 +8,28 @@
 
 <link rel="stylesheet" href="style.css">
 
+<script>
+/* Background rotation, run in <head> so the browser starts fetching the
+   image while the rest of the page is still parsing. Injecting a <style>
+   rule (rather than setting document.body.style later) means the request
+   goes out at parse time. Avoids repeating the previous visit's image. */
+(function () {
+    var count = 2, previous = null;
+    try { previous = localStorage.getItem('lastBackground'); } catch (e) {}
+    var options = [];
+    for (var i = 1; i <= count; i++) {
+        var path = 'images/image' + i + '.jpeg';
+        if (path !== previous) options.push(path);
+    }
+    if (!options.length) options.push('images/image1.jpeg');
+    var chosen = options[Math.floor(Math.random() * options.length)];
+    try { localStorage.setItem('lastBackground', chosen); } catch (e) {}
+    var style = document.createElement('style');
+    style.textContent = 'body{background-image:url("' + chosen + '")}';
+    document.head.appendChild(style);
+})();
+</script>
+
 </head>
 
 <body>

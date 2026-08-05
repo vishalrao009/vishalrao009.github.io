@@ -27,7 +27,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body {
-            background-image: url('../Images/parchment.jpg');
+            /* Absolute, not '../Images/parchment.jpg': the relative form
+               resolved to a different copy of the same image in every section
+               folder, so the browser cached (and re-downloaded) it once per
+               section. One canonical URL = fetched once for the whole site. */
+            background-image: url('/wiki/vimwiki_html/Images/parchment.jpg');
             background-size: cover;
             background-repeat: no-repeat;
             background-attachment: fixed;
@@ -628,7 +632,11 @@ In turn these classes(physics and math object written above), are inherited from
                 if (/^http:\/\//i.test(s)) s = s.replace(/^http:\/\//i, 'https://');
                 if (s !== raw) img.setAttribute('src', s);
             }
-            // 2) caption from alt text
+            // 2) defer offscreen images: on a long photo post the browser
+            //    would otherwise start fetching every image at once.
+            if (!img.hasAttribute('loading')) img.setAttribute('loading', 'lazy');
+            img.setAttribute('decoding', 'async');
+            // 3) caption from alt text
             var alt = (img.getAttribute('alt') || '').trim();
             if (!alt) return;
             var parent = img.parentNode;
