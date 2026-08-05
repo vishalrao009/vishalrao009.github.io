@@ -49,56 +49,21 @@ SEARCH_SVG = (
 # patched; otherwise the file is skipped and reported.
 REPLACEMENTS = [
 
-    # 1. CSS — also hide Google's "Translated to … / Show original" banner,
-    #    which is injected as a top-level <iframe class="skiptranslate">.
+    # 1. CSS — one canonical parchment URL instead of a per-section relative
+    #    path, so the browser fetches and caches it once for the whole site.
     (
-        """        /* Google Translate: the widget itself stays hidden. We drive it entirely
-           through our own globe button + language panel below. Suppress every
-           bit of Google's own chrome in all cases — banner, floating balloon,
-           feedback tab, and the "suggest a better translation" hover tooltip —
-           none of it should ever surface. */
-        #google_translate_element { display: none !important; }
-        .goog-te-gadget { display: none !important; }
-        body { top: 0px !important; }
-        .goog-te-banner-frame,""",
-        """        /* Google Translate: the widget itself stays hidden. We drive it entirely
-           through our own globe button + language panel below. Suppress every
-           bit of Google's own chrome in all cases — the "Translated to … /
-           Show original" top banner, the floating balloon, the feedback tab,
-           and the "suggest a better translation" hover tooltip. None of it
-           should ever surface; the visitor switches back to English from our
-           own globe menu instead.
-
-           The banner is injected as a top-level <iframe class="skiptranslate">,
-           which is why hiding only the .goog-te-* classes wasn't enough. */
-        #google_translate_element { display: none !important; }
-        .goog-te-gadget { display: none !important; }
-        iframe.skiptranslate,
-        .skiptranslate > iframe,
-        .goog-te-banner-frame,""",
-    ),
-    (
-        """        .goog-tooltip:hover {
-            display: none !important;
-            visibility: hidden !important;
-        }
-        .goog-text-highlight { background: none !important; box-shadow: none !important; }""",
-        """        .goog-tooltip:hover {
-            display: none !important;
-            visibility: hidden !important;
-        }
-        /* Google pushes the page down with an inline body { top: 40px;
-           position: relative } to make room for that banner. !important here
-           outranks its inline style, so the layout never shifts. */
-        body {
-            top: 0px !important;
-            position: static !important;
-        }
-        .goog-text-highlight { background: none !important; box-shadow: none !important; }""",
+        """        body {
+            background-image: url('../Images/parchment.jpg');""",
+        """        body {
+            /* Absolute, not '../Images/parchment.jpg': the relative form
+               resolved to a different copy of the same image in every section
+               folder, so the browser cached (and re-downloaded) it once per
+               section. One canonical URL = fetched once for the whole site. */
+            background-image: url('/wiki/vimwiki_html/Images/parchment.jpg');""",
     ),
 ]
 
-ALREADY_DONE_MARKER = "iframe.skiptranslate,"
+ALREADY_DONE_MARKER = "url('/wiki/vimwiki_html/Images/parchment.jpg')"
 
 
 def main():
