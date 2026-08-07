@@ -842,7 +842,9 @@ try13_1.txt		0.009633		0.127672		  0.011511		1<br />
             var s = document.createElement('script');
             s.type = 'text/tikz';
             s.textContent = pre.textContent; // browser decodes HTML entities here
-            pre.replaceWith(s);
+            pre.textContent = '';
+            pre.appendChild(s); // keep <pre class="tikz"> as the container so its
+                                 // text-align:center still applies to the SVG tikzjax inserts
         });
     </script>
     <!-- 2. Syntax-highlight code blocks, but skip diagram blocks -->

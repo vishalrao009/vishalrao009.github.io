@@ -843,7 +843,9 @@ This program uses a pointer <code>ptr</code> to iterate over the elements of the
             var s = document.createElement('script');
             s.type = 'text/tikz';
             s.textContent = pre.textContent; // browser decodes HTML entities here
-            pre.replaceWith(s);
+            pre.textContent = '';
+            pre.appendChild(s); // keep <pre class="tikz"> as the container so its
+                                 // text-align:center still applies to the SVG tikzjax inserts
         });
     </script>
     <!-- 2. Syntax-highlight code blocks, but skip diagram blocks -->
