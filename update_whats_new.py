@@ -80,6 +80,22 @@ def clean_text(s):
 
 BAD_TITLES = {"", "index", "contents"}
 
+# Diary pages are named after their date, so vimwiki sets <title> to e.g.
+# "2026-08-06". That makes a useless label in the panel (and the panel already
+# prints the date separately in brackets), so for date-named pages we use the
+# entry's own heading instead - "The Debate of Ashtavakra and Bandi (6 Aug 2026)"
+# rather than "2026-08-06 (6 Aug 2026)".
+DATE_TITLE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def first_heading(content):
+    """First <h1> that isn't vimwiki's auto-generated "Contents" heading."""
+    for m in H1_RE.finditer(content):
+        t = clean_text(m.group(1))
+        if t.lower() not in BAD_TITLES:
+            return t
+    return ""
+
 
 def page_title(path, url):
     try:
@@ -90,15 +106,15 @@ def page_title(path, url):
     # Prefer <title>: vimwiki sets it to the real page name, whereas the first
     # <h1> is usually the auto-generated "Contents" table-of-contents heading.
     m = TITLE_RE.search(c)
-    if m:
-        t = clean_text(m.group(1))
-        if t.lower() not in BAD_TITLES:
-            return t
-    m = H1_RE.search(c)
-    if m:
-        t = clean_text(m.group(1))
-        if t.lower() not in BAD_TITLES:
-            return t
+    t = clean_text(m.group(1)) if m else ""
+    if DATE_TITLE_RE.match(t):
+        # Date-named page: prefer its heading, but keep the date if it has none.
+        return first_heading(c) or t
+    if t.lower() not in BAD_TITLES:
+        return t
+    h = first_heading(c)
+    if h:
+        return h
     # fall back to the file/folder name
     name = os.path.basename(url)
     if re.match(r"^index\.html?$", name, re.IGNORECASE):
