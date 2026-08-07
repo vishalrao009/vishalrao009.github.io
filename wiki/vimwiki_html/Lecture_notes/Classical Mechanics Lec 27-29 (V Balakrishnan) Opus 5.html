@@ -1,0 +1,2983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- <link rel="stylesheet" type="text/css" href="style.css"> -->
+    <link rel="stylesheet" href="/wiki/assets/style.css" />
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
+    <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
+    <title>Classical Mechanics Lec 27-29 (V Balakrishnan) Opus 5</title>
+    <!-- MathJax config: on phone-width screens, break long display equations onto
+         multiple lines instead of overflowing the page. Desktop and tablet keep the
+         default rendering (empty config), so their layout is unchanged. Must run
+         BEFORE the MathJax script below. -->
+    <script>
+        (function () {
+            var isPhone = window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
+            window.MathJax = {
+                chtml: isPhone
+                    ? { scale: 0.8, displayOverflow: 'linebreak', linebreaks: { inline: true } }
+                    : {}
+            };
+        })();
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            /* Absolute, not '../Images/parchment.jpg': the relative form
+               resolved to a different copy of the same image in every section
+               folder, so the browser cached (and re-downloaded) it once per
+               section. One canonical URL = fetched once for the whole site. */
+            background-image: url('/wiki/vimwiki_html/Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm;
+        }
+        #content {
+            color: #333;
+            font-size: 20px;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+        h1 { font-size: 28px; }
+        h2 { font-size: 24px; }
+        h3 { font-size: 20px; }
+        h4, h5, h6 { font-size: 18px; }
+        img {
+            display: block;
+            max-width: 100%;
+            max-height: 500px;
+            margin: 30px auto;
+        }
+        /* Image + caption (built from each image's alt text) */
+        figure.img-figure {
+            margin: 30px auto;
+            text-align: center;
+            max-width: 100%;
+        }
+        figure.img-figure img {
+            margin: 0 auto 8px auto;   /* caption sits right under the image */
+        }
+        figure.img-figure figcaption {
+            font-size: 15px;
+            color: #555;
+            font-style: italic;
+            line-height: 1.4;
+        }
+        /* Diagram blocks (Mermaid + TikZ): centered, no code-box background */
+        pre.mermaid, pre.tikz {
+            background: none;
+            border: none;
+            text-align: center;
+        }
+        #content svg {
+            max-width: 100%;
+            height: auto;
+        }
+        /* Breadcrumb trail */
+        .breadcrumb {
+            font-size: 19px;
+            font-weight: bold;
+            line-height: 1.5;
+            margin-bottom: 22px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid rgba(181, 101, 29, 0.35);
+            word-break: break-word;
+        }
+        .breadcrumb:empty { display: none; }
+        .breadcrumb a { color: #b5651d; text-decoration: none; }
+        .breadcrumb a:hover { color: #8a4a12; text-decoration: underline; }
+        .breadcrumb .breadcrumb-sep { color: #c08a5a; margin: 0 8px; }
+        .breadcrumb .breadcrumb-current { color: #1f3a5f; }
+        /* Floating navigation buttons (ask this page + go back + scroll to top) */
+        .floating-btns {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 1000;
+        }
+        .floating-btns button {
+            width: 48px;
+            height: 48px;
+            border: none;
+            border-radius: 50%;
+            background: #6b4f2a;
+            color: #fff;
+            font-size: 22px;
+            line-height: 48px;
+            text-align: center;
+            padding: 0;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            opacity: 0.85;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .floating-btns button:hover { opacity: 1; transform: translateY(-2px); }
+        #btn-top { display: none; }   /* revealed after scrolling down */
+        /* Top-right button stack: site-wide tools (translate + search), kept
+           separate from the bottom-right stack above, which holds per-page
+           navigation (back / top / ask-this-page). The search launcher is
+           inserted here at runtime by search.js. */
+        .top-right-btns {
+            position: fixed;
+            top: 16px;
+            right: 24px;
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            z-index: 1500;
+        }
+        /* Plain monochrome line icons — no fill, no coloured circle. The icons
+           are inline SVG using stroke: currentColor, so `color` is all that
+           drives their appearance. */
+        .top-right-btns button {
+            width: 48px;
+            height: 48px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 8px;
+            background: none;
+            color: #4a4038;
+            padding: 0;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transition: color 0.15s ease, background-color 0.15s ease;
+        }
+        .top-right-btns button svg { width: 32px; height: 32px; display: block; }
+        .top-right-btns button:hover { color: #1f1a15; background: rgba(107, 79, 42, 0.12); }
+        @media (max-width: 600px) {
+            .floating-btns { right: 14px; bottom: 14px; }
+            .floating-btns button { width: 44px; height: 44px; font-size: 20px; line-height: 44px; }
+            .top-right-btns { top: 12px; right: 14px; gap: 4px; }
+            .top-right-btns button { width: 44px; height: 44px; }
+            .top-right-btns button svg { width: 30px; height: 30px; }
+        }
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body { padding: 12px; }
+            #content {
+                padding: 8px 10px;
+                max-width: 100%;
+                font-size: 13px;    /* smaller text -> proportionally smaller equations that fit */
+                line-height: 1.5;
+            }
+            h1 { font-size: 20px; }
+            h2 { font-size: 18px; }
+            h3 { font-size: 16px; }
+            h4, h5, h6 { font-size: 15px; }
+            .breadcrumb { font-size: 15px; }
+            /* Wide math: never let it stretch the page. If it can't be broken onto
+               multiple lines, it scrolls inside its own box instead. */
+            mjx-container[display="true"] {
+                max-width: 100%;
+                overflow-x: auto;
+                overflow-y: hidden;
+            }
+            mjx-container { max-width: 100%; }
+        }
+        /* Google Translate: the widget itself stays hidden. We drive it entirely
+           through our own globe button + language panel below. Suppress every
+           bit of Google's own chrome in all cases — the "Translated to … /
+           Show original" top banner, the floating balloon, the feedback tab,
+           and the "suggest a better translation" hover tooltip. None of it
+           should ever surface; the visitor switches back to English from our
+           own globe menu instead.
+
+           The banner is injected as a top-level <iframe class="skiptranslate">,
+           which is why hiding only the .goog-te-* classes wasn't enough. */
+        #google_translate_element { display: none !important; }
+        .goog-te-gadget { display: none !important; }
+        iframe.skiptranslate,
+        .skiptranslate > iframe,
+        .goog-te-banner-frame,
+        .goog-te-banner-frame.skiptranslate,
+        .goog-te-ftab,
+        .goog-te-ftab-float,
+        .goog-te-balloon-frame,
+        .goog-te-gadget-icon,
+        .goog-te-menu-frame,
+        #goog-gt-tt,
+        .goog-tooltip,
+        .goog-tooltip:hover {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        /* Google pushes the page down with an inline body { top: 40px;
+           position: relative } to make room for that banner. !important here
+           outranks its inline style, so the layout never shifts. */
+        body {
+            top: 0px !important;
+            position: static !important;
+        }
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
+        /* Globe language panel */
+        #translate-panel {
+            display: none;
+            flex-direction: column;
+            position: fixed;
+            right: 24px;
+            top: 72px;
+            width: 260px;
+            max-height: 360px;
+            background: #fbf6e9;
+            border-radius: 10px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+            z-index: 1001;
+            overflow: hidden;
+        }
+        #translate-panel.open { display: flex; }
+        #translate-panel .tp-header {
+            padding: 10px 12px 6px 12px;
+            font-weight: bold;
+            color: #6b4f2a;
+            border-bottom: 1px solid rgba(107, 79, 42, 0.2);
+        }
+        #translate-panel input[type="text"] {
+            margin: 8px 12px;
+            padding: 6px 8px;
+            border: 1px solid rgba(107, 79, 42, 0.3);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        #translate-panel .tp-list {
+            overflow-y: auto;
+            padding: 0 6px 8px 6px;
+        }
+        #translate-panel .tp-lang {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            padding: 7px 10px;
+            font-size: 14px;
+            color: #333;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+        #translate-panel .tp-lang:hover { background: rgba(107, 79, 42, 0.12); }
+        #translate-panel .tp-lang.active { background: #6b4f2a; color: #fff; }
+        @media (max-width: 600px) {
+            #translate-panel { right: 14px; top: 64px; width: 220px; max-height: 300px; }
+        }
+        /* Hover preview card for internal links (Wikipedia-style). Only ever
+           populated for links whose target page actually exists — see the
+           script below, which fetches the target and stays hidden on 404. */
+        .link-preview-card {
+            position: fixed;
+            z-index: 1002;
+            width: 300px;
+            max-width: calc(100vw - 24px);
+            background: #fbf6e9;
+            border: 1px solid rgba(107, 79, 42, 0.3);
+            border-radius: 10px;
+            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(4px);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            font-family: Arial, sans-serif;
+        }
+        .link-preview-card.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+        .link-preview-card .lp-thumb {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            display: block;
+            background: rgba(107, 79, 42, 0.08);
+        }
+        .link-preview-card .lp-body { padding: 12px 14px; }
+        .link-preview-card .lp-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #6b4f2a;
+            margin: 0 0 6px 0;
+            line-height: 1.3;
+        }
+        .link-preview-card .lp-snippet {
+            font-size: 13px;
+            color: #444;
+            line-height: 1.45;
+            margin: 0;
+        }
+        /* Hover previews don't make sense on touch devices, so keep this off
+           on narrow/mobile viewports rather than leaving a stuck-open card. */
+        @media (max-width: 600px) {
+            .link-preview-card { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        <!-- Breadcrumb: Home > section > current, based on which top-level wiki
+             folder this page lives under. See the script below for the mapping. -->
+        <nav id="breadcrumb" class="breadcrumb" aria-label="Breadcrumb"></nav>
+        
+<p>
+<a href="Classical Mechanics and Dynamical Systems (V Balakrishnan) Opus 5.html">overview</a>  |  <a href="https://youtube.com/playlist?list=PLoRUNeJAicqYt-iU3qK77tXcu1YpT9htz">playlist</a>  |  <a href="Classical Mechanics Lec 23-26 (V Balakrishnan) Opus 5.html">&lt;&lt; prev</a><br />
+</p>
+
+<div id="Lecture 27"><h1 id="Lecture 27" class="header"><a href="#Lecture 27">Lecture 27</a></h1></div>
+
+<p>
+(After) \((0:00)\)<br />
+</p>
+
+<div id="Lecture 27-(Phase transitions)"><h2 id="(Phase transitions)" class="header"><a href="#Lecture 27-(Phase transitions)">(Phase transitions)</a></h2></div>
+
+<p>
+Thermodynamics is a kind of limiting case of statistical mech. where fluctuations are neglected and so on; And these fluctuations can be taken into account if we use stat. mech. and it provides correction to thermodynamic cases, goes beyond thermostatics &amp; calculate \((C_P, C_V)\) which are input parameters in thermodynamics.<br />
+</p>
+
+<p>
+There is a place where thermodynamics fails (completly and no longer valid); it is hard problem of phase transitions of matter. In principle stat. mech. (eq\(^m\) stat. mech.) should tell us everything about system at thermal eq\(^n\), including processes at phase transitions.<br />
+</p>
+
+<p>
+Thermodynamics fails at critical point \((P_c, V_c, T_c)\).<br />
+</p>
+
+<p>
+We will use vander vaals gas to demostrate real gases.<br />
+</p>
+
+<p>
+We have thermodynamic variables \((P, V, T)\) out of which we only use any two of them, as third is found of using equation of state (which is different for different phases of matter -- solid, liquid, gas).<br />
+</p>
+
+<div id="Lecture 27-Phase diagram"><h2 id="Phase diagram" class="header"><a href="#Lecture 27-Phase diagram">Phase diagram</a></h2></div>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.95,&gt;=Stealth]
+  % axes
+  \draw[-&gt;] (0,-0.2) -- (0,4.3) node[above left] {$P$};
+  \draw[-&gt;] (-1.6,0) -- (7.2,0) node[below] {$T$};
+  % sublimation curve (c): from lower left to triple point
+  \draw[thick] (-1.4,-0.05) .. controls (0.2,0.15) and (1.1,0.5) .. (1.7,0.95);
+  % melting curve (b): steep from triple point
+  \draw[thick] (1.7,0.95) .. controls (2.1,2.4) and (2.4,3.4) .. (2.6,4.1);
+  \node at (2.75,4.25) {\small\textcircled{b}};
+  % boiling curve (a): triple point to critical point
+  \draw[thick] (1.7,0.95) .. controls (3.0,1.15) and (4.2,1.5) .. (5.0,2.2);
+  \fill (5.0,2.2) circle (1.6pt);
+  \node[anchor=south west] at (5.0,2.25) {\small $(P_c,T_c)$};
+  \node at (5.3,1.95) {\small\textcircled{a}};
+  % triple point marker
+  \node at (1.7,0.6) {\small\textcircled{c}};
+  \draw[-&gt;] (-1.2,1.0) -- (1.45,1.0);
+  \node[anchor=east] at (-1.25,0.75) {(Triple point)};
+  % dashed lines at critical point
+  \draw[dashed] (1.9,2.2) -- (5.0,2.2);
+  \draw[dashed] (5.0,0) -- (5.0,3.6);
+  % region labels
+  \node at (1.15,3.0) {\small solid};
+  \node at (1.15,2.7) {\footnotesize (crystalline)};
+  \node at (3.5,3.4) {\small liquid};
+  \node at (3.4,0.55) {\small gas};
+  \node[anchor=west,align=left] at (5.2,1.0) {\small Homogeneous\\ \small fluid\\ \small phase};
+\end{tikzpicture}
+</pre>
+
+<ul>
+<li>
+(a) \(\to\) liquid-gas coexisting curve or (Boiling curve)
+
+<li>
+(b) \(\to\) solid-liquid coexisting curve or melting curve
+
+<li>
+(c) \(\to\) solid-gas coexistant curve or sublimation (curve).
+
+</ul>
+<p>
+every point on this phase plane is assumed to at thermal eq\(^m\) state of the system.<br />
+</p>
+
+<p>
+(phase -- A homogeneous thermodynamic eq\(^m\) system)<br />
+</p>
+
+<p>
+( Ice melting of glaciers is measured using rise of water level but Ice can diractly convert to vapour phase, so this is a challanging problem).<br />
+</p>
+
+<p>
+(<span id="Lecture 27-Phase diagram-Note"></span><strong id="Note">Note</strong> :- It looks like the melting curve goes on with same slope, but it does not happen, As pressure increases solid have more densly packed atoms, at very high pressure (FCC) Face centered cubic crystals formes.<br />
+</p>
+
+<p>
+(<span id="Lecture 27-Phase diagram-Gibbs phase rule"></span><strong id="Gibbs phase rule">Gibbs phase rule</strong>) :- For one kind of molecular species at most we can have only three coexisting phases. For more than one molecular species we can have more than 3 kind of phase coexisting at common point.<br />
+</p>
+
+<div id="Lecture 27-Critical Point $(V_c, T_c, P_c)$ :-"><h2 id="Critical Point $(V_c, T_c, P_c)$ :-" class="header"><a href="#Lecture 27-Critical Point $(V_c, T_c, P_c)$ :-">Critical Point \((V_c, T_c, P_c)\) :-</a></h2></div>
+
+<p>
+The boiling curve/liquid-gas coexisting curve stops at some point on phase plane called critical point where it becomes impossible to distinguish liquid phase from gas phase.<br />
+</p>
+
+<p>
+At this point the conventional thermodynamics fails. on right of \((P_c,T_c)\) or for \((T &gt; T_c)\) we can't tell diff between liquid &amp; phase. (Homogeneous fluid phase).<br />
+</p>
+
+<p>
+To convert form liquid to gas phase, we supply latent heat.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \draw[-&gt;] (0,-0.2) -- (0,2.2) node[above] {};
+  \node at (-0.35,1.9) {$P$};
+  \draw[-&gt;] (-0.7,0) -- (3.6,0);
+  \node at (1.5,-0.35) {$T$};
+  \draw[thick] (0.7,0.55) .. controls (1.5,0.75) and (2.2,1.1) .. (2.7,1.55);
+  \fill (0.7,0.55) circle (1.2pt);
+  \fill (2.7,1.55) circle (1.2pt);
+  \node[anchor=south west] at (2.6,1.6) {\small $(P_c,T_c)$};
+  \draw[-&gt;] (1.35,1.35) -- (1.55,0.9);
+  \node[anchor=south] at (1.35,1.35) {\small $L_2$};
+  \draw[-&gt;] (0.75,1.15) -- (1.0,0.68);
+  \node[anchor=south] at (0.75,1.15) {\small $L_1$};
+  \node at (1.5,0.3) {\small gas};
+  \node[anchor=west] at (2.3,-0.45) {$(L_2 &lt; L_1)$};
+\end{tikzpicture}
+</pre>
+
+<p>
+this transition is discontinuous as density of system changes discontinuously<br />
+</p>
+
+<p>
+As we go up this curve (i.e. increase pressure), latent heat becomes less and less, &amp; latent heat vanishes at critical point (i.e. we require no heat to convert from liquid to gas phase).<br />
+</p>
+
+<p>
+Also the surface tension also vanishes at critical point i.e. the meniscus (the curved upper surface of liquid) also disappears. <span id="Lecture 27-Critical Point \((V_c, T_c, P_c)\) :--&quot;we have mush at critical point.&quot;"></span><strong id="&quot;we have mush at critical point.&quot;">"we have mush at critical point."</strong><br />
+</p>
+
+<p>
+Everything that distinguish liquid from gas disappears, even the density start matching.<br />
+</p>
+
+<p>
+Lets draw melting curve in \((V-T)\) plane<br />
+</p>
+
+<p>
+volume of gas is very high<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.95,&gt;=Stealth]
+  \draw[-&gt;] (0,-0.2) -- (0,4.0);
+  \node at (-0.3,3.8) {$V$};
+  \draw[-&gt;] (-0.6,0) -- (5.6,0);
+  \node[anchor=west] at (5.65,0) {$T$};
+  % coexistence dome (opening left, critical point at right tip)
+  \draw[thick] (0.9,3.4) .. controls (2.4,3.2) and (3.1,2.6) .. (3.1,2.0)
+        .. controls (3.1,1.4) and (2.2,0.9) .. (1.1,0.7);
+  \fill (3.1,2.0) circle (1.5pt);
+  \node[anchor=south east] at (3.05,2.05) {\small $(V_c,T_c)$};
+  \draw[dashed] (3.1,-0.05) -- (3.1,3.2);
+  \draw[dashed] (0,2.0) -- (3.1,2.0);
+  \node[anchor=east] at (-0.05,2.0) {\small $(V_c)$};
+  \node at (3.1,-0.4) {\small $(T_c)$};
+  \node at (1.7,3.7) {\small gas};
+  \node at (1.5,0.35) {\small liquid};
+  \node[anchor=west,align=left,rotate=-30] at (3.3,1.1) {\footnotesize homogeneous\\ \footnotesize fluid phase};
+  \draw[-&gt;] (3.4,2.5) -- (4.3,2.5);
+  \node[anchor=west,align=left] at (4.3,2.5) {\small region of coexistance\\ \small of liquid \&amp; gas.};
+\end{tikzpicture}
+</pre>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \draw[-&gt;] (0,-0.15) -- (0,1.3);
+  \node at (-0.3,1.1) {$P$};
+  \draw[-&gt;] (-0.5,0) -- (2.2,0);
+  \node at (0.9,-0.35) {$T$};
+  \draw[thick] (0.4,0.3) .. controls (0.9,0.45) and (1.3,0.6) .. (1.6,0.85);
+  \draw[-&gt;] (1.75,0.9) -- (2.5,0.9);
+  \node[anchor=west,align=left] at (2.5,0.55) {this boiling curve\\ becomes region\\ in V-T diagram};
+\end{tikzpicture}
+</pre>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \draw[-&gt;] (0,-0.2) -- (0,2.6);
+  \node[anchor=east] at (-0.1,1.3) {$\rho \left(\rho \propto \frac{1}{V}\right)$};
+  \draw[-&gt;] (-0.5,0) -- (4.0,0);
+  \node[anchor=west] at (4.05,0) {$T$};
+  % rho vs T coexistence curve: liquid branch upper, gas branch lower, meeting at Tc
+  \draw[thick] (1.05,2.3) .. controls (1.6,2.25) and (2.05,2.0) .. (2.1,1.35)
+        .. controls (2.15,0.7) and (1.6,0.4) .. (1.05,0.35);
+  \fill (2.1,1.35) circle (1.5pt);
+  \draw[dashed] (2.1,-0.05) -- (2.1,2.4);
+  \node at (1.15,2.55) {\small liquid};
+  \node at (1.15,0.1) {\small gas};
+  \node at (2.1,-0.4) {\small $T_c$};
+  \draw[&lt;-&gt;] (1.45,0.55) -- (1.45,2.15);
+  \draw[-&gt;] (2.3,1.9) -- (3.2,1.9);
+\end{tikzpicture}
+</pre>
+
+<p>
+discontinuous phase transition jump in density \((\rho)\).<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9]
+  \draw (0,-0.6) -- (0,0.9);
+  \draw (-0.6,0) -- (1.4,0);
+  \node[anchor=west] at (0.15,0.65) {\small liquid};
+  \node[anchor=west] at (0.35,0.3) {\small gas};
+\end{tikzpicture}
+</pre>
+
+<p>
+Critical point is 2nd order or continuous phase transition, and coexisting curve is series of discontinuous / 1st order phase transitions.<br />
+</p>
+
+<div id="Lecture 27-P-V diagram :- (only for boiling curve)."><h2 id="P-V diagram :- (only for boiling curve)." class="header"><a href="#Lecture 27-P-V diagram :- (only for boiling curve).">P-V diagram :- (only for boiling curve).</a></h2></div>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.72,&gt;=Stealth]
+  \useasboundingbox (-1.2,-2.6) rectangle (16.0,5.6);
+  % axes
+  \draw[-&gt;] (0,-0.2) -- (0,5.2);
+  \node at (-0.35,4.9) {$P$};
+  \draw[-&gt;] (-0.4,0) -- (6.8,0);
+  \node at (3.4,-0.45) {$V$};
+  % coexistence dome
+  \draw[thick] (1.25,1.0) .. controls (1.55,2.6) and (2.05,3.3) .. (2.6,3.3)
+        .. controls (3.3,3.3) and (3.95,2.4) .. (4.6,1.0);
+  % critical isotherm
+  \draw[very thick] (1.05,4.9) .. controls (1.6,3.9) and (2.1,3.4) .. (2.6,3.3)
+        .. controls (3.4,3.15) and (4.3,1.8) .. (6.3,1.15);
+  \fill (2.6,3.3) circle (2pt);
+  \node[anchor=south] at (2.6,3.42) {\small $(P_c,V_c)$};
+  % isotherms above Tc
+  \draw (1.35,5.0) .. controls (2.2,4.4) and (3.5,3.0) .. (6.4,1.95);
+  \draw (1.75,5.0) .. controls (2.8,4.6) and (4.0,3.5) .. (6.4,2.7);
+  % isotherms below Tc (van der Waals loops)
+  \draw (0.95,4.5) .. controls (1.3,2.6) and (1.5,1.9) .. (1.9,1.9)
+        .. controls (2.4,1.9) and (2.6,2.6) .. (3.0,2.6)
+        .. controls (3.8,2.6) and (4.5,1.1) .. (6.3,0.6);
+  \draw (0.8,3.5) .. controls (1.1,1.6) and (1.3,0.9) .. (1.7,0.95)
+        .. controls (2.25,1.0) and (2.55,1.8) .. (3.4,1.75)
+        .. controls (4.2,1.7) and (4.8,0.6) .. (6.3,0.28);
+  % Pc, Vc guide lines
+  \draw (0,3.3) -- (2.6,3.3);
+  \node[anchor=east] at (-0.05,3.3) {$P_c$};
+  \draw[-&gt;] (2.6,3.3) -- (2.6,0.15);
+  \node[anchor=north] at (2.6,0.1) {$V_c$};
+  % right hand labels
+  \draw[-&gt;] (5.4,3.6) -- (6.6,3.9);
+  \node[anchor=west] at (6.6,3.9) {\small $(T&gt;T_c)$ \ (Ided gas approx.).};
+  \draw[-&gt;] (5.6,2.6) -- (6.6,3.1);
+  \node[anchor=west] at (6.6,3.1) {\small $T&gt;T_c$};
+  \draw[-&gt;] (5.9,1.5) -- (6.6,2.2);
+  \node[anchor=west] at (6.6,2.2) {\small $T=T_c$ (critical Isotherm).};
+  % wrong-curve annotation
+  \draw[-&gt;] (4.9,-1.3) -- (2.6,2.15);
+  \node[anchor=north west,align=left] at (5.0,-1.1)
+     {\small wrong curves as \underline{$P\uparrow$ $V\uparrow$.} (violets lessatelier's\\
+      \small \hspace*{3.6cm} principle of stability).};
+\end{tikzpicture}
+</pre>
+
+\[
+P = \frac{nRT}{V-nb} - \frac{an^2}{V^2} \qquad \text{or} \qquad \left(\left(P + \frac{an^2}{V^2}\right)(V-nb) = nRT\right)
+\]
+
+<p>
+To find critical point (Inflection point).<br />
+</p>
+\[
+\left.\frac{\partial P}{\partial V}\right|_{(T_c,P_c,V_c)} = 0
+\]
+<p>
+also<br />
+</p>
+\[
+\left.\frac{\partial^2 P}{\partial V^2}\right|_{(P_c,V_c,T_c)} = 0
+\]
+<p>
+and from eq\(^n\) of state, we can find \((P_c, V_c, T_c)\).<br />
+</p>
+
+<p>
+There is no universal eq\(^n\) of state as eq\(^n\) of state depends upon interactions and interactions are hard to model universally.<br />
+</p>
+
+<p>
+The portion where \(\dfrac{\partial P}{\partial V}\) is positive makes compressibility<br />
+</p>
+\[
+K_B = -\frac{1}{V}\frac{\partial V}{\partial P}
+\]
+<p>
+negative and violets thermodynamic stability. So we have to correct this portion.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \draw[-&gt;] (0,-0.2) -- (0,3.4);
+  \node at (-0.35,3.0) {$P$};
+  \draw[-&gt;] (-0.6,0) -- (5.6,0);
+  \node at (2.8,-0.45) {$V$};
+  % van der Waals isotherm with loop
+  \draw[thick] (0.5,3.2) .. controls (0.85,2.0) and (1.0,1.35) .. (1.4,1.35)
+        .. controls (1.9,1.35) and (2.1,2.4) .. (2.7,2.35)
+        .. controls (3.4,2.3) and (4.0,1.1) .. (5.2,0.75);
+  % direction arrows along the curve
+  \draw[-&gt;] (2.4,2.42) -- (2.05,2.42);
+  \draw[-&gt;] (1.8,1.5) -- (2.15,1.62);
+  \draw[-&gt;] (3.3,2.05) -- (3.6,1.9);
+  \draw[-&gt;] (0.9,2.7) -- (0.8,2.45);
+\end{tikzpicture}
+</pre>
+
+<p>
+hysteresis is the problem here. So to avoid, it is observed that, (flip)<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \draw[-&gt;] (0,-0.2) -- (0,3.0);
+  \node at (-0.35,2.6) {$P$};
+  \draw[-&gt;] (-0.6,0) -- (5.2,0);
+  \node at (2.6,-0.45) {$V$};
+  \draw[thick] (0.45,2.8) .. controls (0.8,1.6) and (0.95,1.0) .. (1.35,1.0)
+        .. controls (1.85,1.0) and (2.05,2.05) .. (2.65,2.0)
+        .. controls (3.35,1.95) and (3.9,0.85) .. (5.0,0.55);
+  % tie line
+  \draw[very thick] (0.95,1.5) -- (3.15,1.5);
+  \node at (1.5,1.15) {\small $A$};
+  \node at (2.5,1.75) {\small $A'$};
+  \draw[-&gt;] (-1.2,1.9) -- (0.75,1.6);
+  \node[anchor=east] at (-1.25,1.95) {(Tieline)};
+  \draw[-&gt;] (3.6,2.4) -- (3.05,1.6);
+  \node[anchor=west,align=left] at (3.7,2.3)
+    {Tieline\\ Transition occurs\\ such that Area are\\ equal};
+\end{tikzpicture}
+</pre>
+
+<p>
+So some portions of allowed curve also gets omitted in observation. So vaander vaals gas eq\(^n\) of state is not accurate, we not only have to remove unstable region but slightly bigger region also.<br />
+</p>
+
+<p>
+So envelope goes like this --<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.85,&gt;=Stealth]
+  \useasboundingbox (-2.4,-4.6) rectangle (9.6,5.6);
+  \draw[-&gt;] (0,-0.2) -- (0,5.1);
+  \node at (-0.35,4.6) {$P$};
+  \draw[-&gt;] (-0.6,0) -- (6.4,0);
+  % binodal (outer envelope)
+  \draw[thick] (1.35,0.15) .. controls (1.45,1.8) and (1.9,3.3) .. (2.75,3.35)
+        .. controls (3.55,3.4) and (3.85,1.6) .. (3.9,0.15);
+  % spinodal (inner, dashed)
+  \draw[dashed] (1.85,0.6) .. controls (2.0,1.8) and (2.3,3.0) .. (2.75,3.35)
+        .. controls (3.2,3.0) and (3.4,1.7) .. (3.45,0.6);
+  \fill (2.75,3.35) circle (1.8pt);
+  \node[anchor=south east] at (2.7,3.5) {\small $(P_c,V_c)$};
+  \draw[-&gt;] (2.95,3.35) -- (4.15,3.45);
+  \node[anchor=west] at (4.15,3.45) {\small critical point};
+  % isotherms
+  \draw (1.0,4.9) .. controls (1.7,4.2) and (3.0,2.7) .. (6.1,1.9);
+  \node[anchor=west] at (3.3,4.75) {\small gas};
+  \draw[-&gt;] (3.25,4.7) -- (2.35,4.55);
+  \node[anchor=west] at (4.15,4.2) {\small $(T&gt;T_c)$};
+  \draw[very thick] (0.85,4.6) .. controls (1.6,3.7) and (2.2,3.4) .. (2.75,3.35)
+        .. controls (3.6,3.25) and (4.4,1.7) .. (6.1,1.25);
+  \node[anchor=west] at (6.2,1.25) {\small $T=T_c$};
+  \draw (0.7,3.9) .. controls (1.1,2.0) and (1.4,1.15) .. (1.85,1.2)
+        .. controls (2.4,1.25) and (2.55,2.2) .. (3.45,2.1)
+        .. controls (4.3,2.0) and (4.8,1.0) .. (6.1,0.75);
+  \node[anchor=west] at (6.2,0.75) {\small $T&lt;T_c$};
+  \draw (0.55,3.1) .. controls (0.95,1.2) and (1.25,0.5) .. (1.7,0.55)
+        .. controls (2.3,0.6) and (2.5,1.4) .. (3.3,1.3)
+        .. controls (4.2,1.2) and (4.7,0.5) .. (6.1,0.3);
+  \node[anchor=west] at (6.2,0.3) {\small $T&lt;T_c$};
+  \node[anchor=east] at (1.25,4.3) {\small liquid};
+  % labels below
+  \draw[-&gt;] (-0.7,-1.5) -- (1.5,0.5);
+  \node[anchor=north,align=left] at (-1.4,-1.5) {\small Meta\\ \small -stable\\ \small \ region};
+  \node[anchor=north west,align=left] at (-2.3,-3.1) {\small (System seperates\\ \small slowly into gas \&amp; liquid)};
+  \draw[-&gt;] (2.8,-1.0) -- (2.8,0.4);
+  \node[anchor=north,align=left] at (3.0,-1.1) {\small unstable region\\ \small (system seperates to\\ \small liquid \&amp; gas abruptly).};
+\end{tikzpicture}
+</pre>
+
+<p>
+Any system on unstable region will instantane-ously separate into some liquid &amp; remainy to gas depending upon lever rule.<br />
+</p>
+
+<p>
+<span id="Lecture 27-P-V diagram :- (only for boiling curve).-Note"></span><strong id="Note">Note</strong> :- In case of binary alloys (liquid alloys), the metastable portion can be made extremly slow, It may take hours, yeares to happen.<br />
+</p>
+
+<div id="Lecture 27-Maxwells equal Area rule :-"><h2 id="Maxwells equal Area rule :-" class="header"><a href="#Lecture 27-Maxwells equal Area rule :-">Maxwells equal Area rule :-</a></h2></div>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.95,&gt;=Stealth]
+  \draw[-&gt;] (0,-0.2) -- (0,3.4);
+  \node at (-0.3,3.0) {};
+  \draw[-&gt;] (-0.5,0) -- (5.4,0);
+  % van der Waals loop
+  \draw[thick] (0.5,3.2) .. controls (0.85,1.9) and (1.0,1.15) .. (1.45,1.2)
+        .. controls (2.0,1.25) and (2.15,2.3) .. (2.85,2.2)
+        .. controls (3.55,2.1) and (4.1,1.0) .. (5.1,0.7);
+  % tie line
+  \draw (0.75,1.7) -- (3.35,1.7);
+  \draw[dashed] (3.35,0) -- (3.35,2.4);
+  \node[anchor=south east] at (0.78,1.75) {$A$};
+  \node[anchor=north] at (1.45,1.15) {$B$};
+  \node[anchor=south west] at (2.0,1.72) {$C$};
+  \node[anchor=south] at (2.6,2.25) {$D$};
+  \node[anchor=north west] at (3.3,1.68) {$E$};
+  \node at (2.6,1.95) {$A_1$};
+  \node at (1.35,1.45) {$A_2$};
+\end{tikzpicture}
+</pre>
+
+<p>
+(maxwell's tieline construction)<br />
+</p>
+
+<p>
+(Is not quite correct though as It goes through ((D) \(\to\) (B)) i.e. from thermodynamic unstable region.)<br />
+</p>
+
+<p>
+let us consider \(G(T,P,N) = U - TS + PV\)<br />
+</p>
+\[
+\begin{aligned}
+dG &amp;= dU - TdS - SdT + PdV + VdP\\
+   &amp;= -SdT + VdP + \mu dN
+\end{aligned}
+\]
+<p>
+for fixed \((N,P,T)\) \((dG = 0)\)<br />
+</p>
+
+<p>
+On an isotherm, *\(dG = VdP\)* (as \(dT = 0\)).<br />
+</p>
+\[
+G_E - G_A = 0 = \int_A^E dG = \int_A^B VdP + \int_B^C VdP + \int_C^D VdP + \int_D^E VdP
+\]
+\[
+\left(G = \frac{\mu}{N} \ \text{should be same in gas phase \&amp; liquid phase}\right)
+\]
+\[
+= \left(\int_A^B VdP - \int_C^B VdP\right) + \left(-\int_D^C VdP + \int_D^E VdP\right) = 0
+\]
+\[
+\underbrace{\hphantom{XXXXXXXXXXXX}}_{(A_1)} \quad + \quad \underbrace{\hphantom{XXXXXXXXXXXX}}_{(-A_2)}
+\]
+\[
+= \boxed{(A_1 = A_2) = A}
+\]
+
+<div id="Lecture 27-Mechanical example of hysteresis (Double well potentials)."><h2 id="Mechanical example of hysteresis (Double well potentials)." class="header"><a href="#Lecture 27-Mechanical example of hysteresis (Double well potentials).">Mechanical example of hysteresis (Double well potentials).</a></h2></div>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.85,&gt;=Stealth]
+  % (a) single well
+  \begin{scope}[xshift=0cm]
+    \draw[thick] plot[smooth,tension=0.7] coordinates
+      {(-0.75,2.2) (-0.6,1.2) (-0.35,0.45) (0,0.25) (0.35,0.45) (0.6,1.2) (0.75,2.2)};
+    \fill (0,0.25) circle (1.4pt);
+    \node at (0,-0.1) {\footnotesize L R};
+    \node at (0,-0.65) {(a)};
+  \end{scope}
+  % (b)
+  \begin{scope}[xshift=2.2cm]
+    \draw[thick] plot[smooth,tension=0.7] coordinates
+      {(-0.8,2.2) (-0.6,1.05) (-0.38,0.85) (-0.15,0.98) (0.05,0.6) (0.3,0.3) (0.55,0.9) (0.8,2.2)};
+    \fill (0.3,0.3) circle (1.4pt);
+    \node at (-0.55,1.25) {\footnotesize L};
+    \node at (0.3,-0.1) {\footnotesize R};
+    \node at (0,-0.65) {(b)};
+    \draw[-&gt;] (0,-1.15) -- (0,-0.85);
+    \node[anchor=west] at (0.1,-1.15) {$(L\to R)$};
+  \end{scope}
+  % (c)
+  \begin{scope}[xshift=4.6cm]
+    \draw[thick] plot[smooth,tension=0.7] coordinates
+      {(-0.8,2.2) (-0.6,1.0) (-0.4,0.7) (-0.18,0.78) (0.02,1.0) (0.22,0.55) (0.42,0.28) (0.65,1.2) (0.8,2.2)};
+    \fill (0.42,0.28) circle (1.4pt);
+    \node at (-0.4,0.35) {\footnotesize L};
+    \node at (0.42,-0.1) {\footnotesize R};
+    \node at (0,-0.65) {(c)};
+  \end{scope}
+  % (d)
+  \begin{scope}[xshift=7.0cm]
+    \draw[thick] plot[smooth,tension=0.7] coordinates
+      {(-0.85,2.2) (-0.62,0.9) (-0.4,0.3) (-0.2,0.6) (0,0.95) (0.2,0.6) (0.4,0.3) (0.62,0.9) (0.85,2.2)};
+    \fill (-0.4,0.3) circle (1.4pt);
+    \fill (0.4,0.3) circle (1.4pt);
+    \node at (-0.4,-0.1) {\footnotesize L};
+    \node at (0.4,-0.1) {\footnotesize R};
+    \node at (0,-0.65) {(d)};
+  \end{scope}
+  % (e)
+  \begin{scope}[xshift=9.4cm]
+    \draw[thick] plot[smooth,tension=0.7] coordinates
+      {(-0.8,2.2) (-0.65,1.2) (-0.42,0.28) (-0.22,0.55) (-0.02,1.0) (0.18,0.78) (0.4,0.7) (0.6,1.0) (0.8,2.2)};
+    \fill (-0.42,0.28) circle (1.4pt);
+    \node at (-0.42,-0.1) {\footnotesize L};
+    \node at (0.4,0.35) {\footnotesize R};
+    \node at (0,-0.65) {(e)};
+  \end{scope}
+  % (f)
+  \begin{scope}[xshift=11.8cm]
+    \draw[thick] plot[smooth,tension=0.7] coordinates
+      {(-0.8,2.2) (-0.55,0.9) (-0.3,0.3) (-0.05,0.6) (0.15,0.98) (0.38,0.85) (0.6,1.05) (0.8,2.2)};
+    \fill (-0.3,0.3) circle (1.4pt);
+    \node at (-0.3,-0.1) {\footnotesize L};
+    \node at (0.55,1.25) {\footnotesize R};
+    \node at (0,-0.65) {(f)};
+    \draw[-&gt;] (0,-1.15) -- (0,-0.85);
+    \node[anchor=west] at (0.1,-1.15) {$(R\to L)$};
+  \end{scope}
+  % (g)
+  \begin{scope}[xshift=14.2cm]
+    \draw[thick] plot[smooth,tension=0.7] coordinates
+      {(-0.75,2.2) (-0.6,1.2) (-0.35,0.45) (0,0.25) (0.35,0.45) (0.6,1.2) (0.75,2.2)};
+    \fill (0,0.25) circle (1.4pt);
+    \node at (0,-0.1) {\footnotesize L};
+    \node at (0,-0.65) {(g)};
+  \end{scope}
+\end{tikzpicture}
+</pre>
+
+<p>
+If we start at (R) i.e. right well, Transition occurs to `L' at (f).<br />
+</p>
+
+<p>
+If we start at `L' i.e. left wall (g) then transitions occur at (b). This is called hysteresis in mechanical case.<br />
+</p>
+
+<p>
+There is a branch of mathematics called catastrophe theory where people talk about change in generic potentials. (BTW) we can't have such minimum in thermal eq\(^n\).<br />
+</p>
+
+<div id="Lecture 28"><h1 id="Lecture 28" class="header"><a href="#Lecture 28">Lecture 28</a></h1></div>
+
+<p>
+Near critical point, many systems behave (independent of their interactions/details) identically.<br />
+</p>
+
+<p>
+We can convert from liquid to gas or gas to liquid without encountering a sharp transitions. (This is only possible because boiling curve ends at critical point).<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.95,&gt;=Stealth]
+  \draw[-&gt;] (0,-0.2) -- (0,3.0);
+  \node at (-0.35,2.6) {$P$};
+  \draw[-&gt;] (-0.6,0) -- (4.8,0);
+  \node at (2.1,-0.4) {$T$};
+  % boiling curve ending at critical point
+  \draw[thick] (0.6,0.35) .. controls (1.4,0.7) and (2.0,1.1) .. (2.5,1.55);
+  \fill (2.5,1.55) circle (1.6pt);
+  \node[anchor=south west] at (2.5,1.6) {$(P_c,T_c)$};
+  % path looping around critical point
+  \draw[-&gt;] (1.5,1.5) .. controls (2.2,2.5) and (3.6,2.3) .. (3.5,1.5)
+        .. controls (3.4,0.7) and (2.2,0.5) .. (1.6,0.75);
+  \node[anchor=east] at (1.45,1.35) {\small liquid};
+  \node[anchor=north] at (1.7,0.6) {\small gas};
+\end{tikzpicture}
+</pre>
+
+<p>
+we can't have continuous transitions from liquid to solid or vice versa. (Because this curve (melting curve) does not end. It does not end because solid has crystalline symmetry<br />
+</p>
+
+<p>
+It is symmetric under group of specific transformations like space rotations, translations. On the other hand liquid is homogeneous and isotropic, therefore liquid has much greater degree of symmetry. Solid has <span id="Lecture 28-long range order"></span><strong id="long range order">long range order</strong>.<br />
+</p>
+
+<p>
+order and symmetry are kind of opposites. More ordered is phase less symmetric it is; in the sense that the <span id="Lecture 28-set of transformations"></span><strong id="set of transformations">set of transformations</strong> under which it remains unchanged is smaller and st smaller.<br />
+</p>
+
+<p>
+The most disordered state is in fact most <span id="Lecture 28-symmetric"></span><strong id="symmetric">symmetric</strong> because it looks exactly the same in every direction.<br />
+</p>
+
+<p>
+on the other hand,<br />
+</p>
+
+<p>
+liquid and gas phases are both symmetric (in every dir.).<br />
+</p>
+
+<p>
+So \(\exists\) a critical point<br />
+</p>
+
+<p>
+we can understand behaviour at critical point via fluid--magnet analogy.<br />
+</p>
+
+<div id="Lecture 28-$-$ Model of paramagnetism"><h2 id="$-$ Model of paramagnetism" class="header"><a href="#Lecture 28-$-$ Model of paramagnetism">\(-\) Model of paramagnetism</a></h2></div>
+
+<p>
+<span id="Lecture 28-\(-\) Model of paramagnetism-Assumption"></span><strong id="Assumption">Assumption</strong> -- system consists of elementary magnetic dipole moments (atomic (Spin + Angular)). oriented randomly in presence of ext. \(\vec{H}_{ext}\) \(\left(H = \dfrac{\vec{B}}{\mu_0}\right)\).<br />
+</p>
+
+<p>
+magnetic dipole moment will try to align in direction of \(\vec{H}_{ext}\). So system will have some kind of symmetry.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \node[anchor=east,align=center] at (-1.4,1.0) {(auxilary\\ field)};
+  \node at (-0.95,1.15) {$\vec{H}$};
+  \draw[-&gt;] (-0.55,0.3) -- (-0.55,1.9);
+  \draw (0,0) rectangle (3.6,2.4);
+  \foreach \px/\py/\a in {0.45/1.95/45, 0.95/1.95/270, 1.55/1.95/0, 2.35/1.95/90,
+                     0.5/1.5/225, 1.15/1.5/0, 1.9/1.5/0, 2.6/1.5/60, 2.9/1.35/300,
+                     0.4/1.0/0, 1.2/1.0/0, 2.0/0.95/40, 2.55/1.0/30,
+                     0.4/0.45/225, 0.9/0.45/300, 1.35/0.45/90, 2.1/0.45/280, 2.8/0.45/90}
+    \draw[-&gt;] (\px,\py) -- ++(\a:0.42);
+  \node[anchor=west,align=left] at (3.75,1.6)
+     {N dipole moments, $\vec{\mu}$\\ placed in heat bath at temp $T$.};
+\end{tikzpicture}
+</pre>
+
+<p>
+P.E of a dipole \(\vec{\mu}\) in field \(\vec{H}\)<br />
+</p>
+\[
+U = -\vec{\mu}\cdot\vec{H}
+\]
+\[
+U_{min} = -\mu H \quad (\theta = 0)
+\]
+\[
+U_{max} = +\mu H \quad (\theta = \pi).
+\]
+
+<p>
+lets look at very simple model, such that<br />
+</p>
+\[
+U = +\mu H \ \underline{\text{or}} \ -\mu H \qquad \underline{\text{(one--dimension case)}}
+\]
+<p>
+(magnetic dipole moment of \(e^-\) can only take two values).<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \draw[thick] (0,1.6) -- (2.6,1.6);
+  \node[anchor=east] at (-0.1,1.6) {$E_1$};
+  \node[anchor=west] at (2.75,1.6) {$(\mu H)$};
+  \draw[-&gt;] (5.4,1.3) -- (5.4,1.95); \node[anchor=west] at (5.45,1.95) {$\vec{\mu}$};
+  \draw[-&gt;] (6.4,1.95) -- (6.4,1.3); \node[anchor=west] at (6.45,1.95) {$\vec{H}$};
+  \draw[thick] (0,0) -- (2.6,0);
+  \node[anchor=east] at (-0.1,0) {$E_0$};
+  \node[anchor=west] at (2.75,0) {$(-\mu H)$};
+  \draw[-&gt;] (5.4,-0.3) -- (5.4,0.35); \node[anchor=west] at (5.45,0.35) {$\vec{\mu}$};
+  \draw[-&gt;] (6.4,-0.3) -- (6.4,0.35); \node[anchor=west] at (6.45,0.35) {$\vec{H}$};
+\end{tikzpicture}
+</pre>
+
+<p>
+lets find magnetisation (or better average Magnetisation). in *\((1-D)\)*<br />
+</p>
+\[
+\vec{M} = N \ (\text{Avg dipolemoments of each dipole moment}).
+\]
+<p>
+(\(\hookrightarrow N\langle \mu\rangle\) is only true iff all \(\vec{\mu}\) are independent assuming no--dipole--dipole interactions).<br />
+</p>
+
+<p>
+(since we only want to see \(\vec{M}\) along dir. of \(\vec{H}\). lets drop vector)<br />
+</p>
+\[
+M = N\left(\frac{\mu\,P(\mu) + (-\mu)\,P(-\mu)}{P(\mu) + P(-\mu)}\right)
+\]
+\[
+= \frac{N\left(\mu e^{\beta\mu H} - \mu e^{-\beta\mu H}\right)}{e^{\beta\mu H} + e^{-\beta\mu H}}
+\qquad \left(\tanh x = \frac{e^x - e^{-x}}{e^x + e^{-x}}\right).
+\]
+<p>
+Av. magnetisation \((M)\) \(= N\mu\tanh(\beta\mu H)\)<br />
+</p>
+
+<p>
+So, \(\boxed{M = N\mu \tanh\left(\dfrac{\mu H}{k_BT}\right)}\) is magnetic eq\(^n\) of state.<br />
+</p>
+
+<p>
+fluid \((P, V, T)\) of [?] \((H, M)\) system<br />
+</p>
+
+<p>
+| }cc}<br />
+\(\uparrow\) | \(\uparrow\) | \(\uparrow\) | \(\uparrow\) |<br />
+<table>
+<tr>
+<td>
+field
+</td>
+<td>
+responce
+</td>
+<td>
+field
+</td>
+<td>
+responce
+</td>
+</tr>
+<tr>
+<td>
+(Intensive)
+</td>
+<td>
+extensive
+</td>
+<td>
+(Intensive)
+</td>
+<td>
+(extensive)
+</td>
+</tr>
+</table>
+</p>
+
+<div id="Lecture 28-$\left(\dfrac{M}{N\mu}\right)$ vs $H$ :-"><h2 id="$\left(\dfrac{M}{N\mu}\right)$ vs $H$ :-" class="header"><a href="#Lecture 28-$\left(\dfrac{M}{N\mu}\right)$ vs $H$ :-">\(\left(\dfrac{M}{N\mu}\right)\) vs \(H\) :-</a></h2></div>
+
+<p>
+\(\left(\dfrac{M}{N\mu}\right)\) is magnetisation per atom per dipole moment.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0,&gt;=Stealth]
+  \useasboundingbox (-4.2,-1.9) rectangle (6.4,2.0);
+  \clip (-4.2,-1.9) rectangle (6.4,2.0);
+  \draw[-&gt;] (0,-1.7) -- (0,1.7);
+  \node[anchor=south east] at (0,1.5) {$\left(\frac{M}{N\mu}\right)$};
+  \draw[-&gt;] (-3.6,0) -- (3.6,0);
+  \node[anchor=west] at (3.6,0) {$H$};
+  \draw (-3.6,1) -- (3.6,1);
+  \draw (-3.6,-1) -- (3.6,-1);
+  \node[anchor=south west] at (0.05,1.0) {$+1$};
+  \node[anchor=north west] at (0.05,-1.0) {$-1$};
+  \draw[thick,domain=-3:3,samples=80,smooth] plot (\x,{tanh(1.5*\x)});
+  \draw[thick] (3,0.99978) -- (3.5,1);
+  \draw[thick] (-3,-0.99978) -- (-3.5,-1);
+  \draw (0,0) ellipse (1.1 and 0.6);
+  \draw[-&gt;] (1.15,-0.35) -- (1.9,-0.45);
+  \node[anchor=west,align=left] at (1.9,-0.6) {linear\\ region};
+\end{tikzpicture}
+</pre>
+
+<p>
+our old def\(^n\) of susceptibility \((\chi)\)<br />
+</p>
+\[
+\begin{aligned}
+\vec{M} &amp;\propto \vec{H}\\
+\vec{M} &amp;= \chi\vec{H}\\
+\frac{M}{H} &amp;= \text{const}
+\end{aligned}
+\]
+<p>
+is not quite right as, this graph is non linear in most range of \(\vec{H}\).<br />
+</p>
+
+<div id="Lecture 28-Isothermal susceptibility"><h2 id="Isothermal susceptibility" class="header"><a href="#Lecture 28-Isothermal susceptibility">Isothermal susceptibility</a></h2></div>
+
+\[
+\chi_T = \left.\left(\frac{\partial M}{\partial H}\right)_{T,N}\right|_{H=0}
+\]
+<p>
+or<br />
+</p>
+\[
+\left(\chi_T = \text{slope at origin}\right)
+\]
+\[
+\chi_T = \left.\left(\frac{\partial M}{\partial H}\right)_T\right|_{H=0}
+\]
+<p>
+\(\tanh\theta \approx \theta\) for very small \(\theta\).<br />
+</p>
+
+<p>
+*\(\tanh ax \approx ax\)*<br />
+</p>
+\[
+= N\mu\left(\frac{\mu H}{k_BT}\right)
+\]
+\[
+\left(\chi_T = \frac{N\mu^2 H}{k_BT}\right) \ \to \ \underline{\text{Curie's law}} \ \text{(pierre curie)} \qquad \left(\chi_T \propto \frac{1}{T}\right)
+\]
+
+<p>
+So slope at origin increases with decrease in temp.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0,&gt;=Stealth]
+  \useasboundingbox (-4.4,-2.0) rectangle (7.6,2.7);
+  \draw[-&gt;] (0,-1.7) -- (0,1.8);
+  \node[anchor=east] at (-0.15,1.6) {$\left(\frac{M}{N\mu}\right)$};
+  \draw[-&gt;] (-3.6,0) -- (4.0,0);
+  \node[anchor=west] at (4.0,0) {$H$};
+  \draw (-3.6,1) -- (3.4,1);
+  \draw (-3.6,-1) -- (3.4,-1);
+  \node[anchor=south west] at (-3.55,1.02) {$+1$};
+  \node[anchor=north west] at (-3.55,-1.02) {$-1$};
+  \node[anchor=west] at (2.2,2.0) {$(T_3 &lt; T_2 &lt; T_1)$};
+  % T1 (shallowest)
+  \draw[domain=-3.2:3.2,samples=80,smooth] plot (\x,{tanh(0.7*\x)});
+  \node[anchor=south] at (1.9,1.28) {$T_1$};
+  % T2
+  \draw[domain=-3:3,samples=80,smooth] plot (\x,{tanh(1.5*\x)});
+  \node[anchor=south] at (1.0,1.28) {$T_2$};
+  % T3 (steepest)
+  \draw[domain=-1.4:1.4,samples=80,smooth] plot (\x,{tanh(3.5*\x)});
+  \draw (1.4,0.99926) -- (3.2,1);
+  \draw (-1.4,-0.99926) -- (-3.2,-1);
+  \node[anchor=south] at (0.3,1.28) {$T_3$};
+  % T = 0 step
+  \draw[very thick] (-3.2,-1) -- (0,-1) -- (0,1) -- (3.2,1);
+  \draw[-&gt;] (1.4,-0.75) -- (0.55,-0.75);
+  \node[anchor=west] at (1.4,-0.8) {$(T=0)$};
+  \draw (0,0) ellipse (0.75 and 0.75);
+\end{tikzpicture}
+</pre>
+
+<p>
+at \(T=0\) (absolute zero)<br />
+</p>
+\[
+\chi \to \infty
+\]
+<p>
+or slope \(\to \underline{\infty}\)<br />
+</p>
+
+<p>
+We have neglected interaction between magnetic dipoles.<br />
+</p>
+
+<p>
+At high temperature, we can neglect dipole--dipole interaction but at very low temp, dipole-dipole interactions become large as compared to random fluctuation driven by heat bath.<br />
+</p>
+
+<p>
+All phase transitions of this kind is dependent on minimization of free energy<br />
+</p>
+\[
+F = U - TS
+\]
+\[
+U = \langle E\rangle \ \text{or} \ \bar{E} \ \text{or} \ \langle \mathcal{H}\rangle \qquad \text{(Hamiltonian)}
+\]
+
+<p>
+It so happens that at sufficiently low temperatures the ordering tendency of internal energy \((U)\) overcomes effect of entropy.<br />
+</p>
+
+<p>
+So Free energy \((F)\) is mostly governed by \(U\) as <code>\(T\)' is very small and </code>\(S\)' (entropy) also becomes small at low temperatures \((S = k_B \ln \Omega(E))\) \((\Omega(E)\) decreases with *\(T\)*\()\).<br />
+</p>
+
+<p>
+So at low temp, <code>\(F\)' is governed by \(U\) and it is ordered phase, and at high temp </code>\(F\)' is governed by `\(TS\)' which is very large compared to \(U\), and this is disordered phase.<br />
+</p>
+
+<p>
+\(\bullet\) <em>"This is the main reason low temp is ordered state and high temp is disordered state."</em><br />
+</p>
+
+<p>
+If dipole--dipole interaction is taken in account our plot or relation \(\left(M = N\mu\tanh\left(\dfrac{\mu H}{k_BT}\right)\right)\) fails.<br />
+</p>
+
+<p>
+For two dipoles, if \(U_d\) represents interaction energy<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  % first pair
+  \draw (1.1,0.35) ellipse (1.15 and 0.75);
+  \draw[-&gt;] (0.55,0.65) -- (1.35,0.65); \node[anchor=west] at (1.4,0.65) {$\mu$};
+  \draw[&lt;-] (0.55,0.05) -- (1.35,0.05); \node[anchor=west] at (1.4,0.05) {$\mu$};
+  \node[anchor=west] at (2.4,0.35) {$U_{d_1}$};
+  \node[anchor=east,align=center] at (-0.3,0.15) {More\\ stable};
+  % second pair
+  \draw (6.1,0.35) ellipse (1.15 and 0.75);
+  \draw[-&gt;] (5.55,0.65) -- (6.35,0.65); \node[anchor=west] at (6.4,0.65) {$\mu$};
+  \draw[-&gt;] (5.55,0.05) -- (6.35,0.05); \node[anchor=west] at (6.4,0.05) {$\mu$};
+  \node[anchor=west] at (7.4,0.35) {$U_{d_2}$};
+  \node at (6.1,-0.95) {$(U_{d_1} &lt; U_{d_2})$};
+\end{tikzpicture}
+</pre>
+
+<p>
+dipole--dipole interaction is <span id="Lecture 28-Isothermal susceptibility-not isotropic"></span><strong id="not isotropic">not isotropic</strong>, below configuration <span id="Lecture 28-Isothermal susceptibility-does not have same energy"></span><strong id="does not have same energy">does not have same energy</strong>.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  % (1) staggered collinear
+  \begin{scope}[xshift=0cm]
+    \draw[-&gt;] (0,0.9) -- (0.85,0.9); \node[anchor=west] at (0.9,0.9) {$\mu$};
+    \draw[-&gt;] (0.45,0.25) -- (1.3,0.45); \node[anchor=west] at (1.32,0.4) {$\mu$};
+    \node at (0.6,-0.5) {\textcircled{1}};
+  \end{scope}
+  % (2) parallel stacked
+  \begin{scope}[xshift=3.6cm]
+    \draw[-&gt;] (0,0.9) -- (0.85,0.9); \node[anchor=west] at (0.9,0.9) {$\mu$};
+    \draw[-&gt;] (0,0.4) -- (0.85,0.4); \node[anchor=west] at (0.9,0.4) {$\mu$};
+    \node at (0.6,-0.5) {(2)};
+  \end{scope}
+  % (3) head to tail
+  \begin{scope}[xshift=7.2cm]
+    \draw[-&gt;] (0,0.7) -- (0.85,0.7); \node[anchor=south] at (0.7,0.75) {$\mu$};
+    \draw[-&gt;] (1.1,0.85) -- (1.85,0.95); \node[anchor=west] at (1.9,0.95) {$\mu$};
+    \node at (0.9,-0.5) {(3)};
+  \end{scope}
+  % (4) out of plane
+  \begin{scope}[xshift=11.2cm]
+    \draw[-&gt;] (0,0.95) -- (0.85,0.95); \node[anchor=west] at (0.9,0.95) {$\mu$};
+    \draw[-&gt;] (0.1,0.7) -- (0.8,0.35); \node[anchor=west] at (0.85,0.3) {$\mu$};
+    \node[anchor=north west,align=left] at (0.75,0.05) {\footnotesize out\\ \footnotesize of\\ \footnotesize (plane[?]};
+    \node at (0.05,-0.5) {(4)};
+  \end{scope}
+\end{tikzpicture}
+</pre>
+
+<p>
+If we rely on dipole--dipole interactions alone, we won't have bar magnet at all. Because one \((\uparrow \mu)\) will flip another in reverse diraction \((\downarrow)\mu\), so that the net dipole moment cancels out &amp; magnatisation becomes zero.<br />
+</p>
+\[
+\left(\uparrow\downarrow\ \uparrow\downarrow\ \uparrow\downarrow\ \uparrow\downarrow\ \uparrow\downarrow \ \cdots\ \right).
+\]
+\[
+\text{net } (M=0).
+\]
+
+<p>
+But we do see permanent magnets, so the phenomena of permanent magnetism is more subtle than this and is not connected to dipole--dipole interactions, It is connected to a quantum mechanical effect called the <span id="Lecture 28-Isothermal susceptibility-exchange Interaction"></span><strong id="exchange Interaction">exchange Interaction</strong> which actually favours \((\uparrow\uparrow)\) over \((\uparrow\downarrow)\). and it in fact overcomes dipole--dipole interactions. \((\uparrow\downarrow)\).<br />
+</p>
+
+<p>
+Exchange Interaction is very strong short range interaction It decays exponentially. (where as dipole--dipole inter-action is long range \(\left(\dfrac{2K(\vec{p}\cdot\hat{r})}{r^3}\right)\) &amp; weak).<br />
+</p>
+
+<p>
+There are magnets where dipole--dipole interaction becomes more important/dominent and it leads to Anti-ferromagnetism : \((\ \uparrow\downarrow\uparrow\downarrow\uparrow\downarrow\uparrow\downarrow\uparrow\downarrow)\).<br />
+</p>
+
+<p>
+If we take exchange interactions in account we see that the curve b/w \(\left(\frac{M}{NH}\right)\) vs \(\vec{H}\), attains infinite slope at finite temp. \((T&gt;0K)\) instead of \((T=0K)\).<br />
+</p>
+
+<p>
+Below curie temp \((T_c)\) the curve attains infinite slope at origin.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \draw[-&gt;] (-3,0) -- (3.2,0) node[right] {$\vec{H}$};
+  \draw[-&gt;] (0,-2) -- (0,2.3) node[above] {$(M/NH)$};
+  % steep curve (T &lt; Tc)
+  \draw[thick] (-2.6,-1.5) .. controls (-1.2,-1.45) and (-0.25,-1.35) .. (0,0)
+        .. controls (0.25,1.35) and (1.2,1.45) .. (2.6,1.5);
+  % shallower curve (T &gt; Tc)
+  \draw[thick] (-2.6,-1.0) .. controls (-1.0,-0.9) and (-0.5,-0.75) .. (0,0)
+        .. controls (0.5,0.75) and (1.0,0.9) .. (2.6,1.0);
+  \node at (1.55,1.95) {\small $(T&lt;T_c)$};
+  \node[anchor=west] at (1.9,0.75) {\small $T&gt;T_c$};
+  \draw[-&gt;] (1.85,0.75) -- (1.3,0.62);
+  \node at (-1.6,-1.95) {\small $(T&lt;T_c)$};
+\end{tikzpicture}
+</pre>
+
+<p>
+So this is discontinuous phase transitions at \(\left(T_c\right)\) curie temp.<br />
+</p>
+
+<p>
+This phase transition is from paramagnetic phase to ferromagnetic phase (\(M\) is very high even at \(H=0\)).<br />
+</p>
+
+<p>
+<span id="Lecture 28-Isothermal susceptibility-For general case"></span><strong id="For general case">For general case</strong> \(\left(E = -\mu H\cos\theta\right)\) <span id="Lecture 28-Isothermal susceptibility-(3-D case)"></span><strong id="(3-D case)">(3-D case)</strong><br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.8,&gt;=Stealth]
+  \draw[-&gt;] (0,0) -- (0,1.5) node[above] {$\hat{n}$};
+  \draw[-&gt;] (0,0) -- (0.9,1.2);
+  \draw[-&gt;] (0,-0.2) -- (0,-1.2) node[below] {$\vec{H}$};
+\end{tikzpicture}
+</pre>
+
+<p>
+lets compute the magnetisation.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \draw[-&gt;] (0,0) -- (0,2.2) node[left] {$z$};
+  \draw[-&gt;] (0,1.6) -- (0,2.4);
+  \node[right] at (0.05,2.25) {$H$};
+  \draw[-&gt;] (0,0) -- (3,0) node[right] {$Y$};
+  \draw[-&gt;] (0,0) -- (-1.2,-1.2) node[below left] {$X$};
+  \draw[-&gt;] (0,0) -- (1.15,1.6) node[above right] {$\vec{\mu}$};
+  \node at (0.42,0.95) {$\theta$};
+  \draw (0,0.9) arc (90:54:0.9);
+\end{tikzpicture}
+</pre>
+
+<p>
+-- Also assuming no dipole-dipole interaction.<br />
+</p>
+
+\[
+M = N\langle \mu\rangle
+\]
+<p>
+(our magnetisation)<br />
+</p>
+
+\[
+\langle \mu\rangle \;=\; \frac{\displaystyle\int \mu\cos\theta\, P(\theta)\, d\Omega}{\displaystyle\int P(\theta)\, d\Omega}
+\;=\; \frac{\displaystyle\int \mu\cos\theta\; e^{+\beta \mu H\cos\theta}\, d\Omega}{\displaystyle\int e^{+\beta \mu H\cos\theta}\, d\Omega}
+\]
+<p>
+(\(d\Omega\) = solid angle)<br />
+</p>
+
+<p>
+Here we have ignored K.E, Rotational energy of these dipole moments, we have only used magnetic energy.<br />
+</p>
+
+\[
+\int d\Omega \;=\; \int_{-1}^{1} d(\cos\theta) \int_{0}^{2\pi} d\varphi
+\]
+<p>
+or<br />
+</p>
+\[
+\int d\Omega \;=\; \int_{0}^{\pi} \sin\theta\, d\theta \int_{0}^{2\pi} d\varphi
+\]
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.8,&gt;=Stealth]
+  \draw (0,0) -- (2.2,0.55);
+  \draw (0,0) -- (2.2,-0.15);
+  \draw[thick] (2.2,0.55) -- (2.2,-0.15);
+  \draw[-&gt;] (3.1,0.6) -- (2.35,0.3);
+  \node[right] at (3.1,0.6) {$dA$};
+\end{tikzpicture}
+</pre>
+
+\[
+\begin{aligned}
+d\Omega &amp;= \frac{dA}{r^2}\\
+&amp;= \frac{(r\,d\theta)(r\sin\theta\, d\varphi)}{r^2}\\
+d\Omega &amp;= \sin\theta\, d\theta\, d\varphi\\
+\int d\Omega &amp;= \iint \sin\theta\, d\theta\, d\varphi
+\end{aligned}
+\]
+
+\[
+\begin{aligned}
+M &amp;= N\langle \mu\rangle\\[2mm]
+&amp;= N\mu\;
+\frac{\displaystyle\int \cos\theta\; e^{\beta\mu H\cos\theta}\,\sin\theta\, d\theta \int_{0}^{2\pi} d\varphi}
+{\displaystyle\int_{0}^{\pi}\sin\theta\, d\theta \int_{0}^{2\pi} d\varphi}
+\end{aligned}
+\]
+
+<p>
+(\(\cos\theta = t\), \(-\sin\theta\, d\theta = dt\))<br />
+</p>
+
+\[
+= \; \frac{\displaystyle N\mu\,(2\pi)\,(-)\int_{1}^{-1} t\, e^{\beta\mu H t}\, dt}
+{\displaystyle 2\pi \int_{0}^{\pi} e^{\beta\mu H\cos\theta}\,\sin\theta\, d\theta}
+\]
+
+\[
+= \; \frac{\displaystyle 2\pi N\mu \int_{-1}^{1} t\, e^{\beta\mu H t}\, dt}
+{\displaystyle 2\pi \int_{-1}^{1} e^{\beta\mu H t}\, dt}
+\]
+
+\[
+= \; \frac{\displaystyle N\mu\left(\frac{t\, e^{\beta\mu H t}}{(\beta\mu H)} - \frac{e^{\beta\mu H t}}{\beta^2\mu^2 H^2}\right)_{-1}^{1}}
+{\displaystyle \left(\frac{1}{\beta\mu H}\right)\left(e^{\beta\mu H}\right)_{-1}^{1}}
+\]
+
+\[
+= \; \frac{\displaystyle N\mu^2 H\beta\left(e^{\beta\mu H}\left(\frac{1}{\beta\mu H} - \frac{1}{\beta^2\mu^2H^2}\right) - e^{-\beta\mu H}\left(\left(\frac{-1}{\beta\mu H}\right) - \frac{1}{\beta^2\mu^2H^2}\right)\right)}
+{\left(e^{\beta\mu H} - e^{-\beta\mu H}\right)}
+\]
+
+\[
+= N\mu\left[\frac{e^{\beta\mu H} + e^{-\beta\mu H}}{e^{\beta\mu H} - e^{-\beta\mu H}} \;-\; \frac{1}{\beta\mu H}\right]
+\]
+
+\[
+\boxed{\,M \;=\; N\mu\left[\coth(\beta\mu H) \;-\; \frac{1}{\beta\mu H}\right]\,}
+\]
+
+<p>
+Previously when we only assumed \(\left(E = \pm\mu H\right)\)<br />
+</p>
+\[
+M = N\mu\tanh x \qquad\qquad x = \beta\mu H
+\]
+
+<p>
+\(\downarrow\) Now when we used all possible orientations<br />
+</p>
+
+\[
+M = N\mu\left(\coth x - \tfrac{1}{x}\right) \qquad\qquad = \text{Langevin functions.}
+\]
+
+<p>
+<span id="Lecture 28-Isothermal susceptibility-Let us plot"></span><strong id="Let us plot">Let us plot</strong> \(\left(\frac{M}{N\mu}\right)\) vs \(\left(\coth x - \frac{1}{x}\right)\) vs \((x)\)<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.8,&gt;=Stealth]
+  \useasboundingbox (-3.6,-3.2) rectangle (3.8,3.4);
+  \clip (-3.6,-3.2) rectangle (3.8,3.4);
+  \draw[-&gt;] (-3.4,0) -- (3.5,0) node[right] {$(x)$};
+  \draw[-&gt;] (0,-3.0) -- (0,3.2);
+  \node[anchor=south east] at (-0.1,2.6) {$\dfrac{M}{N\mu}$};
+  \node[anchor=south east] at (-0.1,3.0) {$(\coth x)$};
+  \draw (-3.4,1) -- (3.4,1);
+  \draw (-3.4,-1) -- (3.4,-1);
+  \draw[thick] plot coordinates {(0.33,3.05) (0.4,2.6) (0.5,2.16) (0.7,1.65)
+      (1.0,1.31) (1.5,1.10) (2.0,1.04) (2.6,1.01) (3.3,1.00)};
+  \draw[thick] plot coordinates {(-3.3,-1.00) (-2.6,-1.01) (-2.0,-1.04) (-1.5,-1.10)
+      (-1.0,-1.31) (-0.7,-1.65) (-0.5,-2.16) (-0.4,-2.6) (-0.33,-3.05)};
+\end{tikzpicture}
+</pre>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.8,&gt;=Stealth]
+  \useasboundingbox (-3.6,-2.4) rectangle (3.8,3.0);
+  \clip (-3.6,-2.4) rectangle (3.8,3.0);
+  \node[anchor=south] at (0,2.3) {$\left(\coth x - \frac{1}{x}\right)$};
+  \draw[-&gt;] (-3.4,0) -- (3.5,0) node[right] {$(x)$};
+  \draw[-&gt;] (0,-2.2) -- (0,2.2);
+  \draw (-3.4,1) -- (3.4,1);
+  \draw (-3.4,-1) -- (3.4,-1);
+  \draw[thick] plot coordinates {(-3.4,-0.95) (-2.5,-0.87) (-1.8,-0.78)
+      (-1.2,-0.62) (-0.6,-0.34) (0,0) (0.6,0.34) (1.2,0.62) (1.8,0.78)
+      (2.5,0.87) (3.4,0.95)};
+\end{tikzpicture}
+</pre>
+
+\[
+\begin{aligned}
+\coth x = \frac{\cosh x}{\sinh x}
+&amp;= \frac{\left(1 + \frac{x^2}{2} + \cdots\right)}{x\left(1 + \frac{x^2}{6} + \cdots\right)}\\[2mm]
+&amp;= \left(\frac{1}{x}\right)\cdot\left(1 + \frac{x^2}{2} + \cdots\right)\left(1 - \frac{x^2}{6} + \cdots\right)\\[2mm]
+&amp;= \frac{1}{x}\left(1 + x^2\left(\frac{1}{2} - \frac{1}{6}\right) + \cdots\right)\\[2mm]
+&amp;= \frac{1}{x}\left(1 + \frac{2x^2}{6}\right)
+\end{aligned}
+\]
+
+\[
+\coth x \approx \frac{1}{x} + \frac{x}{3}
+\]
+
+<p>
+So \(\left(\coth x - \frac{1}{x}\right) \approx \left(\frac{x}{3}\right)\)<br />
+</p>
+
+<p>
+So,<br />
+</p>
+\[
+\frac{M}{N\mu} \;=\; \left(\coth\frac{\mu H}{k_BT} \;-\; \frac{k_BT}{\mu H}\right)
+\]
+
+<p>
+So, near origin \((H=0)\)<br />
+</p>
+\[
+\left.\frac{M}{N\mu}\right|_{H\to 0} \;\approx\; \frac{\mu H}{3k_BT}
+\]
+
+<p>
+So \(\left(\chi_T = \dfrac{N\mu^2}{3k_BT}\right)\) (\(\chi_T\) = Isothermal susceptibility)<br />
+</p>
+
+<p>
+\(\longrightarrow\) No of dimensions is `3' in our case<br />
+</p>
+
+<p>
+\(\left(\text{For 2-D}\right)\) :-- \(\mu\) is allowed to have any dirn. in a plane<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.8,&gt;=Stealth]
+  \draw[-&gt;] (0,0) -- (0.2,1.4);
+  \node[left] at (0.05,1.2) {$\vec{H}$};
+  \draw[-&gt;] (0,0) -- (1.5,1.0) node[right] {$\vec{\mu}$};
+  \node at (0.55,0.85) {$\theta$};
+  \draw (0.12,0.85) arc (81:34:0.9);
+\end{tikzpicture}
+</pre>
+
+\[
+\begin{aligned}
+M &amp;= N\langle \mu\rangle\\[2mm]
+M &amp;= N\;\frac{\displaystyle\int_{0}^{2\pi} \mu\cos\theta\; e^{+\beta\mu H\cos\theta}\, d\theta}
+{\displaystyle\int_{0}^{2\pi} e^{\beta\mu H\cos\theta}\, d\theta}
+\end{aligned}
+\]
+
+\[
+\frac{M}{N\mu} \;=\; \frac{\displaystyle\int_{0}^{2\pi}\cos\theta\; e^{\beta\mu H\cos\theta}\, d\theta}
+{\displaystyle\int_{0}^{2\pi} e^{\beta\mu H\cos\theta}\, d\theta}
+\qquad \longleftarrow \text{(Bessels function $J_0$)}
+\]
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.8,&gt;=Stealth]
+  \draw (0,0) .. controls (0.2,1.2) and (1.6,1.5) .. (1.9,0.6)
+        .. controls (2.2,-0.4) and (1.0,-1.1) .. (0.4,-0.8)
+        .. controls (-0.1,-0.55) and (-0.15,-0.6) .. (0,0);
+  \draw[-&gt;] (0.35,-0.55) -- (0.35,0.05);
+  \draw[-&gt;] (0.9,-0.6) -- (1.0,0.0);
+  \draw[-&gt;] (1.45,-0.35) -- (1.35,0.25);
+  \draw[-&gt;] (0.45,0.3) -- (0.55,0.9);
+  \draw[-&gt;] (1.05,0.35) -- (0.95,0.95);
+  \draw[-&gt;] (1.55,0.45) -- (1.65,1.0);
+\end{tikzpicture}
+</pre>
+
+\[
+\frac{M}{N\mu} \;=\; \frac{\displaystyle\int \cos\theta\left(1 + \frac{\beta\mu H\cos\theta}{1} + \frac{(\beta\mu H\cos\theta)^2}{2!} + \cdots\right) d\theta}
+{\displaystyle\int_{0}^{2\pi}\left(1 + \beta\mu H\cos\theta + \frac{(\beta\mu H\cos\theta)^2}{2!} + \cdots\right) d\theta}
+\]
+
+<p>
+We are only interested in finding \(\left(\chi_T\right)\) i.e. slope at origin. So, lets expand \(\left(e^{\beta\mu H\cos\theta}\right)\) to first [?] order.<br />
+</p>
+
+\[
+\frac{M}{N\mu} \;=\; \frac{\displaystyle 0 + \beta\mu H\int_{0}^{2\pi}\cos^2\theta\, d\theta}
+{\displaystyle 2\pi + \beta\mu H\left(\underbrace{\int_{0}^{\pi}\cos\theta\, d\theta}_{\to 0}\right)}
+\;=\; \frac{\beta\mu H\,\pi}{2\pi}
+\]
+
+\[
+= \frac{\beta\mu H}{2}
+\]
+
+<p>
+So slope<br />
+</p>
+\[
+\left.\frac{\partial M}{\partial H}\right|_{H\to 0} \;=\; \frac{N\beta\mu^2}{2} \;=\; \frac{\mu^2 N}{\left(2k_BT\right)}
+\qquad \longrightarrow \underline{\text{dimension is 2}}.
+\]
+
+\[
+\boxed{\;\chi_T \;=\; \frac{N\mu^2}{2k_BT}\;}
+\]
+
+<p>
+what we saw that \(\left(\chi_T \propto \frac{1}{T}\right)\) but it is not valid at small temp \(\left(T\to 0 \text{ or } T=0\right)\). So we need to fix it.<br />
+</p>
+
+<p>
+Just like to go from ideal gas to real gas (use interactions) we used the van der vaals gas eqn, similarly here we use Weiss moleculer field theory.<br />
+</p>
+
+<div id="Lecture 28-Weiss molecular field theory"><h2 id="Weiss molecular field theory" class="header"><a href="#Lecture 28-Weiss molecular field theory">Weiss molecular field theory</a></h2></div>
+
+<p>
+The idea is that in the ferromagnetic medium each dipole moment experience not only the ext. field \(\vec{H}\) but also the internal mag. field due to other dipole moments.<br />
+</p>
+
+\[
+H \;\xrightarrow{\ \text{replace}\ }\; H_{\text{eff}} \;=\; H + \lambda\frac{M}{\boxed{N}}
+\]
+<p>
+\(\downarrow\) to make intensive quantity to add to <span id="Lecture 28-Weiss molecular field theory-H"></span><strong id="H">H</strong>.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.8,&gt;=Stealth]
+  \draw[-&gt;] (-1.6,0.2) -- (-1.6,1.2);
+  \node[left] at (-1.65,0.9) {$\vec{H}$};
+  \draw (0,0) .. controls (0.1,1.3) and (1.8,1.6) .. (2.1,0.5)
+        .. controls (2.35,-0.6) and (1.0,-1.2) .. (0.4,-0.9)
+        .. controls (-0.15,-0.6) and (-0.1,-0.55) .. (0,0);
+  \draw[-&gt;] (0.45,-0.55) -- (0.45,0.05);
+  \draw[-&gt;] (1.0,-0.6) -- (1.1,0.0);
+  \draw[-&gt;] (1.55,-0.4) -- (1.45,0.2);
+  \draw[-&gt;] (0.4,0.35) -- (0.5,0.95);
+  \draw[-&gt;] (1.5,0.4) -- (1.6,1.0);
+  \draw[-&gt;] (1.05,0.25) -- (1.05,0.85);
+  \draw (1.05,0.05) circle (0.16);
+  \draw[-&gt;] (1.05,-0.05) -- (1.05,0.2);
+\end{tikzpicture}
+</pre>
+
+\[
+H_{int} \propto M \qquad\qquad H_{int} = \lambda M
+\]
+
+\[
+M \;=\; N\mu\tanh\left(\frac{\mu\left(H + \frac{\lambda M}{N}\right)}{k_BT}\right)
+\qquad \text{(for 1-D)}.
+\]
+
+<p>
+This is transedental equation, we can only solve it by Numerical methods.<br />
+</p>
+
+<p>
+Let us see its behaviour near *\(H=0\)*.<br />
+</p>
+
+\[
+M_0 \;=\; N\mu\tanh\left(\frac{\mu\lambda M_0}{N k_B T}\right)
+\qquad
+\left(\begin{aligned} M_0 &amp;= \text{magnetisation}\\ &amp;\ \ \text{per unit}\\ &amp;\ \ \text{dipole moments}\end{aligned}\right)
+\]
+
+<ol>
+<li>
+\(M_0 = 0\) is always a solution (Paramagnetic solution). \((H=0,\ M=0)\)
+
+<li>
+But ferromagnet have hysteresis.
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \draw[-&gt;] (-3.4,0) -- (3.5,0) node[right] {$H$};
+  \draw[-&gt;] (0,-2.2) -- (0,2.3) node[above right] {$M$};
+  \draw (-3.2,1.5) -- (3.2,1.5);
+  \node[anchor=south east] at (-0.05,1.5) {$+1$};
+  \draw (-3.2,-1.5) -- (3.2,-1.5);
+  \node[anchor=north east] at (-0.05,-1.5) {$-1$};
+  \draw[thick] (2.6,1.45) .. controls (0.6,1.3) and (-0.6,0.9) .. (-1.0,0.45)
+        .. controls (-1.6,-0.2) and (-2.0,-1.4) .. (-2.6,-1.45)
+        -- (-2.6,-1.45);
+  \draw[thick] (-2.6,-1.45) .. controls (-0.6,-1.3) and (0.6,-0.9) .. (1.0,-0.45)
+        .. controls (1.6,0.2) and (2.0,1.4) .. (2.6,1.45);
+  \node[anchor=east] at (-0.1,0.5) {$M_0$};
+  \draw[fill] (0,0.5) circle (0.04);
+  \node[anchor=west] at (0.1,-0.5) {$-M_0$};
+  \draw[fill] (0,-0.5) circle (0.04);
+\end{tikzpicture}
+</pre>
+
+</ol>
+<p>
+*Near \(M\approx 0\)*<br />
+</p>
+
+\[
+\begin{aligned}
+M_0 &amp;= N\mu\left(\frac{\mu\lambda M_0}{N k_B T}\right)\\
+&amp;\approx \frac{N\mu^2\lambda M_0}{N k_B T} \;\approx\; \frac{\mu^2\lambda M_0}{k_B T}
+\end{aligned}
+\]
+
+<p>
+Lets plot \(\left(\dfrac{\mu^2\lambda M_0}{k_BT}\right)\) vs \(\left(M_0\right)\)<br />
+</p>
+
+<p>
+\(\left(\text{at high temp } T' &gt; T_0,\ \text{slope is less}\right)\),<br />
+\(\left(\text{for smaller temp } T'' \text{ slope is even higher}\right)\).<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \draw[-&gt;] (-3.2,0) -- (3.4,0) node[right] {$M_0$};
+  \draw[-&gt;] (0,-2.0) -- (0,2.2);
+  \node[anchor=south west] at (0.05,1.8) {$\dfrac{\mu^2\lambda M_0}{k_BT}$};
+  % tanh-like saturating curve
+  \draw[thick] plot coordinates {(-2.9,-1.35) (-2.0,-1.3) (-1.2,-1.15)
+      (-0.6,-0.85) (-0.25,-0.45) (0,0) (0.25,0.45) (0.6,0.85) (1.2,1.15)
+      (2.0,1.3) (2.9,1.35)};
+  % steeper straight line T''
+  \draw (-1.6,-2.0) -- (1.6,2.0) node[above right] {$T''$};
+  % shallower straight line T'
+  \draw (-3.0,-1.5) -- (3.0,1.5) node[right] {$T'$};
+  \draw (1.15,1.15) circle (0.11);
+  \draw (-1.15,-1.15) circle (0.11);
+  \draw[dashed] (1.15,1.15) -- (1.15,0);
+  \draw[dashed] (-1.15,-1.15) -- (-1.15,0);
+\end{tikzpicture}
+</pre>
+
+<p>
+Intersection happens if slope \(&gt;1\)<br />
+</p>
+\[
+\frac{\mu^2\lambda}{k_BT} &gt; 1 \qquad \text{or} \qquad \boxed{\,T &lt; \frac{\mu^2\lambda}{k_B}\,}
+\]
+
+<p>
+So \(\left(T = \dfrac{\mu^2\lambda}{k_B}\right)\) is critical point.<br />
+</p>
+
+<p>
+The negative solution for \(M_0\) is unstable; so we only have one positive root of \(M_0\). Which leads to ferromagnetism.<br />
+</p>
+
+<p>
+So below a certain critical temp, the cooperative tendency of all these magnetic moments to align in same dir. will dominate over disrupting tendency of entropy \((S)\) and we have order.<br />
+</p>
+
+\[
+F = U - TS \qquad\qquad (U &gt;&gt; TS)
+\]
+<p>
+at low temp \((T)\) \(F \approx U\) (ordered phase) (ferromagnetic)<br />
+</p>
+
+<p>
+But above \((T_c)\) disorder wins and interaction is not strong enough to maintain order.<br />
+</p>
+
+\[
+F = U - TS
+\]
+\[
+(TS &gt;&gt; U)
+\]
+
+<p>
+This is how phase transition occurs b/w paramagnet and ferromagnet. Now we will see how it is similer to case of fluids.<br />
+</p>
+
+<div id="Lecture 29"><h1 id="Lecture 29" class="header"><a href="#Lecture 29">Lecture 29</a></h1></div>
+
+<p>
+We can also have ferroelectric transitions of permanent electric dipole moments, which are accompanied by structural phase transitions (crystalline phase transitions which would lead to shapes of unit cells which have permanent electric dipole moments.<br />
+</p>
+
+<p>
+The behaviour near the critical region of eqn of state<br />
+</p>
+\[
+M = N\mu\tanh\left(\frac{\mu\left(H + \frac{\lambda M}{N}\right)}{k_BT}\right)
+\]
+<p>
+would be very similer to that of fluid near its<br />
+</p>
+
+<p>
+critical region. We would like to find out the non zero magnetisation \((M)\) for \(H=0\).<br />
+</p>
+
+\[
+M_0 = N\mu\tanh\left(\frac{\mu\lambda M_0}{N k_B T}\right)
+\]
+
+<p>
+(Digression) also our model \(M = N\mu\tanh\left(\frac{\mu\left(H + \frac{\lambda M}{N}\right)}{k_BT}\right)\) does not include hysteresis phenomena. Hysteresis actually arose from presence of multiple domains in magnetic material. These domains align in right direction in presence of strong \(\vec{H}\). For a single domain our model works perfectly as a single domain can't show hysteresis.<br />
+</p>
+
+<p>
+<span id="Lecture 29-Family of Isotherms"></span><strong id="Family of Isotherms">Family of Isotherms</strong> :--<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \node at (0,2.9) {(family of isotherms)};
+  \draw[-&gt;] (-3.4,0) -- (3.6,0) node[right] {$H$};
+  \draw[-&gt;] (0,-2.4) -- (0,2.6) node[above left] {$\frac{M}{N\mu}$};
+  \draw (-3.2,1.6) -- (3.2,1.6);
+  \draw (-3.2,-1.6) -- (3.2,-1.6);
+  % T &lt; Tc : steepest
+  \draw[thick] plot coordinates {(-3.0,-1.55) (-1.6,-1.5) (-0.7,-1.35)
+     (-0.2,-0.9) (0,0) (0.2,0.9) (0.7,1.35) (1.6,1.5) (3.0,1.55)};
+  % T = Tc
+  \draw[thick] plot coordinates {(-3.0,-1.5) (-1.8,-1.4) (-0.9,-1.15)
+     (-0.4,-0.75) (0,0) (0.4,0.75) (0.9,1.15) (1.8,1.4) (3.0,1.5)};
+  % T &gt; Tc : shallowest
+  \draw[thick] plot coordinates {(-3.0,-1.4) (-2.0,-1.25) (-1.2,-1.0)
+     (-0.6,-0.6) (0,0) (0.6,0.6) (1.2,1.0) (2.0,1.25) (3.0,1.4)};
+  \node[anchor=south] at (0.9,1.75) {\small $T&lt;T_c$};
+  \node[anchor=south] at (1.9,1.75) {\small $T=T_c$};
+  \node[anchor=south] at (2.9,1.75) {\small $T&gt;T_c$};
+  \node[anchor=north] at (0.45,-0.1) {\small $H'$};
+\end{tikzpicture}
+</pre>
+
+\[
+\left(\text{Critical Isotherm}\quad \frac{\partial M}{\partial H} = 0 \ \&amp;\ \frac{\partial^2 M}{\partial H^2} = 0\right)
+\]
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \draw[-&gt;] (-2.8,0) -- (3.0,0) node[right] {$H$};
+  \draw[-&gt;] (0,-2.2) -- (0,2.4) node[above right] {$\frac{M}{N\mu}$};
+  \draw (-2.6,1.4) -- (2.8,1.4);
+  \draw (-2.6,-1.4) -- (2.8,-1.4);
+  % multivalued (unphysical) curve
+  \draw[thick] plot coordinates {(-2.4,-1.35) (-1.4,-1.2) (-0.7,-0.95)
+     (-0.9,-0.3) (-0.55,0.4) (0.55,-0.4) (0.9,0.3) (0.7,0.95)
+     (1.4,1.2) (2.4,1.35)};
+  % ordinary sigmoid
+  \draw[thick] plot coordinates {(-2.4,-1.3) (-1.5,-1.15) (-0.8,-0.85)
+     (-0.3,-0.5) (0,0) (0.3,0.5) (0.8,0.85) (1.5,1.15) (2.4,1.3)};
+  \node[anchor=east] at (-0.95,0.6) {$A$};
+  \node[anchor=west] at (0.95,-0.5) {$C$};
+  \node[anchor=east] at (-2.0,-0.1) {Jump.};
+\end{tikzpicture}
+</pre>
+
+<p>
+curve \(A\to C\) is unphysical as \(\left(H\uparrow \text{ in \)-\(ve direction } \&amp;\ M\uparrow \text{ in +ve direction}\right)\).<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \draw[-&gt;] (0,0) -- (0,3.2) node[left] {$P$};
+  \draw[-&gt;] (-0.2,0) -- (4.6,0) node[right] {$V$};
+  \draw[thick] (0.35,3.0) .. controls (1.2,1.3) and (2.2,0.95) .. (4.2,0.85);
+  \draw[thick] (0.35,2.5) .. controls (1.1,1.05) and (2.1,0.72) .. (4.2,0.62);
+  \draw[thick] (0.35,2.0) .. controls (1.0,0.85) and (2.0,0.52) .. (4.2,0.42);
+  \draw[thick] (0.35,1.5) .. controls (0.95,0.62) and (1.9,0.32) .. (4.2,0.25);
+  \draw[fill] (1.35,1.35) circle (0.06);
+  \node[anchor=south] at (1.15,1.55) {$(P_c,V_c)$};
+\end{tikzpicture}
+</pre>
+
+<p>
+\(\longleftarrow\) Isotherms in case of fluid.<br />
+</p>
+
+\[
+\longrightarrow \left(\text{Critical Isotherm}\ \left.\frac{\partial P}{\partial V}\right|_{(P_c,V_c)} = 0,\ \&amp;\ \left.\frac{\partial^2 P}{\partial V^2}\right|_{(P_c,V_c)} = 0\right)
+\]
+
+<p>
+let us plot \((M\) vs \(T)\)<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \draw[-&gt;] (0,-2.4) -- (0,2.6) node[left] {$M$};
+  \draw[-&gt;] (-0.3,0) -- (4.4,0) node[right] {$T$};
+  \draw[thick] plot coordinates {(0.15,2.1) (0.6,2.05) (1.2,1.9)
+     (1.8,1.65) (2.3,1.3) (2.65,0.85) (2.85,0.4) (2.95,0)};
+  \draw[thick] plot coordinates {(0.15,-2.1) (0.6,-2.05) (1.2,-1.9)
+     (1.8,-1.65) (2.3,-1.3) (2.65,-0.85) (2.85,-0.4) (2.95,0)};
+  \draw (2.95,0) circle (0.22);
+  \node[anchor=north west] at (3.0,-0.05) {$T_c$};
+  \node[anchor=south west] at (0.6,2.15) {$M_0(H=0)$ \ (ferro $\uparrow$)};
+  \node[anchor=north west] at (0.6,-2.15) {$M_0$ \ $(M(H=0))$ \ (ferro $\downarrow$)};
+  \draw[-&gt;] (3.2,0.3) -- (4.1,0.55);
+  \node[anchor=west] at (4.1,0.55) {Critical temp or curic temp};
+  \node[anchor=north] at (1.4,-2.6) {(ferromagnet)};
+  \node[anchor=north] at (3.4,-2.6) {(paramagnet)};
+\end{tikzpicture}
+</pre>
+
+<p>
+<span id="Lecture 29-In case of (magnet)"></span><strong id="In case of (magnet)">In case of (magnet)</strong><br />
+</p>
+
+<p>
+<span id="Lecture 29-In case of fluid"></span><strong id="In case of fluid">In case of fluid</strong><br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \draw[-&gt;] (0,-0.3) -- (0,2.9);
+  \draw[-&gt;] (-0.3,0) -- (4.2,0) node[right] {$T$};
+  \draw[thick] plot coordinates {(0.3,0.5) (0.8,0.75) (1.35,1.05)
+     (1.8,1.3) (2.0,1.45)};
+  \draw[thick] plot coordinates {(0.3,2.4) (0.8,2.2) (1.35,1.9)
+     (1.8,1.62) (2.0,1.45)};
+  \draw (2.0,1.45) circle (0.22);
+  \node[anchor=west] at (2.25,1.45) {$(P_c,V_c)$};
+  \draw[dashed] (0.05,1.45) -- (1.78,1.45);
+  \node[anchor=south] at (1.1,2.35) {gas};
+  \node[anchor=north] at (1.0,0.55) {Liq};
+\end{tikzpicture}
+</pre>
+
+<p>
+\(\longrightarrow\) discontinuous transitions<br />
+</p>
+
+<p>
+\(\longrightarrow\) parabolic region<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \draw[-&gt;] (0,0) -- (0,3.0) node[left] {$P$};
+  \draw[-&gt;] (0,0) -- (4.4,0) node[right] {$T$};
+  \draw[thick] (0.7,1.2) .. controls (1.2,1.7) and (1.5,1.9) .. (1.9,2.15);
+  \draw[fill] (1.9,2.15) circle (0.06);
+  \node[anchor=south west] at (1.9,2.15) {CP};
+  \node[anchor=south east] at (1.15,1.7) {liq};
+  \node[anchor=north west] at (0.85,1.15) {gas};
+  \draw[dashed] (1.9,-0.35) -- (1.9,2.9);
+  \draw[dashed] (2.35,0.35) -- (2.9,2.5);
+  \node[anchor=west] at (2.55,2.45) {Homogeneous};
+  \node[anchor=west] at (2.55,2.05) {fluid $\longrightarrow$};
+\end{tikzpicture}
+</pre>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \draw[-&gt;] (0.6,-2.2) -- (0.6,3.0) node[above] {$H$};
+  \draw[-&gt;] (-0.4,0) -- (4.4,0) node[right] {$T$};
+  \draw[thick] (-0.3,0) -- (2.3,0);
+  \node[anchor=east] at (-0.35,0) {$H_c\to$};
+  \node[anchor=south] at (1.3,0.08) {ferro $\uparrow$};
+  \node[anchor=north] at (1.3,-0.08) {ferro $\downarrow$};
+  \node[anchor=north west] at (2.3,-0.08) {$T_c$};
+  \draw[dashed] (2.3,-0.6) -- (2.3,2.7);
+  \draw[dashed] (2.75,0.4) -- (3.3,2.3);
+  \node[anchor=west] at (3.0,2.3) {paramagnet};
+\end{tikzpicture}
+</pre>
+
+\[
+\frac{dP}{dT} \;=\; \frac{L}{T\Delta V} \;=\; \frac{T\Delta S}{T\Delta V} \;=\; \frac{\Delta S}{\Delta V}
+\;=\; \frac{S_{gas} - S_{liq}}{v_{gas} - v_{liq}}
+\]
+<p>
+\(\downarrow\) specific volume<br />
+</p>
+
+\[
+\frac{dH}{dT} \;=\; \frac{\Delta S}{\Delta M}
+\]
+
+<p>
+In case of fluid as well as f. magnet, we have one line ending at <span id="Lecture 29-critical pt."></span><strong id="critical pt.">critical pt.</strong> [?] from ferro \(\uparrow\) to ferro \(\downarrow\) [?] with \(\Delta S\) [?]<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \draw (0,0) ellipse (0.9 and 0.6);
+  \foreach \x in {-0.45,0,0.45} {
+    \draw[-&gt;] (\x,0.05) -- (\x,0.4);
+    \draw[-&gt;] (\x,-0.4) -- (\x,-0.05);
+  }
+  \node[anchor=west] at (1.2,0.15) {has same};
+  \node[anchor=west] at (1.2,-0.25) {entropy as};
+  \begin{scope}[xshift=4.6cm]
+    \draw (0,0) ellipse (0.9 and 0.6);
+    \foreach \x in {-0.45,0,0.45} {
+      \draw[-&gt;] (\x,0.4) -- (\x,0.05);
+      \draw[-&gt;] (\x,-0.05) -- (\x,-0.4);
+    }
+  \end{scope}
+\end{tikzpicture}
+</pre>
+
+\[
+\left(\frac{dH}{dT} \;=\; \frac{\Delta S}{\Delta M} \;=\; \frac{0}{\text{nonzero}} \;=\; 0\right) \quad\checkmark
+\]
+
+<p>
+let's find<br />
+</p>
+\[
+M_0 = N\mu\tanh\left(\frac{\mu\lambda M_0}{N k_B T}\right)
+\]
+
+<p>
+let \(\left(\dfrac{M_0}{N\mu} = m_0\right)\)<br />
+</p>
+
+\[
+m_0 = \tanh\left(\frac{\mu^2\lambda m_0}{k_B T}\right)
+\]
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \draw[-&gt;] (-2.8,0) -- (3.4,0) node[right] {$m_0$};
+  \draw[-&gt;] (0,-1.9) -- (0,2.3) node[above left] {$m_0$};
+  \draw[thick] plot coordinates {(-2.6,-1.35) (-1.8,-1.3) (-1.1,-1.15)
+     (-0.6,-0.9) (-0.25,-0.5) (0,0) (0.25,0.5) (0.6,0.9) (1.1,1.15)
+     (1.8,1.3) (2.6,1.35)};
+  \draw (-1.35,-1.9) -- (1.35,1.9);
+  \draw (-1.75,-1.75) -- (1.75,1.75);
+  \draw (-2.6,-1.3) -- (2.9,1.45);
+  \node[anchor=south west] at (0.85,1.25) {\small $T&lt;T_c$};
+  \node[anchor=west] at (1.8,1.75) {\small $T&gt;T_c$};
+  \node[anchor=north west] at (0.1,0.55) {\small $(T=T_c)$};
+  \draw (1.02,1.13) circle (0.11);
+  \draw (-1.02,-1.13) circle (0.11);
+\end{tikzpicture}
+</pre>
+
+<p>
+\(T_c\) is given by when slope is *\(45^\circ\)*<br />
+</p>
+\[
+\left(\frac{\mu^2\lambda}{k_BT} = \underline{1}\right)
+\]
+\[
+\left(T_c = \frac{\mu^2\lambda}{k_B}\right).
+\]
+
+<p>
+\((M_0=0)\) root is not stable for \((T&lt;T_c)\) as magnet becomes ferromagnet instead of paramagnet. We can show it using \(F = U-TS\) \((T&lt;T_c)\) \((F\approx U)\to\) ordered phase<br />
+</p>
+
+<div id="Lecture 29-Susceptibility at $(H=0)$."><h2 id="Susceptibility at $(H=0)$." class="header"><a href="#Lecture 29-Susceptibility at $(H=0)$.">Susceptibility at \((H=0)\).</a></h2></div>
+
+\[
+\chi_T \;=\; \left.\left(\frac{\partial M}{\partial H}\right)_T\right|_{H=0}
+\]
+
+<p>
+even though \((M)\) is discontinuous we can define \(\chi_T\) as slope are continuous.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \draw[-&gt;] (-3.2,0) -- (3.4,0) node[right] {$H$};
+  \draw[-&gt;] (0,-1.9) -- (0,2.3) node[above right] {$M_0$};
+  \draw (-3.0,1.5) -- (3.0,1.5);
+  \draw (-3.0,-1.5) -- (3.0,-1.5);
+  \draw[thick] (2.6,1.45) .. controls (0.7,1.3) and (-0.35,0.95) .. (-0.55,0.5)
+     .. controls (-0.9,-0.3) and (-1.6,-1.35) .. (-2.6,-1.45);
+  \draw[thick] (-2.6,-1.45) .. controls (-0.7,-1.3) and (0.35,-0.95) .. (0.55,-0.5)
+     .. controls (0.9,0.3) and (1.6,1.35) .. (2.6,1.45);
+  \draw (-0.95,0.35) -- (-0.25,0.75);
+  \draw (0.25,-0.75) -- (0.95,-0.35);
+\end{tikzpicture}
+</pre>
+
+<p>
+*Lets plot \(\left(\chi_T \text{ vs } T\right)\)*<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \useasboundingbox (-0.8,-0.8) rectangle (5.2,3.4);
+  \clip (-0.8,-0.8) rectangle (5.2,3.4);
+  \draw[-&gt;] (0,0) -- (0,3.2) node[left] {$\chi_T$};
+  \draw[-&gt;] (0,0) -- (5.0,0) node[right] {$T$};
+  \draw[thick] plot coordinates {(0.5,0) (0.6,0.5) (0.8,1.0) (1.1,1.5)
+     (1.5,2.1) (1.75,2.7) (1.85,3.1)};
+  \draw[thick] plot coordinates {(2.05,3.1) (2.15,2.5) (2.35,1.9)
+     (2.7,1.35) (3.2,0.95) (3.9,0.65) (4.7,0.5)};
+  \draw[dashed] (1.95,0) -- (1.95,3.1);
+  \node[anchor=north] at (1.95,-0.05) {$T_c$};
+\end{tikzpicture}
+</pre>
+
+\[
+m_0 = \tanh\left(\frac{\mu^2\lambda\, m_0}{k_B T}\right) \;=\; \tanh\left(\frac{T_c m_0}{T}\right)
+\]
+
+<p>
+at \(T=T_c\) \(m_0 = \tanh m_0\) \(\Rightarrow\) \((m_0 = 0)\) is only solution (paramagnet).<br />
+</p>
+
+<p>
+but below \((T&lt;T_c)\) we have other solutions.<br />
+</p>
+
+<p>
+let us expand \(\tanh x\), near [?]<br />
+</p>
+
+\[
+\tanh x = \frac{\sinh x}{\cosh x} = \frac{e^x - e^{-x}}{e^x + e^{-x}}
+= \frac{\left(1+x+\frac{x^2}{2!}+\cdots\right) - \left(1-x+\frac{x^2}{2!}-\frac{x^3}{3!}+\cdots\right)}
+{\left(1+x+\frac{x^2}{2!}+\frac{x^3}{3!}\right) + \left(1-x+\frac{x^2}{2!}-\frac{x^3}{3!}+\cdots\right)}
+\]
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \draw[-&gt;] (0,-0.8) -- (0,2.2);
+  \node[anchor=east] at (-0.05,1.6) {$m_0$};
+  \draw[-&gt;] (-0.3,0.9) -- (2.6,0.9) node[right] {$T$};
+  \draw[thick] (0.1,1.9) .. controls (0.6,1.85) and (1.0,1.5) .. (1.15,0.9);
+  \draw (1.15,0.9) circle (0.16);
+  \node[anchor=north] at (1.15,0.7) {$T_c$};
+\end{tikzpicture}
+</pre>
+
+\[
+\begin{aligned}
+&amp;= \frac{2\left(x + \frac{x^3}{3!}\right)}{2\left(1 + \frac{x^2}{2!} + \frac{x^4}{4!} + \cdots\right)}
+\;=\; \left(x + \frac{x^3}{3!} + \cdots\right)\left(1 - \frac{x^2}{2!} - \cdots\right)\\[2mm]
+&amp;= \left(x - \frac{x^3}{2!} + \frac{x^3}{3!} - \frac{x^5}{3!\,2!} + \cdots\right)
+\end{aligned}
+\]
+
+\[
+\tanh x \;\approx\; x + x^3\left(\frac{1}{6} - \frac{1}{2}\right) \;=\; x - \frac{x^3}{3} + \cdots
+\]
+
+\[
+m_0 = \tanh\left(\frac{T_c}{T} m_0\right)
+\]
+\[
+m_0 \approx \frac{T_c}{T} m_0 - \frac{1}{3}\left(\frac{T_c}{T} m_0\right)^3
+\]
+
+<p>
+for \(m_0\) other than zero,<br />
+</p>
+\[
+\begin{aligned}
+m_0\left(1 - \frac{T_c}{T}\right) &amp;\approx -\frac{1}{3}\left(\frac{T_c}{T} m_0\right)^3\\[2mm]
+1 - \frac{T_c}{T} &amp;\approx -\frac{1}{3}\left(\frac{T_c}{T}\right)^3 m_0^2\\[2mm]
+\left(\frac{T_c - T}{T}\right) &amp;\approx \frac{1}{3}\left(\frac{T_c}{T}\right)^3 m_0^2
+\end{aligned}
+\]
+
+<p>
+\((T&lt;T_c)\) if \(T\) is very near to \(T_c\) \(\left(\frac{T_c}{T}\approx 1\right)\)<br />
+</p>
+\[
+\Rightarrow \boxed{\;m_0 \sim \pm\sqrt{T_c - T}\;}
+\]
+
+\[
+m_0 \approx \pm\left(T_c - T\right)^{1/2} \longrightarrow \text{mean field critical exponent } (\beta)
+\]
+<p>
+here \(\left(\beta \neq \frac{1}{k_BT}\right)\) (Just a symbol)<br />
+</p>
+
+\[
+\left.\frac{dm_0}{dT}\right|_{T=T_c} \;=\; \frac{(-1)}{\pm 2\sqrt{T_c - T}} \;\longrightarrow\; \infty.
+\]
+
+<p>
+So behaviour of \(m_0\) near \(T_c\) is<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \draw[-&gt;] (0,-0.5) -- (0,2.4);
+  \node[anchor=east] at (-0.05,1.9) {$m_0$};
+  \draw[-&gt;] (-0.3,0.7) -- (3.2,0.7) node[right] {$T$};
+  \draw[thick] (0.1,2.0) .. controls (0.7,1.95) and (1.25,1.7) .. (1.5,0.7);
+  \node[anchor=north] at (1.5,0.6) {$T_c$};
+  \node[anchor=west] at (1.75,1.7) {$\left(\left.\dfrac{dm_0}{dT}\right|_{T_c} = \infty\right)$};
+\end{tikzpicture}
+</pre>
+
+<p>
+Exactly same relation arose in case of fluid.<br />
+</p>
+\[
+\left(\left(v - v_c\right) \sim \pm\sqrt{T_c - T}\right)
+\]
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \draw[-&gt;] (0,-0.3) -- (0,2.8) node[left] {$V$};
+  \draw[-&gt;] (-0.3,0) -- (3.4,0) node[right] {$T$};
+  \node[anchor=east] at (-0.05,1.4) {$v_c$};
+  \draw[dashed] (0.05,1.4) -- (2.0,1.4);
+  \draw[thick] (0.35,0.15) .. controls (1.3,0.25) and (2.0,0.6) .. (2.05,1.4)
+     .. controls (2.0,2.2) and (1.3,2.55) .. (0.35,2.65);
+  \draw[fill] (2.05,1.4) circle (0.06);
+  \node[anchor=north] at (2.05,-0.05) {$T_c$};
+\end{tikzpicture}
+</pre>
+
+<p>
+\(\left(\underline{\text{H.W}}\right)\) show that \(\left(v - v_c\right) \sim \pm\sqrt{T_c - T}\) ).<br />
+</p>
+
+<p>
+we can see that (in both cases critical exponent is \(\left(\frac{1}{2}\right)\)) which arose because (both models are examples of mean field theory models. i.e. In van der vaals case we assume \(P \neq \frac{RT}{v-b}\) but \(P = \frac{RT}{v-b} - \frac{a}{v^2}\) because of attraction of each molecules. In same way<br />
+</p>
+
+<p>
+here we assume every magnetic moment another magnetic moment and internal \(\vec{H}\) is proportional to magnetisation itself, we have exactly the same philosopy and that is what led to critical exponent.<br />
+</p>
+
+<p>
+\((\underline{Q})\) Does experiments agree with critical exponent to be \((1/2)\) or how accuratly we can get closer to \(T_c\) and controll temp. to see it.<br />
+</p>
+
+<p>
+<span id="Lecture 29-Susceptibility at \((H=0)\).-Ans"></span><strong id="Ans">Ans</strong> \(\sim\) In most cases we essentially see exponent closer to \(1/2\) but, but, if we do careful experiments near \(T_c\) we do not see <span id="Lecture 29-Susceptibility at \((H=0)\).-half at all."></span><strong id="half at all.">half at all.</strong> we see \((1/3\) or \(0.3)\) for it we have to get very--very close to \(T_c\) to see it.<br />
+</p>
+
+<p>
+Temp is one of hardest thing to controlt, best we can controll is of (milli-degree) of accuracy.<br />
+</p>
+
+<p>
+Frequency is most accurately measurable quantity, we can measure frequency in one part in \(10^{15}\). There are astronomical objects/clocks (pulsars) whose rate of change of time period can be computed to one part <span id="Lecture 29-Susceptibility at \((H=0)\).-in"></span><strong id="in">in</strong> \(10^{19}\).<br />
+</p>
+
+<p>
+\((\underline{Q})\) <span id="Lecture 29-Susceptibility at \((H=0)\).-How does critical Isotherm behave?"></span><strong id="How does critical Isotherm behave?">How does critical Isotherm behave?</strong> (near \((V_c,P_c)\)).<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \draw[-&gt;] (0,0) -- (0,3.4) node[left] {$P$};
+  \draw[-&gt;] (0,0) -- (4.6,0) node[right] {$V$};
+  \draw[thick] (0.55,3.2) .. controls (1.1,1.9) and (1.9,1.7) .. (4.2,1.55);
+  \draw[thick] (0.55,2.7) .. controls (1.15,1.55) and (1.9,1.25) .. (4.2,1.15)
+     node[right] {\small $T=T_c$};
+  \draw[thick] (0.55,2.2) .. controls (1.2,1.15) and (1.9,0.85) .. (4.2,0.78);
+  \draw[fill] (1.35,1.75) circle (0.06);
+  \node[anchor=south east] at (1.3,1.8) {\small $(V_c,P_c)$};
+  \draw[dashed] (0.05,1.75) -- (1.33,1.75);
+  \node[anchor=east] at (-0.05,1.75) {$P_c$};
+  \draw[dashed] (1.35,0.05) -- (1.35,1.73);
+  \node[anchor=north] at (1.35,-0.05) {$V_c$};
+  \draw[-&gt;] (1.35,1.75) -- (1.35,3.1) node[above] {\small $(p)$};
+  \draw[-&gt;] (1.35,1.75) -- (2.9,1.75) node[right] {\small $(v)$};
+\end{tikzpicture}
+</pre>
+
+<p>
+shifting origin to see behaviour near \((V_c,P_c)\)<br />
+</p>
+
+\[
+\left(\frac{\partial P}{\partial V}\right)_{T_c} \;=\; \left(\frac{\partial^2 P}{\partial V^2}\right)_{T_c} \;=\; 0
+\]
+
+\[
+p = \frac{P - P_c}{P_c} \qquad\qquad v = \frac{V - V_c}{V_c}
+\]
+
+<p>
+The curve near \((V_c,P_c)\) is like<br />
+</p>
+\[
+\left(p \sim |v|^{\delta}\right) \longrightarrow \text{mean field critical exponent } (\delta)
+\]
+<p>
+or \(\left(|v| \sim p^{1/3}\right)\)<br />
+</p>
+
+<p>
+lets look at critical isotherm for ferro magnetic transitions<br />
+</p>
+
+\[
+M = N\mu\tanh\left(\frac{\mu\left(H + \frac{\lambda M}{N}\right)}{k_BT}\right)
+\]
+
+<p>
+let \(m = \dfrac{M}{N\mu}\)<br />
+</p>
+
+\[
+\begin{aligned}
+m &amp;= \tanh\left(\frac{\mu}{k_BT}\left(H + \lambda m\mu\right)\right)\\[2mm]
+&amp;= \tanh\left(\frac{\lambda\mu^2}{k_BT}\left(\frac{H}{\lambda\mu} + m\right)\right)\\[2mm]
+&amp;= \tanh\left(\frac{T_c}{T}\left(h+m\right)\right)
+\end{aligned}
+\]
+<p>
+let \(\left(\dfrac{H}{\lambda\mu} = h\right)\)<br />
+</p>
+
+<p>
+for critical isotherm \((T=T_c)\)<br />
+</p>
+\[
+\boxed{\;m = \tanh(h+m)\;}
+\]
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+  \draw[-&gt;] (-2.6,0) -- (3.6,0) node[right] {$h$};
+  \draw[-&gt;] (0,-2.2) -- (0,2.4) node[above right] {$m$};
+  \draw[thick] plot coordinates {(-1.8,-2.1) (-1.1,-1.7) (-0.55,-1.25)
+     (-0.15,-0.6) (0,0) (0.15,0.6) (0.55,1.25) (1.1,1.7) (1.8,2.1)};
+  \draw[thick] plot coordinates {(-2.4,-2.05) (-1.5,-1.6) (-0.8,-1.15)
+     (-0.3,-0.6) (0,0) (0.3,0.6) (0.8,1.15) (1.5,1.6) (2.4,2.05)};
+  \draw[thick] plot coordinates {(-2.4,-1.6) (-1.6,-1.35) (-0.9,-1.0)
+     (-0.4,-0.55) (0,0) (0.4,0.55) (0.9,1.0) (1.6,1.35) (2.9,1.55)};
+  \draw (0,0) circle (0.16);
+  \node[anchor=south east] at (0.15,1.55) {\small $T&lt;T_c$};
+  \node[anchor=south west] at (0.55,1.55) {\small $(T=T_c)$};
+  \node[anchor=west] at (1.7,1.3) {\small $T&gt;T_c$};
+\end{tikzpicture}
+</pre>
+
+<p>
+\(\longrightarrow\) <span id="Lecture 29-Susceptibility at \((H=0)\).-critical isotherm"></span><strong id="critical isotherm">critical isotherm</strong><br />
+</p>
+
+<p>
+at \((h=0)\), \((m=0)\) \(m\) is zero. (for \(T&gt;T_c\))<br />
+</p>
+
+\[
+m = \tanh(h+m) \;\approx\; (h+m) - \frac{(h+m)^3}{3}
+\]
+
+\[
+\Rightarrow \qquad (m+h)^3 \;\approx\; h
+\]
+
+<p>
+\(h\) is much smaller (near origin) so \(m^3 \sim h\)<br />
+</p>
+
+\[
+\boxed{\;m \sim h^{1/3}\;} \qquad\qquad (h \text{ is field variable})
+\]
+<p>
+Just like \(\left(|v| \sim p^{1/3}\right)\) (\(p\) is field variable)<br />
+</p>
+
+<p>
+\((m,v)\) are responce variables.<br />
+</p>
+
+<p>
+Similerly, \(\chi_T\) and compressibility behave exactly same near critical point.<br />
+</p>
+
+\[
+\chi_T \;=\; \left.\left(\left.\frac{\partial M}{\partial H}\right|_T\right)\right|_{\underline{H=0}} \qquad ;
+\]
+
+\[
+k_T \;=\; \frac{-1}{v}\frac{\partial v}{\partial P}
+\]
+\[
+\frac{\partial P}{\partial v} = 0 \ \text{at critical point}
+\]
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.8,&gt;=Stealth]
+  \draw[-&gt;] (0,0) -- (0,1.5) node[left] {$P$};
+  \draw[-&gt;] (0,0) -- (2.4,0) node[right] {$v$};
+  \draw[thick] (0.25,1.35) .. controls (0.7,0.55) and (1.2,0.5) .. (2.1,0.4);
+\end{tikzpicture}
+</pre>
+
+<p>
+\(\left(\begin{aligned}&amp;\text{curie}\\ &amp;\text{weiss law}\end{aligned}\right) \Longleftarrow\)<br />
+</p>
+\[
+\chi_T \;=\; \frac{1}{|T-T_c|}
+\]
+
+\[
+\left(\left.\chi_T\right|_{T=T_c} = \infty\right) \qquad \longleftrightarrow \qquad \left(k_T = \infty\right)
+\]
+
+\[
+\chi_T \;=\; \frac{1}{|T-T_c|^{\gamma}} \longrightarrow \gamma \ \text{critical point}
+\]
+<p>
+\(\left(\gamma \neq C_P/C_V\right)\) just a symbol.<br />
+</p>
+
+<p>
+Experimental values of \((\gamma \sim 1.3)\).<br />
+</p>
+
+<p>
+All these phase transitions can be explained by Landau's theory ((1937). (Idea of brocken symmetry leads to such phase transitions of all kinds of systems).<br />
+</p>
+
+    </div>
+
+    <!-- Floating buttons: ask this page (added by pagebot.js), go back to the
+         previous page, and scroll to top of this page -->
+    <div class="floating-btns">
+        <button id="btn-back" type="button" title="Go back" aria-label="Go back">&#8592;</button>
+        <button id="btn-top" type="button" title="Back to top" aria-label="Back to top">&#8593;</button>
+    </div>
+
+    <!-- Top-right buttons: site-wide tools — search (docked here at runtime by
+         search.js) and translate. Kept out of the bottom-right stack above,
+         which is for navigating within the current page. -->
+    <div class="top-right-btns">
+        <button id="btn-globe" type="button" title="Translate this page" aria-label="Translate this page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/><path d="M5.3 6.5c1.9 1 4.2 1.6 6.7 1.6s4.8-.6 6.7-1.6"/><path d="M5.3 17.5c1.9-1 4.2-1.6 6.7-1.6s4.8.6 6.7 1.6"/></svg></button>
+    </div>
+
+    <!-- Globe language panel: the only UI the visitor interacts with. Selecting
+         a language drives the hidden Google widget below (see script further
+         down) rather than showing Google's own default dropdown/banner. -->
+    <div id="translate-panel" aria-label="Choose a language">
+        <div class="tp-header">Translate this page</div>
+        <input type="text" id="tp-search" placeholder="Search language...">
+        <div class="tp-list" id="tp-list"></div>
+    </div>
+
+    <!-- Google Website Translator: loaded hidden. It is what actually performs
+         the translation once our panel sets its hidden <select> and fires a
+         change event on it (see script below). -->
+    <div id="google_translate_element"></div>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({ pageLanguage: 'en', autoDisplay: false }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <!-- Breadcrumb trail: the actual navigation chain the visitor clicked
+         through, in order (link1 > link2 > ... > current), NOT the folder path.
+         The chain is stored per-tab in sessionStorage: each page appends itself
+         when reached via a new link, and truncates back to itself when revisited
+         (e.g. clicking an earlier crumb or using the back button). Home is
+         always the root. The label prefers the page's own <h1>. -->
+    <script>
+    (function () {
+        var nav = document.getElementById('breadcrumb');
+        if (!nav) return;
+
+        var KEY = 'wikiBreadcrumbTrail';
+        var path = window.location.pathname;
+
+        function pageLabel() {
+            var h1 = document.querySelector('#content h1');
+            var t = h1 ? h1.textContent.replace(/\s+/g, ' ').trim() : '';
+            if (t) return t;
+            t = (document.title || '').replace(/_+/g, ' ').trim();
+            if (t && t.toLowerCase() !== 'index') return t;
+            var segs = path.split('/').filter(Boolean).map(function (s) {
+                try { return decodeURIComponent(s); } catch (e) { return s; }
+            });
+            var last = segs.pop() || '';
+            if (/^index\.html?$/i.test(last)) last = segs.pop() || 'index';
+            return last.replace(/\.html?$/i, '').replace(/_+/g, ' ').trim() || 'Page';
+        }
+
+        var current = { href: path, label: pageLabel() };
+
+        // Load the existing chain for this tab.
+        var trail = [];
+        try { trail = JSON.parse(sessionStorage.getItem(KEY)) || []; } catch (e) { trail = []; }
+        if (!Array.isArray(trail)) trail = [];
+
+        // If this page is already in the chain (visitor clicked an earlier crumb
+        // or hit back), cut the chain back to it. Otherwise extend the chain.
+        var found = -1;
+        for (var i = 0; i < trail.length; i++) {
+            if (trail[i] && trail[i].href === current.href) { found = i; break; }
+        }
+        if (found !== -1) {
+            trail = trail.slice(0, found + 1);
+            trail[found] = current;            // refresh the label
+        } else {
+            trail.push(current);
+        }
+
+        try { sessionStorage.setItem(KEY, JSON.stringify(trail)); } catch (e) {}
+
+        function addLink(href, text) {
+            var a = document.createElement('a');
+            a.href = href;
+            a.textContent = text;
+            nav.appendChild(a);
+            var sep = document.createElement('span');
+            sep.className = 'breadcrumb-sep';
+            sep.textContent = '\u203A';
+            nav.appendChild(sep);
+        }
+
+        // Home is always the root of the chain.
+        addLink('/index.html', 'Home');
+
+        // Every page in the chain except the current one is a clickable link.
+        for (var j = 0; j < trail.length - 1; j++) {
+            addLink(trail[j].href, trail[j].label);
+        }
+
+        var cur = document.createElement('span');
+        cur.className = 'breadcrumb-current';
+        cur.setAttribute('aria-current', 'page');
+        cur.textContent = trail.length ? trail[trail.length - 1].label : current.label;
+        nav.appendChild(cur);
+    })();
+    </script>
+
+    <!-- Floating buttons: back = previous page, top = smooth-scroll to top of this page -->
+    <script>
+    (function () {
+        var back = document.getElementById('btn-back');
+        var top = document.getElementById('btn-top');
+        if (back) {
+            back.addEventListener('click', function () { window.history.back(); });
+            if (window.history.length <= 1) back.style.display = 'none'; // nothing to go back to
+        }
+        if (top) {
+            top.addEventListener('click', function () {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            var onScroll = function () {
+                top.style.display = (window.pageYOffset > 200) ? 'block' : 'none';
+            };
+            window.addEventListener('scroll', onScroll, { passive: true });
+            onScroll();
+        }
+    })();
+    </script>
+
+    <!-- Globe button: opens the language panel; selecting a language drives the
+         hidden Google Translate widget (loaded above). The chosen language is
+         remembered in localStorage and re-applied on every page the visitor
+         navigates to next, so translation persists across the whole site. -->
+    <script>
+    (function () {
+        var LANGS = [
+            ['af', 'Afrikaans'], ['sq', 'Albanian'], ['am', 'Amharic'], ['ar', 'Arabic'], ['hy', 'Armenian'],
+            ['as', 'Assamese'], ['ay', 'Aymara'], ['az', 'Azerbaijani'], ['bm', 'Bambara'], ['eu', 'Basque'],
+            ['be', 'Belarusian'], ['bn', 'Bengali'], ['bho', 'Bhojpuri'], ['bs', 'Bosnian'], ['bg', 'Bulgarian'],
+            ['ca', 'Catalan'], ['ceb', 'Cebuano'], ['ny', 'Chichewa'], ['zh-CN', 'Chinese (Simplified)'],
+            ['zh-TW', 'Chinese (Traditional)'], ['co', 'Corsican'], ['hr', 'Croatian'], ['cs', 'Czech'],
+            ['da', 'Danish'], ['dv', 'Dhivehi'], ['doi', 'Dogri'], ['nl', 'Dutch'], ['en', 'English'],
+            ['eo', 'Esperanto'], ['et', 'Estonian'], ['ee', 'Ewe'], ['fil', 'Filipino'], ['fi', 'Finnish'],
+            ['fr', 'French'], ['fy', 'Frisian'], ['gl', 'Galician'], ['ka', 'Georgian'], ['de', 'German'],
+            ['el', 'Greek'], ['gn', 'Guarani'], ['gu', 'Gujarati'], ['ht', 'Haitian Creole'], ['ha', 'Hausa'],
+            ['haw', 'Hawaiian'], ['he', 'Hebrew'], ['hi', 'Hindi'], ['hmn', 'Hmong'], ['hu', 'Hungarian'],
+            ['is', 'Icelandic'], ['ig', 'Igbo'], ['ilo', 'Ilocano'], ['id', 'Indonesian'], ['ga', 'Irish'],
+            ['it', 'Italian'], ['ja', 'Japanese'], ['jv', 'Javanese'], ['kn', 'Kannada'], ['kk', 'Kazakh'],
+            ['km', 'Khmer'], ['rw', 'Kinyarwanda'], ['gom', 'Konkani'], ['ko', 'Korean'], ['kri', 'Krio'],
+            ['ku', 'Kurdish'], ['ckb', 'Kurdish (Sorani)'], ['ky', 'Kyrgyz'], ['lo', 'Lao'], ['la', 'Latin'],
+            ['lv', 'Latvian'], ['ln', 'Lingala'], ['lt', 'Lithuanian'], ['lg', 'Luganda'], ['lb', 'Luxembourgish'],
+            ['mk', 'Macedonian'], ['mai', 'Maithili'], ['mg', 'Malagasy'], ['ms', 'Malay'], ['ml', 'Malayalam'],
+            ['mt', 'Maltese'], ['mi', 'Maori'], ['mr', 'Marathi'], ['mni-Mtei', 'Meiteilon (Manipuri)'],
+            ['lus', 'Mizo'], ['mn', 'Mongolian'], ['my', 'Myanmar (Burmese)'], ['ne', 'Nepali'],
+            ['no', 'Norwegian'], ['or', 'Odia (Oriya)'], ['om', 'Oromo'], ['ps', 'Pashto'], ['fa', 'Persian'],
+            ['pl', 'Polish'], ['pt', 'Portuguese'], ['pa', 'Punjabi'], ['qu', 'Quechua'], ['ro', 'Romanian'],
+            ['ru', 'Russian'], ['sm', 'Samoan'], ['sa', 'Sanskrit'], ['gd', 'Scots Gaelic'],
+            ['nso', 'Sepedi'], ['sr', 'Serbian'], ['st', 'Sesotho'], ['sn', 'Shona'], ['sd', 'Sindhi'],
+            ['si', 'Sinhala'], ['sk', 'Slovak'], ['sl', 'Slovenian'], ['so', 'Somali'], ['es', 'Spanish'],
+            ['su', 'Sundanese'], ['sw', 'Swahili'], ['sv', 'Swedish'], ['tg', 'Tajik'], ['ta', 'Tamil'],
+            ['tt', 'Tatar'], ['te', 'Telugu'], ['th', 'Thai'], ['ti', 'Tigrinya'], ['ts', 'Tsonga'],
+            ['tr', 'Turkish'], ['tk', 'Turkmen'], ['ak', 'Twi'], ['uk', 'Ukrainian'], ['ur', 'Urdu'],
+            ['ug', 'Uyghur'], ['uz', 'Uzbek'], ['vi', 'Vietnamese'], ['cy', 'Welsh'], ['xh', 'Xhosa'],
+            ['yi', 'Yiddish'], ['yo', 'Yoruba'], ['zu', 'Zulu']
+        ];
+
+        var STORAGE_KEY = 'wikiTranslateLang';
+        var btn = document.getElementById('btn-globe');
+        var panel = document.getElementById('translate-panel');
+        var search = document.getElementById('tp-search');
+        var list = document.getElementById('tp-list');
+        if (!btn || !panel || !list || !search) return;
+
+        function currentLang() {
+            try { return localStorage.getItem(STORAGE_KEY) || 'en'; } catch (e) { return 'en'; }
+        }
+
+        function renderList(filter) {
+            var f = (filter || '').trim().toLowerCase();
+            var active = currentLang();
+            list.innerHTML = '';
+            LANGS.forEach(function (pair) {
+                var code = pair[0], name = pair[1];
+                if (f && name.toLowerCase().indexOf(f) === -1) return;
+                var b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'tp-lang' + (code === active ? ' active' : '');
+                b.textContent = name;
+                b.addEventListener('click', function () { setLanguage(code); });
+                list.appendChild(b);
+            });
+        }
+
+        function setLanguage(code) {
+            try { localStorage.setItem(STORAGE_KEY, code); } catch (e) {}
+            panel.classList.remove('open');
+            applyLanguage(code);
+        }
+
+        function applyLanguage(code) {
+            if (code === 'en') {
+                // Reset to the original English text.
+                document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + location.hostname + ';';
+                if (document.querySelector('select.goog-te-combo')) location.reload();
+                return;
+            }
+            // The Google widget loads its <select> asynchronously, so poll
+            // briefly until it exists (covers both the click case and the
+            // "re-apply on new page load" case below).
+            var tries = 0;
+            (function tryApply() {
+                var combo = document.querySelector('select.goog-te-combo');
+                if (combo) {
+                    if (combo.value !== code) {
+                        combo.value = code;
+                        combo.dispatchEvent(new Event('change'));
+                    }
+                } else if (tries < 40) {
+                    tries++;
+                    setTimeout(tryApply, 250);
+                }
+            })();
+        }
+
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var opening = !panel.classList.contains('open');
+            panel.classList.toggle('open', opening);
+            if (opening) {
+                search.value = '';
+                renderList('');
+                search.focus();
+            }
+        });
+        document.addEventListener('click', function (e) {
+            if (panel.classList.contains('open') && !panel.contains(e.target) && e.target !== btn) {
+                panel.classList.remove('open');
+            }
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') panel.classList.remove('open');
+        });
+        search.addEventListener('input', function () { renderList(search.value); });
+
+        renderList('');
+
+        // Keep the whole site translated as the visitor moves between pages.
+        var saved = currentLang();
+        if (saved && saved !== 'en') applyLanguage(saved);
+    })();
+    </script>
+
+    <!-- Images: (1) rewrite baked-in local export paths to their web location and
+         trim stray spaces, (2) upgrade http:// -> https://, (3) add a caption under
+         each image using its alt text. Images with no alt are left uncaptioned.
+         NOTE: the image FILES must exist on the server at the mapped location
+         (e.g. /wiki/vimwiki_html/Blogs/cric/) — upload that folder. -->
+    <script>
+    (function () {
+        var LOCAL_ANCHOR = '/vimwiki/';
+        var WEB_ROOT = '/wiki/vimwiki_html/';
+        document.querySelectorAll('#content img').forEach(function (img) {
+            // 1) normalise the src
+            var raw = img.getAttribute('src');
+            if (raw) {
+                var s = raw.trim();
+                var i = s.indexOf(LOCAL_ANCHOR);
+                if (i !== -1) s = WEB_ROOT + s.slice(i + LOCAL_ANCHOR.length);
+                if (/^http:\/\//i.test(s)) s = s.replace(/^http:\/\//i, 'https://');
+                if (s !== raw) img.setAttribute('src', s);
+            }
+            // 2) defer offscreen images: on a long photo post the browser
+            //    would otherwise start fetching every image at once.
+            if (!img.hasAttribute('loading')) img.setAttribute('loading', 'lazy');
+            img.setAttribute('decoding', 'async');
+            // 3) caption from alt text
+            var alt = (img.getAttribute('alt') || '').trim();
+            if (!alt) return;
+            var parent = img.parentNode;
+            if (!parent || parent.tagName === 'FIGURE') return;
+            var fig = document.createElement('figure');
+            fig.className = 'img-figure';
+            var cap = document.createElement('figcaption');
+            cap.textContent = alt;
+            parent.insertBefore(fig, img);
+            fig.appendChild(img);
+            fig.appendChild(cap);
+            // tidy a <br> left immediately after the image
+            var nx = fig.nextSibling;
+            if (nx && nx.nodeType === 1 && nx.tagName === 'BR') nx.parentNode.removeChild(nx);
+        });
+    })();
+    </script>
+
+    <!-- Hover preview cards for internal links, like Wikipedia's page previews.
+         Hovering (or focusing) a same-site link to another .html page fetches
+         that page, and if — and only if — it actually exists (HTTP 200), shows
+         its title, first paragraph, and first image in a small card near the
+         link. Broken/nonexistent links are left alone: nothing is shown. -->
+    <script>
+    (function () {
+        var content = document.getElementById('content');
+        if (!content) return;
+
+        var LOCAL_ANCHOR = '/vimwiki/';
+        var WEB_ROOT = '/wiki/vimwiki_html/';
+        function fixImgSrc(src) {
+            if (!src) return src;
+            var s = src.trim();
+            var i = s.indexOf(LOCAL_ANCHOR);
+            if (i !== -1) s = WEB_ROOT + s.slice(i + LOCAL_ANCHOR.length);
+            if (/^http:\/\//i.test(s)) s = s.replace(/^http:\/\//i, 'https://');
+            return s;
+        }
+
+        var card = document.createElement('div');
+        card.className = 'link-preview-card';
+        document.body.appendChild(card);
+
+        var cache = {};   // resolved URL -> {title, snippet, thumb} | 'missing'
+        var showTimer = null;
+        var hideTimer = null;
+        var activeKey = null;
+
+        function stripHash(href) {
+            var i = href.indexOf('#');
+            return i === -1 ? href : href.slice(0, i);
+        }
+
+        function extract(html) {
+            var doc = new DOMParser().parseFromString(html, 'text/html');
+            var target = doc.getElementById('content');
+            if (!target) return null;
+            var h1 = target.querySelector('h1');
+            var title = h1 ? h1.textContent.replace(/\s+/g, ' ').trim() : (doc.title || '').trim();
+            var snippet = '';
+            var ps = target.querySelectorAll('p');
+            for (var i = 0; i < ps.length; i++) {
+                var t = ps[i].textContent.replace(/\s+/g, ' ').trim();
+                if (t.length > 20) { snippet = t; break; }
+            }
+            if (snippet.length > 220) snippet = snippet.slice(0, 217).trim() + '…';
+            var img = target.querySelector('img');
+            var thumb = img ? fixImgSrc(img.getAttribute('src')) : null;
+            return { title: title || 'Untitled', snippet: snippet, thumb: thumb };
+        }
+
+        function render(data) {
+            var html = '';
+            if (data.thumb) html += '<img class="lp-thumb" src="' + data.thumb + '" alt="">';
+            html += '<div class="lp-body"><div class="lp-title"></div><p class="lp-snippet"></p></div>';
+            card.innerHTML = html;
+            card.querySelector('.lp-title').textContent = data.title;
+            card.querySelector('.lp-snippet').textContent = data.snippet;
+        }
+
+        function position(link) {
+            var rect = link.getBoundingClientRect();
+            var margin = 10;
+            var cardWidth = card.offsetWidth || 300;
+            var left = rect.left;
+            if (left + cardWidth > window.innerWidth - margin) left = window.innerWidth - cardWidth - margin;
+            if (left < margin) left = margin;
+            var top = rect.bottom + 8;
+            var cardHeight = card.offsetHeight || 160;
+            if (top + cardHeight > window.innerHeight - margin && rect.top - cardHeight - 8 > margin) {
+                top = rect.top - cardHeight - 8;
+            }
+            card.style.left = left + 'px';
+            card.style.top = top + 'px';
+        }
+
+        function hide() {
+            card.classList.remove('visible');
+            activeKey = null;
+        }
+
+        function showFor(link, key) {
+            var data = cache[key];
+            if (!data || data === 'missing') return;
+            render(data);
+            position(link);
+            card.classList.add('visible');
+            requestAnimationFrame(function () { position(link); });
+        }
+
+        function handleEnter(link, key) {
+            clearTimeout(hideTimer);
+            clearTimeout(showTimer);
+            activeKey = key;
+            showTimer = setTimeout(function () {
+                if (activeKey !== key) return;
+                if (cache[key] === 'missing') return;
+                if (cache[key]) { showFor(link, key); return; }
+                fetch(key, { credentials: 'same-origin' }).then(function (res) {
+                    if (!res.ok) { cache[key] = 'missing'; return null; }
+                    return res.text();
+                }).then(function (html) {
+                    if (html == null) return;
+                    var data = extract(html);
+                    if (!data) { cache[key] = 'missing'; return; }
+                    cache[key] = data;
+                    if (activeKey === key) showFor(link, key);
+                }).catch(function () { cache[key] = 'missing'; });
+            }, 350);
+        }
+
+        function handleLeave() {
+            clearTimeout(showTimer);
+            activeKey = null;
+            hideTimer = setTimeout(hide, 200);
+        }
+
+        card.addEventListener('mouseenter', function () { clearTimeout(hideTimer); });
+        card.addEventListener('mouseleave', function () { hideTimer = setTimeout(hide, 150); });
+
+        content.querySelectorAll('a[href]').forEach(function (link) {
+            var href = link.getAttribute('href');
+            if (!href || href.charAt(0) === '#') return;
+            if (/^(mailto:|javascript:|tel:)/i.test(href)) return;
+            if (link.hostname !== window.location.hostname) return;
+            var key = stripHash(link.href);
+            if (!/\.html?$/i.test(key.split('?')[0])) return;
+            link.addEventListener('mouseenter', function () { handleEnter(link, key); });
+            link.addEventListener('mouseleave', handleLeave);
+            link.addEventListener('focus', function () { handleEnter(link, key); });
+            link.addEventListener('blur', handleLeave);
+        });
+
+        window.addEventListener('scroll', hide, { passive: true });
+        window.addEventListener('resize', hide);
+    })();
+    </script>
+
+    <!-- 1. Turn vimwiki {{{class="tikz"}}} blocks into TikZJax script tags (must run BEFORE tikzjax.js) -->
+    <script>
+        document.querySelectorAll('pre.tikz').forEach(function (pre) {
+            var s = document.createElement('script');
+            s.type = 'text/tikz';
+            s.textContent = pre.textContent; // browser decodes HTML entities here
+            pre.textContent = '';
+            pre.appendChild(s); // keep <pre class="tikz"> as the container so its
+                                 // text-align:center still applies to the SVG tikzjax inserts
+        });
+    </script>
+    <!-- 2. Syntax-highlight code blocks, but skip diagram blocks -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre:not(.mermaid):not(.tikz)').forEach(function (block) {
+            hljs.highlightBlock(block);
+        });
+    </script>
+    <!-- 3. TikZJax: renders <script type="text/tikz"> into SVG -->
+    <script src="https://tikzjax.com/v1/tikzjax.js"></script>
+    <!-- 4. Mermaid: renders <pre class="mermaid"> into SVG -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+
+    <!-- 5. Ask-this-page search. Purely local: it indexes the text already in
+         #content and shows the passages that match your question. The launcher
+         is added to the .floating-btns stack above, so it inherits those styles.
+         The index is built the first time the panel is opened, by which point
+         MathJax/TikZ/Mermaid have finished rewriting the DOM. -->
+    <script>
+        window.PAGEBOT_CONFIG = {
+            rootSelector: '#content',
+            extraSkip: 'pre.mermaid, pre.tikz, .breadcrumb',
+            launcherSelector: '.floating-btns',
+            launcherLabel: '?',
+            launcherTitle: 'Ask this page',
+            title: 'Ask this page',
+            accent: '#6b4f2a',
+            panelBg: '#fbf6e9',
+            results: 3
+        };
+    </script>
+    <script src="/wiki/assets/pagebot.js"></script>
+
+    <!-- 6. Site-wide search: separate from "Ask this page" above — this finds
+         *which page* to go to, across the whole site, not just this one.
+         Reads wiki/assets/search-index.json (built by build_search_index.py).
+         The launcher is docked into the top-right stack, next to translate,
+         since both are site-wide rather than per-page tools. -->
+    <script>
+        window.SEARCH_CONFIG = {
+            launcherSelector: '.top-right-btns',
+            launcherLabel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16.3 16.3 21 21"/></svg>',
+            launcherTitle: 'Search this site',
+            title: 'Search this site',
+            accent: '#6b4f2a',
+            panelBg: '#fbf6e9',
+            maxResults: 8
+        };
+    </script>
+    <script src="/wiki/assets/search.js"></script>
+</body>
+</html>
