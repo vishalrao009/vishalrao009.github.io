@@ -3,7 +3,12 @@
 update_whats_new.py
 -------------------
 Maintains the "Recently added" panels on resources.html (Resources section)
-and author.html (Blogs section).
+and author.html (Blogs section). Each entry is listed as
+
+    <page title> (7 Aug 2026)
+
+where the date is the page's first-seen date from the manifest (see below),
+wrapped in a <span class="new-date"> so it can be styled independently.
 
 WHY A MANIFEST INSTEAD OF FILE DATES?
     You regenerate every wiki HTML file each time you publish, so file
@@ -169,11 +174,16 @@ def render_panel(items):
     if not items:
         return '<p class="new-empty">Nothing new just yet.</p>'
     lines = ["<ul>"]
-    for url, title, _date in items:
+    for url, title, date in items:
+        # The date is the first-seen date from the manifest, not the file's
+        # mtime, so it stays put when you regenerate the wiki. Wrapped in a
+        # span so it can be styled (muted/smaller) without touching this script.
         lines.append(
-            '<li><a href="/{url}">{title}</a></li>'.format(
+            '<li><a href="/{url}">{title}</a> '
+            '<span class="new-date">({date})</span></li>'.format(
                 url=html.escape(url, quote=True),
                 title=html.escape(title),
+                date=html.escape(fmt_date(date)),
             )
         )
     lines.append("</ul>")
