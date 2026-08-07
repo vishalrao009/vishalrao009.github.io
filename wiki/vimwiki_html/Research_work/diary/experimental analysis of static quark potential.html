@@ -771,6 +771,33 @@
     })();
     </script>
 
+    <!-- 0. Repair asset paths (vimwiki-asset-path-fix).
+         Vimwiki resolves {{...}} images and local:/file: links against the
+         SOURCE wiki tree (.../phd_work/notes/vimwiki/...), which does not exist
+         on the deployed site, and it appends ".html" to any [[link]] even when
+         the target already has an extension. Both are repaired here so the
+         fix survives every re-export instead of needing a manual patch. -->
+    <script>
+    (function () {
+        var ROOT = '/wiki/vimwiki_html/';
+        var NEEDLE = 'notes/vimwiki/';
+        var ATTACH = /\.(pdf|png|jpe?g|gif|svg|webp|zip|txt|csv|tex|docx?|xlsx?|pptx?)\.html$/i;
+        function fix(url) {
+            if (!url || /^(https?:|mailto:|#|data:)/i.test(url)) return url;
+            var i = url.indexOf(NEEDLE);
+            if (i !== -1) url = ROOT + url.slice(i + NEEDLE.length);
+            return url.replace(ATTACH, '.$1');
+        }
+        function sweep(sel, attr) {
+            document.querySelectorAll(sel).forEach(function (el) {
+                var v = el.getAttribute(attr), n = fix(v);
+                if (n !== v) el.setAttribute(attr, n);
+            });
+        }
+        sweep('a[href]', 'href');
+        sweep('img[src]', 'src');
+    })();
+    </script>
     <!-- 1. Turn vimwiki {{{class="tikz"}}} blocks into TikZJax script tags (must run BEFORE tikzjax.js) -->
     <script>
         document.querySelectorAll('pre.tikz').forEach(function (pre) {
