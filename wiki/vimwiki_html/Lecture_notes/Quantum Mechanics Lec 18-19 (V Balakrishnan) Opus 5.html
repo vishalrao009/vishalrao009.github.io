@@ -1,0 +1,2710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- <link rel="stylesheet" type="text/css" href="style.css"> -->
+    <link rel="stylesheet" href="/wiki/assets/style.css" />
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
+    <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
+    <title>Quantum Mechanics Lec 18-19 (V Balakrishnan) Opus 5</title>
+    <!-- MathJax config: on phone-width screens, break long display equations onto
+         multiple lines instead of overflowing the page. Desktop and tablet keep the
+         default rendering (empty config), so their layout is unchanged. Must run
+         BEFORE the MathJax script below. -->
+    <script>
+        (function () {
+            var isPhone = window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
+            window.MathJax = {
+                chtml: isPhone
+                    ? { scale: 0.8, displayOverflow: 'linebreak', linebreaks: { inline: true } }
+                    : {}
+            };
+        })();
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            /* Absolute, not '../Images/parchment.jpg': the relative form
+               resolved to a different copy of the same image in every section
+               folder, so the browser cached (and re-downloaded) it once per
+               section. One canonical URL = fetched once for the whole site. */
+            background-image: url('/wiki/vimwiki_html/Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm;
+        }
+        #content {
+            color: #333;
+            font-size: 20px;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+        h1 { font-size: 28px; }
+        h2 { font-size: 24px; }
+        h3 { font-size: 20px; }
+        h4, h5, h6 { font-size: 18px; }
+        img {
+            display: block;
+            max-width: 100%;
+            max-height: 500px;
+            margin: 30px auto;
+        }
+        /* Image + caption (built from each image's alt text) */
+        figure.img-figure {
+            margin: 30px auto;
+            text-align: center;
+            max-width: 100%;
+        }
+        figure.img-figure img {
+            margin: 0 auto 8px auto;   /* caption sits right under the image */
+        }
+        figure.img-figure figcaption {
+            font-size: 15px;
+            color: #555;
+            font-style: italic;
+            line-height: 1.4;
+        }
+        /* Diagram blocks (Mermaid + TikZ): centered, no code-box background */
+        pre.mermaid, pre.tikz {
+            background: none;
+            border: none;
+            text-align: center;
+        }
+        #content svg {
+            max-width: 100%;
+            height: auto;
+        }
+        /* Breadcrumb trail */
+        .breadcrumb {
+            font-size: 19px;
+            font-weight: bold;
+            line-height: 1.5;
+            margin-bottom: 22px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid rgba(181, 101, 29, 0.35);
+            word-break: break-word;
+        }
+        .breadcrumb:empty { display: none; }
+        .breadcrumb a { color: #b5651d; text-decoration: none; }
+        .breadcrumb a:hover { color: #8a4a12; text-decoration: underline; }
+        .breadcrumb .breadcrumb-sep { color: #c08a5a; margin: 0 8px; }
+        .breadcrumb .breadcrumb-current { color: #1f3a5f; }
+        /* Floating navigation buttons (ask this page + go back + scroll to top) */
+        .floating-btns {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 1000;
+        }
+        .floating-btns button {
+            width: 48px;
+            height: 48px;
+            border: none;
+            border-radius: 50%;
+            background: #6b4f2a;
+            color: #fff;
+            font-size: 22px;
+            line-height: 48px;
+            text-align: center;
+            padding: 0;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            opacity: 0.85;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .floating-btns button:hover { opacity: 1; transform: translateY(-2px); }
+        #btn-top { display: none; }   /* revealed after scrolling down */
+        /* Top-right button stack: site-wide tools (translate + search), kept
+           separate from the bottom-right stack above, which holds per-page
+           navigation (back / top / ask-this-page). The search launcher is
+           inserted here at runtime by search.js. */
+        .top-right-btns {
+            position: fixed;
+            top: 16px;
+            right: 24px;
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            z-index: 1500;
+        }
+        /* Plain monochrome line icons — no fill, no coloured circle. The icons
+           are inline SVG using stroke: currentColor, so `color` is all that
+           drives their appearance. */
+        .top-right-btns button {
+            width: 48px;
+            height: 48px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 8px;
+            background: none;
+            color: #4a4038;
+            padding: 0;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transition: color 0.15s ease, background-color 0.15s ease;
+        }
+        .top-right-btns button svg { width: 32px; height: 32px; display: block; }
+        .top-right-btns button:hover { color: #1f1a15; background: rgba(107, 79, 42, 0.12); }
+        @media (max-width: 600px) {
+            .floating-btns { right: 14px; bottom: 14px; }
+            .floating-btns button { width: 44px; height: 44px; font-size: 20px; line-height: 44px; }
+            .top-right-btns { top: 12px; right: 14px; gap: 4px; }
+            .top-right-btns button { width: 44px; height: 44px; }
+            .top-right-btns button svg { width: 30px; height: 30px; }
+        }
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body { padding: 12px; }
+            #content {
+                padding: 8px 10px;
+                max-width: 100%;
+                font-size: 13px;    /* smaller text -> proportionally smaller equations that fit */
+                line-height: 1.5;
+            }
+            h1 { font-size: 20px; }
+            h2 { font-size: 18px; }
+            h3 { font-size: 16px; }
+            h4, h5, h6 { font-size: 15px; }
+            .breadcrumb { font-size: 15px; }
+            /* Wide math: never let it stretch the page. If it can't be broken onto
+               multiple lines, it scrolls inside its own box instead. */
+            mjx-container[display="true"] {
+                max-width: 100%;
+                overflow-x: auto;
+                overflow-y: hidden;
+            }
+            mjx-container { max-width: 100%; }
+        }
+        /* Google Translate: the widget itself stays hidden. We drive it entirely
+           through our own globe button + language panel below. Suppress every
+           bit of Google's own chrome in all cases — the "Translated to … /
+           Show original" top banner, the floating balloon, the feedback tab,
+           and the "suggest a better translation" hover tooltip. None of it
+           should ever surface; the visitor switches back to English from our
+           own globe menu instead.
+
+           The banner is injected as a top-level <iframe class="skiptranslate">,
+           which is why hiding only the .goog-te-* classes wasn't enough. */
+        #google_translate_element { display: none !important; }
+        .goog-te-gadget { display: none !important; }
+        iframe.skiptranslate,
+        .skiptranslate > iframe,
+        .goog-te-banner-frame,
+        .goog-te-banner-frame.skiptranslate,
+        .goog-te-ftab,
+        .goog-te-ftab-float,
+        .goog-te-balloon-frame,
+        .goog-te-gadget-icon,
+        .goog-te-menu-frame,
+        #goog-gt-tt,
+        .goog-tooltip,
+        .goog-tooltip:hover {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        /* Google pushes the page down with an inline body { top: 40px;
+           position: relative } to make room for that banner. !important here
+           outranks its inline style, so the layout never shifts. */
+        body {
+            top: 0px !important;
+            position: static !important;
+        }
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
+        /* Globe language panel */
+        #translate-panel {
+            display: none;
+            flex-direction: column;
+            position: fixed;
+            right: 24px;
+            top: 72px;
+            width: 260px;
+            max-height: 360px;
+            background: #fbf6e9;
+            border-radius: 10px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+            z-index: 1001;
+            overflow: hidden;
+        }
+        #translate-panel.open { display: flex; }
+        #translate-panel .tp-header {
+            padding: 10px 12px 6px 12px;
+            font-weight: bold;
+            color: #6b4f2a;
+            border-bottom: 1px solid rgba(107, 79, 42, 0.2);
+        }
+        #translate-panel input[type="text"] {
+            margin: 8px 12px;
+            padding: 6px 8px;
+            border: 1px solid rgba(107, 79, 42, 0.3);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        #translate-panel .tp-list {
+            overflow-y: auto;
+            padding: 0 6px 8px 6px;
+        }
+        #translate-panel .tp-lang {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            padding: 7px 10px;
+            font-size: 14px;
+            color: #333;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+        #translate-panel .tp-lang:hover { background: rgba(107, 79, 42, 0.12); }
+        #translate-panel .tp-lang.active { background: #6b4f2a; color: #fff; }
+        @media (max-width: 600px) {
+            #translate-panel { right: 14px; top: 64px; width: 220px; max-height: 300px; }
+        }
+        /* Hover preview card for internal links (Wikipedia-style). Only ever
+           populated for links whose target page actually exists — see the
+           script below, which fetches the target and stays hidden on 404. */
+        .link-preview-card {
+            position: fixed;
+            z-index: 1002;
+            width: 300px;
+            max-width: calc(100vw - 24px);
+            background: #fbf6e9;
+            border: 1px solid rgba(107, 79, 42, 0.3);
+            border-radius: 10px;
+            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(4px);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            font-family: Arial, sans-serif;
+        }
+        .link-preview-card.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+        .link-preview-card .lp-thumb {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            display: block;
+            background: rgba(107, 79, 42, 0.08);
+        }
+        .link-preview-card .lp-body { padding: 12px 14px; }
+        .link-preview-card .lp-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #6b4f2a;
+            margin: 0 0 6px 0;
+            line-height: 1.3;
+        }
+        .link-preview-card .lp-snippet {
+            font-size: 13px;
+            color: #444;
+            line-height: 1.45;
+            margin: 0;
+        }
+        /* Hover previews don't make sense on touch devices, so keep this off
+           on narrow/mobile viewports rather than leaving a stuck-open card. */
+        @media (max-width: 600px) {
+            .link-preview-card { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        <!-- Breadcrumb: Home > section > current, based on which top-level wiki
+             folder this page lives under. See the script below for the mapping. -->
+        <nav id="breadcrumb" class="breadcrumb" aria-label="Breadcrumb"></nav>
+        
+<div id="Contents" class="toc"><h1 id="Contents" class="header"><a href="#Contents">Contents</a></h1></div>
+<ul>
+<li>
+<a href="Quantum Mechanics Lec 18-19 (V Balakrishnan) Opus 5.html#Lecture 18">#Lecture 18</a>
+
+<ul>
+<li>
+<a href="Quantum Mechanics Lec 18-19 (V Balakrishnan) Opus 5.html#Charged particle in a magnetic field -- contd.">#Charged particle in a magnetic field -- contd.</a>
+
+<li>
+<a href="Quantum Mechanics Lec 18-19 (V Balakrishnan) Opus 5.html#Angular momentum states from two oscillators">#Angular momentum states from two oscillators</a>
+
+<li>
+<a href="Quantum Mechanics Lec 18-19 (V Balakrishnan) Opus 5.html#Direct product of Hilbert spaces">#Direct product of Hilbert spaces</a>
+
+<li>
+<a href="Quantum Mechanics Lec 18-19 (V Balakrishnan) Opus 5.html#For a given 'j'">#For a given 'j'</a>
+
+<li>
+<a href="Quantum Mechanics Lec 18-19 (V Balakrishnan) Opus 5.html#Components of 'J' transform like a vector under rotation :-">#Components of 'J' transform like a vector under rotation :-</a>
+
+<li>
+<a href="Quantum Mechanics Lec 18-19 (V Balakrishnan) Opus 5.html#Rotation transformation of states and operators :- (Rotation representation)">#Rotation transformation of states and operators :- (Rotation representation)</a>
+
+<li>
+<a href="Quantum Mechanics Lec 18-19 (V Balakrishnan) Opus 5.html#Transformation of operators :-">#Transformation of operators :-</a>
+
+<li>
+<a href="Quantum Mechanics Lec 18-19 (V Balakrishnan) Opus 5.html#j = 1/2 (very important case)">#j = 1/2 (very important case)</a>
+
+<li>
+<a href="Quantum Mechanics Lec 18-19 (V Balakrishnan) Opus 5.html#schur's lemma theorem :-">#schur's lemma theorem :-</a>
+
+</ul>
+<li>
+<a href="Quantum Mechanics Lec 18-19 (V Balakrishnan) Opus 5.html#Lecture 19">#Lecture 19</a>
+
+<ul>
+<li>
+<a href="Quantum Mechanics Lec 18-19 (V Balakrishnan) Opus 5.html#Spin operator for an electron">#Spin operator for an electron</a>
+
+<li>
+<a href="Quantum Mechanics Lec 18-19 (V Balakrishnan) Opus 5.html#How do we detect / find the spin angular momentum ?">#How do we detect / find the spin angular momentum ?</a>
+
+<li>
+<a href="Quantum Mechanics Lec 18-19 (V Balakrishnan) Opus 5.html#Quantum mechanically :-">#Quantum mechanically :-</a>
+
+<li>
+<a href="Quantum Mechanics Lec 18-19 (V Balakrishnan) Opus 5.html#Spin states in a constant magnetic field">#Spin states in a constant magnetic field</a>
+
+<li>
+<a href="Quantum Mechanics Lec 18-19 (V Balakrishnan) Opus 5.html#Entanglement">#Entanglement</a>
+
+<li>
+<a href="Quantum Mechanics Lec 18-19 (V Balakrishnan) Opus 5.html#Theory of addition of angular momenta :-">#Theory of addition of angular momenta :-</a>
+
+<li>
+<a href="Quantum Mechanics Lec 18-19 (V Balakrishnan) Opus 5.html#pauli exclusion principle :-">#pauli exclusion principle :-</a>
+
+</ul>
+</ul>
+<p>
+<a href="Quantum Mechanics (V Balakrishnan) Opus 5.html">overview</a>  |  <a href="Quantum Mechanics Lec 16-17 (V Balakrishnan) Opus 5.html">&lt;&lt; prev</a><br />
+</p>
+
+<p>
+ [Editorial note : the explicit "Lec 18" heading in the notebook stands at the top of scan qm7-04. The three pages before it (qm7-01 .. qm7-03) carry no heading and simply finish off the Landau-level / charged-particle-in-a-magnetic-field calculation that was already running on the last page of the previous notebook (qm6-24, which breaks off mid-sentence with "So, to write down wave function explicitly, we must choose the vector potential explicitly. The wave vector potential \((\vec A(r))\)"). Those three pages are transcribed here, first, as a carry-over section so that they are not lost; the "Lec 18" material proper begins at the heading "Angular momentum states from two oscillators" below.]<br />
+</p>
+
+<div id="Lecture 18"><h1 id="Lecture 18" class="header"><a href="#Lecture 18">Lecture 18</a></h1></div>
+
+<div id="Lecture 18-Charged particle in a magnetic field -- contd."><h2 id="Charged particle in a magnetic field -- contd." class="header"><a href="#Lecture 18-Charged particle in a magnetic field -- contd.">Charged particle in a magnetic field -- contd.</a></h2></div>
+
+<p>
+should not present in wave functions, because final wave fun. energy eigen values should be independent of any gauge you choose.<br />
+</p>
+
+<p>
+ So let's choose \(\vec A(\vec r) = (-By, 0, 0)\)<br />
+</p>
+\[
+H = \frac{(\bar p - e\bar A)^2}{2m}
+\]
+
+<p>
+ [\(A = (-By, 0, 0)\)]<br />
+</p>
+
+<p>
+ [\(p = (p_x, p_y, p_z)\)]<br />
+</p>
+
+<p>
+ [\(p^2 = p_x^2 + p_y^2 + p_z^2\)]<br />
+</p>
+
+\[
+H = \frac{p^2 - e\bar p\cdot\bar A - e\bar A\cdot\bar p + e^2A^2}{2m}
+\]
+\[
+H = \frac{p_x^2 + e^2A^2 - 2e\bar A\cdot\bar p}{2m} + \frac{p_y^2}{2m} + \frac{p_z^2}{2m}
+\]
+\[
+H = \frac{(p_x + eBy)^2}{2m} + \frac{p_y^2}{2m} + \frac{p_z^2}{2m}
+\]
+\[
+= \frac{p_x^2 + p_y^2 + p_z^2}{2m} + \frac{eBy}{m}p_x + \frac{e^2B^2y^2}{2m}
+\]
+
+<p>
+Therefore<br />
+</p>
+\[
+H\phi(\bar r) = E\phi(\bar r)
+\]
+\[
+p_x = -i\hbar\frac{\partial}{\partial x}
+\]
+\[
+p_y = -i\hbar\frac{\partial}{\partial y}
+\]
+\[
+p_z = -i\hbar\frac{\partial}{\partial z}
+\]
+\[
+-\frac{\hbar^2}{2m}\left(\frac{\partial^2\phi}{\partial x^2} + \frac{\partial^2\phi}{\partial y^2} + \frac{\partial^2\phi}{\partial z^2}\right) + \frac{eBy}{m}\left(-i\hbar\frac{\partial\phi}{\partial x}\right) + \frac{e^2B^2y^2}{2m}\phi(r) = E\phi(r)
+\]
+\[
+\left(\frac{-\hbar^2}{2m}(\nabla^2) + \frac{ie\hbar B}{m}\,y\frac{\partial}{\partial x} + \frac{e^2B^2}{2m}y^2\right)\phi(r) = E\phi(\bar r)
+\]
+
+<p>
+let the trial guess be<br />
+</p>
+\[
+\phi(\bar r) = e^{ik_x x}\,e^{k_z z}\cdot f(y)
+\]
+
+<p>
+ (non-trivial to guess)<br />
+</p>
+
+<p>
+ \(\hookrightarrow\) as we have derivatives for eigen value.<br />
+</p>
+\[
+\frac{d(e^{ax})}{dx} = a\,e^{ax}
+\]
+
+<p>
+ so we assumed it would be a fun. of exponentials.<br />
+</p>
+
+<p>
+the guess \(\phi(\bar r)\) should be a solution of above shrödinger equation.<br />
+</p>
+\[
+\left(\frac{\hbar^2k_z^2}{2m} + \left\{\frac{+\hbar^2}{2m}k_x^2 - \frac{\hbar^2}{2m}\frac{d^2f}{dy^2} + \frac{eB\hbar}{m}k_xy + \frac{e^2B^2}{2m}y^2\right\}\right)e^{ik_x x}\left(e^{ik_z z}\cdot f\right) = E\,e^{ik_x x}e^{ik_z z}\cdot f
+\]
+\[
+\Rightarrow \quad \left(E - \frac{\hbar^2k_z^2}{2m}\right)f = \left(\frac{\hbar^2k_x^2}{2m} - \frac{\hbar^2}{2m}\frac{d^2f}{dy^2} + \frac{eB\hbar}{m}k_xy + \frac{e^2B^2}{2m}y^2\right)
+\]
+\[
+-\frac{\hbar^2}{2m}\frac{d^2f}{dy^2} + \left(\frac{e^2B^2}{2m}y^2 + \frac{\hbar eB}{m}y + \frac{\hbar^2k_x^2}{2m}\right)f = \left(E - \frac{\hbar^2k_z^2}{2m}\right)f
+\]
+
+<p>
+ [the bracket on the right is called \(\longrightarrow \varepsilon\)]<br />
+</p>
+
+\[
+\frac{-\hbar^2}{2m}\frac{d^2f}{dy'^2} + \frac{1}{2}m\omega_c^2\,y'^2f = \varepsilon f(y')
+\]
+\[
+y' = (y + \cdots k_x)
+\]
+
+<p>
+ \(\downarrow\)<br />
+</p>
+
+<p>
+ eq\(^{\text{n}}\) of simple harmonic oscillator in coordinate \('y'\).<br />
+</p>
+
+\[
+\phi(\bar r) = A_n\,e^{ik_x x}\,e^{ik_z z}\cdot e^{-\frac{y'^2m\omega}{2\hbar}}\cdot H_n\left(y\sqrt{\frac{m\omega}{2\hbar}}\right)
+\]
+
+<p>
+ \(\hookrightarrow\) sol\(^{\text{n}}\) from SHO.<br />
+</p>
+
+\[
+E(k_x,k_z) = \hbar\omega_c\left(n+\frac{1}{2}\right) + \frac{k_z^2\hbar^2}{2m}
+\]
+\[
+H_n\left(y\sqrt{\frac{m\omega}{2\hbar}}\right) = \text{hermite polynomials}
+\]
+\[
+H_n(x) = e^{-x^2}\left(\frac{-d}{dx}\right)^n e^{x^2}
+\]
+
+<p>
+where is the centre of circle?<br />
+</p>
+
+<p>
+ centre can appear anywhere in \(xy\) plane, so this infinite degeneracy appear through \('k_x'\) which does not appear in energy at all.<br />
+</p>
+
+<p>
+ every level is infinitely degenerate, in the sense that for every different value of \(k_x\) \(\exists\) a different eigen state for the same energy level.<br />
+</p>
+
+<p>
+as long as \(L &gt;&gt; \left(\sqrt{\frac{2\hbar}{m\omega}} = \lambda \ \text{say}\right)\).<br />
+</p>
+
+<p>
+ (size of box) \(\hookrightarrow\) radius of cyclotron orbit<br />
+</p>
+
+<p>
+ Then it is a good approximation and degeneracy \(\propto \left(\frac{L}{\lambda}\right)^2\)<br />
+</p>
+
+<p>
+when box \(\to\infty\)<br />
+</p>
+
+<p>
+ degeneracy becomes infinite degeneracy.<br />
+</p>
+
+<p>
+If box is very small we have to put potential because of box. in \(H\).<br />
+</p>
+
+<div id="Lecture 18-Angular momentum states from two oscillators"><h2 id="Angular momentum states from two oscillators" class="header"><a href="#Lecture 18-Angular momentum states from two oscillators">Angular momentum states from two oscillators</a></h2></div>
+
+<p>
+ [Lec 18)<br />
+</p>
+
+<p>
+Recall we have discovered eigen values of \(J^2\) and \(J\) are \(\hbar^2j(j+1)\) and \(m\hbar\) respectively.<br />
+</p>
+
+<p>
+ [\(J^2 \doteq \hbar^2j(j+1)\) \(\downarrow\) eigen values (and <span id="Lecture 18-Angular momentum states from two oscillators-not"></span><strong id="not">not</strong> the operator)]<br />
+</p>
+
+\[
+J^2 \doteq \hbar^2 j(j+1) \qquad j = 0,\ \tfrac{1}{2},\ 1,\ \tfrac{3}{2},\ \cdots
+\]
+\[
+J_3 \doteq \hbar m \qquad m = -j,\ -j-1,\ ---\ 0,\ j-2,\ j-1,\ j\ = \{(2j+1)\ \text{values}\}
+\]
+
+<p>
+where<br />
+</p>
+\[
+j = \frac{(n_a+n_b)}{2}, \qquad m = \frac{n_a-n_b}{2} \qquad \Rightarrow \quad \begin{cases} n_a = j+m\\ n_b = j-m\end{cases}
+\]
+\[
+m = \frac{0-4}{2},\ \frac{1-3}{2},\ \frac{2-2}{2},\ \frac{3-1}{2},\ \frac{4-0}{2}
+\]
+\[
+m = -2,\ -1,\ 0,\ 1,\ 2
+\]
+
+<p>
+ [for given \(j = 2\) ; \(\frac{N_a+N_b}{2} = 2\) ; \(N_a+N_b = 4\). \(N_a+N_b = 4\) can be obtained from \((0,4)\) \((4,0)\) \((1,3)\) \((3,1)\) \((2,2)\) which produce \(m = -j, -j+1, \cdots 0, j-1, j\)]<br />
+</p>
+
+<p>
+Now we have two oscillators, so the eigen state depends on both \(n_a\) &amp; \(n_b\).<br />
+</p>
+
+\[
+|n_a, n_b\rangle = \text{Abstract state vector corresponding to } (\hat n_a) \text{ and } (\hat n_b) \text{ operators.}
+\]
+
+<p>
+The states we are interested in are angular momentum states labelled by \(j, m\).<br />
+</p>
+\[
+|j,m\rangle \quad \text{or} \quad |n_a, n_b\rangle \quad \text{or} \quad |n_a = j+m,\ n_b = j-m\rangle
+\]
+
+<p>
+such that<br />
+</p>
+\[
+J^2|j,m\rangle = \hbar^2 j(j+1)|j,m\rangle
+\]
+
+<p>
+and<br />
+</p>
+\[
+J_3|j,m\rangle = \hbar\, m\,|j,m\rangle
+\]
+\[
+|j,m\rangle = |n_a = j+m,\ n_b = j-m\rangle
+\]
+
+<p>
+ \(\{\)Abstract state in basis formed from \(|j\rangle\otimes|m\rangle\}\) ; \(\{\)(abstract state in) basis formed from \(|n_a\rangle\otimes|n_b\rangle\}\)<br />
+</p>
+
+<div id="Lecture 18-Direct product of Hilbert spaces"><h2 id="Direct product of Hilbert spaces" class="header"><a href="#Lecture 18-Direct product of Hilbert spaces">Direct product of Hilbert spaces</a></h2></div>
+
+\[
+|n_a, n_b\rangle = \frac{(a^\dagger)^{n_a}}{\sqrt{n_a!}}\frac{(b^\dagger)^{n_b}}{\sqrt{n_b!}}|n_a=0,\ n_b=0\rangle
+\]
+
+<p>
+ \(\{\)Recall that \(|n\rangle = \frac{(a^\dagger)^n}{\sqrt{n!}}|0\rangle\)<br />
+</p>
+
+<p>
+\(\triangleright\) "what do we mean by two ket vectors \(|n_a,n_b\rangle\) ?"<br />
+</p>
+
+<p>
+ \(|n_a,n_b\rangle\) is direct product of these two hilbert spaces.<br />
+</p>
+
+<p>
+ The idea is following :-<br />
+</p>
+
+<p>
+ \(\mathcal{H}_a : \{|n_a\rangle\}\)<br />
+</p>
+
+<p>
+ \(\mathcal{H}_b : \{|n_b\rangle\}\)<br />
+</p>
+
+<p>
+ \(\exists\) for oscillators \(a\), a hilbert space \(\mathcal{H}_a\) which has states/vectors labelled by \(\{|n_a\rangle\}\).<br />
+</p>
+
+<p>
+ similarly for oscillator \(b\), \(\exists\) a hilbert space \(\mathcal{H}_b\) defined by states \(\{|n_b\rangle\}\)<br />
+</p>
+
+<p>
+ <span id="Lecture 18-Direct product of Hilbert spaces-operator/Oscillator"></span><strong id="operator/Oscillator">operator/Oscillator</strong> \(\qquad\) <span id="Lecture 18-Direct product of Hilbert spaces-space"></span><strong id="space">space</strong> \(\qquad\) <span id="Lecture 18-Direct product of Hilbert spaces-basis set"></span><strong id="basis set">basis set</strong><br />
+</p>
+
+<p>
+ \(a^\dagger,\ a\) \(\xrightarrow{\text{acts upon}}\) \(\mathcal{H}_a\) \(\qquad\) \(\{|n_a\rangle\}\)<br />
+</p>
+
+<p>
+ \(b^\dagger,\ b\) \(\xrightarrow{\text{acts upon}}\) \(\mathcal{H}_b\) \(\qquad\) \(\{|n_b\rangle\}\)<br />
+</p>
+
+<p>
+ (direct sum of Hilbert space)<br />
+</p>
+\[
+\mathcal{H}_a \oplus \mathcal{H}_b = \mathcal{H}
+\]
+
+<p>
+ \(\hookrightarrow\) This space is span by following states/basis:<br />
+</p>
+\[
+\{|n_a\rangle \otimes |n_b\rangle\}
+\]
+
+<p>
+ or \(\{|n_a, n_b\rangle\}\) short hand notation<br />
+</p>
+
+<p>
+So,<br />
+</p>
+\[
+|n_a, n_b\rangle = \frac{(a^\dagger)^{n_a}}{\sqrt{n_a!}}|n_a=0\rangle \otimes \frac{(b^\dagger)^{n_b}}{\sqrt{n_b!}}|n_b=0\rangle
+\]
+
+<p>
+ \(\hookrightarrow\) direct product / Tensor product / cartesian product<br />
+</p>
+
+<p>
+It is Just like plane is direct product of \(R\otimes R = R^2\);<br />
+</p>
+\[
+x \in R
+\]
+\[
+y \in R
+\]
+\[
+(x,y) \in R^2 = R\otimes R
+\]
+
+<p>
+<span id="Lecture 18-Direct product of Hilbert spaces-Note"></span><strong id="Note">Note</strong> ; If \(\mathcal{H}_a\) has 10 states, \(\mathcal{H}_b\) has 15 states then \(\mathcal{H}\) \(\{|n_a\rangle\otimes|n_b\rangle\}\) has \(10\times15 = 150\) states.<br />
+</p>
+
+<p>
+let us find \(|j,m\rangle\) ?<br />
+</p>
+\[
+|n_a,n_b\rangle = |j,m\rangle = \frac{(a^\dagger)^{j+m}(b^\dagger)^{j-m}}{\sqrt{(j+m)!\,(j-m)!}}\,|n_a=0,\ n_b=0\rangle
+\]
+\[
+\left\{|j,m\rangle = \frac{(a^\dagger)^{j+m}(b^\dagger)^{j-m}}{\sqrt{(j+m)!\,(j-m)!}}\left|\frac{0+0}{2},\ \frac{0-0}{2}\right\rangle\right.
+\]
+
+<p>
+If \(|0,0\rangle\) is normalized to unity, it is gaurantee that \(|j,m\rangle\) is normalized to unity because of \(\sqrt{(j+m)!\,(j-m)!}\)<br />
+</p>
+
+<p>
+So, in space of angular momentum states \(|j,m\rangle\) The orthonormality condition becomes<br />
+</p>
+\[
+\langle j,m|j',m'\rangle = \delta_{jj'}\,\delta_{mm'}.
+\]
+
+<p>
+for a system whose total angular quantum no \((j)\) is specified, then the angular momentum states are \((2j+1)\) in total. So the direct product space will be \((2j+1)\) dimensional.<br />
+</p>
+
+<p>
+ \(\hookrightarrow\) so diamension of operators (angular momentum) will be \((2j+1)\times(2j+1)\).<br />
+</p>
+
+<p>
+So we can represent them in form of finite-diamensional matrices<br />
+</p>
+
+<p>
+once it is finite diamensional matrix, we know how to find basis/natural basis.<br />
+</p>
+
+<div id="Lecture 18-For a given 'j'"><h2 id="For a given 'j'" class="header"><a href="#Lecture 18-For a given 'j'">For a given 'j'</a></h2></div>
+
+<p>
+let's assume \(|j,m\rangle\) is angular momentum state in which \(j\) is specified.<br />
+</p>
+
+<p>
+what is \(J_+|j,m\rangle = ?\) \(\longrightarrow\) state in \(|j\rangle\) &amp; \(|m\rangle\) basis<br />
+</p>
+\[
+J_+ = J_1 + iJ_2 = (a^\dagger b)\hbar
+\]
+
+<p>
+ \(\{I_+ = (a^\dagger b)\hbar\) in harmonic oscillator basis \(\{|n_a\rangle\}\ \{|n_b\rangle\}\)<br />
+</p>
+
+\[
+J_+|j,m\rangle = \hbar(a^\dagger b)\left|\frac{n_a+n_b}{2},\ \frac{n_a-n_b}{2}\right\rangle
+\]
+
+<p>
+ \(|j,m\rangle\) &amp; \(|n_a,n_b\rangle\) Both represents angular momentum states, let's first find \(J_+|n_a,n_b\rangle = ?\) in harmonic oscillator basis spanned by \(\{|n_a\rangle\otimes|n_b\rangle\}\)<br />
+</p>
+
+<p>
+ first let us work in \(|n_a,n_b\rangle\) basis.<br />
+</p>
+
+\[
+J_+|j,m\rangle = \hbar(a^\dagger b)|n_a,n_b\rangle = a^\dagger b\,|j+m,\ j-m\rangle
+\]
+\[
+J_+|n_a,n_b\rangle = \hbar\,a^\dagger|j+m\rangle \otimes b|j-m\rangle
+\]
+\[
+= \hbar\sqrt{j+m+1}\,|j+m+1\rangle \otimes \sqrt{j-m}\,|j-m-1\rangle
+\]
+
+<p>
+or<br />
+</p>
+\[
+J_+|n_a,n_b\rangle = \hbar\sqrt{(j+m+1)(j-m)}\,\big|\underbrace{j+m+1}_{n_a},\ \underbrace{j-m-1}_{n_b}\big\rangle
+\]
+
+<p>
+In \(|j,m\rangle\) basis<br />
+</p>
+\[
+J_+|j,m\rangle = \hbar\sqrt{(j+m+1)(j-m)}\left|\frac{(j+m+1)+(j-m-1)}{2},\ \frac{j+m+1-j+m+1}{2}\right\rangle
+\]
+\[
+J_+|j,m\rangle = \hbar\sqrt{(j+m+1)(j-m)}\,|j,\ m+1\rangle
+\]
+
+<p>
+ \(\left\{\text{for } m = j \ \Rightarrow\ J_+|j,j\rangle = 0 \ ;\ J_-|j,-j\rangle = 0\right.\)<br />
+</p>
+
+<p>
+similarly,<br />
+</p>
+\[
+J_-|j,m\rangle = \hbar\sqrt{(j+m)(j-m+1)}\,|j,\ m-1\rangle
+\]
+
+<p>
+For a given \(j\), there are \(2j+1\) eigen states of angular momentum.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw (0,3.0) -- (2.2,3.0) node[right] {$m=j$};
+  \draw (0,2.2) -- (2.2,2.2) node[right] {$m=j-1$};
+  \node at (1.1,1.5) {$\vdots$};
+  \draw (0,0.8) -- (2.2,0.8);
+  \draw (0,0.3) -- (2.2,0.3) node[right] {$m=j+1$};
+  \draw (0,-0.4) -- (2.2,-0.4) node[right] {$m=-j$};
+  \draw[-&gt;] (-0.7,-0.5) -- (-0.7,1.6);
+  \node[left] at (-0.8,0.4) {states};
+  \node[left] at (-0.8,-0.4) {$\otimes$ (not energy)};
+  \node at (6.4,1.6) {stretched case};
+  \draw[-&gt;] (4.3,3.0) -- (5.6,1.9);
+  \draw[-&gt;] (4.3,-0.4) -- (5.6,1.3);
+\end{tikzpicture}
+</pre>
+
+<p>
+ [\(\checkmark\) states \(\otimes\) (not energy)]<br />
+</p>
+
+<p>
+So \(J_+\) operators increase the eigen value of \(J_3\) by 1.<br />
+</p>
+
+<p>
+ \(J_\pm\) ; for example \(j = 1\)<br />
+</p>
+\[
+m = -1,\ 0,\ 1
+\]
+
+<p>
+ total angular momentum states are 3.<br />
+</p>
+\[
+|1,-1\rangle,\ |1,0\rangle,\ |1,1\rangle
+\]
+\[
+J_+|1,-1\rangle = \hbar\sqrt2\,|1,0\rangle
+\]
+\[
+J_+|1,0\rangle = \hbar\sqrt2\,|1,1\rangle
+\]
+
+<p>
+But since, there are no states above \(|1,1\rangle\)<br />
+</p>
+\[
+J_+|1,1\rangle = 0 \qquad \text{or} \qquad \boxed{J_+|j,j\rangle = 0}
+\]
+
+<p>
+similarly there are no states below \(m = -j\)<br />
+</p>
+\[
+\boxed{J_-|j,-j\rangle = 0}
+\]
+
+<p>
+Therefore in this space of \(\{|j,m\rangle\}\) we can represent \(J_+\) operator as,<br />
+</p>
+\[
+\boxed{(J_\pm)^{2j+1} = 0}
+\]
+
+<p>
+ \(\hookrightarrow\) nil potent matrix. \(M^n = 0\).<br />
+</p>
+
+<div id="Lecture 18-Components of 'J' transform like a vector under rotation :-"><h2 id="Components of 'J' transform like a vector under rotation :-" class="header"><a href="#Lecture 18-Components of 'J' transform like a vector under rotation :-">Components of 'J' transform like a vector under rotation :-</a></h2></div>
+
+<p>
+\(J_+\) &amp; \(J_-\) are not hermitian, but are hermitian conjugate of each other.<br />
+</p>
+
+<p>
+ (watch from 25:00 to 45:00)<br />
+</p>
+
+<p>
+\(\triangleright\) We know that \(J_1\ J_2\ J_3\) are operators which can be expressed as matrices (for fixed \(j\), \((2j+1)\times(2j+1)\) diamensional matrices), but here we call \(J_1, J_2, J_3\) act as if they are vectors. (calling collection of 3 operators as component of a vector \(J\)). (Though \('J'\) is also an operator).<br />
+</p>
+
+<p>
+ How that is justified.?<br />
+</p>
+
+<p>
+ "\(J_1, J_2, J_3\) transform like component of a vector under physical rotations of coordinate system."<br />
+</p>
+
+<div id="Lecture 18-Rotation transformation of states and operators :- (Rotation representation)"><h2 id="Rotation transformation of states and operators :- (Rotation representation)" class="header"><a href="#Lecture 18-Rotation transformation of states and operators :- (Rotation representation)">Rotation transformation of states and operators :- (Rotation representation)</a></h2></div>
+
+<p>
+If we have a transformation under which a system is invarient, then physical quantities don't change under this transformation.<br />
+</p>
+
+<p>
+ It implies \(\langle\psi|A|\psi\rangle\) must remain invarient under a transformation. Suppose transformation acts on states themselves<br />
+</p>
+
+<p>
+ so, \(|\Psi\rangle \longrightarrow U|\psi\rangle\) ; \(U =\) unitary operator<br />
+</p>
+\[
+\langle\psi|A|\psi\rangle \longrightarrow \langle\psi|U^\dagger A U|\psi\rangle
+\]
+
+<p>
+ we can see use heisenberg picture suggesting<br />
+</p>
+\[
+\left\{A \longrightarrow U^\dagger A U\right.
+\]
+
+<p>
+ [\('U'\) depends on object it acts upon it.]<br />
+</p>
+
+<p>
+ Since \('U'\) is unitary \(U^\dagger = U^{-1}\)<br />
+</p>
+\[
+\boxed{A \longrightarrow U^{-1}AU} \qquad \Rightarrow \quad \text{rotation(transformation)}.
+\]
+
+<p>
+ [\(|\Psi\rangle\) depends on coordinate system. \(|\Psi\rangle\) changes to \(|\psi\rangle\) for change of coordinate system and under rotation \(|\Psi'\rangle = U|\Psi\rangle\) ; \(U =\) unitary operator representing rotation Transformation]<br />
+</p>
+
+<p>
+Just like a vector under rotation changes transforms from \(v \to v'\) under rotation about \(z\) axis.<br />
+</p>
+\[
+v_1' = v_1\cos\alpha + v_2\sin\alpha
+\]
+\[
+v_2' = -v_1\sin\alpha + v_2\cos\alpha
+\]
+\[
+v_3' = v_3
+\]
+
+<p>
+ \(\left\{v_1, v_2, v_3\right.\) can be matrices also\(\}\) so operators component can be transform like a vector.<br />
+</p>
+
+<p>
+ Here \(v'\) is a vector which can be written as linear combinations of \(v_1\) and \(v_2\).<br />
+</p>
+
+<p>
+<span id="Lecture 18-Rotation transformation of states and operators :- (Rotation representation)-Note :-"></span><strong id="Note :-">Note :-</strong><br />
+</p>
+\[
+|\psi(t)\rangle = e^{\frac{-iHt}{\hbar}}|\psi(0)\rangle
+\]
+
+<p>
+ \(\leftarrow\) state vectors transform like -this and operators transform like \(\longrightarrow \left(e^{iHt/\hbar}A(0)e^{-iHt/\hbar}\right)\) under rotation<br />
+</p>
+
+<p>
+Similarly<br />
+</p>
+
+<p>
+ If \([A,B] \neq 0\)<br />
+</p>
+\[
+\left\{e^{\lambda A}Be^{-\lambda A} = B + \lambda[A,B] + \frac{\lambda^2}{2!}[A,[A,B]] + \frac{\lambda^3}{3!}[A,[A,[A,B]]]\right\} + \cdots
+\]
+
+<div id="Lecture 18-Transformation of operators :-"><h2 id="Transformation of operators :-" class="header"><a href="#Lecture 18-Transformation of operators :-">Transformation of operators :-</a></h2></div>
+
+\[
+1)\quad e^{i\gamma J_3}J_1e^{-i\gamma J_3} = J_1' = J_1 + \lambda\,i\hbar J_2 + \frac{\lambda^2}{2!}(-J_1\,i\hbar) + \frac{\lambda^3}{3!}(-i\hbar J_2)
+\]
+\[
+= J_1\cos\gamma + J_2\sin\gamma
+\]
+\[
+2)\quad e^{i\gamma J_3}J_2e^{-i\gamma J_3} = J_2' = -J_1\sin\gamma + J_2\cos\gamma
+\]
+\[
+3)\quad e^{i\gamma J_3}J_3e^{-i\gamma J_3} = J_3 = J_3' = J_3
+\]
+
+<p>
+ linear combination of \(J_1\) &amp; \(J_2\)<br />
+</p>
+
+<p>
+The abstract representation of rotation of operators about an axis \(\hat n\) through an angle \('\theta'\) is<br />
+</p>
+\[
+R(\theta,\hat n) = e^{i\vec J\cdot\hat n\theta}
+\]
+
+<p>
+ unitary operator ; \(\vec J =\) hermitian operator<br />
+</p>
+
+<p>
+ So \(J_1, J_2, J_3\) transforms like a component of a vector.<br />
+</p>
+
+<p>
+ Representation of \(R(\theta,\hat n)\) depends on the state it acts upon.<br />
+</p>
+
+<p>
+<span id="Lecture 18-Transformation of operators :--Note :-"></span><strong id="Note :-">Note :-</strong> orbital angular momentum \(\vec L\) can only take integer eigen values \((0,1,2,\cdots)\) ; this result arrived from the requirement of wave function to be single-valued.<br />
+</p>
+
+<p>
+<span id="Lecture 18-Transformation of operators :--Note :-"></span><strong id="Note :-">Note :-</strong> the representation of physical transformation (translation, parity, rotation etc of coordinate system) would be represented by an abstract operator ; the actual representation of this unitary operator would depend upon the object it acts upon.<br />
+</p>
+
+<p>
+ [\(R(\theta,\hat n) = e^{i\vec J\cdot\hat n\theta}\) ; we will do several representations of rotation group, one of them for angular momentum operator acting on physical wavefunctions \(\psi(R,\theta,\phi)\)]<br />
+</p>
+
+<div id="Lecture 18-j = 1/2 (very important case)"><h2 id="j = 1/2 (very important case)" class="header"><a href="#Lecture 18-j = 1/2 (very important case)">j = 1/2 (very important case)</a></h2></div>
+
+<p>
+How does angular momentum operators look like for \(j = \frac{1}{2}\) ;<br />
+</p>
+
+<p>
+ [The experiments suggested that the value of spin (intrinsic) angular momentum corresponds to \(j = \frac{1}{2}\) ; \(\{|\frac{1}{2},m\rangle\}\) = set of eigen states of spin angular mom. op\(^{\text{r}}\)]<br />
+</p>
+
+<p>
+we are looking at case where<br />
+</p>
+\[
+J^2 \doteq \hbar^2\,\tfrac{1}{2}\left(\tfrac{1}{2}+1\right)
+\]
+
+<p>
+are eigen values of \(J^2\) operator.<br />
+</p>
+
+<p>
+ It turns out that particles like \(e^-\), \(p\), \(n\) have a property called intrinsic angular momentum, even in the rest frame of the particle there is an angular momentum.<br />
+</p>
+
+<p>
+ For point particles like \(e^-\), you still have associated an intrinsic angular momentum, even in the frame where linear momentum of \(e^-\) is zero. It is like charge / mass of \(e^-\). This property is intrinsic property.<br />
+</p>
+
+<p>
+ and experiments have shown us that \(j = \frac{1}{2}\) for \(e^-\) spin.<br />
+</p>
+
+\[
+j = \tfrac{1}{2} \quad \Rightarrow \quad (2j+1 = 2)
+\]
+
+<p>
+ So every operator can be represented with \((2j+1)\times(2j+1)\) i.e. \(2\times2\) matrices.<br />
+</p>
+
+\[
+J^2 \doteq \hbar^2\,\tfrac{1}{2}\left(\tfrac{1}{2}+1\right)
+\]
+\[
+J_3 \doteq \pm\frac{\hbar}{2} \qquad m = -\tfrac{1}{2},\ \tfrac{1}{2}
+\]
+
+<p>
+"we shouldn't picture spin as spinning \(e^-\), or proton, first of all \(e^-\) is elementary particle, it does not have structure. \(P^+\) do have structure, but however the origin of spin is in relativistic Q.M. It's not a non relativistic concept nor and not a classical concept at all"<br />
+</p>
+
+<p>
+It turns out, every elementary particle have intrinsic property called spin. (just like rest mass). so \((\vec L \neq \vec r\times\vec p)\)<br />
+</p>
+
+<p>
+ This property is dictated by requirement of lorentz invarience. (Invarience of laws of physics under lorentz transformations). No mechanical model is possible to represent spin angular momentum.<br />
+</p>
+
+<p>
+<span id="Lecture 18-j = 1/2 (very important case)-Note :-"></span><strong id="Note :-">Note :-</strong> The photons also have spin, but since, photon has zero rest mass, the idea of spin (the origin and meaning of spin) for zero rest mass particles is slightly different from what it is for non-zero rest mass particles.<br />
+</p>
+
+<p>
+ spin quantum no: \((s)\) or \((j)\)<br />
+</p>
+\[
+s = \tfrac{1}{2} \quad \text{for } e^-,\ p,\ n,\ \nu_e
+\]
+\[
+= 1 \quad \text{for } \gamma,\ W^\pm,\ Z^0
+\]
+\[
+= 0 \quad \text{for } \pi^0,\ \pi^\pm,\ K^0
+\]
+
+<p>
+ [these are elementary particles]<br />
+</p>
+
+<p>
+So these quantum particles have intrinsic angular momentum even in rest frame.<br />
+</p>
+
+<p>
+ since \(J^2\) commutes with \(J_1, J_2, J_3\)<br />
+</p>
+\[
+J^2 = \hbar^2\left(\tfrac{3}{4}\right)\begin{pmatrix}1 &amp; 0\\ 0 &amp; 1\end{pmatrix}
+\]
+
+<p>
+ \(\rightarrow\) (schur's lemma theorem) \(\hookrightarrow\) unit matrix<br />
+</p>
+
+<p>
+ [even when \(\vec p = 0\) so it can not be of form \(\vec r\times\vec p\) but this operator transforms like an vector / angular momentum]<br />
+</p>
+
+<p>
+<span id="Lecture 18-j = 1/2 (very important case)-States :-"></span><strong id="States :-">States :-</strong><br />
+</p>
+\[
+\{|j,m\rangle\} = \left\{\left|\tfrac{1}{2},m\right\rangle\right\}
+\]
+\[
+= \left\{\left|\tfrac{1}{2},\tfrac{1}{2}\right\rangle \ \&amp;\ \left|\tfrac{1}{2},-\tfrac{1}{2}\right\rangle\right\}
+\]
+\[
+\text{or} \quad \{|\uparrow\rangle,\ |\downarrow\rangle\}
+\]
+
+<p>
+ \(|\uparrow\rangle\) spin up ; \(|\downarrow\rangle\) spin down<br />
+</p>
+
+\[
+J_3 \doteq \pm\hbar/2 \quad (\text{eigen values of } J_3)
+\]
+\[
+J_3|\uparrow\rangle = \frac{\hbar}{2}|\uparrow\rangle \qquad \text{or} \qquad J_3\left|\tfrac{1}{2},\tfrac{1}{2}\right\rangle = \frac{\hbar}{2}\left|\tfrac{1}{2},\tfrac{1}{2}\right\rangle
+\]
+
+<p>
+ \(\left\{|1\rangle = |\uparrow\rangle\ ;\ |2\rangle = |2\rangle\right.\) [?]<br />
+</p>
+
+<p>
+ \(\hookrightarrow\) eigen value<br />
+</p>
+
+\[
+J_3|\downarrow\rangle = -\frac{\hbar}{2}|\downarrow\rangle
+\]
+\[
+\text{or} \quad J_3\left|\tfrac{1}{2},-\tfrac{1}{2}\right\rangle = -\frac{\hbar}{2}\left|\tfrac{1}{2},-\tfrac{1}{2}\right\rangle
+\]
+
+<p>
+ \(\left\{\langle\uparrow|\uparrow\rangle = 1 = \langle\downarrow|\downarrow\rangle\ ;\ \langle\uparrow|\downarrow\rangle = 0\right.\)<br />
+</p>
+
+\[
+\boxed{\hat J_3|j,m\rangle = m\hbar\,|j,m\rangle}
+\]
+
+<p>
+ \(\longrightarrow\) meaning of eigen states<br />
+</p>
+
+\[
+|\uparrow\rangle = \begin{pmatrix}1\\0\end{pmatrix} \qquad |\downarrow\rangle = \begin{pmatrix}0\\1\end{pmatrix}
+\]
+
+<p>
+ representation in natural basis.<br />
+</p>
+
+\[
+J_{\ell m} = \langle \ell|J_3|m\rangle
+\]
+\[
+\begin{cases}\langle 1|J_3|1\rangle &amp; \langle 1|J_3|2\rangle\\ \langle 2|J_3|1\rangle &amp; \langle 2|J_3|2\rangle\end{cases}
+\]
+
+<p>
+ so \(J_3\) should be : \(\nearrow \sigma_3\) (pauli matrix)<br />
+</p>
+\[
+J_3 = \frac{\hbar}{2}\begin{pmatrix}1 &amp; 0\\ 0 &amp; -1\end{pmatrix}
+\]
+
+<p>
+ [\(|\uparrow\rangle\) &amp; \(|\downarrow\rangle\) states implies magnetic moment which either points along the direction of ext. \(\vec B\) or opposite to ext \(\vec B\).]<br />
+</p>
+
+<p>
+such that<br />
+</p>
+\[
+J_3\begin{pmatrix}1\\0\end{pmatrix} = \frac{\hbar}{2}\begin{pmatrix}1\\0\end{pmatrix}
+\]
+\[
+J_3\begin{pmatrix}0\\1\end{pmatrix} = -\frac{\hbar}{2}\begin{pmatrix}0\\1\end{pmatrix}
+\]
+
+<div id="Lecture 18-schur's lemma theorem :-"><h2 id="schur's lemma theorem :-" class="header"><a href="#Lecture 18-schur's lemma theorem :-">schur's lemma theorem :-</a></h2></div>
+
+<p>
+ (If we fix \('j'\) and work in \('2j+1'\) space)<br />
+</p>
+
+<p>
+Any operator in a subspace \((2j+1)\) diamensionality which commutes with all the operators in subspace, must be some multiple of unit matrix.<br />
+</p>
+
+\[
+[J^2,\ \vec J\cdot\hat n] = 0
+\]
+\[
+J^2 = (\text{no.})\begin{pmatrix}1 &amp; 0\\ 0 &amp; 1\end{pmatrix}
+\]
+
+<p>
+\(J_1, J_2, J_3\) forms lie algebra of rotation group ; &amp; \(J^2\) commutes with all \(J_1, J_2, J_3\)<br />
+</p>
+
+<p>
+Any operator in lie algebra which commutes with its generators of Lie algebra is called Casimir operator. So, \(J^2\) is casimir operator.<br />
+</p>
+
+<p>
+no. of casimir operators is called the rank of the algebra.<br />
+</p>
+
+<p>
+ In this case it is one. (which is \(J^2\) only). there is no other operator which commutes with its generators \((J_1, J_2, J_3)\).<br />
+</p>
+
+<p>
+ [\(J^2 = J_1^2 + J_2^2 + J_3^2\) is only one casimir operator]<br />
+</p>
+
+<p>
+(Q) *Can be \(J_1\) and \(J_2\) are also diagonal matrices ?* (just like \(J_3\))<br />
+</p>
+
+<p>
+ No, if they were diagonal matrix they could have commute with each other. so \(J_1\) &amp; \(J_2\) can't be diagonal.<br />
+</p>
+\[
+[J_1,J_2] \neq 0 \neq [J_2,J_3] \neq [J_1,J_3] \neq 0
+\]
+
+<p>
+ of course we could have chose different basis such that any one of \(J_1, J_2, J_3\) is diagonal matrix and rest is not.<br />
+</p>
+
+<div id="Lecture 19"><h1 id="Lecture 19" class="header"><a href="#Lecture 19">Lecture 19</a></h1></div>
+
+<div id="Lecture 19-Spin operator for an electron"><h2 id="Spin operator for an electron" class="header"><a href="#Lecture 19-Spin operator for an electron">Spin operator for an electron</a></h2></div>
+
+<p>
+ [Lec 19)<br />
+</p>
+
+<p>
+The spin operator for an \(e^-\) \((\vec S)\) has three components \(S_x, S_y, S_z\)<br />
+</p>
+
+<p>
+ is represented by<br />
+</p>
+\[
+\vec S_i = \frac{\hbar}{2}\vec\sigma_i
+\]
+
+<p>
+ with spin quantum no \((s = \tfrac{1}{2})\)<br />
+</p>
+
+<p>
+ which obey angular momentum algebra<br />
+</p>
+
+<p>
+for \(e^-\), \(s = \tfrac{1}{2}\) \(\Rightarrow\) \(j = \tfrac{1}{2}\)<br />
+</p>
+
+<p>
+ \(j\) or \(s\)<br />
+</p>
+\[
+\left\{\begin{aligned}\left|\tfrac{1}{2},\tfrac{1}{2}\right\rangle &amp;= |\uparrow\rangle = \begin{pmatrix}1\\0\end{pmatrix}\\[4pt] \left|\tfrac{1}{2},-\tfrac{1}{2}\right\rangle &amp;= |\downarrow\rangle = \begin{pmatrix}0\\1\end{pmatrix}\end{aligned}\right.
+\]
+\[
+\sigma_1 = \begin{pmatrix}0 &amp; 1\\ 1 &amp; 0\end{pmatrix}, \quad \sigma_2 = \begin{pmatrix}0 &amp; -i\\ i &amp; 0\end{pmatrix}, \quad \sigma_3 = \begin{pmatrix}1 &amp; 0\\ 0 &amp; -1\end{pmatrix} \qquad \sigma_i^2 = I
+\]
+
+<p>
+ [Notice only one operator is diagonal matrix]<br />
+</p>
+
+<p>
+ \(\downarrow\) (representation in natural basis)<br />
+</p>
+
+\[
+\langle\uparrow|\uparrow\rangle = \langle\downarrow|\downarrow\rangle = 1
+\]
+\[
+\langle\uparrow|\downarrow\rangle = \langle\downarrow|\uparrow\rangle = 0
+\]
+
+<p>
+ \(\}\) orthonormality.<br />
+</p>
+
+<p>
+"\(\vec S\) is simply \(J\) for \(j = \tfrac{1}{2}\) (\(e^-\), \(p\), \(n\), \(\nu_e\))<br />
+</p>
+\[
+\vec J_{j=1/2} = \vec S. \text{"}
+\]
+
+<div id="Lecture 19-How do we detect / find the spin angular momentum ?"><h2 id="How do we detect / find the spin angular momentum ?" class="header"><a href="#Lecture 19-How do we detect / find the spin angular momentum ?">How do we detect / find the spin angular momentum ?</a></h2></div>
+
+<p>
+"If we took case of a stone \(m = 1\) kg performing circular motion with radius \(r = 1\) m, has angular momentum<br />
+</p>
+\[
+L = I\omega = mr^2\omega = \omega
+\]
+
+<p>
+but this \('L'\) should be \(\sim \hbar\,l\)<br />
+</p>
+
+<p>
+ \(\hookrightarrow\) some angular momentum quantum no.<br />
+</p>
+
+\[
+\hbar\,l \sim 1
+\]
+
+<p>
+ (for stone)<br />
+</p>
+
+\[
+(l \sim 10^{34}) \quad \text{so as } l \text{ is very enormous } (l = j).
+\]
+
+<p>
+ The discreteness of angular momentum completely washed out. (as values of \(m\) varies from \(-j\) to \(+j\) in steps of 1.) That is why we see states as contineous rather then discrete. \((-10^{+34},\ -10^{34}+1,\ ---\ ,\ 10^{34}-1,\ 10^{34})\).<br />
+</p>
+
+<p>
+(Q) So question arises how to detect such small \(s = 1/2\)<br />
+</p>
+
+<p>
+ "How do we detect / find the spin angular momentum". ?<br />
+</p>
+
+<p>
+ The spin angular momentum also implies magnetic moment for the \(e^-\), \((\mu_e)\), and that \(\mu_e\) (magnetic moment) would couple to applied magnetic fields, and then we can menupulate the spin of \(e^-\) using the magnetic field.<br />
+</p>
+
+\[
+\vec\mu_e = \frac{g_e\,e}{2m_e}\,\vec S
+\]
+
+<p>
+ [remember \(\vec S\) is simply the \(J\) for \(j = 1/2\) / \(s = 1/2\)]<br />
+</p>
+
+\[
+= \frac{-(2)|e|}{2m_e}\cdot\frac{\hbar}{2}\vec\sigma
+\]
+\[
+= -\left(\frac{|e|\hbar}{2m_e}\right)\sigma
+\]
+
+<p>
+ \(\longrightarrow\) Bohr magneton \((\mu_B)\)<br />
+</p>
+
+\[
+\mu_B = \frac{|e|\hbar}{2m_e}
+\]
+
+<p>
+is natural unit of magnetic moment for charge \(|e|\) and mass \(m_e\).<br />
+</p>
+
+\[
+\boxed{\vec\mu_e = -\mu_B\,\vec\sigma}
+\]
+
+<p>
+If we switch on \(\vec B\). There will be extra term in \(\hat H\) of charge particle<br />
+</p>
+
+<p>
+ \(\left(\hat H = \frac{(p-eA)^2}{2m} + e\phi + \hat H_{\text{magnetic}}\right)\)<br />
+</p>
+
+\[
+H_{\text{magnetic}} = -\vec\mu_e\cdot\vec B
+\]
+
+<p>
+ \(\hookrightarrow\) P.E of magnetic moment in applied \(\vec B\).<br />
+</p>
+
+\[
+H_{\text{magnetic}} = +\mu_B\,\vec\sigma\cdot\vec B
+\]
+
+<p>
+(our expectations :-)<br />
+</p>
+
+<p>
+<span id="Lecture 19-How do we detect / find the spin angular momentum ?-Classically"></span><strong id="Classically">Classically</strong>) If we have a magnetic diapole moment placed in an external magnetic field at non zero angle \(\theta\). then the diapole moment vector precesses around the \(\vec B_{\text{ext}}\).<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,0) -- (0,2.4) node[above] {$B$};
+  \draw[dashed] (0,1.5) ellipse (1.0 and 0.35);
+  \draw[-&gt;] (0,0) -- (1.0,1.5) node[right] {$\mu_e$};
+  \draw[-&gt;] (-0.8,1.42) arc (185:150:1.0 and 0.35);
+  \draw[-&gt;] (0,0) -- (-0.35,0.55);
+\end{tikzpicture}
+</pre>
+
+<p>
+ ["precession frequency is called larmor frequency. If the \(\vec B\) is sufficiently non uniform / strong then we know that diapole moment also experience force along with torque. And such \(\vec B_{\text{ext}}\) if strong can seperate out magnetic diapole moment states. It is what done in Stern Gerlach exp. which is root of Quantum computing &amp; quantum information"]<br />
+</p>
+
+\[
+\left(\frac{dL}{dt} = \tau\ ;\ \frac{d\mu}{dt} = \kappa\tau\right)
+\]
+
+<p>
+ (classical magnetic moment)<br />
+</p>
+
+\[
+\frac{d\mu_e}{dt} = \kappa(\tau) = \kappa(\mu_e\times B)
+\]
+
+<p>
+ \(\hookrightarrow\) constant<br />
+</p>
+
+<p>
+ \(L \propto \mu_e\) so,<br />
+</p>
+\[
+\frac{d\mu_e}{dt} = (\kappa)\,\mu_e\times B
+\]
+
+<p>
+ \(\hookrightarrow\) provides larmor frequency<br />
+</p>
+
+<div id="Lecture 19-Quantum mechanically :-"><h2 id="Quantum mechanically :-" class="header"><a href="#Lecture 19-Quantum mechanically :-">Quantum mechanically :-</a></h2></div>
+
+<p>
+From Ernfest theorem, the expectation value of any operator obey classical equation. So<br />
+</p>
+\[
+\frac{d\langle\mu\rangle}{dt} = (\ )\cdot\langle\mu_e\rangle\times B
+\]
+
+<p>
+ \(\}\) should behave quantum mechanically<br />
+</p>
+
+<div id="Lecture 19-Spin states in a constant magnetic field"><h2 id="Spin states in a constant magnetic field" class="header"><a href="#Lecture 19-Spin states in a constant magnetic field">Spin states in a constant magnetic field</a></h2></div>
+
+<p>
+let us ask what happens to spin states in const \(\vec B\). as time passes. :-<br />
+</p>
+
+<p>
+ Since \(|\uparrow\rangle\) and \(|\downarrow\rangle\) form basis, we can write \(|\Psi(t)\rangle\) as linear combination of those basis. (\(|\Psi(t)\rangle\) = angular momentum state).<br />
+</p>
+
+\[
+|\Psi(t)\rangle = a(t)|\uparrow\rangle + b(t)|\downarrow\rangle
+\]
+
+<p>
+ \(\left\{\langle\uparrow|\downarrow\rangle = 0\ ;\ \langle\uparrow|\uparrow\rangle = 1\ ;\ \langle\downarrow|\downarrow\rangle = 1\right.\)<br />
+</p>
+
+\[
+|a(t)|^2 + |b(t)|^2 = 1 \qquad \text{for all time}
+\]
+
+<p>
+let us look at simplest system.<br />
+</p>
+
+<p>
+ at \(t = 0\) we only have \(|\uparrow\rangle\) state (or prepare \(|\uparrow\rangle\) states)<br />
+</p>
+
+<p>
+ means,<br />
+</p>
+\[
+\begin{cases} a(0) = 1\\ b(0) = 0\end{cases}
+\]
+\[
+|\psi(0)\rangle = |\uparrow\rangle
+\]
+
+<p>
+and what happens if we switch on the hamiltonian.<br />
+</p>
+
+<p>
+ If \(B = B\,\hat e_z\)<br />
+</p>
+
+<p>
+ \(\left(\sigma\cdot B = \sigma_1 B_x + \sigma_2 B_2 + \sigma_3 B_z\right)\)<br />
+</p>
+
+\[
+H_{\text{magnetic}} = \mu_B\,\sigma_3 B
+\]
+
+<p>
+ \((\vec\sigma\cdot\vec B = \sigma_3\cdot B)\).<br />
+</p>
+
+\[
+|\psi(t)\rangle = e^{\frac{-iHt}{\hbar}}|\psi(0)\rangle
+\]
+\[
+= e^{\frac{-iB\mu_B\sigma_3 t}{\hbar}}|\psi(0)\rangle
+\]
+\[
+= e^{\frac{-iB\mu_B\sigma_3 t}{\hbar}}|\uparrow\rangle
+\]
+\[
+= e^{\frac{-iB\mu_B t}{\hbar}}|\uparrow\rangle
+\]
+
+<p>
+ [\(e^{-i\alpha\sigma_3}\begin{pmatrix}1\\0\end{pmatrix} = e^{-i\alpha}\begin{pmatrix}1\\0\end{pmatrix}\)]<br />
+</p>
+
+<p>
+ [\(\sigma_3|\uparrow\rangle = \begin{pmatrix}1 &amp; 0\\ 0 &amp; -1\end{pmatrix}\begin{pmatrix}1\\0\end{pmatrix} = \begin{pmatrix}1\\0\end{pmatrix}\)]<br />
+</p>
+
+<p>
+ [\(J_3|S_3\rangle = \frac{\hbar}{2}\begin{pmatrix}1 &amp; 0\\ 0 &amp; -1\end{pmatrix}\) (sign)]<br />
+</p>
+
+<p>
+ [so nothing happens upon applying ext. \(\vec B\). \(H|\Psi(0)\rangle = E|\Psi(0)\rangle\)]<br />
+</p>
+
+<p>
+Even if we start from arbitrary state \(|\downarrow\rangle\)<br />
+</p>
+\[
+|\psi(t)\rangle = e^{\frac{+iB\mu_B t}{\hbar}}|\downarrow\rangle
+\]
+
+<p>
+ [\(e^{-i\alpha\sigma_3}\begin{pmatrix}0\\1\end{pmatrix} = e^{i\alpha}\begin{pmatrix}0\\1\end{pmatrix}\) ; \(\left(\alpha = \frac{B\mu_B t}{\hbar}\right)\)]<br />
+</p>
+
+<p>
+ [\(|\downarrow\rangle\) remains in same state with eigen value \(\frac{\hbar}{2}\left(\frac{iB\mu_B t}{\hbar}\right)\) [?]]<br />
+</p>
+
+<p>
+Interesting things occur if we start with arbitrary wave function<br />
+</p>
+\[
+|\psi(0)\rangle = a(0)|\uparrow\rangle + b(0)|\downarrow\rangle
+\]
+
+<p>
+for \(B = B\,\hat e_x\) let \(B = b_x\hat e_x\) (in \(x\) direction only)<br />
+</p>
+\[
+|\psi(t)\rangle = e^{\frac{-iHt}{\hbar}}|\psi(0)\rangle
+\]
+\[
+H = \mu_B\,\vec\sigma\cdot\vec B = \mu_B(\sigma_1)\cdot B = +(B)\frac{|e|\hbar}{2m}\cdot\sigma_1
+\]
+\[
+|\psi(t)\rangle = e^{-\frac{i}{\hbar}\frac{\mu_B B|e|\hbar}{2m}\sigma_1 t}|\psi(0)\rangle
+\]
+\[
+= e^{-\frac{i}{2}\frac{|e|B}{m}\sigma_1 t}|\psi(0)\rangle
+\]
+
+<p>
+ \(\hookrightarrow \omega_c\) (cyclotron frequency)<br />
+</p>
+
+\[
+= e^{-\frac{i\omega_c t}{2}\sigma_1}|\psi(0)\rangle
+\]
+
+<p>
+let, if \(|\psi(0)\rangle = |\uparrow\rangle\) \(\left(\begin{aligned}b(0) &amp;= 0\\ a(0) &amp;= 1\end{aligned}\right)\)<br />
+</p>
+
+<p>
+So,<br />
+</p>
+\[
+|\psi(t)\rangle = e^{-\frac{i\omega_c t}{2}\sigma_1}|\uparrow\rangle
+\]
+
+<p>
+ here, \(e^{-\frac{i\omega_c t}{2}\sigma_1}\) is not a phase factor as \(|\uparrow\rangle\) is not eigen state of \(\sigma_1\)<br />
+</p>
+
+<p>
+also let's write \(e^{\frac{-i\omega_c t}{2}\sigma_1}\) in matrix form.<br />
+</p>
+
+<p>
+ [\(e^{\alpha x} = 1 + \frac{(\alpha x)}{1!} + \frac{(\alpha x)^2}{2!} + \cdots\)]<br />
+</p>
+
+\[
+e^{-i\vec a\cdot\vec\sigma} = (\cos a)\,I - i\left(\frac{\vec a\cdot\vec\sigma}{|a|}\right)\sin(a)
+\]
+
+<p>
+ \(\left\{a = \frac{\omega_c t}{2}\ ;\ \frac{\vec a\cdot\vec\sigma}{|a|} = \sigma_1\right.\)<br />
+</p>
+
+<p>
+ \(\hookrightarrow\) generalization of \(e^{i\theta} = \cos\theta + i\sin\theta\)<br />
+</p>
+
+\[
+|\Psi(t)\rangle = \left[\left(\cos\frac{\omega_c t}{2}\right)I - i\sigma_1\left(\sin\frac{\omega_c t}{2}\right)\right]|\uparrow\rangle
+\]
+\[
+I = \begin{pmatrix}1 &amp; 0\\ 0 &amp; 1\end{pmatrix}, \qquad \sigma_1 = \begin{pmatrix}0 &amp; 1\\ 1 &amp; 0\end{pmatrix}
+\]
+\[
+= \begin{pmatrix}\cos\frac{\omega_c t}{2} &amp; -i\sin\frac{\omega_c t}{2}\\[4pt] -i\sin\frac{\omega_c t}{2} &amp; \cos\frac{\omega_c t}{2}\end{pmatrix}\begin{pmatrix}1\\0\end{pmatrix}
+\]
+\[
+= \begin{pmatrix}\cos\frac{\omega_c t}{2}\\[4pt] -i\sin\frac{\omega_c t}{2}\end{pmatrix} = \cos\frac{\omega_c t}{2}|\uparrow\rangle + \left(-i\sin\frac{\omega_c t}{2}\right)|\downarrow\rangle
+\]
+\[
+\text{or} \quad \left(\cos\frac{\omega_c t}{2}\begin{pmatrix}1\\0\end{pmatrix} + \left(-i\sin\frac{\omega_c t}{2}\right)\begin{pmatrix}0\\1\end{pmatrix}\right)
+\]
+\[
+\begin{cases} a(t) = \cos\dfrac{\omega_c t}{2}\\[8pt] b(t) = -i\sin\dfrac{\omega_c t}{2}\end{cases} \qquad \left(|a(t)|^2 + |b(t)|^2 = 1\right)
+\]
+
+<p>
+also, we can see that \(|\Psi(t)\rangle\) remains normalized.<br />
+</p>
+
+<p>
+Q.) Now, what is significance of these coefficients ?<br />
+</p>
+
+<p>
+ \(|a(t)|^2\) = probability that at time \('t'\) the state is \(|\uparrow\rangle\)<br />
+</p>
+
+<p>
+ \(|b(t)|^2\) = Probability that the state is down \(|\downarrow\rangle\).<br />
+</p>
+
+<p>
+ Such that \(|a|^2 + |b|^2 = 1\)<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,0) -- (0,2.0) node[above] {$P(t)$};
+  \draw[-&gt;] (-0.4,0) -- (6.4,0) node[below] {$t$};
+  \draw[thick,domain=0:6.2,samples=200] plot (\x,{1.5*(cos(deg(\x*1.6))*cos(deg(\x*1.6)))});
+  \draw[thick,domain=0:6.2,samples=200] plot (\x,{1.5*(sin(deg(\x*1.6))*sin(deg(\x*1.6)))});
+  \node[anchor=west] at (0.3,2.2) {$|a(t)|^2=\cos^2\frac{\omega_c t}{2}$};
+  \node[anchor=west] at (4.0,2.2) {$|b(t)|^2=\sin^2\frac{\omega_c t}{2}$};
+\end{tikzpicture}
+</pre>
+
+<p>
+ \(\left\{|b(t)|^2 = 1\ ;\ \frac{\omega_c t}{2} = n\pi\right.\)<br />
+</p>
+
+<p>
+So, quantum mechanically, this \(H\) \((B = B\hat e_x)\) plays the role of spin flip operator. It flips the spin from up to down and down to up repeatedly.<br />
+</p>
+\[
+|\uparrow\rangle \longrightarrow |\downarrow\rangle
+\]
+\[
+|\downarrow\rangle \longrightarrow |\uparrow\rangle
+\]
+
+<p>
+so we can't say unlike classically, to that the system is in \(|\uparrow\rangle\) state or \(|\downarrow\rangle\) state. It exist in superposition of states. except those instances where \(a(0) = 0\) or \(b(0) = 0\).<br />
+</p>
+
+<p>
+ for only \(\left(t = \frac{2n\pi}{\omega_c}\right)\) system is in \(|\downarrow\rangle\) state, at for \(t = \frac{2\pi(n+\frac{1}{2})}{\omega_c}\) system is in \(|\uparrow\rangle\) state).<br />
+</p>
+
+<p>
+suppose we have eigen state of \(\sigma_1\) \(|\rightarrow\rangle\)<br />
+</p>
+\[
+|\rightarrow\rangle = a|\uparrow\rangle + b|\downarrow\rangle
+\]
+
+<p>
+ (thus any spin-state in this hilbert space can be written as superposition of \(|\uparrow\rangle\) and \(|\downarrow\rangle\) states.)<br />
+</p>
+
+<p>
+For the case \(B = B\,e_z\)<br />
+</p>
+\[
+H = \mu_B\,\vec\sigma\cdot\vec B = \mu_B\,\sigma_3 B \qquad \Rightarrow \qquad \begin{aligned}H|\uparrow\rangle &amp;= E_1|\uparrow\rangle\\ H|\downarrow\rangle &amp;= E_2|\downarrow\rangle\end{aligned}
+\]
+
+<p>
+ the eigen states<br />
+</p>
+
+<p>
+ since \(\sigma_3\) has two eigen values \(+1\), \(-1\).<br />
+</p>
+\[
+E_1 = \mu_B B \qquad E_2 = -\mu_B B
+\]
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,-1.4) -- (0,1.6);
+  \node[left] at (-0.1,0.1) {energy};
+  \draw (1.0,1.0) -- (3.2,1.0) node[right] {$(E=\mu_B B)\ |\uparrow\rangle$};
+  \draw (1.0,-1.0) -- (3.2,-1.0) node[right] {$(E=-\mu_B B)\ |\downarrow\rangle$};
+  \draw[&lt;-&gt;] (1.6,1.0) -- (1.6,-1.0) node[midway,right] {$2B\mu_B$};
+  \node[anchor=west] at (6.2,0) {Q.M. two level system.};
+\end{tikzpicture}
+</pre>
+
+<p>
+"any state can be written as superposition, \(\exists\) infinite no. of superpositions possible. (\(a, b \in\) any number).<br />
+</p>
+
+<p>
+ we start with two level system but we can have \(\infty\)-no of possibilities, this is called qubit."<br />
+</p>
+
+<p>
+so it is superposition which leads to all the interesting phenomena.<br />
+</p>
+
+<div id="Lecture 19-Entanglement"><h2 id="Entanglement" class="header"><a href="#Lecture 19-Entanglement">Entanglement</a></h2></div>
+
+<p>
+Suppose we have such 2 \(e^-\) each with two level systems. we look at spin states of 2 electrons together.<br />
+</p>
+
+<p>
+ [we are here not interested in coulamb interaction, other d.of, not interested in P.E, not interested in K.E due to motion]<br />
+</p>
+
+<p>
+we will look only at spin-states of system.<br />
+</p>
+
+<p>
+ what is hilbert space looks like<br />
+</p>
+\[
+\mathcal{H}_1 \qquad \{|\uparrow\rangle_1,\ |\downarrow\rangle_1\}
+\]
+\[
+\mathcal{H}_2 \qquad \{|\uparrow\rangle_2,\ |\downarrow\rangle_2\}
+\]
+
+<p>
+what are possible states of full / combined system of \(e^-\)s.<br />
+</p>
+
+<p>
+ There are four possible states to start with.<br />
+</p>
+\[
+|\uparrow\uparrow\rangle,\ |\uparrow\downarrow\rangle,\ |\downarrow\uparrow\rangle,\ |\downarrow\downarrow\rangle.
+\]
+
+<p>
+\(\triangleright\)) How to add angular momenta in Q.M ?<br />
+</p>
+
+<p>
+ let \(J_1\) and \(J_2\) be two total angular momentum operators for \(e^-_1\) and \(e^-_2\)<br />
+</p>
+
+<p>
+ components of \(J_1\) commutes with components of \(J_2\)<br />
+</p>
+
+<p>
+ also, \([J_1, J_2] = 0\). i.e. \([J_{1i}, J_{2j}] = 0\)<br />
+</p>
+
+<p>
+ [for \(e_1\): \(J_1 \to J_1^2, J_{11}, J_{12}, J_{13}\) ; \(e_2\): \(J_2 \to J_2^2, J_{21}, J_{22}, J_{23}\)]<br />
+</p>
+
+<div id="Lecture 19-Theory of addition of angular momenta :-"><h2 id="Theory of addition of angular momenta :-" class="header"><a href="#Lecture 19-Theory of addition of angular momenta :-">Theory of addition of angular momenta :-</a></h2></div>
+
+<p>
+If<br />
+</p>
+\[
+\vec J_1 + \vec J_2 = \vec J
+\]
+
+<p>
+ \(\longrightarrow\) Total angular momentum.<br />
+</p>
+
+<p>
+So let us ask<br />
+</p>
+
+<p>
+(Q) what is/are possible eigen values of \(J/J^2\) given the eigen values of \(J_1/J_1^2\) or \(J_2/J_2^2\).<br />
+</p>
+
+<p>
+ Theory of add\(^{\text{n}}\) of angular momenta :-<br />
+</p>
+\[
+J^2_{\text{e.value}} = j(j+1)\hbar^2
+\]
+\[
+J_{1\,\text{e.v.}} = j_1(j_1+1)\hbar^2
+\]
+\[
+J_{2\,\text{e.v}} = j_2(j_2+1)\hbar^2
+\]
+
+<p>
+Then the rule is, for total quantum no \('j'\) is :-<br />
+</p>
+\[
+j = |j_1-j_2| \ \text{to}\ (j_1+j_2)
+\]
+
+<p>
+ \(\hookrightarrow\) quantum no of \(\vec J\).<br />
+</p>
+
+<p>
+ [\(J\) is an operator so it does not add up like vectors, operators have their own peculiarity.]<br />
+</p>
+
+<p>
+But, any component adds up linearly<br />
+</p>
+
+<p>
+ for \(\left(\vec J_1 + \vec J_2 = \vec J\right)\)<br />
+</p>
+
+<p>
+ (example :-)<br />
+</p>
+\[
+J_{13} = J_1^z = m_1\hbar
+\]
+\[
+J_{23} = J_2^z = m_2\hbar
+\]
+
+<p>
+ [\(m_1 = -j_1,\ -j_1+1,\ ---\ j_1-1,\ j_1\) ; \(m_2 = -j_2,\ -j_2+1,\ ---\ j_2-1,\ j_2\)]<br />
+</p>
+
+\[
+J^z = (m_1+m_2)\hbar \qquad m_1+m_2 = -j,\ -j+1\ --,\ j-1,\ j
+\]
+
+<p>
+\(\rightarrow\) *what if we add spins of two \(e^-\) :-*<br />
+</p>
+
+<p>
+ what happens if we solve for \(j_1 = \frac{1}{2}\) &amp; \(j_2 = \frac{1}{2}\) (\(j = \frac{1}{2}\) for both \(e^-\))<br />
+</p>
+
+<p>
+ so \(J\) is represented as \(\vec S\).<br />
+</p>
+\[
+\vec S = \vec S_1 + \vec S_2 = \vec S
+\]
+
+<p>
+ possible values for total spin quantum no. \(S = ?\))<br />
+</p>
+
+<p>
+ \(\because\) \(S_1 = \frac{1}{2}\), \(S_2 = \frac{1}{2}\)<br />
+</p>
+\[
+s = |j_1-j_2| \ \text{to}\ j_1+j_2 = 0 \ \text{to}\ 1 \ \text{in steps of } 1
+\]
+\[
+(s = 0 \ \text{or}\ 1)
+\]
+
+<p>
+ \('s'\) is total spin quantum no.<br />
+</p>
+
+<p>
+ [\(s_1 = \frac{1}{2}\) ; \(m_1 = -j\) to \(+j\) ; \(s_2 = \frac{1}{2}\) ; \(m_2 = -j\) to \(j\) ; \(m_2 = -\frac{1}{2}, \frac{1}{2}\)]<br />
+</p>
+
+<p>
+ [so \('s'\) runs from \(|s_1-s_2|\) to \((s_1+s_2)\) \(\Rightarrow\) 0 to 1 ; \((|\frac{1}{2}-\frac{1}{2}|\) to \(|\frac{1}{2}+\frac{1}{2}|)\)]<br />
+</p>
+
+<p>
+\(\Rightarrow\) So, if we take two fermions we put them together, we now create a boson (integral spin quantum no \((s)\) 0, 1, 2 ...).<br />
+</p>
+
+<p>
+"This is how super conductivity occurs"<br />
+</p>
+
+<p>
+Q). what are the possible states?<br />
+</p>
+\[
+|\uparrow\rangle_1 \otimes |\uparrow\rangle_2 = |\uparrow\uparrow\rangle
+\]
+
+<p>
+ \(\longrightarrow\) representation.<br />
+</p>
+
+<p>
+ [where \(|\uparrow\rangle_1 = |\frac{1}{2},\frac{1}{2}\rangle_1 = \begin{pmatrix}1\\0\end{pmatrix}\) ; \(|\downarrow\rangle_1 = |\frac{1}{2},-\frac{1}{2}\rangle_1 = \begin{pmatrix}0\\1\end{pmatrix}\)]<br />
+</p>
+
+<p>
+So we have 4 - states.<br />
+</p>
+\[
+|\uparrow\uparrow\rangle,\ |\uparrow\downarrow\rangle,\ |\downarrow\uparrow\rangle,\ |\downarrow\downarrow\rangle.
+\]
+
+<p>
+ [rough work in a box on this page :<br />
+</p>
+\[
+2\sin^2\theta \Rightarrow 1-\cos2\theta
+\]
+\[
+1 - \cos(\theta+\theta)
+\]
+\[
+1 - [\cos^2\theta - \sin^2\theta] = 1 - (1-\sin^2\theta - \sin^2\theta) = 1-1+2\sin^2\theta
+\]
+<p>
+]<br />
+</p>
+
+<p>
+\(\Rightarrow\) So they form a basis in full Hilbert space.<br />
+</p>
+
+<p>
+So every spin-state (of combined system of 2 \(e^-\)) can be written as superposition of these above mentioned four states.<br />
+</p>
+\[
+S = 0 \quad \text{or} \quad 1
+\]
+\[
+(m_1+m_2) = S^z = 0 \quad \text{or} \quad -1,\ 0,\ 1
+\]
+
+<p>
+ [\(|\Psi\rangle = a|\uparrow\uparrow\rangle + b|\uparrow\downarrow\rangle + c|\downarrow\uparrow\rangle + d|\downarrow\downarrow\rangle\)]<br />
+</p>
+
+<p>
+ [a signature "Vishal." is boxed in the middle of this page]<br />
+</p>
+
+\[
+S = 0, \qquad S^z = 0 \quad \} \ \text{singlet state}
+\]
+
+<p>
+ (\(-s\) to \(+s\) in steps of 1)<br />
+</p>
+
+\[
+S = 1, \qquad S^z = \begin{matrix}-1\\ 0\\ 1\end{matrix} \quad \} \ \text{triplet state}
+\]
+
+<p>
+ (\(m_s = -s\) to \(+s\) in steps of 1)<br />
+</p>
+
+<p>
+(let us write states) :-<br />
+</p>
+\[
+|s, s_z\rangle \quad \text{or} \quad |j,m\rangle
+\]
+
+<p>
+ spin singlet state<br />
+</p>
+\[
+|0,0\rangle = \big(|\uparrow\downarrow\rangle - |\downarrow\uparrow\rangle\big)/\sqrt2
+\]
+
+<p>
+ \(\longrightarrow\) anti-symmetric under exchange of 2 \(e^-\).<br />
+</p>
+
+<p>
+ spin triplet states are symmetric under exchange<br />
+</p>
+\[
+|1,1\rangle = |\uparrow\uparrow\rangle \qquad \text{symmetric}
+\]
+\[
+|1,-1\rangle = |\downarrow\downarrow\rangle \qquad \text{symmetric}
+\]
+\[
+|1,0\rangle = \big(|\uparrow\downarrow\rangle + |\downarrow\uparrow\rangle\big)/\sqrt2 \quad (\text{normalized state})
+\]
+
+<p>
+ \(\}\) symmetric under the exchange of 2 electrons.<br />
+</p>
+
+\[
+\langle s_1, s_1^z|s_2, s_2^z\rangle = \delta_{s_1s_2}\,\delta_{s_1^z s_2^z}
+\]
+
+<p>
+ \(\}\) orthogonal states.<br />
+</p>
+
+<div id="Lecture 19-pauli exclusion principle :-"><h2 id="pauli exclusion principle :-" class="header"><a href="#Lecture 19-pauli exclusion principle :-">pauli exclusion principle :-</a></h2></div>
+
+<p>
+ [this page is written over a printed sudoku puzzle; the block below is the highlighted / coloured annotation -- colour ignored]<br />
+</p>
+
+<p>
+If we have two fermions which are absolutly identical then no matter what states these fermions are in, total state must be anti-symmetric under exchange.<br />
+</p>
+
+<p>
+But this is only spin part of wave function. There is also a special part, if \(e^-\) are moving around constitutes \(\psi(r,t)\) then Total wave function \(\Psi = \psi(r,t) * \psi(\text{spin})\), and that \(|\Psi\rangle\) should be anti-symmetric.<br />
+</p>
+
+<p>
+So, in singlet state special part of wavefunction must be symmetric and in triplet states special part of state must be anti-symmetric.<br />
+</p>
+
+<p>
+\(|1,0\rangle\) should be symmetric under exchange so, it would be superposition of \(|\uparrow\downarrow\rangle\) and \(|\downarrow\uparrow\rangle\) state.<br />
+</p>
+
+<p>
+all states should be orthogonal with each other so<br />
+</p>
+\[
+|0,0\rangle = \big(|\uparrow\downarrow\rangle - |\downarrow\uparrow\rangle\big)/\sqrt2
+\]
+
+<p>
+after exchange<br />
+</p>
+\[
+|0,0\rangle = \big(|\downarrow\uparrow\rangle - |\uparrow\downarrow\rangle\big)\sqrt2
+\]
+
+<p>
+ anti-symmetric under exchange<br />
+</p>
+
+
+
+<p>
+<a href="Quantum Mechanics (V Balakrishnan) Opus 5.html">overview</a>  |  <a href="Quantum Mechanics Lec 16-17 (V Balakrishnan) Opus 5.html">&lt;&lt; prev</a><br />
+</p>
+
+    </div>
+
+    <!-- Floating buttons: ask this page (added by pagebot.js), go back to the
+         previous page, and scroll to top of this page -->
+    <div class="floating-btns">
+        <button id="btn-back" type="button" title="Go back" aria-label="Go back">&#8592;</button>
+        <button id="btn-top" type="button" title="Back to top" aria-label="Back to top">&#8593;</button>
+    </div>
+
+    <!-- Top-right buttons: site-wide tools — search (docked here at runtime by
+         search.js) and translate. Kept out of the bottom-right stack above,
+         which is for navigating within the current page. -->
+    <div class="top-right-btns">
+        <button id="btn-globe" type="button" title="Translate this page" aria-label="Translate this page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/><path d="M5.3 6.5c1.9 1 4.2 1.6 6.7 1.6s4.8-.6 6.7-1.6"/><path d="M5.3 17.5c1.9-1 4.2-1.6 6.7-1.6s4.8.6 6.7 1.6"/></svg></button>
+    </div>
+
+    <!-- Globe language panel: the only UI the visitor interacts with. Selecting
+         a language drives the hidden Google widget below (see script further
+         down) rather than showing Google's own default dropdown/banner. -->
+    <div id="translate-panel" aria-label="Choose a language">
+        <div class="tp-header">Translate this page</div>
+        <input type="text" id="tp-search" placeholder="Search language...">
+        <div class="tp-list" id="tp-list"></div>
+    </div>
+
+    <!-- Google Website Translator: loaded hidden. It is what actually performs
+         the translation once our panel sets its hidden <select> and fires a
+         change event on it (see script below). -->
+    <div id="google_translate_element"></div>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({ pageLanguage: 'en', autoDisplay: false }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <!-- Breadcrumb trail: the actual navigation chain the visitor clicked
+         through, in order (link1 > link2 > ... > current), NOT the folder path.
+         The chain is stored per-tab in sessionStorage: each page appends itself
+         when reached via a new link, and truncates back to itself when revisited
+         (e.g. clicking an earlier crumb or using the back button). Home is
+         always the root. The label prefers the page's own <h1>. -->
+    <script>
+    (function () {
+        var nav = document.getElementById('breadcrumb');
+        if (!nav) return;
+
+        var KEY = 'wikiBreadcrumbTrail';
+        var path = window.location.pathname;
+
+        function pageLabel() {
+            var h1 = document.querySelector('#content h1');
+            var t = h1 ? h1.textContent.replace(/\s+/g, ' ').trim() : '';
+            if (t) return t;
+            t = (document.title || '').replace(/_+/g, ' ').trim();
+            if (t && t.toLowerCase() !== 'index') return t;
+            var segs = path.split('/').filter(Boolean).map(function (s) {
+                try { return decodeURIComponent(s); } catch (e) { return s; }
+            });
+            var last = segs.pop() || '';
+            if (/^index\.html?$/i.test(last)) last = segs.pop() || 'index';
+            return last.replace(/\.html?$/i, '').replace(/_+/g, ' ').trim() || 'Page';
+        }
+
+        var current = { href: path, label: pageLabel() };
+
+        // Load the existing chain for this tab.
+        var trail = [];
+        try { trail = JSON.parse(sessionStorage.getItem(KEY)) || []; } catch (e) { trail = []; }
+        if (!Array.isArray(trail)) trail = [];
+
+        // If this page is already in the chain (visitor clicked an earlier crumb
+        // or hit back), cut the chain back to it. Otherwise extend the chain.
+        var found = -1;
+        for (var i = 0; i < trail.length; i++) {
+            if (trail[i] && trail[i].href === current.href) { found = i; break; }
+        }
+        if (found !== -1) {
+            trail = trail.slice(0, found + 1);
+            trail[found] = current;            // refresh the label
+        } else {
+            trail.push(current);
+        }
+
+        try { sessionStorage.setItem(KEY, JSON.stringify(trail)); } catch (e) {}
+
+        function addLink(href, text) {
+            var a = document.createElement('a');
+            a.href = href;
+            a.textContent = text;
+            nav.appendChild(a);
+            var sep = document.createElement('span');
+            sep.className = 'breadcrumb-sep';
+            sep.textContent = '\u203A';
+            nav.appendChild(sep);
+        }
+
+        // Home is always the root of the chain.
+        addLink('/index.html', 'Home');
+
+        // Every page in the chain except the current one is a clickable link.
+        for (var j = 0; j < trail.length - 1; j++) {
+            addLink(trail[j].href, trail[j].label);
+        }
+
+        var cur = document.createElement('span');
+        cur.className = 'breadcrumb-current';
+        cur.setAttribute('aria-current', 'page');
+        cur.textContent = trail.length ? trail[trail.length - 1].label : current.label;
+        nav.appendChild(cur);
+    })();
+    </script>
+
+    <!-- Floating buttons: back = previous page, top = smooth-scroll to top of this page -->
+    <script>
+    (function () {
+        var back = document.getElementById('btn-back');
+        var top = document.getElementById('btn-top');
+        if (back) {
+            back.addEventListener('click', function () { window.history.back(); });
+            if (window.history.length <= 1) back.style.display = 'none'; // nothing to go back to
+        }
+        if (top) {
+            top.addEventListener('click', function () {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            var onScroll = function () {
+                top.style.display = (window.pageYOffset > 200) ? 'block' : 'none';
+            };
+            window.addEventListener('scroll', onScroll, { passive: true });
+            onScroll();
+        }
+    })();
+    </script>
+
+    <!-- Globe button: opens the language panel; selecting a language drives the
+         hidden Google Translate widget (loaded above). The chosen language is
+         remembered in localStorage and re-applied on every page the visitor
+         navigates to next, so translation persists across the whole site. -->
+    <script>
+    (function () {
+        var LANGS = [
+            ['af', 'Afrikaans'], ['sq', 'Albanian'], ['am', 'Amharic'], ['ar', 'Arabic'], ['hy', 'Armenian'],
+            ['as', 'Assamese'], ['ay', 'Aymara'], ['az', 'Azerbaijani'], ['bm', 'Bambara'], ['eu', 'Basque'],
+            ['be', 'Belarusian'], ['bn', 'Bengali'], ['bho', 'Bhojpuri'], ['bs', 'Bosnian'], ['bg', 'Bulgarian'],
+            ['ca', 'Catalan'], ['ceb', 'Cebuano'], ['ny', 'Chichewa'], ['zh-CN', 'Chinese (Simplified)'],
+            ['zh-TW', 'Chinese (Traditional)'], ['co', 'Corsican'], ['hr', 'Croatian'], ['cs', 'Czech'],
+            ['da', 'Danish'], ['dv', 'Dhivehi'], ['doi', 'Dogri'], ['nl', 'Dutch'], ['en', 'English'],
+            ['eo', 'Esperanto'], ['et', 'Estonian'], ['ee', 'Ewe'], ['fil', 'Filipino'], ['fi', 'Finnish'],
+            ['fr', 'French'], ['fy', 'Frisian'], ['gl', 'Galician'], ['ka', 'Georgian'], ['de', 'German'],
+            ['el', 'Greek'], ['gn', 'Guarani'], ['gu', 'Gujarati'], ['ht', 'Haitian Creole'], ['ha', 'Hausa'],
+            ['haw', 'Hawaiian'], ['he', 'Hebrew'], ['hi', 'Hindi'], ['hmn', 'Hmong'], ['hu', 'Hungarian'],
+            ['is', 'Icelandic'], ['ig', 'Igbo'], ['ilo', 'Ilocano'], ['id', 'Indonesian'], ['ga', 'Irish'],
+            ['it', 'Italian'], ['ja', 'Japanese'], ['jv', 'Javanese'], ['kn', 'Kannada'], ['kk', 'Kazakh'],
+            ['km', 'Khmer'], ['rw', 'Kinyarwanda'], ['gom', 'Konkani'], ['ko', 'Korean'], ['kri', 'Krio'],
+            ['ku', 'Kurdish'], ['ckb', 'Kurdish (Sorani)'], ['ky', 'Kyrgyz'], ['lo', 'Lao'], ['la', 'Latin'],
+            ['lv', 'Latvian'], ['ln', 'Lingala'], ['lt', 'Lithuanian'], ['lg', 'Luganda'], ['lb', 'Luxembourgish'],
+            ['mk', 'Macedonian'], ['mai', 'Maithili'], ['mg', 'Malagasy'], ['ms', 'Malay'], ['ml', 'Malayalam'],
+            ['mt', 'Maltese'], ['mi', 'Maori'], ['mr', 'Marathi'], ['mni-Mtei', 'Meiteilon (Manipuri)'],
+            ['lus', 'Mizo'], ['mn', 'Mongolian'], ['my', 'Myanmar (Burmese)'], ['ne', 'Nepali'],
+            ['no', 'Norwegian'], ['or', 'Odia (Oriya)'], ['om', 'Oromo'], ['ps', 'Pashto'], ['fa', 'Persian'],
+            ['pl', 'Polish'], ['pt', 'Portuguese'], ['pa', 'Punjabi'], ['qu', 'Quechua'], ['ro', 'Romanian'],
+            ['ru', 'Russian'], ['sm', 'Samoan'], ['sa', 'Sanskrit'], ['gd', 'Scots Gaelic'],
+            ['nso', 'Sepedi'], ['sr', 'Serbian'], ['st', 'Sesotho'], ['sn', 'Shona'], ['sd', 'Sindhi'],
+            ['si', 'Sinhala'], ['sk', 'Slovak'], ['sl', 'Slovenian'], ['so', 'Somali'], ['es', 'Spanish'],
+            ['su', 'Sundanese'], ['sw', 'Swahili'], ['sv', 'Swedish'], ['tg', 'Tajik'], ['ta', 'Tamil'],
+            ['tt', 'Tatar'], ['te', 'Telugu'], ['th', 'Thai'], ['ti', 'Tigrinya'], ['ts', 'Tsonga'],
+            ['tr', 'Turkish'], ['tk', 'Turkmen'], ['ak', 'Twi'], ['uk', 'Ukrainian'], ['ur', 'Urdu'],
+            ['ug', 'Uyghur'], ['uz', 'Uzbek'], ['vi', 'Vietnamese'], ['cy', 'Welsh'], ['xh', 'Xhosa'],
+            ['yi', 'Yiddish'], ['yo', 'Yoruba'], ['zu', 'Zulu']
+        ];
+
+        var STORAGE_KEY = 'wikiTranslateLang';
+        var btn = document.getElementById('btn-globe');
+        var panel = document.getElementById('translate-panel');
+        var search = document.getElementById('tp-search');
+        var list = document.getElementById('tp-list');
+        if (!btn || !panel || !list || !search) return;
+
+        function currentLang() {
+            try { return localStorage.getItem(STORAGE_KEY) || 'en'; } catch (e) { return 'en'; }
+        }
+
+        function renderList(filter) {
+            var f = (filter || '').trim().toLowerCase();
+            var active = currentLang();
+            list.innerHTML = '';
+            LANGS.forEach(function (pair) {
+                var code = pair[0], name = pair[1];
+                if (f && name.toLowerCase().indexOf(f) === -1) return;
+                var b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'tp-lang' + (code === active ? ' active' : '');
+                b.textContent = name;
+                b.addEventListener('click', function () { setLanguage(code); });
+                list.appendChild(b);
+            });
+        }
+
+        function setLanguage(code) {
+            try { localStorage.setItem(STORAGE_KEY, code); } catch (e) {}
+            panel.classList.remove('open');
+            applyLanguage(code);
+        }
+
+        function applyLanguage(code) {
+            if (code === 'en') {
+                // Reset to the original English text.
+                document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + location.hostname + ';';
+                if (document.querySelector('select.goog-te-combo')) location.reload();
+                return;
+            }
+            // The Google widget loads its <select> asynchronously, so poll
+            // briefly until it exists (covers both the click case and the
+            // "re-apply on new page load" case below).
+            var tries = 0;
+            (function tryApply() {
+                var combo = document.querySelector('select.goog-te-combo');
+                if (combo) {
+                    if (combo.value !== code) {
+                        combo.value = code;
+                        combo.dispatchEvent(new Event('change'));
+                    }
+                } else if (tries < 40) {
+                    tries++;
+                    setTimeout(tryApply, 250);
+                }
+            })();
+        }
+
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var opening = !panel.classList.contains('open');
+            panel.classList.toggle('open', opening);
+            if (opening) {
+                search.value = '';
+                renderList('');
+                search.focus();
+            }
+        });
+        document.addEventListener('click', function (e) {
+            if (panel.classList.contains('open') && !panel.contains(e.target) && e.target !== btn) {
+                panel.classList.remove('open');
+            }
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') panel.classList.remove('open');
+        });
+        search.addEventListener('input', function () { renderList(search.value); });
+
+        renderList('');
+
+        // Keep the whole site translated as the visitor moves between pages.
+        var saved = currentLang();
+        if (saved && saved !== 'en') applyLanguage(saved);
+    })();
+    </script>
+
+    <!-- Images: (1) rewrite baked-in local export paths to their web location and
+         trim stray spaces, (2) upgrade http:// -> https://, (3) add a caption under
+         each image using its alt text. Images with no alt are left uncaptioned.
+         NOTE: the image FILES must exist on the server at the mapped location
+         (e.g. /wiki/vimwiki_html/Blogs/cric/) — upload that folder. -->
+    <script>
+    (function () {
+        var LOCAL_ANCHOR = '/vimwiki/';
+        var WEB_ROOT = '/wiki/vimwiki_html/';
+        document.querySelectorAll('#content img').forEach(function (img) {
+            // 1) normalise the src
+            var raw = img.getAttribute('src');
+            if (raw) {
+                var s = raw.trim();
+                var i = s.indexOf(LOCAL_ANCHOR);
+                if (i !== -1) s = WEB_ROOT + s.slice(i + LOCAL_ANCHOR.length);
+                if (/^http:\/\//i.test(s)) s = s.replace(/^http:\/\//i, 'https://');
+                if (s !== raw) img.setAttribute('src', s);
+            }
+            // 2) defer offscreen images: on a long photo post the browser
+            //    would otherwise start fetching every image at once.
+            if (!img.hasAttribute('loading')) img.setAttribute('loading', 'lazy');
+            img.setAttribute('decoding', 'async');
+            // 3) caption from alt text
+            var alt = (img.getAttribute('alt') || '').trim();
+            if (!alt) return;
+            var parent = img.parentNode;
+            if (!parent || parent.tagName === 'FIGURE') return;
+            var fig = document.createElement('figure');
+            fig.className = 'img-figure';
+            var cap = document.createElement('figcaption');
+            cap.textContent = alt;
+            parent.insertBefore(fig, img);
+            fig.appendChild(img);
+            fig.appendChild(cap);
+            // tidy a <br> left immediately after the image
+            var nx = fig.nextSibling;
+            if (nx && nx.nodeType === 1 && nx.tagName === 'BR') nx.parentNode.removeChild(nx);
+        });
+    })();
+    </script>
+
+    <!-- Hover preview cards for internal links, like Wikipedia's page previews.
+         Hovering (or focusing) a same-site link to another .html page fetches
+         that page, and if — and only if — it actually exists (HTTP 200), shows
+         its title, first paragraph, and first image in a small card near the
+         link. Broken/nonexistent links are left alone: nothing is shown. -->
+    <script>
+    (function () {
+        var content = document.getElementById('content');
+        if (!content) return;
+
+        var LOCAL_ANCHOR = '/vimwiki/';
+        var WEB_ROOT = '/wiki/vimwiki_html/';
+        function fixImgSrc(src) {
+            if (!src) return src;
+            var s = src.trim();
+            var i = s.indexOf(LOCAL_ANCHOR);
+            if (i !== -1) s = WEB_ROOT + s.slice(i + LOCAL_ANCHOR.length);
+            if (/^http:\/\//i.test(s)) s = s.replace(/^http:\/\//i, 'https://');
+            return s;
+        }
+
+        var card = document.createElement('div');
+        card.className = 'link-preview-card';
+        document.body.appendChild(card);
+
+        var cache = {};   // resolved URL -> {title, snippet, thumb} | 'missing'
+        var showTimer = null;
+        var hideTimer = null;
+        var activeKey = null;
+
+        function stripHash(href) {
+            var i = href.indexOf('#');
+            return i === -1 ? href : href.slice(0, i);
+        }
+
+        function extract(html) {
+            var doc = new DOMParser().parseFromString(html, 'text/html');
+            var target = doc.getElementById('content');
+            if (!target) return null;
+            var h1 = target.querySelector('h1');
+            var title = h1 ? h1.textContent.replace(/\s+/g, ' ').trim() : (doc.title || '').trim();
+            var snippet = '';
+            var ps = target.querySelectorAll('p');
+            for (var i = 0; i < ps.length; i++) {
+                var t = ps[i].textContent.replace(/\s+/g, ' ').trim();
+                if (t.length > 20) { snippet = t; break; }
+            }
+            if (snippet.length > 220) snippet = snippet.slice(0, 217).trim() + '…';
+            var img = target.querySelector('img');
+            var thumb = img ? fixImgSrc(img.getAttribute('src')) : null;
+            return { title: title || 'Untitled', snippet: snippet, thumb: thumb };
+        }
+
+        function render(data) {
+            var html = '';
+            if (data.thumb) html += '<img class="lp-thumb" src="' + data.thumb + '" alt="">';
+            html += '<div class="lp-body"><div class="lp-title"></div><p class="lp-snippet"></p></div>';
+            card.innerHTML = html;
+            card.querySelector('.lp-title').textContent = data.title;
+            card.querySelector('.lp-snippet').textContent = data.snippet;
+        }
+
+        function position(link) {
+            var rect = link.getBoundingClientRect();
+            var margin = 10;
+            var cardWidth = card.offsetWidth || 300;
+            var left = rect.left;
+            if (left + cardWidth > window.innerWidth - margin) left = window.innerWidth - cardWidth - margin;
+            if (left < margin) left = margin;
+            var top = rect.bottom + 8;
+            var cardHeight = card.offsetHeight || 160;
+            if (top + cardHeight > window.innerHeight - margin && rect.top - cardHeight - 8 > margin) {
+                top = rect.top - cardHeight - 8;
+            }
+            card.style.left = left + 'px';
+            card.style.top = top + 'px';
+        }
+
+        function hide() {
+            card.classList.remove('visible');
+            activeKey = null;
+        }
+
+        function showFor(link, key) {
+            var data = cache[key];
+            if (!data || data === 'missing') return;
+            render(data);
+            position(link);
+            card.classList.add('visible');
+            requestAnimationFrame(function () { position(link); });
+        }
+
+        function handleEnter(link, key) {
+            clearTimeout(hideTimer);
+            clearTimeout(showTimer);
+            activeKey = key;
+            showTimer = setTimeout(function () {
+                if (activeKey !== key) return;
+                if (cache[key] === 'missing') return;
+                if (cache[key]) { showFor(link, key); return; }
+                fetch(key, { credentials: 'same-origin' }).then(function (res) {
+                    if (!res.ok) { cache[key] = 'missing'; return null; }
+                    return res.text();
+                }).then(function (html) {
+                    if (html == null) return;
+                    var data = extract(html);
+                    if (!data) { cache[key] = 'missing'; return; }
+                    cache[key] = data;
+                    if (activeKey === key) showFor(link, key);
+                }).catch(function () { cache[key] = 'missing'; });
+            }, 350);
+        }
+
+        function handleLeave() {
+            clearTimeout(showTimer);
+            activeKey = null;
+            hideTimer = setTimeout(hide, 200);
+        }
+
+        card.addEventListener('mouseenter', function () { clearTimeout(hideTimer); });
+        card.addEventListener('mouseleave', function () { hideTimer = setTimeout(hide, 150); });
+
+        content.querySelectorAll('a[href]').forEach(function (link) {
+            var href = link.getAttribute('href');
+            if (!href || href.charAt(0) === '#') return;
+            if (/^(mailto:|javascript:|tel:)/i.test(href)) return;
+            if (link.hostname !== window.location.hostname) return;
+            var key = stripHash(link.href);
+            if (!/\.html?$/i.test(key.split('?')[0])) return;
+            link.addEventListener('mouseenter', function () { handleEnter(link, key); });
+            link.addEventListener('mouseleave', handleLeave);
+            link.addEventListener('focus', function () { handleEnter(link, key); });
+            link.addEventListener('blur', handleLeave);
+        });
+
+        window.addEventListener('scroll', hide, { passive: true });
+        window.addEventListener('resize', hide);
+    })();
+    </script>
+
+    <!-- 0. Repair asset paths (vimwiki-asset-path-fix).
+         Vimwiki resolves {{...}} images and local:/file: links against the
+         SOURCE wiki tree (.../phd_work/notes/vimwiki/...), which does not exist
+         on the deployed site, and it appends ".html" to any [[link]] even when
+         the target already has an extension. Both are repaired here so the
+         fix survives every re-export instead of needing a manual patch. -->
+    <script>
+    (function () {
+        var ROOT = '/wiki/vimwiki_html/';
+        var NEEDLE = 'notes/vimwiki/';
+        var ATTACH = /\.(pdf|png|jpe?g|gif|svg|webp|zip|txt|csv|tex|docx?|xlsx?|pptx?)\.html$/i;
+        function fix(url) {
+            if (!url || /^(https?:|mailto:|#|data:)/i.test(url)) return url;
+            var i = url.indexOf(NEEDLE);
+            if (i !== -1) url = ROOT + url.slice(i + NEEDLE.length);
+            return url.replace(ATTACH, '.$1');
+        }
+        function sweep(sel, attr) {
+            document.querySelectorAll(sel).forEach(function (el) {
+                var v = el.getAttribute(attr), n = fix(v);
+                if (n !== v) el.setAttribute(attr, n);
+            });
+        }
+        sweep('a[href]', 'href');
+        sweep('img[src]', 'src');
+    })();
+    </script>
+    <!-- 1. Turn vimwiki {{{class="tikz"}}} blocks into TikZJax script tags (must run BEFORE tikzjax.js) -->
+    <script>
+        document.querySelectorAll('pre.tikz').forEach(function (pre) {
+            var s = document.createElement('script');
+            s.type = 'text/tikz';
+            s.textContent = pre.textContent; // browser decodes HTML entities here
+            pre.textContent = '';
+            pre.appendChild(s); // keep <pre class="tikz"> as the container so its
+                                 // text-align:center still applies to the SVG tikzjax inserts
+        });
+    </script>
+    <!-- 2. Syntax-highlight code blocks, but skip diagram blocks -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre:not(.mermaid):not(.tikz)').forEach(function (block) {
+            hljs.highlightBlock(block);
+        });
+    </script>
+    <!-- 3. TikZJax: renders <script type="text/tikz"> into SVG -->
+    <script src="https://tikzjax.com/v1/tikzjax.js"></script>
+    <!-- 4. Mermaid: renders <pre class="mermaid"> into SVG -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+
+    <!-- 5. Ask-this-page search. Purely local: it indexes the text already in
+         #content and shows the passages that match your question. The launcher
+         is added to the .floating-btns stack above, so it inherits those styles.
+         The index is built the first time the panel is opened, by which point
+         MathJax/TikZ/Mermaid have finished rewriting the DOM. -->
+    <script>
+        window.PAGEBOT_CONFIG = {
+            rootSelector: '#content',
+            extraSkip: 'pre.mermaid, pre.tikz, .breadcrumb',
+            launcherSelector: '.floating-btns',
+            launcherLabel: '?',
+            launcherTitle: 'Ask this page',
+            title: 'Ask this page',
+            accent: '#6b4f2a',
+            panelBg: '#fbf6e9',
+            results: 3
+        };
+    </script>
+    <script src="/wiki/assets/pagebot.js"></script>
+
+    <!-- 6. Site-wide search: separate from "Ask this page" above — this finds
+         *which page* to go to, across the whole site, not just this one.
+         Reads wiki/assets/search-index.json (built by build_search_index.py).
+         The launcher is docked into the top-right stack, next to translate,
+         since both are site-wide rather than per-page tools. -->
+    <script>
+        window.SEARCH_CONFIG = {
+            launcherSelector: '.top-right-btns',
+            launcherLabel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16.3 16.3 21 21"/></svg>',
+            launcherTitle: 'Search this site',
+            title: 'Search this site',
+            accent: '#6b4f2a',
+            panelBg: '#fbf6e9',
+            maxResults: 8
+        };
+    </script>
+    <script src="/wiki/assets/search.js"></script>
+</body>
+</html>
