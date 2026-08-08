@@ -1,0 +1,2755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- <link rel="stylesheet" type="text/css" href="style.css"> -->
+    <link rel="stylesheet" href="/wiki/assets/style.css" />
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
+    <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
+    <title>Analytic Functions of a Complex Variable (V Balakrishnan) Opus 5</title>
+    <!-- MathJax config: on phone-width screens, break long display equations onto
+         multiple lines instead of overflowing the page. Desktop and tablet keep the
+         default rendering (empty config), so their layout is unchanged. Must run
+         BEFORE the MathJax script below. -->
+    <script>
+        (function () {
+            var isPhone = window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
+            window.MathJax = {
+                chtml: isPhone
+                    ? { scale: 0.8, displayOverflow: 'linebreak', linebreaks: { inline: true } }
+                    : {}
+            };
+        })();
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            /* Absolute, not '../Images/parchment.jpg': the relative form
+               resolved to a different copy of the same image in every section
+               folder, so the browser cached (and re-downloaded) it once per
+               section. One canonical URL = fetched once for the whole site. */
+            background-image: url('/wiki/vimwiki_html/Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm;
+        }
+        #content {
+            color: #333;
+            font-size: 20px;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+        h1 { font-size: 28px; }
+        h2 { font-size: 24px; }
+        h3 { font-size: 20px; }
+        h4, h5, h6 { font-size: 18px; }
+        img {
+            display: block;
+            max-width: 100%;
+            max-height: 500px;
+            margin: 30px auto;
+        }
+        /* Image + caption (built from each image's alt text) */
+        figure.img-figure {
+            margin: 30px auto;
+            text-align: center;
+            max-width: 100%;
+        }
+        figure.img-figure img {
+            margin: 0 auto 8px auto;   /* caption sits right under the image */
+        }
+        figure.img-figure figcaption {
+            font-size: 15px;
+            color: #555;
+            font-style: italic;
+            line-height: 1.4;
+        }
+        /* Diagram blocks (Mermaid + TikZ): centered, no code-box background */
+        pre.mermaid, pre.tikz {
+            background: none;
+            border: none;
+            text-align: center;
+        }
+        #content svg {
+            max-width: 100%;
+            height: auto;
+        }
+        /* Breadcrumb trail */
+        .breadcrumb {
+            font-size: 19px;
+            font-weight: bold;
+            line-height: 1.5;
+            margin-bottom: 22px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid rgba(181, 101, 29, 0.35);
+            word-break: break-word;
+        }
+        .breadcrumb:empty { display: none; }
+        .breadcrumb a { color: #b5651d; text-decoration: none; }
+        .breadcrumb a:hover { color: #8a4a12; text-decoration: underline; }
+        .breadcrumb .breadcrumb-sep { color: #c08a5a; margin: 0 8px; }
+        .breadcrumb .breadcrumb-current { color: #1f3a5f; }
+        /* Floating navigation buttons (ask this page + go back + scroll to top) */
+        .floating-btns {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 1000;
+        }
+        .floating-btns button {
+            width: 48px;
+            height: 48px;
+            border: none;
+            border-radius: 50%;
+            background: #6b4f2a;
+            color: #fff;
+            font-size: 22px;
+            line-height: 48px;
+            text-align: center;
+            padding: 0;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            opacity: 0.85;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .floating-btns button:hover { opacity: 1; transform: translateY(-2px); }
+        #btn-top { display: none; }   /* revealed after scrolling down */
+        /* Top-right button stack: site-wide tools (translate + search), kept
+           separate from the bottom-right stack above, which holds per-page
+           navigation (back / top / ask-this-page). The search launcher is
+           inserted here at runtime by search.js. */
+        .top-right-btns {
+            position: fixed;
+            top: 16px;
+            right: 24px;
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            z-index: 1500;
+        }
+        /* Plain monochrome line icons — no fill, no coloured circle. The icons
+           are inline SVG using stroke: currentColor, so `color` is all that
+           drives their appearance. */
+        .top-right-btns button {
+            width: 48px;
+            height: 48px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 8px;
+            background: none;
+            color: #4a4038;
+            padding: 0;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transition: color 0.15s ease, background-color 0.15s ease;
+        }
+        .top-right-btns button svg { width: 32px; height: 32px; display: block; }
+        .top-right-btns button:hover { color: #1f1a15; background: rgba(107, 79, 42, 0.12); }
+        @media (max-width: 600px) {
+            .floating-btns { right: 14px; bottom: 14px; }
+            .floating-btns button { width: 44px; height: 44px; font-size: 20px; line-height: 44px; }
+            .top-right-btns { top: 12px; right: 14px; gap: 4px; }
+            .top-right-btns button { width: 44px; height: 44px; }
+            .top-right-btns button svg { width: 30px; height: 30px; }
+        }
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body { padding: 12px; }
+            #content {
+                padding: 8px 10px;
+                max-width: 100%;
+                font-size: 13px;    /* smaller text -> proportionally smaller equations that fit */
+                line-height: 1.5;
+            }
+            h1 { font-size: 20px; }
+            h2 { font-size: 18px; }
+            h3 { font-size: 16px; }
+            h4, h5, h6 { font-size: 15px; }
+            .breadcrumb { font-size: 15px; }
+            /* Wide math: never let it stretch the page. If it can't be broken onto
+               multiple lines, it scrolls inside its own box instead. */
+            mjx-container[display="true"] {
+                max-width: 100%;
+                overflow-x: auto;
+                overflow-y: hidden;
+            }
+            mjx-container { max-width: 100%; }
+        }
+        /* Google Translate: the widget itself stays hidden. We drive it entirely
+           through our own globe button + language panel below. Suppress every
+           bit of Google's own chrome in all cases — the "Translated to … /
+           Show original" top banner, the floating balloon, the feedback tab,
+           and the "suggest a better translation" hover tooltip. None of it
+           should ever surface; the visitor switches back to English from our
+           own globe menu instead.
+
+           The banner is injected as a top-level <iframe class="skiptranslate">,
+           which is why hiding only the .goog-te-* classes wasn't enough. */
+        #google_translate_element { display: none !important; }
+        .goog-te-gadget { display: none !important; }
+        iframe.skiptranslate,
+        .skiptranslate > iframe,
+        .goog-te-banner-frame,
+        .goog-te-banner-frame.skiptranslate,
+        .goog-te-ftab,
+        .goog-te-ftab-float,
+        .goog-te-balloon-frame,
+        .goog-te-gadget-icon,
+        .goog-te-menu-frame,
+        #goog-gt-tt,
+        .goog-tooltip,
+        .goog-tooltip:hover {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        /* Google pushes the page down with an inline body { top: 40px;
+           position: relative } to make room for that banner. !important here
+           outranks its inline style, so the layout never shifts. */
+        body {
+            top: 0px !important;
+            position: static !important;
+        }
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
+        /* Globe language panel */
+        #translate-panel {
+            display: none;
+            flex-direction: column;
+            position: fixed;
+            right: 24px;
+            top: 72px;
+            width: 260px;
+            max-height: 360px;
+            background: #fbf6e9;
+            border-radius: 10px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+            z-index: 1001;
+            overflow: hidden;
+        }
+        #translate-panel.open { display: flex; }
+        #translate-panel .tp-header {
+            padding: 10px 12px 6px 12px;
+            font-weight: bold;
+            color: #6b4f2a;
+            border-bottom: 1px solid rgba(107, 79, 42, 0.2);
+        }
+        #translate-panel input[type="text"] {
+            margin: 8px 12px;
+            padding: 6px 8px;
+            border: 1px solid rgba(107, 79, 42, 0.3);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        #translate-panel .tp-list {
+            overflow-y: auto;
+            padding: 0 6px 8px 6px;
+        }
+        #translate-panel .tp-lang {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            padding: 7px 10px;
+            font-size: 14px;
+            color: #333;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+        #translate-panel .tp-lang:hover { background: rgba(107, 79, 42, 0.12); }
+        #translate-panel .tp-lang.active { background: #6b4f2a; color: #fff; }
+        @media (max-width: 600px) {
+            #translate-panel { right: 14px; top: 64px; width: 220px; max-height: 300px; }
+        }
+        /* Hover preview card for internal links (Wikipedia-style). Only ever
+           populated for links whose target page actually exists — see the
+           script below, which fetches the target and stays hidden on 404. */
+        .link-preview-card {
+            position: fixed;
+            z-index: 1002;
+            width: 300px;
+            max-width: calc(100vw - 24px);
+            background: #fbf6e9;
+            border: 1px solid rgba(107, 79, 42, 0.3);
+            border-radius: 10px;
+            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(4px);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            font-family: Arial, sans-serif;
+        }
+        .link-preview-card.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+        .link-preview-card .lp-thumb {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            display: block;
+            background: rgba(107, 79, 42, 0.08);
+        }
+        .link-preview-card .lp-body { padding: 12px 14px; }
+        .link-preview-card .lp-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #6b4f2a;
+            margin: 0 0 6px 0;
+            line-height: 1.3;
+        }
+        .link-preview-card .lp-snippet {
+            font-size: 13px;
+            color: #444;
+            line-height: 1.45;
+            margin: 0;
+        }
+        /* Hover previews don't make sense on touch devices, so keep this off
+           on narrow/mobile viewports rather than leaving a stuck-open card. */
+        @media (max-width: 600px) {
+            .link-preview-card { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        <!-- Breadcrumb: Home > section > current, based on which top-level wiki
+             folder this page lives under. See the script below for the mapping. -->
+        <nav id="breadcrumb" class="breadcrumb" aria-label="Breadcrumb"></nav>
+        
+<p>
+<a href="V Balakrishnan's lecture notes.html">V. Balakrishnan</a>  |  <a href="Classical Mechanics and Dynamical Systems (V Balakrishnan) Opus 5.html">Classical Mechanics notes</a><br />
+</p>
+
+<p>
+Handwritten notes on analytic functions of a complex variable, transcribed from the original notebook scans with all diagrams redrawn. The notebook records that Mod 01, Lec 1 of this topic is written up with the Quantum Mechanics notes (Lec 25).<br />
+</p>
+
+<p>
+PDF: <a href="../../../../phd_work/notes/vimwiki/Lecture_notes/PDFs/Complex_Analysis_Notes_Opus5.pdf">Analytic Functions of a Complex Variable -- PDF</a><br />
+</p>
+
+<p>
+Acknowledgements:<br />
+</p>
+
+<p>
+All these html and tex files are created by use of Anthropic's <a href="https://www.anthropic.com/">Claude AI</a> using opus 5 with max usage.<br />
+</p>
+
+<p>
+For any discrepancies, please refer to the original lectures or my handwritten notes.<br />
+</p>
+
+<div id="Module 1, Lecture 2"><h1 id="Module 1, Lecture 2" class="header"><a href="#Module 1, Lecture 2">Module 1, Lecture 2</a></h1></div>
+
+<div id="Module 1, Lecture 2-outline :--"><h2 id="outline :--" class="header"><a href="#Module 1, Lecture 2-outline :--">outline :--</a></h2></div>
+
+<ol>
+<li>
+The derivative of an analytic function
+
+<li>
+power series as analytic functions
+
+<li>
+convergence of power series.
+
+</ol>
+<div id="Module 1, Lecture 2-(1) Darivative of analytic function :-"><h2 id="(1) Darivative of analytic function :-" class="header"><a href="#Module 1, Lecture 2-(1) Darivative of analytic function :-">(1) Darivative of analytic function :-</a></h2></div>
+
+<p>
+let \(f(z)\) be analytic function in complex plane \(\bar{z}\).<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.8,&gt;=Stealth]
+\draw[-&gt;] (0,-0.2) -- (0,2.6);
+\draw[-&gt;] (-0.4,0) -- (4.2,0);
+\fill (1.1,0.55) circle (1.2pt);
+\node at (0.75,2.35) {\scriptsize $z+\delta z$};
+\fill (0.55,2.1) circle (1.2pt);
+\draw[-&gt;] (1.1,0.55) -- (0.72,1.85);
+\draw[-&gt;] (1.1,0.55) -- (2.15,1.35);
+\node at (2.55,1.5) {\scriptsize $z+\delta z$};
+\draw[-&gt;] (1.1,0.55) -- (2.0,0.25);
+\node at (2.45,0.3) {\scriptsize $z+\delta z$};
+\draw[-&gt;] (1.1,0.55) -- (3.6,0.1);
+\node at (1.45,0.95) {\scriptsize $\delta z$};
+\node at (1.0,0.3) {\scriptsize $z$};
+\end{tikzpicture}
+</pre>
+
+\[
+\frac{df}{dz} = \lim_{\delta z \to 0} \frac{f(z+\delta z) - f(z)}{\delta z}
+\]
+
+<p>
+Here we can see that we do not know in which direction we should proceed to calculate derivative?<br />
+</p>
+
+<p>
+let us take a general case<br />
+</p>
+\[
+\delta z = \epsilon e^{i\alpha} \; , \quad z = x + iy
+\]
+
+\[
+\frac{df}{dz} = \lim_{\delta z \to 0} \frac{f(z+\delta z) - f(z)}{\delta z} =
+\]
+\[
+= e^{-i\alpha} \left\{ \left( \frac{\partial u}{\partial x} \cos\alpha + i \frac{\partial v}{\partial y} \sin\alpha \right) - i \left( \frac{\partial u}{\partial y} \cos\alpha - i \frac{\partial v}{\partial x} \sin\alpha \right) \right\}
+\]
+
+<p>
+What direction should \(\alpha\) be.<br />
+</p>
+
+<p>
+One way to define the derivative as it is same in all directions specified by `\(\alpha\)', i.e. it is independent of \(\alpha\).<br />
+</p>
+
+\[
+\frac{df}{dz} = \text{independent of } \alpha \quad \text{when} \quad
+\left. \begin{aligned} u_x &amp;= v_y \\ u_y &amp;= -v_x \end{aligned} \right\} \underline{\text{CR Relations}}
+\]
+
+<p>
+i.e. For analytic function their derivative does not depend on direction specified by angle \(\alpha\).<br />
+</p>
+
+<p>
+Some Real functions are not infinitely differentiable.<br />
+</p>
+
+<p>
+<span id="Module 1, Lecture 2-(1) Darivative of analytic function :--Ex"></span><strong id="Ex">Ex</strong> \(f(x) = x^2\) (only twice differentiable)<br />
+</p>
+\[
+\begin{aligned}
+f'(x) &amp;= 2x \\
+f''(x) &amp;= 2 \\
+f'''(x) &amp;= 0
+\end{aligned}
+\]
+<p>
+\(\therefore\) and so does \(f^{n}(x)\) does not exist.<br />
+</p>
+
+<p>
+In complex functions we do not have such complications.<br />
+</p>
+
+<p>
+If \(f(z)\) is analytic \(\Rightarrow\) \(f'(z)\) is analytic \(\Rightarrow\) \(f''(z)\) is analytic<br />
+</p>
+
+<p>
+The derivative of analytic function is also analytic function so does \(f''(z)\) &amp; higher derivatives.<br />
+</p>
+
+<p>
+so \(f(z)\) is analytic \((\Leftrightarrow)\) all its deriative are also analytic.<br />
+</p>
+
+<div id="Module 1, Lecture 2-Power series representation :-"><h2 id="Power series representation :-" class="header"><a href="#Module 1, Lecture 2-Power series representation :-">Power series representation :-</a></h2></div>
+
+<p>
+We can always represent a given analytic function in some power series about some point \(z_0\) which lies inside some region of analyticity / region of convergence.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.8,&gt;=Stealth]
+\draw plot[smooth cycle,tension=0.8] coordinates {(0,0.9) (0.9,1.9) (2.1,1.7) (2.6,0.5) (1.7,-0.6) (0.5,-0.3)};
+\fill (1.4,0.7) circle (1.2pt);
+\node at (1.4,0.42) {$z_0$};
+\node[left] at (-0.7,0.7) {Region $R$};
+\draw[-&gt;] (-0.65,0.75) -- (0.05,0.85);
+\end{tikzpicture}
+</pre>
+
+\[
+f(z) = \sum_{n=0}^{\infty} a_n (z-z_0)^n \quad \text{(Taylor series)}
+\]
+\[
+\left( a_n = \frac{1}{n!} \left. \frac{\partial^n f(z)}{\partial z^n} \right|_{z=z_0} \right) \quad \text{(Inverse of Taylor series)}
+\]
+
+<p>
+But this power series should be convergent to some finite value within some region of analyticity / circle of convergence about point \(z_0\) with radius \(R\). such that<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.8,&gt;=Stealth]
+\draw (0,0) circle (1.2);
+\fill (0,0) circle (1.2pt);
+\node at (0,-0.32) {$z_0$};
+\draw (0,0) -- (0.85,0.85);
+\node at (0.75,0.42) {$R$};
+\draw[-&gt;] (2.6,0.6) -- (1.15,-0.15);
+\end{tikzpicture}
+</pre>
+
+\[
+\left( \sum_{n=0}^{\infty} \left| a_n (z-z_0)^n \right| \; &lt; \infty \right)
+\]
+
+<p>
+To find radius of convergence \(|z-z_0|\) we need,<br />
+</p>
+\[
+\mathop{lt}_{n \to \infty} \left| \frac{a_{n+1} (z-z_0)^{n+1}}{a_n (z-z_0)^n} \right| &lt; \underline{1}
+\]
+\[
+\mathop{lt}_{n \to \infty} \left| \frac{a_{n+1}}{a_n} \right| |z-z_0| &lt; \underline{1}
+\]
+\[
+\left( R &lt; \mathop{lt}_{n \to \infty} \left| \frac{a_n}{a_{n+1}} \right| \right)
+\]
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.8,&gt;=Stealth]
+\draw[-&gt;] (0,0.5) -- (0,-0.3);
+\end{tikzpicture}
+</pre>
+
+<p>
+radius of convergence.<br />
+</p>
+
+<p>
+Now there is no gaurantee that this \(\lim_{n\to\infty} \left| \dfrac{a_n}{a_{n+1}} \right|\) exists<br />
+</p>
+
+<p>
+So we define<br />
+</p>
+\[
+\left( R = \limsup_{n \to \infty} |a_n|^{1/n} \right)
+\]
+
+<p>
+If radius of convergence for a given \(f(z)\) is `\(\infty\)' then this function is entire function (defined at \(\infty\) too).<br />
+</p>
+
+<p>
+<span id="Module 1, Lecture 2-Power series representation :--Examples"></span><strong id="Examples">Examples</strong>:<br />
+</p>
+
+<p>
+(1) \(f(z) = e^z\)<br />
+</p>
+\[
+e^z = \sum_n \frac{z^n}{n!}
+\]
+<p>
+to converge<br />
+</p>
+\[
+\mathop{lt}_{n \to \infty} \left| \frac{z^{n+1}}{(n+1)!} \left( \frac{n!}{z^n} \right) \right| &lt; \underline{1}
+\]
+\[
+\Rightarrow \mathop{lt}_{n \to \infty} \left| \frac{z}{n+1} \right| &lt; 1
+\]
+<p>
+for all finite value of \(z\), \((z &lt; \infty)\)<br />
+</p>
+\[
+\mathop{lt}_{n \to \infty} \left| \frac{z}{n+1} \right| \to 0 &lt; \underline{1} \quad \text{(converges)}.
+\]
+
+<p>
+(Radius of convergence) :-<br />
+</p>
+\[
+R \le \lim_{n \to \infty} \left| \frac{a_n}{a_{n+1}} \right|
+\]
+\[
+R \le \mathop{lt}_{n \to \infty} \left| \frac{z^n (n+1)!}{n!} \right|
+\]
+\[
+(R \to \infty) \qquad \text{(entire function)}.
+\]
+
+<p>
+(2) \(f(z) = 1 + z + z^2 + z^3 + \cdots \infty = \sum_{n=0}^{\infty} z^n\)<br />
+</p>
+
+<p>
+Is this function entire function?<br />
+</p>
+
+<p>
+Is the series convergent, where does this series converge?<br />
+</p>
+
+<p>
+\(f(z)\) converges for \(|z| &lt; 1\).<br />
+</p>
+
+<p>
+we can see<br />
+</p>
+\[
+\mathop{lt}_{n \to \infty} \left| \frac{z^{n+1}}{z^n} \right| &lt; 1
+\]
+\[
+\left( \mathop{lt}_{n \to \infty} |z| &lt; \underline{1} \right)
+\]
+
+<p>
+So Radius of convergence should be \(\underline{R=1}\).<br />
+</p>
+
+<p>
+<span id="Module 1, Lecture 2-Power series representation :--check,"></span><strong id="check,">check,</strong> \(R \le \mathop{lt}_{n\to\infty} \left| \dfrac{a_n}{a_{n+1}} \right|\) \(\Rightarrow (R=1)\) (as \(a_n = a_{n+1} = 1\)).<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+\draw[-&gt;] (-2.4,0) -- (2.4,0) node[right] {$x$};
+\draw[-&gt;] (0,-1.6) -- (0,1.7) node[above left] {$y$};
+\begin{scope}
+\clip (0,0) circle (1.2);
+\foreach \yy in {-1.1,-0.95,...,1.15} { \draw[thin] (-1.3,\yy) -- (1.3,\yy); }
+\end{scope}
+\draw (0,0) circle (1.2);
+\fill (1.2,0) circle (1.4pt);
+\node[below] at (-1.2,-0.05) {\scriptsize $-1$};
+\node[below right] at (1.2,-0.05) {\scriptsize $1$};
+\node[left] at (-0.05,1.2) {\scriptsize $i$};
+\node[left] at (-0.05,-1.2) {\scriptsize $-i$};
+\end{tikzpicture}
+</pre>
+
+<p>
+Inside this region series \(\sum\limits_{n=0}^{\infty} z^n\) is convergent.<br />
+</p>
+
+\[
+f(z) = \sum_{n=0}^{\infty} z^n \quad \text{diverges for all } z \text{ such that } \underline{|z| &gt; 1}
+\]
+
+<p>
+Inside region of convergence / analyticity :<br />
+</p>
+
+<p>
+we can identify that<br />
+</p>
+\[
+f(z) = 1 + z + z^2 + \cdots = \frac{1}{1-z}
+\]
+
+\[
+f(z) = \begin{cases}
+\sum\limits_{n=0}^{\infty} z^n &amp; (|z| &lt; \underline{1}) \\
+\dfrac{1}{1-z} &amp; (z \neq \underline{1}) \;\ \&amp;\, (|z| &lt; 1)
+\end{cases}
+\]
+
+<p>
+so the representation of \(f(z) = \frac{1}{1-z}\) matches with \(f(z) = \sum\limits_{n=0}^{\infty} z^n\) point by point within region \((|z| &lt; 1)\) or \(\underline{|(z-0)| &lt; 1}\).<br />
+</p>
+
+<p>
+But \(g(z) = \frac{1}{1-z}\) is making sense / definable at all \(z\). except \(\underline{z=1}\). So, \(g(z) = \frac{1}{1-z}\) is called as analytic continuation of \(f(z)\).<br />
+</p>
+
+<p>
+writing power series \(f(z) = 1 + z + z^2 + \cdots\) about \(\left( z_0 = \frac{-1}{2} \right)\).<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+\draw (-2.0,0) -- (2.0,0);
+\draw (0,-1.5) -- (0,1.5);
+\draw (0,0) circle (1);
+\fill (-0.5,0) circle (1.4pt);
+\fill (1,0) circle (1.4pt);
+\node[below] at (-0.5,-0.08) {\scriptsize $-\frac{1}{2}$};
+\node[below right] at (1,-0.05) {\scriptsize $1$};
+\end{tikzpicture}
+</pre>
+
+<p>
+within region \(|z| &lt; 1\)<br />
+</p>
+\[
+f(z) = \frac{1}{1-z}
+\]
+\[
+= \frac{1}{1 - \left( z - \left( -\tfrac{1}{2} \right) \right) + \tfrac{1}{2}}
+\]
+\[
+f(z) = \frac{1}{1-z} = \frac{1}{1 + \frac{1}{2} - \frac{1}{2} - z} = \frac{1}{\frac{3}{2} - \left( z + \frac{1}{2} \right)} = \frac{1}{\frac{3}{2}\left( 1 - \frac{2}{3}\left( z + \frac{1}{2} \right) \right)}
+\]
+\[
+f(z) = \frac{2}{3} \left( 1 - \frac{2}{3}\left( z + \frac{1}{2} \right) \right)^{-1}
+\]
+<p>
+\(\left( (1-x)^{-1} = 1 + x + x^2 + \cdots \right)\)<br />
+</p>
+\[
+f(z) = \frac{2}{3} \sum_{n=0}^{\infty} \left( \frac{2}{3} \right)^n \left( z + \frac{1}{2} \right)^n
+\]
+<p>
+\(\hookrightarrow\) power series about \(\left( z_0 = \frac{-1}{2} \right)\)<br />
+</p>
+
+<p>
+where does this series converge.?<br />
+</p>
+
+<p>
+for convergence<br />
+</p>
+\[
+\mathop{lt}_{n \to \infty} \left| \frac{\left( z + \frac{1}{2} \right)^{n+1} \left( \frac{2}{3} \right)^{n+1}}{\left( z + \frac{1}{2} \right)^{n} \left( \frac{2}{3} \right)^{n}} \right| &lt; \underline{1}
+\]
+\[
+\mathop{lt}_{n \to \infty} \left| \left( z + \frac{1}{2} \right) \left( \frac{2}{3} \right) \right| &lt; \underline{1}
+\]
+\[
+\left( \left| z + \frac{1}{2} \right| &lt; \frac{3}{2} \right)
+\]
+<p>
+\(\hookrightarrow\) circle of radius \(3/2\) centered at \(\left( z = -1/2 \right)\)<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.5,&gt;=Stealth]
+\useasboundingbox (-2.9,-2.7) rectangle (3.1,1.9);
+\draw (-2.4,0) -- (2.6,0);
+\draw (0,-1.9) -- (0,1.7);
+% C1 : unit circle
+\draw (0,0) circle (1);
+% C2 : blue big circle centered at -1/2 radius 3/2
+\draw[blue] (-0.5,0) circle (1.5);
+% C3 : small circle centered 1/2 radius 1/2
+\draw (0.5,0) circle (0.5);
+% C4 : blob touching z=1 in upper right
+\draw (1.35,0.78) circle (0.85);
+% C5 : dashed
+\draw[dashed] (1.0,0.0) -- (1.9,1.35);
+\draw[dashed] (1.15,0.15) -- (2.0,1.1);
+\foreach \p in {(-0.5,0),(0,0),(0.5,0),(1,0)} \fill \p circle (0.9pt);
+\node[below left] at (-1,-0.03) {\scriptsize $-1$};
+\node[below] at (-0.5,-0.03) {\scriptsize $-\frac{1}{2}$};
+\node[below right] at (1,-0.03) {\scriptsize $1$};
+\node at (-2.3,1.05) {\scriptsize $C_2$};
+\draw (-2.1,1.0) .. controls (-1.75,0.9) .. (-1.55,0.72);
+\node at (-0.85,1.55) {\scriptsize $C_1$};
+\draw (-0.8,1.45) .. controls (-0.5,1.15) .. (-0.35,0.95);
+\node[right] at (2.25,0.85) {\scriptsize $C_4$};
+\draw (2.24,0.85) -- (2.05,0.8);
+\node at (0.85,-1.15) {\scriptsize $C_3$};
+\draw (0.78,-1.05) .. controls (0.6,-0.85) .. (0.42,-0.5);
+\node[right] at (2.55,-1.6) {\scriptsize $C_5$};
+\draw[-&gt;] (2.2,-1.45) -- (2.5,-1.58);
+\draw[-&gt;] (-1.35,-1.35) -- (-1.6,-1.75);
+\node[align=left] at (-1.7,-2.35) {\scriptsize Region of convergence\\ \scriptsize for centered about\\ \scriptsize $z=-1/2$};
+\end{tikzpicture}
+</pre>
+
+<p>
+We can write the power series<br />
+</p>
+\[
+f(z) = 1 + z + z^2 + \cdots \infty
+\]
+
+<table>
+<tr>
+<td>
+&nbsp;
+</td>
+<td>
+&nbsp;
+</td>
+<td>
+&nbsp;
+</td>
+<td>
+Region of convergence / circle of converg[?]
+</td>
+</tr>
+<tr>
+<td>
+centered about
+</td>
+<td>
+\(z = 0\)
+</td>
+<td>
+\(\longrightarrow\)
+</td>
+<td>
+\(C_1\) :
+</td>
+<td>
+$
+</td>
+<td>
+z
+</td>
+<td>
+&lt; 1$
+</td>
+</tr>
+<tr>
+<td>
+&nbsp;
+</td>
+<td>
+\(z = -1/2\)
+</td>
+<td>
+\(\longrightarrow\)
+</td>
+<td>
+\(C_2\) :
+</td>
+<td>
+$\left
+</td>
+<td>
+z + \frac{1}{2} \right
+</td>
+<td>
+&lt; \frac{3}{2}$
+</td>
+</tr>
+<tr>
+<td>
+&nbsp;
+</td>
+<td>
+\(z = 1/2\)
+</td>
+<td>
+\(\longrightarrow\)
+</td>
+<td>
+\(C_3\) :
+</td>
+<td>
+$\left
+</td>
+<td>
+z - \frac{1}{2} \right
+</td>
+<td>
+&lt; \frac{1}{2}$
+</td>
+</tr>
+<tr>
+<td>
+&nbsp;
+</td>
+<td>
+\(z = 3/2 + i\)
+</td>
+<td>
+\(\longrightarrow\)
+</td>
+<td>
+\(C_4\) :
+</td>
+<td>
+$\left
+</td>
+<td>
+z - \left( \frac{3}{2} + i \right) \right
+</td>
+<td>
+&lt; \frac{\sqrt{5}}{2}$
+</td>
+</tr>
+<tr>
+<td>
+&nbsp;
+</td>
+<td>
+\(z = 2 - i\)
+</td>
+<td>
+\(\longrightarrow\)
+</td>
+<td>
+\(C_5\) :
+</td>
+<td>
+$\left
+</td>
+<td>
+z - (2-i) \right
+</td>
+<td>
+&lt; \sqrt{5}$
+</td>
+</tr>
+</table>
+
+<p>
+All these representations are valid for given power series but they are valid in given Region of analyticity or convergence given by region *\(C_i\) , \(1 \le i \le 5\)*.<br />
+</p>
+
+<dl>
+<dt><span id="Module 1, Lecture 2-Power series representation :--Note"></span><strong id="Note">Note</strong> </dt>
+<dd>So A given \(f(z)\) can have infinite no. of representations. valid in different regions.</dd>
+</dl>
+
+<p>
+All these regions / representations are analytic continuations of each other.<br />
+</p>
+
+<p>
+We may or may not be able to find master representa-tions from which you can find other representations For \(f(z) = 1 + z + z^2 + \cdots\) (master representation is \(f(z) = \frac{1}{1-z}\)). A given representation of function is valid in some region of convergence so power series diverges outside region of convergence &amp; converges for all `\(z\)' inside circle of convergence. We are not sure about behaviour of \(f(z)\) at boundary of convergence.<br />
+</p>
+
+<p>
+Region of convergence \(\in\) Region of analyticity.<br />
+</p>
+
+<p>
+Region of convergence \(&lt;\) Region of analyticity.<br />
+</p>
+
+<p>
+\(f(z) = 1 + z + z^2 + \cdots \infty\) is only valid within region \((|z| &lt; \underline{1})\).<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.85,&gt;=Stealth]
+\useasboundingbox (-1.6,-2.2) rectangle (9.6,2.4);
+\draw plot[smooth cycle,tension=0.75] coordinates {(-1.0,0.2) (-0.6,-0.3) (-0.9,-0.9) (0.2,-1.6) (2.0,-1.85) (4.0,-1.5) (4.75,0.1) (4.2,1.4) (2.5,2.0) (0.3,1.95) (-0.7,1.4)};
+\draw[-&gt;] (-1.3,0) -- (5.5,0);
+\draw (0,-1.7) -- (0,2.1);
+\draw (0.875,1.25) circle (0.575);
+\fill (0.9,1.28) circle (1.2pt);
+\node at (0.62,1.28) {\scriptsize $R_1$};
+\draw (1.525,0.275) circle (0.8);
+\fill (1.55,0.02) circle (1.2pt);
+\node at (1.25,0.35) {\scriptsize $R_2$};
+\draw[dashed] (2.75,0.65) circle (1.0);
+\fill (2.75,0.52) circle (1.2pt);
+\node at (2.7,1.05) {\scriptsize $R_3$};
+\draw (5.0,1.35) -- (4.5,1.3);
+\node[right,align=left] at (5.0,1.35) {\scriptsize Region of analyticity (defined\\ \scriptsize by master function).};
+\end{tikzpicture}
+</pre>
+
+<p>
+\(R_1\) &amp; \(R_2\), \(R_3\) are regions of convergence of given power series about some different \(z_{01}, z_{02}, z_{03}\).<br />
+</p>
+
+<div id="Module 1, Lecture 2-Behaviour at Boundary :-"><h2 id="Behaviour at Boundary :-" class="header"><a href="#Module 1, Lecture 2-Behaviour at Boundary :-">Behaviour at Boundary :-</a></h2></div>
+
+<p>
+(1) On boundary of circle of convergence., The series provides some use. (If series oscillates).<br />
+</p>
+
+<p>
+for, \(f(z) = 1 + z + z^2 + z^3 + \cdots\)<br />
+</p>
+\[
+f(z) = \frac{1}{1-z} \quad \text{(master representation)}
+\]
+<p>
+at \((z=1)\) \; \(f(z) \to \infty\) \; \(\left( \begin{array}{c} \text{singularity} \\ \text{at } z=1 \end{array} \right)\)<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.8,&gt;=Stealth]
+\draw (-1.8,0) -- (1.8,0);
+\draw (0,-1.4) -- (0,1.5);
+\draw (0,0) circle (1);
+\fill (0,1) circle (1.2pt);
+\node[left] at (-0.05,1.15) {\scriptsize $i$};
+\node[below right] at (1,-0.05) {\scriptsize $1$};
+\end{tikzpicture}
+</pre>
+
+<p>
+(a) \(f(-1) = 1 - 1 + 1 - 1 + 1 - 1 + \cdots\) \(\swarrow\) Cisaro sum<br />
+</p>
+
+<p>
+lets take average of outcomes.<br />
+</p>
+
+<p>
+Possible outcomes \(= 1, 0\)<br />
+</p>
+\[
+\text{avg} = \frac{1+0}{2} = 1/2
+\]
+\[
+f(-1) = 1/2
+\]
+<p>
+we can check via \(f(z) = \left. \dfrac{1}{1-z} \right|_{z=-1} = \dfrac{1}{2}\)<br />
+</p>
+
+<p>
+(b) \(f(i) = 1 + i + i^2 + i^3 + i^4 + \cdots\) \(\swarrow\) Cisaro sum.<br />
+</p>
+\[
+= 1 + i - 1 - i + \underline{1} + \cdots
+\]
+<p>
+Possible outcomes \(= 1, \; 1+i, \; i, \; 0,\)<br />
+</p>
+\[
+f(i) = \text{avg}(1, 1+i, i, 0) = \frac{2(1+i)}{4} = \frac{i+1}{2}
+\]
+
+\[
+f(i) = \frac{1}{1-i} = \frac{1+i}{1-i^2} = \frac{1+i}{2}
+\]
+
+<p>
+<span id="Module 1, Lecture 2-Behaviour at Boundary :--Theorem"></span><strong id="Theorem">Theorem</strong> : Any power series representation of \(f(z)\) must have at least one singularity on circle of convergence.<br />
+</p>
+
+<p>
+(2) Convergence /absolute convergence is also possible for \(z\) which lies on boundary of circle of convergence.<br />
+</p>
+
+<p>
+<span id="Module 1, Lecture 2-Behaviour at Boundary :--Ex"></span><strong id="Ex">Ex</strong> \(f(z) = \sum\limits_{n=p}^{\infty} \dfrac{z^n}{n^2}\) converges for \(\left| \dfrac{z^{n+1}}{(n+1)^2} \dfrac{n^2}{z^n} \right| &lt; \underline{1}\)<br />
+</p>
+\[
+\mathop{lt}_{n \to \infty} \left| \frac{z\, n^2}{(n+1)^2} \right| &lt; \underline{1}
+\]
+
+<p>
+converges for. \(|z| &lt; \underline{1}\)<br />
+</p>
+
+<p>
+In fact it converges even for points \(|z| = \underline{1}\). too.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.8,&gt;=Stealth]
+\draw (-1.8,0) -- (1.8,0);
+\draw (0,-1.4) -- (0,1.5);
+\draw (0,0) circle (1);
+\fill (1,0) circle (1.2pt);
+\node[below] at (1.05,-0.05) {\scriptsize $1$};
+\draw[-&gt;] (0.7,1.1) -- (0.95,0.15);
+\node[right] at (0.75,1.25) {\scriptsize $f(1) = \pi^2/6$};
+\end{tikzpicture}
+</pre>
+
+<p>
+But \(\exists\) a point on boundary \(|z| = 1\) such that It has a singularity.<br />
+</p>
+
+<p>
+(In fact \(f(z)\) is singular at \(z=1\).)<br />
+</p>
+
+<p>
+If we have \(g(z) = (z-1)\ln(z-1)\)<br />
+</p>
+\[
+\left( \mathop{lt}_{z \to \underline{1}} g(z) = 0 \right)
+\]
+<p>
+as \((z \to \underline{1})\) \(g(z) \to 0\)<br />
+</p>
+
+<p>
+as log is weaker than power<br />
+</p>
+
+<p>
+\(\log(z-1)\) is weaker than \((z-1)\).<br />
+</p>
+
+<p>
+Singular part is zero. But it is singular at \(\underline{z=1}\)<br />
+</p>
+
+<p>
+Singularity does not necessaly mean \(f(z) \to \infty\), it is singular in sense of theory of analytic functions.<br />
+</p>
+
+<p>
+(<span id="Module 1, Lecture 2-Behaviour at Boundary :--Ex"></span><strong id="Ex">Ex</strong> 2) \(f(z) = z + z^2 + z^4 + z^8 + \cdots\)<br />
+</p>
+\[
+f(z) = \sum_{n=0}^{\infty} z^{2^n} \; &lt; \infty \; \text{for} \; \left| \frac{z^{2^{n+1}}}{z^{2^n}} \right| &lt; 1
+\]
+\[
+\Rightarrow \mathop{lt}_{n \to \infty} \left| \frac{z^{2^n} \cdot z^{2^n}}{z^{2^n}} \right| &lt; 1
+\]
+<p>
+(Radius of convergence \(=1\))<br />
+</p>
+\[
+\mathop{lt}_{n \to \infty} \left| z^{2^n} \right| &lt; 1
+\]
+<p>
+only if \(\underline{|z| &lt; 1}\)<br />
+</p>
+
+<p>
+for \((z=1)\) \(f(z) = 1 + 1 + 1 \cdots\) diverges.<br />
+</p>
+
+<p>
+\(\left( \underline{f(z)} \text{ is singular at } z=1 \right)\)<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.8,&gt;=Stealth]
+\draw (-1.8,0) -- (0,0);
+\draw[-&gt;] (0,0) -- (2.0,0);
+\draw[-&gt;] (0,-0.9) -- (0,1.6);
+\draw (0,0) circle (1);
+\draw (1,0) circle (0.13);
+\draw (0.91,-0.09) -- (1.09,0.09);
+\draw (0.91,0.09) -- (1.09,-0.09);
+\node[below] at (1.0,-0.15) {\scriptsize $1$};
+\end{tikzpicture}
+</pre>
+
+<p>
+we can also write<br />
+</p>
+\[
+f(z) = z + f(z^2)
+\]
+\[
+f(z^2) = z + z^2 + z^3 + \cdots
+\]
+
+<p>
+In this, we have singularity at \(z = \pm 1\)<br />
+</p>
+
+<p>
+Similarly \(f(z) = z + z^2 + f(z^4)\)<br />
+</p>
+
+<p>
+(\(\to\) have more singular points.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+\draw (-1.8,0) -- (2.4,0);
+\draw (0,-1.5) -- (0,1.6);
+\draw (0,0) circle (1);
+\foreach \a in {0,30,...,330} {
+  \draw (\a:1) circle (0.15);
+  \draw (\a:1) ++(-0.105,-0.105) -- ++(0.21,0.21);
+  \draw (\a:1) ++(-0.105,0.105) -- ++(0.21,-0.21);
+}
+\end{tikzpicture}
+</pre>
+
+<p>
+In this way \(|z| = 1\) forms natural boundary where it is singular at infinite points on boundary \(\underline{|z| = 1}\).<br />
+</p>
+
+<p>
+So for \(f(z) = z + z^2 + z^4 + z^8 + \cdots\)<br />
+</p>
+
+<p>
+we can't have any other representation except as shown in below fig. for \(f(z)\).<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.1,&gt;=Stealth]
+\useasboundingbox (-2.4,-2.1) rectangle (2.7,1.4);
+\draw (-2.1,0) -- (0,0);
+\draw[-&gt;] (0,0) -- (2.4,0);
+\draw[-&gt;] (0,-1.3) -- (0,1.25);
+\draw[thick] (0,0) circle (1);
+\begin{scope}
+\clip (0,0) circle (1);
+\foreach \k in {-2,-1.7,...,2} { \draw[gray!60,thin] (\k,-1.2) -- (\k+1.4,1.2); }
+\end{scope}
+\draw (1.05,0.55) circle (0.6);
+\fill (1.05,0.55) circle (0.9pt);
+\draw (1.15,-0.78) circle (0.82);
+\fill (1.15,-0.78) circle (0.9pt);
+\fill (1,0) circle (2.4pt);
+\node at (-1.6,-1.0) {Domain};
+\draw[gray] (-1.1,-0.85) -- (0.1,-0.05);
+\end{tikzpicture}
+</pre>
+
+<p>
+There is no analytic function continuation possible beyond the natural boundary due to presence of infinite singular points on \(\underline{|z| = 1.}\)<br />
+</p>
+
+\[
+f(z) = \sum_{n=0}^{\infty} z^{n!} \qquad \text{converges for} \quad \left| \frac{z^{(n+1)!}}{z^{n!}} \right| &lt; \underline{1}
+\]
+\[
+|z| &lt; \underline{1}
+\]
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+\draw (-1.8,0) -- (1.8,0);
+\draw (0,-1.4) -- (0,1.3);
+\draw (0,0) circle (1);
+\begin{scope}
+\clip (0,0) circle (1);
+\foreach \k in {-2,-1.75,...,2} { \draw[thin] (\k,-1.2) -- (\k+1.2,1.2); }
+\end{scope}
+\node[above right] at (0.35,0.85) {\scriptsize $|z|=1$};
+\draw[-&gt;] (0.65,-0.7) -- (1.6,-1.0);
+\node[right] at (1.65,-1.0) {Domain};
+\end{tikzpicture}
+</pre>
+
+<p>
+for this \(f(z)\) too we have infinite no of singular points on \(|z|=1\), so we only have this one representation of \(f(z)\).<br />
+</p>
+
+<p>
+so \(\exists\) such \(f(z)\) for which we can only have one power series expansion.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.3,&gt;=Stealth]
+\draw (-1.5,0) -- (1.9,0);
+\draw (0,-1.35) -- (0,1.25);
+\draw[thick] (0,0) circle (1);
+\draw (-0.25,-0.05) circle (0.45);
+\fill (-0.25,-0.05) circle (0.7pt);
+\draw (0.25,0.2) circle (0.4);
+\fill (0.25,0.2) circle (0.7pt);
+\draw (-0.3,0.5) circle (0.17);
+\fill (-0.3,0.5) circle (0.7pt);
+\draw (-0.25,-0.55) circle (0.17);
+\fill (-0.25,-0.55) circle (0.7pt);
+\draw (0.28,-0.55) circle (0.17);
+\fill (0.28,-0.55) circle (0.7pt);
+\end{tikzpicture}
+</pre>
+
+<p>
+Inside we can have many representations.<br />
+</p>
+
+<div id="Module 1, Lecture 3: Calculus of Residues"><h1 id="Module 1, Lecture 3: Calculus of Residues" class="header"><a href="#Module 1, Lecture 3: Calculus of Residues">Module 1, Lecture 3: Calculus of Residues</a></h1></div>
+
+<p>
+We have seen that if a function \(f(z)\). is analytic in some region, then C-R conditions are satisfied, derivative is uniquely defined at every point, derivative itself is an analytic function &amp; \(f(z)\) is infinitely differentiable.<br />
+</p>
+
+<div id="Module 1, Lecture 3: Calculus of Residues-Integral of analytic function $f(z)$ :-"><h2 id="Integral of analytic function $f(z)$ :-" class="header"><a href="#Module 1, Lecture 3: Calculus of Residues-Integral of analytic function $f(z)$ :-">Integral of analytic function \(f(z)\) :-</a></h2></div>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0,&gt;=Stealth]
+\draw plot[smooth cycle,tension=0.8] coordinates {(-1.7,0.6) (-1.3,1.7) (-0.1,2.2) (1.2,1.9) (1.85,0.7) (1.5,-0.7) (0.3,-1.35) (-1.0,-1.1) (-1.55,-0.3)};
+\node at (0.55,1.65) {$R$};
+\fill (-0.35,-0.85) circle (1.3pt);
+\node[below] at (-0.4,-0.95) {$z_1$};
+\fill (0.65,0.55) circle (1.3pt);
+\node[right] at (0.75,0.6) {$z_2$};
+\draw (-0.35,-0.85) .. controls (0.05,-0.35) and (0.05,0.15) .. (0.65,0.55);
+\draw[-&gt;] (-0.35,-0.85) .. controls (0.0,-0.4) and (0.02,0.0) .. (0.28,0.13);
+\node at (0.35,-0.35) {$C_1$};
+\draw (-0.35,-0.85) .. controls (-0.85,-0.75) and (-0.95,-0.1) .. (-0.8,0.3);
+\draw[-&gt;] (-0.8,0.55) -- (-0.8,0.25);
+\draw (-0.8,0.55) .. controls (-0.7,1.15) and (0.1,1.25) .. (0.65,0.55);
+\draw[-&gt;] (0.3,1.06) .. controls (0.5,0.95) .. (0.6,0.62);
+\node at (-0.35,0.6) {$C_2$};
+\end{tikzpicture}
+</pre>
+
+<p>
+\(\left( \displaystyle\int_{z_1}^{z_2} f(z)\, dz \right)\) is independent of path `\(C\)'.<br />
+</p>
+
+<p>
+It is similer to line integral of \(\nabla \phi(r,t)\).<br />
+</p>
+\[
+\int_a^b \nabla \phi \cdot d\vec{r} = \phi(b) - \phi(a)
+\]
+
+<p>
+(Cauchy's Integral theorem):<br />
+</p>
+
+<p>
+So \; \(I = \oint f(z)\, dz = 0\) (Cauchy's Integral theorem)<br />
+</p>
+\[
+\text{as } I = \int_{z_1 \, (C_1)}^{z_2} f(z)\, dz + \int_{z_2 \, (C_2)}^{z_1} f(z)\, dz
+\]
+\[
+= \int_{z_1 \, (C_1)}^{z_2} f(z)\, dz - \int_{z_1 \, (C_2)}^{z_2} f(z)\, dz
+\]
+\[
+= 0 \qquad \text{as} \quad \int_{z_1 \, (C_1)}^{z_2} f(z)\, dz = \int_{z_1 \, (C_2)}^{z_2} f(z)\, dz.
+\]
+
+<p>
+we can actually deform the path / contour of integration without changing its value as long as path remains in analytic region.<br />
+</p>
+
+<div id="Module 1, Lecture 3: Calculus of Residues-Singularity :"><h2 id="Singularity :" class="header"><a href="#Module 1, Lecture 3: Calculus of Residues-Singularity :">Singularity :</a></h2></div>
+
+<p>
+(A) Removable singularities :- upon proper redefination of function this singularity can be removed.<br />
+</p>
+
+<p>
+<span id="Module 1, Lecture 3: Calculus of Residues-Singularity :-example"></span><strong id="example">example</strong> :<br />
+</p>
+
+<p>
+(1) \(f(z) = \dfrac{\sin z}{z}\)<br />
+</p>
+
+<p>
+at \(z=0\) \(f(z)\) is having removable singularity<br />
+</p>
+
+<p>
+as \(\mathop{lt}_{z \to 0} f(z) = \mathop{lt}_{z\to 0} \dfrac{\sin z}{z} = \mathop{lt}_{z \to 0} \dfrac{\cos z}{1} = \underline{1}\)<br />
+</p>
+
+<p>
+If we redefine, \(f(z) = \begin{cases} \dfrac{\sin z}{z} &amp; z \neq 0 \\ \underline{1} &amp; z = 0 \end{cases}\)<br />
+</p>
+
+<p>
+this function is now free from singularity.<br />
+</p>
+
+<p>
+(B) Simple pole :-<br />
+</p>
+
+<p>
+If a function \(f(z)\) is not analytic at \(z=a\) and analytic everywhere / or around it for some radius of convergence \(R\). then<br />
+</p>
+
+<p>
+(\(R\) may go to \(\infty\)).<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.85,&gt;=Stealth]
+\draw (-2.2,-1.9) -- (-2.2,1.9);
+\draw (-3.0,0) -- (2.4,0);
+\foreach \a in {20,55,90,125,160,200,235,270,305,340} {
+  \draw (0,0) -- (\a:2.2);
+}
+\draw (0,0) circle (0.09);
+\fill (0,0) circle (2.0pt);
+\node[below right] at (0.1,-0.15) {$a$};
+\node at (0.55,1.6) {$R$};
+\end{tikzpicture}
+</pre>
+
+<p>
+Then we can express such \(f(z)\)<br />
+</p>
+\[
+f(z) = \underbrace{\frac{C_{-1}}{(z-a)}}_{\text{singular part}} + \underbrace{\sum_{n=0}^{\infty} C_n (z-a)^n}_{\text{Regular part}}
+\]
+
+<p>
+\(f(z)\) is said to have simple pole at \(\underline{z=a}\).<br />
+</p>
+
+\[
+f(z) = \frac{\boxed{c_{-1}}}{(z-a)^{(1)}} + \sum_{n=0}^{\infty} c_n\,(z-a)^n
+\]
+
+<p>
+\(\longrightarrow\) Residue (pointing to \(c_{-1}\)); \(\downarrow\) Simple pole at \(z=a\) (pointing to \((z-a)^{(1)}\))<br />
+</p>
+
+<p>
+and, residue at the pole \(z=a\) is \(c_{-1}\)<br />
+</p>
+
+<p>
+Singularity may not be always obvious.<br />
+</p>
+
+<div id="Module 1, Lecture 3: Calculus of Residues-example"><h2 id="example" class="header"><a href="#Module 1, Lecture 3: Calculus of Residues-example">example</a></h2></div>
+
+<ol>
+<li>
+\(f(z) = \dfrac{\sin z}{z^2}\)
+\[
+\begin{aligned}
+&amp;= \frac{\left(z - \dfrac{z^3}{3!} + \dfrac{z^5}{5!} - \cdots\right)}{z^2}\\
+&amp;= \left(\frac{1}{z}\right) + \left\{ -\frac{z}{3!} + \frac{z^3}{5!} - \right\}\cdots
+\end{aligned}
+\]
+
+</ol>
+<p>
+\(\downarrow\) Singular part (pointing to \(\frac{1}{z}\)); \(\underbrace{\phantom{xx}}\) Regular part (under the braced terms)<br />
+</p>
+
+<p>
+Simple pole at \(z=0\)<br />
+</p>
+
+<p>
+with residue \(=\underline{1}\)<br />
+</p>
+
+<ol>
+<li>
+\(f(z) = \dfrac{g(z)}{h(z)}\)
+
+</ol>
+<p>
+lets say, \(g(a) \neq 0\) &amp; \(h(a) = 0\)<br />
+</p>
+
+<p>
+Then,<br />
+</p>
+\[
+\begin{aligned}
+f(z) &amp;= \frac{g(a) + (z-a)\,g'(a) + \dfrac{(z-a)^2}{2!}\,g''(a) + \cdots}{\overset{0}{h(a)} + (z-a)\,h'(a) + \cdots}\\
+&amp;= \operatorname{lt}_{z\to a} \frac{g(a) + (z-a)\,g'(a) + \cdots}{(z-a)\,h'(a) + \cdots}
+\end{aligned}
+\]
+
+<p>
+as \(\lim z\to a\)<br />
+</p>
+\[
+\begin{aligned}
+g(z) &amp;\simeq g(a)\\
+h(z) &amp;\simeq (z-a)\,h'(a)
+\end{aligned}
+\]
+\[
+f(z) \simeq \frac{g(a)}{h'(a)}\,\frac{1}{(z-a)}
+\]
+<p>
+\(\longrightarrow\) simple pole at \(\underline{z=a}\)<br />
+</p>
+
+<p>
+with residue \(\dfrac{g(a)}{h'(a)}\)<br />
+</p>
+
+\[
+\left\{
+\begin{aligned}
+&amp;\text{In general, for Simple pole at } z=a\\
+&amp;\text{The residue } = \lim_{z\to a}\,(z-a)\,f(z)
+\end{aligned}
+\right\}
+\]
+
+<p>
+as<br />
+</p>
+\[
+\begin{aligned}
+f(z) &amp;= \frac{c_{-1}}{(z-a)} + \sum_{n=0}^{\infty} c_n (z-a)^n\\
+(z-a) f(z) &amp;= c_{-1} + \sum_{n=0}^{\infty} c_n (z-a)^{n+1}\\
+\operatorname{lt}_{z\to a} (z-a) f(z) &amp;= c_{-1} = \text{Residue at simple pole.}
+\end{aligned}
+\]
+
+<ol>
+<li>
+\(f(z) = \dfrac{1}{\sin \pi z}\) Find \(z\) for which \(f(z)\) is singular and find Residue at each pole.
+
+</ol>
+<p>
+\(f(z)\) is singular for \(\pi z = (\text{Integer})\,\pi\)<br />
+</p>
+
+<p>
+or \(z =\) integer (all integers)<br />
+</p>
+
+<p>
+or \(z = n\), \(n =\) Integer<br />
+</p>
+
+<p>
+\(f(z)\) has simple poles at all integers.<br />
+</p>
+
+<p>
+as \(z\to 0\), \(\sin \pi z \to (\pi z)\) as \(\left(\sin \pi z = \pi z - \dfrac{(\pi z)^3}{3!} + \cdots\right)\)<br />
+</p>
+
+<p>
+so as \(z\to 0\), \(f(z) \cong \dfrac{1}{\pi z}\)<br />
+</p>
+
+<p>
+so simple pole at \((z=0)\) with residue \(\left(\dfrac{1}{\pi}\right)\).<br />
+</p>
+
+<p>
+But to find Residue at all simple poles at \(z=n\) where \(n \in\) Integers, \((\cdots, -3, -2, -1,\) \(0, 1, 2, 3 \cdots)\).<br />
+</p>
+
+\[
+\begin{aligned}
+\text{Res}\,(z=n) &amp;= \lim_{z\to n}\,(z-n) f(z)\\
+&amp;= \lim_{z\to n}\,(z-n)\cdot\frac{1}{\sin \pi z}\\
+&amp;= \operatorname{lt}_{z\to n} \frac{1}{\pi \cos \pi z} = \frac{(-1)^n}{\pi}
+\end{aligned}
+\]
+\[
+\left(\text{Res}\,(z=n) = \frac{(-1)^n}{\pi}\right).
+\]
+
+<div id="Module 1, Lecture 3: Calculus of Residues-(C) Multiple poles"><h2 id="(C) Multiple poles" class="header"><a href="#Module 1, Lecture 3: Calculus of Residues-(C) Multiple poles">(C) Multiple poles</a></h2></div>
+
+\[
+f(z) = \frac{c_{-m}}{(z-a)^m} + \cdots + \frac{\boxed{c_{-1}}}{(z-a)} + \underbrace{\sum_{n=0}^{\infty} c_n (z-a)^n}_{\text{Regular part.}}
+\]
+<p>
+\(\swarrow\) Residue (pointing to \(c_{-1}\)); \(\downarrow\) \((m&gt;0)\) (pointing to \((z-a)^m\))<br />
+</p>
+
+<p>
+\(f(z)\) is said to have pole of order \(m\) at \(z=a\).<br />
+</p>
+
+<p>
+But Residue is only defined for <em>pole of order 1 or simple pole</em><br />
+</p>
+
+\[
+c_{-1} = \text{Res}\,(z=a) = \operatorname{lt}_{z\to a} \frac{1}{(m-1)!}\,\frac{d^{m-1}}{dz^{m-1}}\left[(z-a)^m f(z)\right]
+\]
+
+<div id="Module 1, Lecture 3: Calculus of Residues-(D) Essential / Isolated singularity :-"><h2 id="(D) Essential / Isolated singularity :-" class="header"><a href="#Module 1, Lecture 3: Calculus of Residues-(D) Essential / Isolated singularity :-">(D) Essential / Isolated singularity :-</a></h2></div>
+
+<p>
+Going a step further, the singular part may involve all negative Integral powers of \((z-a)\).<br />
+</p>
+
+<p>
+The function \(f(z)\) has an isolated/essential singularity at \(z=a\) if, in the neighbourhood of that point it can be expressed in form<br />
+</p>
+\[
+f(z) = \underbrace{\sum_{n=1}^{\infty} \frac{c_{-n}}{(z-a)^n}}_{\text{Singular part.}} + \underbrace{\sum_{n=0}^{\infty} c_n (z-a)^n}_{\text{Regular part}} \qquad \left\{\begin{aligned}&amp;\text{Laurent}\\&amp;\text{series}\end{aligned}\right\}
+\]
+
+<p>
+regular part \(\displaystyle\sum_{n=0}^{\infty} c_n (z-a)^n\) converges for \(\left|\dfrac{c_{n+1}(z-a)^{n+1}}{c_n (z-a)^n}\right| &lt; 1\)<br />
+</p>
+
+<p>
+\(\forall\, z\) which lies inside region<br />
+</p>
+\[
+|z-a| &lt; \operatorname{lt}_{n\to\infty}\left|\frac{c_n}{c_{n+1}}\right|
+\qquad\qquad
+|z-a| &lt; \left|\frac{c_n}{c_{n+1}}\right|
+\]
+\[
+\left(|z-a| &lt; r_1\right)
+\qquad\qquad
+\text{or}\quad |z-a| &lt; r_1
+\]
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.85]
+\draw[-&gt;] (-1.6,0) -- (2.7,0);
+\node at (2.3,-0.35) {Re$(z)$};
+\draw[-&gt;] (0,-0.7) -- (0,2.3);
+\node at (-0.9,2.15) {Im$(z)$};
+\draw[pattern=north east lines] (0.95,1.15) circle (0.65);
+\draw[-&gt;] (0.95,1.15) -- (0.62,1.7);
+\node at (1.05,1.62) {\small $r_1$};
+\draw[-&gt;] (0.15,-0.05) -- (1.0,0.6);
+\node[align=left] at (-0.3,-1.15) {\small Region\\ \small of analyticity\\ \small of Regular part};
+\end{tikzpicture}
+</pre>
+
+<p>
+<span id="Module 1, Lecture 3: Calculus of Residues-(D) Essential / Isolated singularity :--But the singular part,"></span><strong id="But the singular part,">But the singular part,</strong> \(\displaystyle\sum_{n=1}^{\infty}\frac{c_{-n}}{(z-a)^n}\) converges for<br />
+</p>
+\[
+\operatorname{lt}_{n\to\infty}\left|\frac{c_{-n-1}\,(z-a)^n}{(z-a)^{n+1}\,c_{-n}}\right| &lt; \underline{1}
+\]
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.85]
+\draw[-&gt;] (-2.4,0) -- (1.9,0);
+\draw[-&gt;] (0,-1.3) -- (0,1.6);
+\draw[pattern=north east lines, even odd rule] (-2.5,-1.4) rectangle (2.0,1.7) (0,0.15) circle (0.55);
+\draw (0,0.15) circle (0.55);
+\node at (0.05,0.15) {\small $r_2$};
+\draw (-2.5,1.7) -- (-3.1,2.1);
+\node[align=left] at (-4.4,2.4) {\small Region of convergence\\ \small for singular\\ \small part};
+\end{tikzpicture}
+</pre>
+
+\[
+\operatorname{lt}_{n\to\infty}\left|\frac{1}{(z-a)}\right|\left|\frac{c_{-n-1}}{c_{-n}}\right| &lt; \underline{1}
+\]
+\[
+\text{or}\quad |z-a| &gt; \operatorname{lt}_{n\to\infty}\left|\frac{c_{-n-1}}{c_{-n}}\right|
+\]
+\[
+\left(|z-a| &gt; r_2\right)
+\]
+
+<p>
+converges for,<br />
+</p>
+
+<p>
+To have representation of \(f(z) = \displaystyle\sum_{n=1}^{\infty}\frac{c_{-n}}{(z-a)^n} + \sum_{n=0}^{\infty} c_n (z-a)^n\)<br />
+</p>
+
+<p>
+in this laurent series, we need both regions to overlap.<br />
+</p>
+
+<p>
+To overlap \(\left(r_2 &lt; r_1\right)\),<br />
+</p>
+\[
+\operatorname{lt}_{n\to\infty}\left|\frac{c_{-n-1}}{c_{-n}}\right| &lt; \operatorname{lt}_{n\to\infty}\left|\frac{c_n}{c_{n+1}}\right|
+\]
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.85]
+\draw[-&gt;] (-2.6,0) -- (2.9,0);
+\draw[-&gt;] (-2.0,-1.2) -- (-2.0,2.4);
+\draw[pattern=north east lines, even odd rule] (0.3,0.9) circle (1.75) (0.3,0.9) circle (0.62);
+\draw[-&gt;] (0.3,0.9) -- (-1.0,0.05);
+\node at (-0.55,0.45) {\small $r_1$};
+\draw[-&gt;] (0.3,0.9) -- (0.3,1.5);
+\node at (0.55,1.35) {\small $r_2$};
+\draw (2.05,0.9) -- (3.1,1.3);
+\node[align=left] at (4.6,1.3) {\small Region of\\ \small analyticity / convergence\\ \small for $f(z)$.};
+\end{tikzpicture}
+</pre>
+
+\[
+f(z) = \sum_{n=1}^{\infty}\frac{c_{-n}}{(z-a)^n} + \sum_{n=0}^{\infty} c_n (z-a)^n
+\]
+
+<p>
+So region of convergence becomes, \(\left(r_2 &lt; |z-a| &lt; r_1\right)\)<br />
+</p>
+
+<p>
+It is possible that \(r_2 \to 0\) &amp; \(r_1 \to \infty\).<br />
+</p>
+
+<div id="Module 1, Lecture 3: Calculus of Residues-For example"><h2 id="For example" class="header"><a href="#Module 1, Lecture 3: Calculus of Residues-For example">For example</a></h2></div>
+
+<ol>
+<li>
+\(f(z) = e^{\frac{1}{z}}\)
+\[
+f(z) = \underbrace{1}_{} + \underbrace{\frac{1}{z} + \frac{1}{2!}\left(\frac{1}{z}\right)^2 + \frac{1}{3!}\left(\frac{1}{z}\right)^3 + \cdots}_{\text{(Singular part)}}
+\]
+
+</ol>
+<p>
+\(\downarrow\) (\(\cdot\) Regular part) (pointing to the \(1\))<br />
+</p>
+\[
+= \underbrace{\sum_{n=1}^{\infty}\frac{1}{n!\,z^n}}_{\substack{\text{Singular}\\ \text{part}}} + \underbrace{\boxed{1}}_{\text{Regular part}} \longrightarrow \text{converges everywhere}
+\]
+<p>
+\(\downarrow\)<br />
+</p>
+
+<p>
+converges for<br />
+</p>
+\[
+\begin{aligned}
+&amp;\operatorname{lt}_{n\to\infty}\left|\frac{(n)!\,z^n}{(n+1)!\,z^{n+1}}\right| &lt; 1\\
+&amp;\operatorname{lt}_{n\to\infty}\left|\frac{1}{(n+1)\,z}\right| &lt; 1\\
+&amp;|z| &gt; \operatorname{lt}_{n\to\infty}\left|\frac{1}{n+1}\right|
+\end{aligned}
+\]
+\[
+\left(|z| &gt; 0\right) \quad \text{i.e. all } z \text{ except } \underline{(z \neq 0)}\ \text{\small }z=0\text{}.
+\]
+
+<p>
+\(f(z)\) converges \(\forall\, z \neq 0\). including point at infinity.<br />
+</p>
+
+<p>
+So Region of analyticity/convergence is a punctured disk.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.85]
+\draw[pattern=north east lines, even odd rule] (-2.2,-1.3) rectangle (2.2,1.3) (0,0) circle (0.14);
+\draw (0,0) circle (0.14);
+\draw (-2.6,0) -- (2.6,0);
+\draw (0,-1.6) -- (0,1.6);
+\draw[&lt;-] (2.3,0.55) -- (3.0,0.85);
+\node[right] at (3.0,0.85) {\small converges everywhere};
+\end{tikzpicture}
+</pre>
+
+<ol>
+<li>
+<span id="Module 1, Lecture 3: Calculus of Residues-For example-What is the residue ?"></span><strong id="What is the residue ?">What is the residue ?</strong>
+
+</ol>
+<p>
+Residue is coefficient of \(\frac{1}{z}\) which is \(\underline{1}\) for \(f(z) = e^{1/z}\).<br />
+</p>
+
+<ol>
+<li>
+\(f(z) = e^{1/z} + e^{z}\)
+\[
+\begin{aligned}
+&amp;= 1 + \sum_{n=1}^{\infty} \frac{1}{n!}\,\frac{1}{z^n} + \left(1 + z + \frac{z^2}{2!} + \cdots\right)\\
+&amp;= \underbrace{\sum_{n=1}^{\infty} \frac{1}{n!}\,\frac{1}{z^n}}_{\text{Singular part}} + \underbrace{2 + \sum_{n=1}^{\infty} \frac{z^n}{n!}}_{\text{Regular part}}
+\end{aligned}
+\]
+
+</ol>
+<p>
+\(\downarrow\) Converges for (singular part)<br />
+</p>
+\[
+\begin{aligned}
+&amp;\operatorname{lt}_{n\to\infty}\left|\frac{1}{(n+1)!}\,\frac{1}{z^{n+1}}\cdot n!\,z^n\right| &lt; \underline{1}\\
+&amp;\operatorname{lt}_{n\to\infty}\left|\frac{1}{(n+1)\,z}\right| &lt; 1\\
+&amp;\text{or}\quad |z| &gt; \operatorname{lt}_{n\to\infty}\left|\frac{1}{n+1}\right|\\
+&amp;\left(|z| &gt; 0\right)\ \text{i.e.}\ \left(\forall\, z \neq 0\right)
+\end{aligned}
+\]
+
+<p>
+\(\downarrow\) Converges for (regular part)<br />
+</p>
+\[
+\begin{aligned}
+&amp;\lim_{n\to\infty}\left|\frac{z^{n+1}}{(n+1)!}\,\frac{n!}{z^n}\right| &lt; \underline{1}\\
+&amp;\operatorname{lt}_{n\to\infty}\left|\frac{z}{n+1}\right| &lt; \underline{1}\\
+&amp;|z| &lt; \lim_{n\to\infty}\left|n+1\right|\\
+&amp;\left(|z| &lt; \infty\right)\ \text{i.e.}\ \forall\, \underline{|z| &lt; \infty}.
+\end{aligned}
+\]
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.8]
+\begin{scope}
+\draw[pattern=north east lines, even odd rule] (-1.6,-0.9) rectangle (1.6,0.9) (0,0) circle (0.13);
+\draw (0,0) circle (0.13);
+\draw[-&gt;] (-1.9,0) -- (1.9,0);
+\draw[-&gt;] (0,-1.1) -- (0,1.2);
+\end{scope}
+\begin{scope}[xshift=6cm]
+\draw[pattern=north east lines] (-1.6,-0.9) rectangle (1.6,0.9);
+\draw[-&gt;] (-1.9,0) -- (2.1,0) node[right] {\small Re$(z)$};
+\draw[-&gt;] (0,-1.1) -- (0,1.3) node[above] {\small \underline{Im$(z)$}};
+\end{scope}
+\end{tikzpicture}
+</pre>
+
+<p>
+So \(f(z) = e^{1/z} + e^{z}\) converges for the common region<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.8]
+\draw[pattern=north east lines, even odd rule] (-2.0,-1.2) rectangle (2.0,1.2) (0,0) circle (0.13);
+\draw (0,0) circle (0.13);
+\draw[-&gt;] (-2.4,0) -- (2.6,0) node[right] {\small Re$(z)$};
+\draw[-&gt;] (0,-1.5) -- (0,1.6) node[above right] {\small Im$(z)$};
+\draw[&lt;-] (2.1,0.9) -- (3.0,1.1);
+\node[right] at (3.0,1.1) {\small R: \ \fbox{$0 &lt; |z| &lt; \infty$}};
+\draw[-&gt;] (0.6,-0.6) .. controls (1.4,-1.2) .. (2.2,-1.6);
+\node[right, align=left] at (2.2,-1.8) {\small Domain for $f(z)$\\ \small such that $f(z)$ is\\ \small analytic / convergent.};
+\end{tikzpicture}
+</pre>
+
+<p>
+So on Riemann sphere \(z=0\) is south pole &amp; \(z=\infty\) is north pole<br />
+</p>
+
+<p>
+So \(f(z)\) converges \(\forall\, z\) except North pole &amp; south pole.<br />
+</p>
+
+<ol>
+<li>
+\(f(z) = e^{\frac{1}{z^2}}\)
+\[
+\begin{aligned}
+&amp;= 1 + \frac{1}{z^2} + \frac{1}{2!}\,\frac{1}{z^4} + \frac{1}{3!}\,\frac{1}{z^6} + \cdots\\
+&amp;= \sum_{n=1}^{\infty}\frac{1}{n!}\,\frac{1}{z^{2n}} + \underbrace{\underline{1}}_{}
+\end{aligned}
+\]
+
+</ol>
+<p>
+\(\downarrow\) Converges \(\forall\, z\) including \(\infty\). (under the \(1\))<br />
+</p>
+
+<p>
+\(\downarrow\)<br />
+</p>
+
+<p>
+Converges for \(|z| &gt; 0\)<br />
+</p>
+
+<p>
+\(\to\) \(f(z)\) has essential singularity (non removable). as its singular part is summed over \(\left(\displaystyle\sum_{n=1}^{\infty}\frac{1}{z^{2n}}\,\frac{1}{n!}\right)\).<br />
+</p>
+
+<p>
+\(\to\) Residue \(=\) coeff of \(\dfrac{1}{z}\) \(= 0\).<br />
+</p>
+
+<p>
+\(f(z)\) converges for \(\left(0 &lt; |z| &lt; \infty\right)\)<br />
+</p>
+
+<ol>
+<li>
+\(f(z) = e^{(-)\frac{1}{(z-2)^2}}\)
+\[
+\begin{aligned}
+&amp;= 1 - \frac{1}{(z-2)^2} + \left(\frac{1}{2!}\right)\cdot\frac{1}{(z-2)^4} - \frac{1}{3!}\left(\frac{1}{(z-2)^6}\right) + \cdots\\
+&amp;= \underbrace{\sum_{n=1}^{\infty}\frac{(-1)^n}{(z-2)^{2n}}\left(\frac{1}{n!}\right)}_{\text{Singular part}} + \underbrace{\underline{1}}_{\text{Regular part}}
+\end{aligned}
+\]
+
+</ol>
+<p>
+So \(f(z)\) has essential singularity at \(z=2\)<br />
+</p>
+
+<p>
+&amp; Residue \(=\) coeff of \(\dfrac{1}{(z-2)} = 0\)<br />
+</p>
+
+<ol>
+<li>
+\(f(z) = (z-2)\,e^{\frac{-1}{(z-2)^2}}\)
+\[
+\begin{aligned}
+&amp;= (z-2)\left(\sum_{n=1}^{\infty}\frac{(-1)^n}{(z-2)^{2n}} + 1\right)\\
+&amp;= (z-2)\left(1 - \frac{1}{(z-2)^2} + \frac{1}{2!\,(z-2)^4} \cdots\right) + (z-2)\\
+&amp;= \underbrace{\left(\frac{-1}{(z-2)} + \frac{1}{2!\,(z-2)^3} - \cdots\right)}_{\text{Singular part}} + \underbrace{(2z-4)}_{\text{Regular part.}}
+\end{aligned}
+\]
+
+</ol>
+<p>
+It has essential singularity at \(z=2\)<br />
+</p>
+
+<p>
+Residue \(=\) coeff of \(\left(\dfrac{1}{z-2}\right) = \underline{-1}\)<br />
+</p>
+
+<ol>
+<li>
+\(f(z) = (z-2)^4\,e^{\frac{-1}{(z-2)^2}}\)
+
+</ol>
+<p>
+Again \(f(z)\) involves infinite sum for singular part<br />
+</p>
+
+<p>
+So it has essential singularity.<br />
+</p>
+\[
+\begin{aligned}
+f(z) &amp;= (z-2)^4\left[1 - \frac{1}{(z-2)^2} + \frac{1}{2!}\left(\frac{1}{(z-2)^4}\right) - \frac{1}{3!\,(z-2)^6} + \cdots\right]\\
+&amp;= \underbrace{\left((z-2)^4 - (z-2)^2 + \frac{1}{2}\right)}_{\text{Regular part}} - \underbrace{\frac{1}{3!\,(z-2)^2} + \cdots}_{\text{Singular part.}}
+\end{aligned}
+\]
+
+<p>
+Residue \(=\) coeff of \(\left(\dfrac{1}{z-2}\right) = 0\).<br />
+</p>
+
+<div id="Module 1, Lecture 3: Calculus of Residues-Cauchy's Integral formula :-"><h2 id="Cauchy's Integral formula :-" class="header"><a href="#Module 1, Lecture 3: Calculus of Residues-Cauchy's Integral formula :-">Cauchy's Integral formula :-</a></h2></div>
+
+<p>
+Consider integral, \(\oint z^n dz\)<br />
+</p>
+
+\[
+I = \left(\oint z^n dz\right) =
+\]
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.8]
+\draw[-&gt;] (-2.2,0) -- (2.6,0) node[right] {$x$};
+\draw[-&gt;] (0,-1.8) -- (0,1.9) node[above] {$y$};
+\draw[thick] plot[smooth cycle, tension=0.9] coordinates {(-1.0,0.9) (0.6,1.2) (1.7,0.6) (1.3,-0.5) (0.2,-1.5) (-0.9,-0.7)};
+\draw[-{Stealth}] (0.5,1.22) -- (0.1,1.16);
+\draw[-{Stealth}] (0.15,-1.5) -- (0.55,-1.35);
+\end{tikzpicture}
+</pre>
+
+<p>
+\((n = 0,1,2,3\cdots)\)<br />
+</p>
+
+<p>
+Since \(z^n\) is analytic everywhere (entire function)<br />
+</p>
+\[
+\oint z^n dz = 0
+\]
+
+<p>
+we can distort the contour and shrink it to a point, or we can make it a circle *\(|z| = 1\)*.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.8]
+\draw[-&gt;] (-2.4,0) -- (2.6,0) node[right] {$x$};
+\draw[-&gt;] (0,-1.4) -- (0,1.8) node[above] {$y$};
+\draw[thick] (0,0) circle (1.0);
+\draw[-{Stealth}] (0.72,0.70) -- (0.60,0.80);
+\end{tikzpicture}
+</pre>
+
+<p>
+On this unit circle \(z = e^{i\theta}\) \((r=1)\)<br />
+</p>
+\[
+dz = e^{i\theta}\,i\,d\theta
+\]
+\[
+I = \oint z^n dz = \int_{0}^{2\pi} e^{(n+1)i\theta}\,i\,d\theta = i\int_{0}^{2\pi}\big(\cos(n+1)\theta + i\sin(n+1)\theta\big)\,d\theta
+\]
+\[
+I = i\left(\frac{\sin(n+1)\theta}{n+1} + \frac{i\cos(n+1)\theta}{n+1}\right)^{2\pi}_{0} = 0
+\]
+
+<p>
+what happens if<br />
+</p>
+\[
+I = \oint \frac{dz}{z^{n+1}} \qquad (n = 0,1,2,3\cdots)
+\]
+
+<p>
+\(f(z) = \dfrac{1}{z^{n+1}}\) has pole at \(z=0\) of order \((n+1)\)<br />
+</p>
+
+<p>
+since pole is at \(z=0\) and is not on contour \(|z|=1\). we can integrate again by<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.8]
+\draw[-&gt;] (-1.8,0) -- (1.9,0) node[right] {$x$};
+\draw[-&gt;] (0,-1.1) -- (0,1.5) node[above] {$y$};
+\draw[thick] (0,0) circle (0.7);
+\draw[-{Stealth}] (0.36,0.60) -- (0.18,0.68);
+\node at (0.55,-0.55) {$c$};
+\fill (0,0) circle (0.06);
+\draw[-{Stealth}] (-0.1,-0.1) -- (-1.0,-1.1);
+\node[left] at (-1.0,-1.25) {pole};
+\end{tikzpicture}
+</pre>
+
+\[
+\begin{aligned}
+z &amp;= e^{i\theta}\\
+dz &amp;= e^{i\theta}\,i\,d\theta
+\end{aligned}
+\]
+\[
+I = \oint \frac{dz}{z^{n+1}} = \int_{0}^{2\pi}\frac{e^{i\theta}\,i\,d\theta}{e^{(n+1)i\theta}}
+\]
+\[
+\begin{aligned}
+I &amp;= \int_{0}^{2\pi} e^{-in\theta}\,i\,d\theta = \int_{0}^{2\pi} i\left(\cos n\theta - i\sin n\theta\right) d\theta\\
+&amp;= i\left(\frac{\sin n\theta}{n} + \frac{i\cos n\theta}{n}\right)^{2\pi}_{0} = 0. \quad \forall\, n = 1,2,3\cdots\\
+&amp;\hspace{5.5cm} (n \neq 0)
+\end{aligned}
+\]
+
+<p>
+what if \((n=0)\),<br />
+</p>
+\[
+I = \int_{0}^{2\pi} i\,e^{-in\theta}\,d\theta\Big|_{(n=0)} = \int_{0}^{2\pi} i\,d\theta = 2\pi i
+\]
+
+<p>
+So,<br />
+</p>
+\[
+\boxed{\frac{1}{2\pi i}\oint \frac{dz}{z^{n+1}} = \delta_{n,0}}
+\]
+
+<p>
+we can generalize it,<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.8]
+\draw[-&gt;] (-1.6,-0.9) -- (3.2,-0.9);
+\draw[-&gt;] (-1.6,-1.2) -- (-1.6,1.6);
+\draw[thick] plot[smooth cycle, tension=0.9] coordinates {(0.0,0.9) (1.1,0.7) (1.3,-0.1) (0.5,-0.5) (-0.4,0.1)};
+\node at (1.5,0.9) {$C$};
+\draw (0.15,0.25) circle (0.12);
+\node[left] at (0.0,0.25) {\small $a$};
+\end{tikzpicture}
+</pre>
+
+\[
+\left\{\frac{1}{2\pi i}\oint_{C}\frac{dz}{(z-a)^{n+1}} = \delta_{n,0}\right\}
+\]
+
+<p>
+So, If we have a function \(f(z)\), having pole at \(z=a\).<br />
+</p>
+
+<p>
+Then<br />
+</p>
+\[
+\oint f(z)\,dz = ?
+\]
+<p>
+(or essential singularity)<br />
+</p>
+
+<p>
+As \(f(z)\) has pole, we expand \(f(z)\) about \(z=a\) via laurent series.<br />
+</p>
+\[
+f(z) = \sum_{n=1}^{\infty}\frac{c_{-n}}{(z-a)^n} + \sum_{n=0}^{\infty} c_n (z-a)^n
+\]
+
+\[
+I = \oint f(z)\,dz = \sum_{n=1}^{\infty}\oint \frac{dz\,c_{-n}}{(z-a)^n} + \sum_{n=0}^{\infty}\oint \underline{dz\,c_n (z-a)^n}
+\]
+<p>
+\(\hookrightarrow\) is analytic function so vanishes<br />
+</p>
+\[
+= (2\pi i)\,c_{-1} + \sum_{n=2}^{\infty}\oint \frac{dz\,c_{-n}}{(z-a)^n} + 0
+\]
+<p>
+\(\swarrow\) we just saw \(\dfrac{1}{2\pi i}\oint\dfrac{dz}{(z-a)^n} = \delta_{n,0}\)<br />
+</p>
+\[
+= (2\pi i)\,c_{-1} + 0
+\]
+
+<p>
+So,<br />
+</p>
+\[
+\left\{\frac{1}{2\pi i}\oint f(z)\,dz = \operatorname*{Res}_{z=a}\left[f(z)\right] = c_{-1}\right\}
+\quad
+\begin{aligned}&amp;\text{Cauchy}\\&amp;\text{Integral}\\&amp;\underline{\text{Formula}}\end{aligned}
+\]
+
+<p>
+what if we find integral \(\displaystyle\oint_{C} f(z)\,dz = ?\)<br />
+</p>
+
+<p>
+here we are calculating integral over angle \(0\) to \(4\pi\) i.e. 2 windings of contour.<br />
+</p>
+
+<p>
+So<br />
+</p>
+\[
+\oint f(z)\,dz = \oint \sum_{n=1}^{\infty}\frac{c_{-n}}{(z-a)^n} + \sum_{n=0}^{\infty}\oint c_n (z-a)^n
+\]
+<p>
+\(\hookrightarrow\) zero as \((z-a)^n\) is analytic.<br />
+</p>
+\[
+\begin{aligned}
+&amp;= (c_{-n})\sum \int_{0}^{4\pi} \frac{dz}{(z-a)^{n+1}} + 0\\
+&amp;= c_{-1}\int_{0}^{4\pi} e^{-in\theta}\,i\,d\theta + 0
+\end{aligned}
+\]
+<p>
+\(\checkmark\) `0' (written over the \(n\) in \(-in\theta\))<br />
+</p>
+\[
+\oint f(z)\,dz = (4\pi i)\,\text{Res}(z=a)
+\]
+
+<p>
+similarly for `\(n\)' consecutive loops.<br />
+</p>
+\[
+\oint_{(n\times c)} f(z)\,dz = n(2\pi i)\,\text{Res}(z=a)
+\]
+\[
+\left(c \div |z| = 1\right)
+\]
+
+<p>
+If we find integral in clockwise sense<br />
+</p>
+\[
+\oint f(z)\,dz = \sum_{n=1}^{\infty}\oint \frac{c_{-n}}{(z-a)^n}\,dz + \underbrace{\sum_{n=0}^{\infty}\oint c_n (z-a)^n}_{\substack{\text{Regular part}\\ \text{so integral}=0.}}
+\]
+\[
+\begin{aligned}
+&amp;= \oint_{c} \frac{c_{-1}\,dz}{(z-a)} + \oint \sum_{n=2}^{\infty}\frac{c_{-n}\,dz}{(z-a)^n} + 0\\
+&amp;= c_{-1}\oint \frac{dz}{(z-a)} + \sum_{n=2}^{\infty}\oint \frac{c_{-n}\,dz}{(z-a)^n}
+\end{aligned}
+\]
+\[
+\left\{
+\begin{aligned}
+z-a &amp;= e^{i\theta}\\
+dz &amp;= e^{i\theta}\,i\,d\theta
+\end{aligned}
+\right.
+\]
+\[
+\begin{aligned}
+&amp;= c_{-1}\int_{2\pi}^{0}\frac{e^{i\theta}}{e^{i\theta}}\,i\,d\theta + \sum_{n=2}^{\infty}\oint_{2\pi}^{0}\frac{c_{-n}\,e^{i\theta}\,i\,d\theta}{e^{in\theta}}\\
+&amp;= c_{-1}\,(-2\pi i) + \sum_{n=2}^{\infty}\left(\int_{2\pi}^{0} c_{-n}\,e^{i\theta(1-n)}\,i\,d\theta\right)
+\end{aligned}
+\]
+<p>
+\(\longrightarrow\) 0 \(\forall\, n = 2,3,4\cdots\)<br />
+</p>
+\[
+\boxed{\oint f(z)\,dz = -2\pi i\,\text{Res}(z=a)}
+\]
+
+<p>
+In general,<br />
+</p>
+\[
+\oint f(z)\,dz = n(2\pi i)\,\text{Res}(z=a)
+\]
+<p>
+\(\downarrow\) no. of loops \((n \in\) { all} Integers\()\)<br />
+</p>
+
+<div id="Module 1, Lecture 3: Calculus of Residues-example."><h2 id="example." class="header"><a href="#Module 1, Lecture 3: Calculus of Residues-example.">example.</a></h2></div>
+
+<ol>
+<li>
+\(I = \displaystyle\oint e^{1/z}\,dz\)
+\[
+\begin{aligned}
+I &amp;= \oint\left(1 + \frac{1}{z} + \frac{1}{2!\,z^2} + \cdots\right) dz\\
+&amp;= \oint \frac{\boxed{1}}{z}\,dz + 0 \qquad \left(\text{Res}\,(z=0) = 1\right)
+\end{aligned}
+\]
+\[
+\left(I = 2\pi i\right).
+\]
+
+<li>
+\(\displaystyle\oint e^{\frac{1}{z^2}}\,dz = 2\pi i\,\text{Res}\,(f(z)) = 0\)
+\[
+e^{\frac{1}{z^2}} = 1 + \frac{1}{z^2} + \frac{1}{2!\,z^4} + \cdots
+\]
+\[
+\text{Res} = \left(\text{coeff of }\frac{1}{(z-0)} = \boxed{0}\right)
+\]
+
+</ol>
+
+    </div>
+
+    <!-- Floating buttons: ask this page (added by pagebot.js), go back to the
+         previous page, and scroll to top of this page -->
+    <div class="floating-btns">
+        <button id="btn-back" type="button" title="Go back" aria-label="Go back">&#8592;</button>
+        <button id="btn-top" type="button" title="Back to top" aria-label="Back to top">&#8593;</button>
+    </div>
+
+    <!-- Top-right buttons: site-wide tools — search (docked here at runtime by
+         search.js) and translate. Kept out of the bottom-right stack above,
+         which is for navigating within the current page. -->
+    <div class="top-right-btns">
+        <button id="btn-globe" type="button" title="Translate this page" aria-label="Translate this page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/><path d="M5.3 6.5c1.9 1 4.2 1.6 6.7 1.6s4.8-.6 6.7-1.6"/><path d="M5.3 17.5c1.9-1 4.2-1.6 6.7-1.6s4.8.6 6.7 1.6"/></svg></button>
+    </div>
+
+    <!-- Globe language panel: the only UI the visitor interacts with. Selecting
+         a language drives the hidden Google widget below (see script further
+         down) rather than showing Google's own default dropdown/banner. -->
+    <div id="translate-panel" aria-label="Choose a language">
+        <div class="tp-header">Translate this page</div>
+        <input type="text" id="tp-search" placeholder="Search language...">
+        <div class="tp-list" id="tp-list"></div>
+    </div>
+
+    <!-- Google Website Translator: loaded hidden. It is what actually performs
+         the translation once our panel sets its hidden <select> and fires a
+         change event on it (see script below). -->
+    <div id="google_translate_element"></div>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({ pageLanguage: 'en', autoDisplay: false }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <!-- Breadcrumb trail: the actual navigation chain the visitor clicked
+         through, in order (link1 > link2 > ... > current), NOT the folder path.
+         The chain is stored per-tab in sessionStorage: each page appends itself
+         when reached via a new link, and truncates back to itself when revisited
+         (e.g. clicking an earlier crumb or using the back button). Home is
+         always the root. The label prefers the page's own <h1>. -->
+    <script>
+    (function () {
+        var nav = document.getElementById('breadcrumb');
+        if (!nav) return;
+
+        var KEY = 'wikiBreadcrumbTrail';
+        var path = window.location.pathname;
+
+        function pageLabel() {
+            var h1 = document.querySelector('#content h1');
+            var t = h1 ? h1.textContent.replace(/\s+/g, ' ').trim() : '';
+            if (t) return t;
+            t = (document.title || '').replace(/_+/g, ' ').trim();
+            if (t && t.toLowerCase() !== 'index') return t;
+            var segs = path.split('/').filter(Boolean).map(function (s) {
+                try { return decodeURIComponent(s); } catch (e) { return s; }
+            });
+            var last = segs.pop() || '';
+            if (/^index\.html?$/i.test(last)) last = segs.pop() || 'index';
+            return last.replace(/\.html?$/i, '').replace(/_+/g, ' ').trim() || 'Page';
+        }
+
+        var current = { href: path, label: pageLabel() };
+
+        // Load the existing chain for this tab.
+        var trail = [];
+        try { trail = JSON.parse(sessionStorage.getItem(KEY)) || []; } catch (e) { trail = []; }
+        if (!Array.isArray(trail)) trail = [];
+
+        // If this page is already in the chain (visitor clicked an earlier crumb
+        // or hit back), cut the chain back to it. Otherwise extend the chain.
+        var found = -1;
+        for (var i = 0; i < trail.length; i++) {
+            if (trail[i] && trail[i].href === current.href) { found = i; break; }
+        }
+        if (found !== -1) {
+            trail = trail.slice(0, found + 1);
+            trail[found] = current;            // refresh the label
+        } else {
+            trail.push(current);
+        }
+
+        try { sessionStorage.setItem(KEY, JSON.stringify(trail)); } catch (e) {}
+
+        function addLink(href, text) {
+            var a = document.createElement('a');
+            a.href = href;
+            a.textContent = text;
+            nav.appendChild(a);
+            var sep = document.createElement('span');
+            sep.className = 'breadcrumb-sep';
+            sep.textContent = '\u203A';
+            nav.appendChild(sep);
+        }
+
+        // Home is always the root of the chain.
+        addLink('/index.html', 'Home');
+
+        // Every page in the chain except the current one is a clickable link.
+        for (var j = 0; j < trail.length - 1; j++) {
+            addLink(trail[j].href, trail[j].label);
+        }
+
+        var cur = document.createElement('span');
+        cur.className = 'breadcrumb-current';
+        cur.setAttribute('aria-current', 'page');
+        cur.textContent = trail.length ? trail[trail.length - 1].label : current.label;
+        nav.appendChild(cur);
+    })();
+    </script>
+
+    <!-- Floating buttons: back = previous page, top = smooth-scroll to top of this page -->
+    <script>
+    (function () {
+        var back = document.getElementById('btn-back');
+        var top = document.getElementById('btn-top');
+        if (back) {
+            back.addEventListener('click', function () { window.history.back(); });
+            if (window.history.length <= 1) back.style.display = 'none'; // nothing to go back to
+        }
+        if (top) {
+            top.addEventListener('click', function () {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            var onScroll = function () {
+                top.style.display = (window.pageYOffset > 200) ? 'block' : 'none';
+            };
+            window.addEventListener('scroll', onScroll, { passive: true });
+            onScroll();
+        }
+    })();
+    </script>
+
+    <!-- Globe button: opens the language panel; selecting a language drives the
+         hidden Google Translate widget (loaded above). The chosen language is
+         remembered in localStorage and re-applied on every page the visitor
+         navigates to next, so translation persists across the whole site. -->
+    <script>
+    (function () {
+        var LANGS = [
+            ['af', 'Afrikaans'], ['sq', 'Albanian'], ['am', 'Amharic'], ['ar', 'Arabic'], ['hy', 'Armenian'],
+            ['as', 'Assamese'], ['ay', 'Aymara'], ['az', 'Azerbaijani'], ['bm', 'Bambara'], ['eu', 'Basque'],
+            ['be', 'Belarusian'], ['bn', 'Bengali'], ['bho', 'Bhojpuri'], ['bs', 'Bosnian'], ['bg', 'Bulgarian'],
+            ['ca', 'Catalan'], ['ceb', 'Cebuano'], ['ny', 'Chichewa'], ['zh-CN', 'Chinese (Simplified)'],
+            ['zh-TW', 'Chinese (Traditional)'], ['co', 'Corsican'], ['hr', 'Croatian'], ['cs', 'Czech'],
+            ['da', 'Danish'], ['dv', 'Dhivehi'], ['doi', 'Dogri'], ['nl', 'Dutch'], ['en', 'English'],
+            ['eo', 'Esperanto'], ['et', 'Estonian'], ['ee', 'Ewe'], ['fil', 'Filipino'], ['fi', 'Finnish'],
+            ['fr', 'French'], ['fy', 'Frisian'], ['gl', 'Galician'], ['ka', 'Georgian'], ['de', 'German'],
+            ['el', 'Greek'], ['gn', 'Guarani'], ['gu', 'Gujarati'], ['ht', 'Haitian Creole'], ['ha', 'Hausa'],
+            ['haw', 'Hawaiian'], ['he', 'Hebrew'], ['hi', 'Hindi'], ['hmn', 'Hmong'], ['hu', 'Hungarian'],
+            ['is', 'Icelandic'], ['ig', 'Igbo'], ['ilo', 'Ilocano'], ['id', 'Indonesian'], ['ga', 'Irish'],
+            ['it', 'Italian'], ['ja', 'Japanese'], ['jv', 'Javanese'], ['kn', 'Kannada'], ['kk', 'Kazakh'],
+            ['km', 'Khmer'], ['rw', 'Kinyarwanda'], ['gom', 'Konkani'], ['ko', 'Korean'], ['kri', 'Krio'],
+            ['ku', 'Kurdish'], ['ckb', 'Kurdish (Sorani)'], ['ky', 'Kyrgyz'], ['lo', 'Lao'], ['la', 'Latin'],
+            ['lv', 'Latvian'], ['ln', 'Lingala'], ['lt', 'Lithuanian'], ['lg', 'Luganda'], ['lb', 'Luxembourgish'],
+            ['mk', 'Macedonian'], ['mai', 'Maithili'], ['mg', 'Malagasy'], ['ms', 'Malay'], ['ml', 'Malayalam'],
+            ['mt', 'Maltese'], ['mi', 'Maori'], ['mr', 'Marathi'], ['mni-Mtei', 'Meiteilon (Manipuri)'],
+            ['lus', 'Mizo'], ['mn', 'Mongolian'], ['my', 'Myanmar (Burmese)'], ['ne', 'Nepali'],
+            ['no', 'Norwegian'], ['or', 'Odia (Oriya)'], ['om', 'Oromo'], ['ps', 'Pashto'], ['fa', 'Persian'],
+            ['pl', 'Polish'], ['pt', 'Portuguese'], ['pa', 'Punjabi'], ['qu', 'Quechua'], ['ro', 'Romanian'],
+            ['ru', 'Russian'], ['sm', 'Samoan'], ['sa', 'Sanskrit'], ['gd', 'Scots Gaelic'],
+            ['nso', 'Sepedi'], ['sr', 'Serbian'], ['st', 'Sesotho'], ['sn', 'Shona'], ['sd', 'Sindhi'],
+            ['si', 'Sinhala'], ['sk', 'Slovak'], ['sl', 'Slovenian'], ['so', 'Somali'], ['es', 'Spanish'],
+            ['su', 'Sundanese'], ['sw', 'Swahili'], ['sv', 'Swedish'], ['tg', 'Tajik'], ['ta', 'Tamil'],
+            ['tt', 'Tatar'], ['te', 'Telugu'], ['th', 'Thai'], ['ti', 'Tigrinya'], ['ts', 'Tsonga'],
+            ['tr', 'Turkish'], ['tk', 'Turkmen'], ['ak', 'Twi'], ['uk', 'Ukrainian'], ['ur', 'Urdu'],
+            ['ug', 'Uyghur'], ['uz', 'Uzbek'], ['vi', 'Vietnamese'], ['cy', 'Welsh'], ['xh', 'Xhosa'],
+            ['yi', 'Yiddish'], ['yo', 'Yoruba'], ['zu', 'Zulu']
+        ];
+
+        var STORAGE_KEY = 'wikiTranslateLang';
+        var btn = document.getElementById('btn-globe');
+        var panel = document.getElementById('translate-panel');
+        var search = document.getElementById('tp-search');
+        var list = document.getElementById('tp-list');
+        if (!btn || !panel || !list || !search) return;
+
+        function currentLang() {
+            try { return localStorage.getItem(STORAGE_KEY) || 'en'; } catch (e) { return 'en'; }
+        }
+
+        function renderList(filter) {
+            var f = (filter || '').trim().toLowerCase();
+            var active = currentLang();
+            list.innerHTML = '';
+            LANGS.forEach(function (pair) {
+                var code = pair[0], name = pair[1];
+                if (f && name.toLowerCase().indexOf(f) === -1) return;
+                var b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'tp-lang' + (code === active ? ' active' : '');
+                b.textContent = name;
+                b.addEventListener('click', function () { setLanguage(code); });
+                list.appendChild(b);
+            });
+        }
+
+        function setLanguage(code) {
+            try { localStorage.setItem(STORAGE_KEY, code); } catch (e) {}
+            panel.classList.remove('open');
+            applyLanguage(code);
+        }
+
+        function applyLanguage(code) {
+            if (code === 'en') {
+                // Reset to the original English text.
+                document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + location.hostname + ';';
+                if (document.querySelector('select.goog-te-combo')) location.reload();
+                return;
+            }
+            // The Google widget loads its <select> asynchronously, so poll
+            // briefly until it exists (covers both the click case and the
+            // "re-apply on new page load" case below).
+            var tries = 0;
+            (function tryApply() {
+                var combo = document.querySelector('select.goog-te-combo');
+                if (combo) {
+                    if (combo.value !== code) {
+                        combo.value = code;
+                        combo.dispatchEvent(new Event('change'));
+                    }
+                } else if (tries < 40) {
+                    tries++;
+                    setTimeout(tryApply, 250);
+                }
+            })();
+        }
+
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var opening = !panel.classList.contains('open');
+            panel.classList.toggle('open', opening);
+            if (opening) {
+                search.value = '';
+                renderList('');
+                search.focus();
+            }
+        });
+        document.addEventListener('click', function (e) {
+            if (panel.classList.contains('open') && !panel.contains(e.target) && e.target !== btn) {
+                panel.classList.remove('open');
+            }
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') panel.classList.remove('open');
+        });
+        search.addEventListener('input', function () { renderList(search.value); });
+
+        renderList('');
+
+        // Keep the whole site translated as the visitor moves between pages.
+        var saved = currentLang();
+        if (saved && saved !== 'en') applyLanguage(saved);
+    })();
+    </script>
+
+    <!-- Images: (1) rewrite baked-in local export paths to their web location and
+         trim stray spaces, (2) upgrade http:// -> https://, (3) add a caption under
+         each image using its alt text. Images with no alt are left uncaptioned.
+         NOTE: the image FILES must exist on the server at the mapped location
+         (e.g. /wiki/vimwiki_html/Blogs/cric/) — upload that folder. -->
+    <script>
+    (function () {
+        var LOCAL_ANCHOR = '/vimwiki/';
+        var WEB_ROOT = '/wiki/vimwiki_html/';
+        document.querySelectorAll('#content img').forEach(function (img) {
+            // 1) normalise the src
+            var raw = img.getAttribute('src');
+            if (raw) {
+                var s = raw.trim();
+                var i = s.indexOf(LOCAL_ANCHOR);
+                if (i !== -1) s = WEB_ROOT + s.slice(i + LOCAL_ANCHOR.length);
+                if (/^http:\/\//i.test(s)) s = s.replace(/^http:\/\//i, 'https://');
+                if (s !== raw) img.setAttribute('src', s);
+            }
+            // 2) defer offscreen images: on a long photo post the browser
+            //    would otherwise start fetching every image at once.
+            if (!img.hasAttribute('loading')) img.setAttribute('loading', 'lazy');
+            img.setAttribute('decoding', 'async');
+            // 3) caption from alt text
+            var alt = (img.getAttribute('alt') || '').trim();
+            if (!alt) return;
+            var parent = img.parentNode;
+            if (!parent || parent.tagName === 'FIGURE') return;
+            var fig = document.createElement('figure');
+            fig.className = 'img-figure';
+            var cap = document.createElement('figcaption');
+            cap.textContent = alt;
+            parent.insertBefore(fig, img);
+            fig.appendChild(img);
+            fig.appendChild(cap);
+            // tidy a <br> left immediately after the image
+            var nx = fig.nextSibling;
+            if (nx && nx.nodeType === 1 && nx.tagName === 'BR') nx.parentNode.removeChild(nx);
+        });
+    })();
+    </script>
+
+    <!-- Hover preview cards for internal links, like Wikipedia's page previews.
+         Hovering (or focusing) a same-site link to another .html page fetches
+         that page, and if — and only if — it actually exists (HTTP 200), shows
+         its title, first paragraph, and first image in a small card near the
+         link. Broken/nonexistent links are left alone: nothing is shown. -->
+    <script>
+    (function () {
+        var content = document.getElementById('content');
+        if (!content) return;
+
+        var LOCAL_ANCHOR = '/vimwiki/';
+        var WEB_ROOT = '/wiki/vimwiki_html/';
+        function fixImgSrc(src) {
+            if (!src) return src;
+            var s = src.trim();
+            var i = s.indexOf(LOCAL_ANCHOR);
+            if (i !== -1) s = WEB_ROOT + s.slice(i + LOCAL_ANCHOR.length);
+            if (/^http:\/\//i.test(s)) s = s.replace(/^http:\/\//i, 'https://');
+            return s;
+        }
+
+        var card = document.createElement('div');
+        card.className = 'link-preview-card';
+        document.body.appendChild(card);
+
+        var cache = {};   // resolved URL -> {title, snippet, thumb} | 'missing'
+        var showTimer = null;
+        var hideTimer = null;
+        var activeKey = null;
+
+        function stripHash(href) {
+            var i = href.indexOf('#');
+            return i === -1 ? href : href.slice(0, i);
+        }
+
+        function extract(html) {
+            var doc = new DOMParser().parseFromString(html, 'text/html');
+            var target = doc.getElementById('content');
+            if (!target) return null;
+            var h1 = target.querySelector('h1');
+            var title = h1 ? h1.textContent.replace(/\s+/g, ' ').trim() : (doc.title || '').trim();
+            var snippet = '';
+            var ps = target.querySelectorAll('p');
+            for (var i = 0; i < ps.length; i++) {
+                var t = ps[i].textContent.replace(/\s+/g, ' ').trim();
+                if (t.length > 20) { snippet = t; break; }
+            }
+            if (snippet.length > 220) snippet = snippet.slice(0, 217).trim() + '…';
+            var img = target.querySelector('img');
+            var thumb = img ? fixImgSrc(img.getAttribute('src')) : null;
+            return { title: title || 'Untitled', snippet: snippet, thumb: thumb };
+        }
+
+        function render(data) {
+            var html = '';
+            if (data.thumb) html += '<img class="lp-thumb" src="' + data.thumb + '" alt="">';
+            html += '<div class="lp-body"><div class="lp-title"></div><p class="lp-snippet"></p></div>';
+            card.innerHTML = html;
+            card.querySelector('.lp-title').textContent = data.title;
+            card.querySelector('.lp-snippet').textContent = data.snippet;
+        }
+
+        function position(link) {
+            var rect = link.getBoundingClientRect();
+            var margin = 10;
+            var cardWidth = card.offsetWidth || 300;
+            var left = rect.left;
+            if (left + cardWidth > window.innerWidth - margin) left = window.innerWidth - cardWidth - margin;
+            if (left < margin) left = margin;
+            var top = rect.bottom + 8;
+            var cardHeight = card.offsetHeight || 160;
+            if (top + cardHeight > window.innerHeight - margin && rect.top - cardHeight - 8 > margin) {
+                top = rect.top - cardHeight - 8;
+            }
+            card.style.left = left + 'px';
+            card.style.top = top + 'px';
+        }
+
+        function hide() {
+            card.classList.remove('visible');
+            activeKey = null;
+        }
+
+        function showFor(link, key) {
+            var data = cache[key];
+            if (!data || data === 'missing') return;
+            render(data);
+            position(link);
+            card.classList.add('visible');
+            requestAnimationFrame(function () { position(link); });
+        }
+
+        function handleEnter(link, key) {
+            clearTimeout(hideTimer);
+            clearTimeout(showTimer);
+            activeKey = key;
+            showTimer = setTimeout(function () {
+                if (activeKey !== key) return;
+                if (cache[key] === 'missing') return;
+                if (cache[key]) { showFor(link, key); return; }
+                fetch(key, { credentials: 'same-origin' }).then(function (res) {
+                    if (!res.ok) { cache[key] = 'missing'; return null; }
+                    return res.text();
+                }).then(function (html) {
+                    if (html == null) return;
+                    var data = extract(html);
+                    if (!data) { cache[key] = 'missing'; return; }
+                    cache[key] = data;
+                    if (activeKey === key) showFor(link, key);
+                }).catch(function () { cache[key] = 'missing'; });
+            }, 350);
+        }
+
+        function handleLeave() {
+            clearTimeout(showTimer);
+            activeKey = null;
+            hideTimer = setTimeout(hide, 200);
+        }
+
+        card.addEventListener('mouseenter', function () { clearTimeout(hideTimer); });
+        card.addEventListener('mouseleave', function () { hideTimer = setTimeout(hide, 150); });
+
+        content.querySelectorAll('a[href]').forEach(function (link) {
+            var href = link.getAttribute('href');
+            if (!href || href.charAt(0) === '#') return;
+            if (/^(mailto:|javascript:|tel:)/i.test(href)) return;
+            if (link.hostname !== window.location.hostname) return;
+            var key = stripHash(link.href);
+            if (!/\.html?$/i.test(key.split('?')[0])) return;
+            link.addEventListener('mouseenter', function () { handleEnter(link, key); });
+            link.addEventListener('mouseleave', handleLeave);
+            link.addEventListener('focus', function () { handleEnter(link, key); });
+            link.addEventListener('blur', handleLeave);
+        });
+
+        window.addEventListener('scroll', hide, { passive: true });
+        window.addEventListener('resize', hide);
+    })();
+    </script>
+
+    <!-- 0. Repair asset paths (vimwiki-asset-path-fix).
+         Vimwiki resolves {{...}} images and local:/file: links against the
+         SOURCE wiki tree (.../phd_work/notes/vimwiki/...), which does not exist
+         on the deployed site, and it appends ".html" to any [[link]] even when
+         the target already has an extension. Both are repaired here so the
+         fix survives every re-export instead of needing a manual patch. -->
+    <script>
+    (function () {
+        var ROOT = '/wiki/vimwiki_html/';
+        var NEEDLE = 'notes/vimwiki/';
+        var ATTACH = /\.(pdf|png|jpe?g|gif|svg|webp|zip|txt|csv|tex|docx?|xlsx?|pptx?)\.html$/i;
+        function fix(url) {
+            if (!url || /^(https?:|mailto:|#|data:)/i.test(url)) return url;
+            var i = url.indexOf(NEEDLE);
+            if (i !== -1) url = ROOT + url.slice(i + NEEDLE.length);
+            return url.replace(ATTACH, '.$1');
+        }
+        function sweep(sel, attr) {
+            document.querySelectorAll(sel).forEach(function (el) {
+                var v = el.getAttribute(attr), n = fix(v);
+                if (n !== v) el.setAttribute(attr, n);
+            });
+        }
+        sweep('a[href]', 'href');
+        sweep('img[src]', 'src');
+    })();
+    </script>
+    <!-- 1. Turn vimwiki {{{class="tikz"}}} blocks into TikZJax script tags (must run BEFORE tikzjax.js) -->
+    <script>
+        document.querySelectorAll('pre.tikz').forEach(function (pre) {
+            var s = document.createElement('script');
+            s.type = 'text/tikz';
+            s.textContent = pre.textContent; // browser decodes HTML entities here
+            pre.textContent = '';
+            pre.appendChild(s); // keep <pre class="tikz"> as the container so its
+                                 // text-align:center still applies to the SVG tikzjax inserts
+        });
+    </script>
+    <!-- 2. Syntax-highlight code blocks, but skip diagram blocks -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre:not(.mermaid):not(.tikz)').forEach(function (block) {
+            hljs.highlightBlock(block);
+        });
+    </script>
+    <!-- 3. TikZJax: renders <script type="text/tikz"> into SVG -->
+    <script src="https://tikzjax.com/v1/tikzjax.js"></script>
+    <!-- 4. Mermaid: renders <pre class="mermaid"> into SVG -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+
+    <!-- 5. Ask-this-page search. Purely local: it indexes the text already in
+         #content and shows the passages that match your question. The launcher
+         is added to the .floating-btns stack above, so it inherits those styles.
+         The index is built the first time the panel is opened, by which point
+         MathJax/TikZ/Mermaid have finished rewriting the DOM. -->
+    <script>
+        window.PAGEBOT_CONFIG = {
+            rootSelector: '#content',
+            extraSkip: 'pre.mermaid, pre.tikz, .breadcrumb',
+            launcherSelector: '.floating-btns',
+            launcherLabel: '?',
+            launcherTitle: 'Ask this page',
+            title: 'Ask this page',
+            accent: '#6b4f2a',
+            panelBg: '#fbf6e9',
+            results: 3
+        };
+    </script>
+    <script src="/wiki/assets/pagebot.js"></script>
+
+    <!-- 6. Site-wide search: separate from "Ask this page" above — this finds
+         *which page* to go to, across the whole site, not just this one.
+         Reads wiki/assets/search-index.json (built by build_search_index.py).
+         The launcher is docked into the top-right stack, next to translate,
+         since both are site-wide rather than per-page tools. -->
+    <script>
+        window.SEARCH_CONFIG = {
+            launcherSelector: '.top-right-btns',
+            launcherLabel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16.3 16.3 21 21"/></svg>',
+            launcherTitle: 'Search this site',
+            title: 'Search this site',
+            accent: '#6b4f2a',
+            panelBg: '#fbf6e9',
+            maxResults: 8
+        };
+    </script>
+    <script src="/wiki/assets/search.js"></script>
+</body>
+</html>
