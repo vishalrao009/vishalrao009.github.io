@@ -1,0 +1,3768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- <link rel="stylesheet" type="text/css" href="style.css"> -->
+    <link rel="stylesheet" href="/wiki/assets/style.css" />
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
+    <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
+    <title>mm1</title>
+    <!-- MathJax config: on phone-width screens, break long display equations onto
+         multiple lines instead of overflowing the page. Desktop and tablet keep the
+         default rendering (empty config), so their layout is unchanged. Must run
+         BEFORE the MathJax script below. -->
+    <script>
+        (function () {
+            var isPhone = window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
+            window.MathJax = {
+                chtml: isPhone
+                    ? { scale: 0.8, displayOverflow: 'linebreak', linebreaks: { inline: true } }
+                    : {}
+            };
+        })();
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            /* Absolute, not '../Images/parchment.jpg': the relative form
+               resolved to a different copy of the same image in every section
+               folder, so the browser cached (and re-downloaded) it once per
+               section. One canonical URL = fetched once for the whole site. */
+            background-image: url('/wiki/vimwiki_html/Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm;
+        }
+        #content {
+            color: #333;
+            font-size: 20px;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+        h1 { font-size: 28px; }
+        h2 { font-size: 24px; }
+        h3 { font-size: 20px; }
+        h4, h5, h6 { font-size: 18px; }
+        img {
+            display: block;
+            max-width: 100%;
+            max-height: 500px;
+            margin: 30px auto;
+        }
+        /* Image + caption (built from each image's alt text) */
+        figure.img-figure {
+            margin: 30px auto;
+            text-align: center;
+            max-width: 100%;
+        }
+        figure.img-figure img {
+            margin: 0 auto 8px auto;   /* caption sits right under the image */
+        }
+        figure.img-figure figcaption {
+            font-size: 15px;
+            color: #555;
+            font-style: italic;
+            line-height: 1.4;
+        }
+        /* Diagram blocks (Mermaid + TikZ): centered, no code-box background */
+        pre.mermaid, pre.tikz {
+            background: none;
+            border: none;
+            text-align: center;
+        }
+        #content svg {
+            max-width: 100%;
+            height: auto;
+        }
+        /* Breadcrumb trail */
+        .breadcrumb {
+            font-size: 19px;
+            font-weight: bold;
+            line-height: 1.5;
+            margin-bottom: 22px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid rgba(181, 101, 29, 0.35);
+            word-break: break-word;
+        }
+        .breadcrumb:empty { display: none; }
+        .breadcrumb a { color: #b5651d; text-decoration: none; }
+        .breadcrumb a:hover { color: #8a4a12; text-decoration: underline; }
+        .breadcrumb .breadcrumb-sep { color: #c08a5a; margin: 0 8px; }
+        .breadcrumb .breadcrumb-current { color: #1f3a5f; }
+        /* Floating navigation buttons (ask this page + go back + scroll to top) */
+        .floating-btns {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 1000;
+        }
+        .floating-btns button {
+            width: 48px;
+            height: 48px;
+            border: none;
+            border-radius: 50%;
+            background: #6b4f2a;
+            color: #fff;
+            font-size: 22px;
+            line-height: 48px;
+            text-align: center;
+            padding: 0;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            opacity: 0.85;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .floating-btns button:hover { opacity: 1; transform: translateY(-2px); }
+        #btn-top { display: none; }   /* revealed after scrolling down */
+        /* Top-right button stack: site-wide tools (translate + search), kept
+           separate from the bottom-right stack above, which holds per-page
+           navigation (back / top / ask-this-page). The search launcher is
+           inserted here at runtime by search.js. */
+        .top-right-btns {
+            position: fixed;
+            top: 16px;
+            right: 24px;
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            z-index: 1500;
+        }
+        /* Plain monochrome line icons — no fill, no coloured circle. The icons
+           are inline SVG using stroke: currentColor, so `color` is all that
+           drives their appearance. */
+        .top-right-btns button {
+            width: 48px;
+            height: 48px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 8px;
+            background: none;
+            color: #4a4038;
+            padding: 0;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transition: color 0.15s ease, background-color 0.15s ease;
+        }
+        .top-right-btns button svg { width: 32px; height: 32px; display: block; }
+        .top-right-btns button:hover { color: #1f1a15; background: rgba(107, 79, 42, 0.12); }
+        @media (max-width: 600px) {
+            .floating-btns { right: 14px; bottom: 14px; }
+            .floating-btns button { width: 44px; height: 44px; font-size: 20px; line-height: 44px; }
+            .top-right-btns { top: 12px; right: 14px; gap: 4px; }
+            .top-right-btns button { width: 44px; height: 44px; }
+            .top-right-btns button svg { width: 30px; height: 30px; }
+        }
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body { padding: 12px; }
+            #content {
+                padding: 8px 10px;
+                max-width: 100%;
+                font-size: 13px;    /* smaller text -> proportionally smaller equations that fit */
+                line-height: 1.5;
+            }
+            h1 { font-size: 20px; }
+            h2 { font-size: 18px; }
+            h3 { font-size: 16px; }
+            h4, h5, h6 { font-size: 15px; }
+            .breadcrumb { font-size: 15px; }
+            /* Wide math: never let it stretch the page. If it can't be broken onto
+               multiple lines, it scrolls inside its own box instead. */
+            mjx-container[display="true"] {
+                max-width: 100%;
+                overflow-x: auto;
+                overflow-y: hidden;
+            }
+            mjx-container { max-width: 100%; }
+        }
+        /* Google Translate: the widget itself stays hidden. We drive it entirely
+           through our own globe button + language panel below. Suppress every
+           bit of Google's own chrome in all cases — the "Translated to … /
+           Show original" top banner, the floating balloon, the feedback tab,
+           and the "suggest a better translation" hover tooltip. None of it
+           should ever surface; the visitor switches back to English from our
+           own globe menu instead.
+
+           The banner is injected as a top-level <iframe class="skiptranslate">,
+           which is why hiding only the .goog-te-* classes wasn't enough. */
+        #google_translate_element { display: none !important; }
+        .goog-te-gadget { display: none !important; }
+        iframe.skiptranslate,
+        .skiptranslate > iframe,
+        .goog-te-banner-frame,
+        .goog-te-banner-frame.skiptranslate,
+        .goog-te-ftab,
+        .goog-te-ftab-float,
+        .goog-te-balloon-frame,
+        .goog-te-gadget-icon,
+        .goog-te-menu-frame,
+        #goog-gt-tt,
+        .goog-tooltip,
+        .goog-tooltip:hover {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        /* Google pushes the page down with an inline body { top: 40px;
+           position: relative } to make room for that banner. !important here
+           outranks its inline style, so the layout never shifts. */
+        body {
+            top: 0px !important;
+            position: static !important;
+        }
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
+        /* Globe language panel */
+        #translate-panel {
+            display: none;
+            flex-direction: column;
+            position: fixed;
+            right: 24px;
+            top: 72px;
+            width: 260px;
+            max-height: 360px;
+            background: #fbf6e9;
+            border-radius: 10px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+            z-index: 1001;
+            overflow: hidden;
+        }
+        #translate-panel.open { display: flex; }
+        #translate-panel .tp-header {
+            padding: 10px 12px 6px 12px;
+            font-weight: bold;
+            color: #6b4f2a;
+            border-bottom: 1px solid rgba(107, 79, 42, 0.2);
+        }
+        #translate-panel input[type="text"] {
+            margin: 8px 12px;
+            padding: 6px 8px;
+            border: 1px solid rgba(107, 79, 42, 0.3);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        #translate-panel .tp-list {
+            overflow-y: auto;
+            padding: 0 6px 8px 6px;
+        }
+        #translate-panel .tp-lang {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            padding: 7px 10px;
+            font-size: 14px;
+            color: #333;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+        #translate-panel .tp-lang:hover { background: rgba(107, 79, 42, 0.12); }
+        #translate-panel .tp-lang.active { background: #6b4f2a; color: #fff; }
+        @media (max-width: 600px) {
+            #translate-panel { right: 14px; top: 64px; width: 220px; max-height: 300px; }
+        }
+        /* Hover preview card for internal links (Wikipedia-style). Only ever
+           populated for links whose target page actually exists — see the
+           script below, which fetches the target and stays hidden on 404. */
+        .link-preview-card {
+            position: fixed;
+            z-index: 1002;
+            width: 300px;
+            max-width: calc(100vw - 24px);
+            background: #fbf6e9;
+            border: 1px solid rgba(107, 79, 42, 0.3);
+            border-radius: 10px;
+            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(4px);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            font-family: Arial, sans-serif;
+        }
+        .link-preview-card.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+        .link-preview-card .lp-thumb {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            display: block;
+            background: rgba(107, 79, 42, 0.08);
+        }
+        .link-preview-card .lp-body { padding: 12px 14px; }
+        .link-preview-card .lp-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #6b4f2a;
+            margin: 0 0 6px 0;
+            line-height: 1.3;
+        }
+        .link-preview-card .lp-snippet {
+            font-size: 13px;
+            color: #444;
+            line-height: 1.45;
+            margin: 0;
+        }
+        /* Hover previews don't make sense on touch devices, so keep this off
+           on narrow/mobile viewports rather than leaving a stuck-open card. */
+        @media (max-width: 600px) {
+            .link-preview-card { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        <!-- Breadcrumb: Home > section > current, based on which top-level wiki
+             folder this page lives under. See the script below for the mapping. -->
+        <nav id="breadcrumb" class="breadcrumb" aria-label="Breadcrumb"></nav>
+        
+<div id="Contents" class="toc"><h1 id="Contents" class="header"><a href="#Contents">Contents</a></h1></div>
+<ul>
+<li>
+<a href="mm1.html#Chapter 1: Tensors">#Chapter 1: Tensors</a>
+
+<ul>
+<li>
+<a href="mm1.html#(Tensors)">#(Tensors)</a>
+
+<li>
+<a href="mm1.html#componente in a given basis :-">#componente in a given basis :-</a>
+
+<li>
+<a href="mm1.html#Tensor of rank 2 :- (2 basis vector / component)">#Tensor of rank 2 :- (2 basis vector / component)</a>
+
+<li>
+<a href="mm1.html#IMPORTANT POINTS">#IMPORTANT POINTS</a>
+
+<li>
+<a href="mm1.html#Contravariant tensor :-">#Contravariant tensor :-</a>
+
+<li>
+<a href="mm1.html#covariant tensor :-">#covariant tensor :-</a>
+
+<li>
+<a href="mm1.html#Tensor Notation :-">#Tensor Notation :-</a>
+
+<li>
+<a href="mm1.html#Transformation law :-">#Transformation law :-</a>
+
+<li>
+<a href="mm1.html#Summary :-">#Summary :-</a>
+
+<li>
+<a href="mm1.html#Non- identities :-">#Non- identities :-</a>
+
+<li>
+<a href="mm1.html#Identities :-">#Identities :-</a>
+
+<li>
+<a href="mm1.html#kronecker delta :-">#kronecker delta :-</a>
+
+<li>
+<a href="mm1.html#Linear Algebra of Tensors :-">#Linear Algebra of Tensors :-</a>
+
+<li>
+<a href="mm1.html#Chain rule of partial derivative :-">#Chain rule of partial derivative :-</a>
+
+<li>
+<a href="mm1.html#Coordinate transformation for tensors :-">#Coordinate transformation for tensors :-</a>
+
+<li>
+<a href="mm1.html#curvilinear coordinates :-">#curvilinear coordinates :-</a>
+
+<li>
+<a href="mm1.html#contravariant and covariant tensors :-">#contravariant and covariant tensors :-</a>
+
+<li>
+<a href="mm1.html#Contravariant and covariant tensors (formal definition) :-">#Contravariant and covariant tensors (formal definition) :-</a>
+
+<li>
+<a href="mm1.html#contravariant tensor (rank 2)">#contravariant tensor (rank 2)</a>
+
+<li>
+<a href="mm1.html#covariant tensor (rank 2)">#covariant tensor (rank 2)</a>
+
+<li>
+<a href="mm1.html#Mixed tensor (rank -2)">#Mixed tensor (rank -2)</a>
+
+<li>
+<a href="mm1.html#Tensor Ranks">#Tensor Ranks</a>
+
+<li>
+<a href="mm1.html#General Tensor">#General Tensor</a>
+
+<li>
+<a href="mm1.html#Tensor operations">#Tensor operations</a>
+
+<li>
+<a href="mm1.html#Scalar multiplication">#Scalar multiplication</a>
+
+<li>
+<a href="mm1.html#Linear combinations">#Linear combinations</a>
+
+<li>
+<a href="mm1.html#Contraction">#Contraction</a>
+
+<li>
+<a href="mm1.html#Inner product">#Inner product</a>
+
+<li>
+<a href="mm1.html#Outer product">#Outer product</a>
+
+<li>
+<a href="mm1.html#(Chapter -1) The Einstien summation convention">#(Chapter -1) The Einstien summation convention</a>
+
+<li>
+<a href="mm1.html#Einstein summation convention">#Einstein summation convention</a>
+
+<li>
+<a href="mm1.html#Substitutions">#Substitutions</a>
+
+<li>
+<a href="mm1.html#(1.3) kronecker delta and algebric manipulations">#(1.3) kronecker delta and algebric manipulations</a>
+
+<li>
+<a href="mm1.html#Non-identities">#Non-identities</a>
+
+<li>
+<a href="mm1.html#Problems">#Problems</a>
+
+<li>
+<a href="mm1.html#Exercise 1.2">#Exercise 1.2</a>
+
+<li>
+<a href="mm1.html#Exercise 1.3">#Exercise 1.3</a>
+
+<li>
+<a href="mm1.html#Exercise 1.4">#Exercise 1.4</a>
+
+<li>
+<a href="mm1.html#Exercise 1.5">#Exercise 1.5</a>
+
+<li>
+<a href="mm1.html#Exercise 1.6">#Exercise 1.6</a>
+
+<li>
+<a href="mm1.html#Exercise 1.7">#Exercise 1.7</a>
+
+<li>
+<a href="mm1.html#Exercise 1.8">#Exercise 1.8</a>
+
+<li>
+<a href="mm1.html#Exercise 1.9">#Exercise 1.9</a>
+
+<li>
+<a href="mm1.html#Exercise 1.11">#Exercise 1.11</a>
+
+<li>
+<a href="mm1.html#Exercise 1.12">#Exercise 1.12</a>
+
+<li>
+<a href="mm1.html#Exercise 1.13">#Exercise 1.13</a>
+
+</ul>
+</ul>
+<p>
+<a href="Mathematical Methods (V Balakrishnan) Opus 5.html">overview</a>  |  <a href="Mathematical Methods Ch 2 -- Basic Linear Algebra for Tensors (V Balakrishnan) Opus 5.html">next &gt;&gt;</a><br />
+</p>
+
+<div id="Chapter 1: Tensors"><h1 id="Chapter 1: Tensors" class="header"><a href="#Chapter 1: Tensors">Chapter 1: Tensors</a></h1></div>
+
+<div id="Chapter 1: Tensors-(Tensors)"><h2 id="(Tensors)" class="header"><a href="#Chapter 1: Tensors-(Tensors)">(Tensors)</a></h2></div>
+
+<p>
+In an \(n\)-dimentional space a tensor of rank \('r'\) is a mathematical object that has \('r'\) indices and \(n^r\) componente and obey certain transformation rules.<br />
+</p>
+
+<p>
+ [the word "components" is written in below the line, as an insertion]<br />
+</p>
+
+<div id="Chapter 1: Tensors-componente in a given basis :-"><h2 id="componente in a given basis :-" class="header"><a href="#Chapter 1: Tensors-componente in a given basis :-">componente in a given basis :-</a></h2></div>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,0) -- (0,1.7) node[left] {$z$};
+  \draw[-&gt;] (0,0) -- (1.8,0) node[right] {$y$};
+  \draw[-&gt;] (0,0) -- (-0.9,-1.1) node[below] {$x$};
+  \draw[-&gt;] (0,0) -- (0.35,1.0);
+  \node at (0.05,0.95) {$\hat n$};
+\end{tikzpicture}
+</pre>
+
+\[
+\vec{A} = x\hat{i} + y\hat{j} + z\hat{k} \qquad \text{here } (\vec A = \vec r)
+\]
+
+<p>
+ components in basis \((\hat i, \hat j, \hat k)\)<br />
+</p>
+
+<p>
+vector can also define area ,<br />
+</p>
+\[
+\vec{dA} = |dA|\,\hat n
+\]
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw (0,0) -- (0.25,0.9) -- (1.0,0.9) -- (0.75,0) -- cycle;
+  \draw[-&gt;] (0.55,0.5) -- (1.7,0.6) node[right] {$\hat n$};
+\end{tikzpicture}
+</pre>
+
+<p>
+ \((\text{area} = dA)\)<br />
+</p>
+
+<p>
+<em>scalar</em><br />
+</p>
+
+<p>
+ To specify temp of water<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw (0,1.0) -- (0.12,0) -- (0.95,0) -- (1.07,1.0);
+  \draw (0.15,0.72) -- (0.95,0.72);
+  \draw (0.28,0.42) -- (0.72,0.42);
+\end{tikzpicture}
+</pre>
+
+<p>
+ we don't need any basis vector.<br />
+</p>
+
+<p>
+ \(0\) Basis vector / component<br />
+</p>
+
+<p>
+<em>vector :-</em><br />
+</p>
+
+<p>
+ Per component we require one basis vector.<br />
+</p>
+\[
+\vec A = 3\hat i + 4\hat j
+\]
+
+<p>
+ for each component we require only one basis vector.<br />
+</p>
+
+<div id="Chapter 1: Tensors-Tensor of rank 2 :- (2 basis vector / component)"><h2 id="Tensor of rank 2 :- (2 basis vector / component)" class="header"><a href="#Chapter 1: Tensors-Tensor of rank 2 :- (2 basis vector / component)">Tensor of rank 2 :- (2 basis vector / component)</a></h2></div>
+
+<p>
+ How will you define stress at point \(O\).<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw (0,0) -- (4,0) -- (4,0.9) -- (0,0.9) -- cycle;
+  \draw (0,0.9) -- (0.8,1.5) -- (4.8,1.5) -- (4,0.9);
+  \draw (4,0) -- (4.8,0.6) -- (4.8,1.5);
+  \draw[dashed] (0.8,1.5) -- (0.8,0.6) -- (4.8,0.6);
+  \draw[dashed] (0,0) -- (0.8,0.6);
+  \fill (2.0,0.72) circle (0.05);
+  \node at (2.35,0.72) {$O$};
+\end{tikzpicture}
+</pre>
+
+<p>
+ we can cut surface in 3 ways at point \('O'\)<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  % first cut
+  \begin{scope}[shift={(0,0)}]
+    \draw (0,0) rectangle (1.0,0.8);
+    \draw (0.15,-0.1) -- (1.15,-0.1) -- (1.15,0.7) -- (0.15,0.7) -- cycle;
+    \fill (0.6,0.35) circle (0.04);
+    \draw[-&gt;] (0.6,0.35) -- (0.6,1.25) node[above right] {$\sigma_{xz}$};
+    \draw[-&gt;] (0.6,0.35) -- (1.9,0.35) node[right] {$\sigma_{xy}$};
+    \draw[-&gt;] (0.6,0.35) -- (0.6,-0.75) node[below] {$\sigma_{xx}$};
+  \end{scope}
+  % second cut
+  \begin{scope}[shift={(4.2,0)}]
+    \draw (0.05,-0.2) -- (0.75,-0.35) -- (0.85,1.0) -- (0.15,1.15) -- cycle;
+    \fill (0.45,0.35) circle (0.04);
+    \draw[-&gt;] (0.45,0.35) -- (0.45,1.4) node[above right] {$\sigma_{yz}$};
+    \draw[-&gt;] (0.45,0.35) -- (1.7,0.35) node[right] {$\sigma_{yy}$};
+    \draw[-&gt;] (0.45,0.35) -- (0.45,-0.8) node[below] {$\sigma_{yx}$};
+  \end{scope}
+  % third cut
+  \begin{scope}[shift={(8.4,0)}]
+    \draw (0.05,-0.2) rectangle (0.85,1.0);
+    \fill (0.45,0.35) circle (0.04);
+    \draw[-&gt;] (0.45,0.35) -- (0.45,1.4) node[above right] {$\sigma_{zz}$};
+    \draw[-&gt;] (0.45,0.35) -- (1.7,0.35) node[right] {$\sigma_{zy}$};
+    \draw[-&gt;] (0.45,0.35) -- (0.45,-0.8) node[below] {$\sigma_{zx}$};
+  \end{scope}
+\end{tikzpicture}
+</pre>
+
+<p>
+ first \('x'\) indicate dir\(^n\) of area &amp; second indices indicate dir\(^n\) of stsers/pressure.<br />
+</p>
+
+\[
+\sigma = \begin{bmatrix}
+\sigma_{xx} &amp; \sigma_{xy} &amp; \sigma_{xz} \\
+\sigma_{yx} &amp; \sigma_{yy} &amp; \sigma_{yz} \\
+\sigma_{zx} &amp; \sigma_{zy} &amp; \sigma_{zz}
+\end{bmatrix}
+\]
+
+<p>
+ [we need 2 basis vectors to write one component.]<br />
+</p>
+
+<p>
+ (arrows under the columns of the matrix) All components with \(\sigma\) along \(x\)-dirn \(\big|\) \(\left(\sigma \text{ along } 'y'\right)\) \(\big|\) \(\left(\sigma \text{ along } z\right)\)<br />
+</p>
+
+<p>
+ [we can't add \(\sigma_{xx} + \sigma_{yx} + \sigma_{zx}\) just because all are in same dir\(^n\) but these componente have different nature]<br />
+</p>
+
+<p>
+ longitudnal stress \(= \sigma_{xx}\)<br />
+</p>
+
+<p>
+ shear stress \(= \sigma_{yx}\)<br />
+</p>
+
+<p>
+To specify piezoelectricity &amp; stiffness we require 3 basis vector per component &amp; 4 basis vector per component respectively.<br />
+</p>
+
+<p>
+So, For a tensor of rank \('r'\) in \('n'\) dimentional space has \(n^r\) components and require \('r'\) basis to define one component.<br />
+</p>
+
+<p>
+ Summary<br />
+</p>
+\[
+\begin{aligned}
+\text{scalar} \quad &amp;-\quad \text{Tensor of rank } '0' \qquad &amp;&amp;(3^0 = 1 \text{ component})\\
+\text{vector} \quad &amp;-\quad \text{Tensor of rank } '1' \qquad &amp;&amp;(3^1 = 3 \text{ components})\\
+\text{stress} \quad &amp;-\quad \text{Tensor of rank } '2' \qquad &amp;&amp;(3^2 = 9 \text{ components})\\
+&amp; &amp;&amp; (4^2 = 16 \text{ components in 4-D} \cdots)\\
+\text{piezoelectricity} \quad &amp;-\quad \text{Tensor of rank } '3' \qquad &amp;&amp;(\text{In 3D has } 3^3 = 27 \text{ components})\\
+\text{stiffness} \quad &amp;-\quad \text{Tensor of rank } '4' \qquad &amp;&amp;(\text{In 3D has } 3^4 = 81 \text{ components})
+\end{aligned}
+\]
+
+<p>
+ [the word "Tensor" is written and struck out on the line below "vector"]<br />
+</p>
+
+<p>
+In form of tensor, any quantity is represented as<br />
+</p>
+\[
+T_i \qquad \text{or} \qquad T^i
+\]
+
+<p>
+ component \(\big|\) basis vector (also called indices)<br />
+</p>
+
+<p>
+ \(\left\{T^i = T \text{ super } i \ ;\quad T_i = T \text{ sub } i\right.\)<br />
+</p>
+
+<p>
+ Representation of Tensor quantity.<br />
+</p>
+
+<div id="Chapter 1: Tensors-IMPORTANT POINTS"><h2 id="IMPORTANT POINTS" class="header"><a href="#Chapter 1: Tensors-IMPORTANT POINTS">IMPORTANT POINTS</a></h2></div>
+
+<p>
+\(\rightarrow\) superscript represents contravariant tensor represented as column vector<br />
+</p>
+\[
+p^i = \left(p^i\right)_{i=1,2,3} = \begin{pmatrix} p^1 \\ p^2 \\ p^3 \end{pmatrix}
+\]
+
+<p>
+\(\rightarrow\) A tensor quantity with subscript Represents covariant tensor with representation of row vector<br />
+</p>
+\[
+L_i = \left(L_i\right)_{i=1,2,3} = \begin{pmatrix} L_1 &amp; L_2 &amp; L_3\end{pmatrix}
+\]
+
+<p>
+\(\rightarrow\) A tensor of second rank is a matrix<br />
+</p>
+\[
+M_i^{\,j} = \begin{bmatrix}
+M^1_{\ 1} &amp; M^1_{\ 2} &amp; M^1_{\ 3} \\
+M^2_{\ 1} &amp; M^2_{\ 2} &amp; M^2_{\ 3} \\
+M^3_{\ 1} &amp; M^3_{\ 2} &amp; M^3_{\ 3}
+\end{bmatrix}
+\]
+
+<p>
+\(\rightarrow\) Any twice repeated index in single term is summed over.<br />
+</p>
+\[
+\sum_{i=1}^{3} a_i x_i = a_1x_1 + a_2x_2 + a_3x_3
+\]
+\[
+\sum a_i x_i = a_i x_i \qquad (\text{einstien summation convention})
+\]
+\[
+a_{ij}x_j = a_{i1}x_1 + a_{i2}x_2 + a_{i3}x_3
+\]
+\[
+a^i_{\ i} = a^1_{\ 1} + a^2_{\ 2} + a^3_{\ 3} \qquad ; \qquad a^i x_i = a^1x_1 + a^2x_2 + \cdots + a^n x_n
+\]
+
+<p>
+\(\rightarrow\) Any index repeated twice in a single term is called dummy index.<br />
+</p>
+\[
+a_{ij}x_j \qquad (j = \text{dummy index})
+\]
+
+<p>
+ dummy index can be replaced with other index of same range.<br />
+</p>
+\[
+a_{ij}x_j = a_{ik}x_k = a_{i\ell}x_\ell \ \neq\ a_{ii}x_i
+\]
+
+<p>
+ range should be same \(\qquad (j = 1,2,3\ ,\quad k = 1,2,3\ ,\quad \ell = 1,2,3\ )\)<br />
+</p>
+
+<p>
+\(\rightarrow\) Any index occuring once in single term is called free index.<br />
+</p>
+\[
+a_{ij}x_j \qquad (i - \text{free index})
+\]
+
+<p>
+ \((i = 1,2,3)\)<br />
+</p>
+
+<p>
+ index \('i'\) can have one out of 3 values.<br />
+</p>
+\[
+a_{ij}x_j = a_{1j}x_j = a_{2j}x_j = a_{3j}x_j
+\]
+
+<p>
+ here<br />
+</p>
+\[
+a_{1j}x_j = a_{11}x_1 + a_{12}x_2 + a_{13}x_3
+\]
+\[
+a_{2j}x_j = a_{21}x_1 + a_{22}x_2 + a_{23}x_3
+\]
+\[
+a_{3j}x_j = a_{31}x_1 + a_{32}x_2 + a_{33}x_3
+\]
+
+\[
+\boxed{a_{ij}x_j}
+\]
+
+<p>
+ \(j = \) dummy index \(\qquad\qquad\) \(i = \) free index<br />
+</p>
+
+<p>
+ \(-\) Repeats twice in single term. \(\qquad\) \(-\) occurs once in single term<br />
+</p>
+
+<p>
+ \(-\) Represents sum over range \(\qquad\) \(-\) do not represent summation<br />
+</p>
+
+<p>
+ \(-\) can be replaced by other index \(\qquad\) \(-\) can't be replaced by other index.<br />
+</p>
+
+<p>
+ \(-\) Index can not occur more than 2 times.<br />
+</p>
+\[
+\left\{
+\begin{aligned}
+&amp;X_{ij}b_j \quad \checkmark\\
+&amp;X_{ik}b_k \quad \checkmark\\
+&amp;X_{ii}b_i \quad \times
+\end{aligned}\right.
+\]
+
+<p>
+while counting indices, count superscript &amp; subscript together.<br />
+</p>
+\[
+X^j_{\ j} \qquad j = \text{dummy index}
+\]
+\[
+X^j_{\ j} = \ \ast \ \text{matrix} \ \text{(?)}
+\]
+\[
+X_i^{\ jj} \qquad
+\begin{aligned}
+&amp;i = \text{free index}\\
+&amp;j = \text{dummy index}
+\end{aligned}
+\]
+
+<p>
+\(\rightarrow\) In an equation involving einstien notation free indices on both sides must match<br />
+</p>
+
+<p>
+ (1) \(\quad x_i = a_{ij}b_j \qquad \checkmark\)<br />
+</p>
+
+<p>
+ (2) \(\quad x_i = a_{jj} \qquad (\times) \qquad (\text{invalid eq}^n)\)<br />
+</p>
+
+<p>
+ (3) \(\quad a_i = A_{ki}B_{kj}x_j \qquad (\checkmark)\)<br />
+</p>
+
+<p>
+ (4) \(\quad x_j = A_{ik}v_k \qquad (\times) \qquad (\text{invalid eq}^n)\)<br />
+</p>
+
+<p>
+ \(-\) Contravariant Tensor &amp; covariant tensor<br />
+</p>
+
+<p>
+ Tensor \(\vec{AB}\) remains unchanged under general rotation about origin.<br />
+</p>
+
+<p>
+ In general, in coordinate transformations component of tensor transforms in two manner contravariant and covariant.<br />
+</p>
+
+<div id="Chapter 1: Tensors-Contravariant tensor :-"><h2 id="Contravariant tensor :-" class="header"><a href="#Chapter 1: Tensors-Contravariant tensor :-">Contravariant tensor :-</a></h2></div>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,0) -- (0,2.2) node[left] {$\hat j$};
+  \draw[-&gt;] (0,0) -- (3.0,0) node[right] {$\hat i$};
+  \foreach \x in {1,2} {\draw (\x,-0.08) -- (\x,0.08);}
+  \foreach \y in {1} {\draw (-0.08,\y) -- (0.08,\y);}
+  \node[below left] at (0,0) {$A$};
+  \draw[-&gt;] (0,0) -- (1.8,1.2) node[right] {$B$};
+\end{tikzpicture}
+</pre>
+
+\[
+\vec{AB} = 3\hat i + 2\hat j
+\]
+
+\[
+\hat i' = 2\hat i
+\]
+\[
+\hat j' = \hat j
+\]
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,0) -- (0,2.3) node[left] {$\hat j'$};
+  \draw[-&gt;] (0,0) -- (3.0,0) node[right] {$\hat i'$};
+  \foreach \y in {0.4,0.8,1.2,1.6} {\draw (-0.08,\y) -- (0.08,\y);}
+  \foreach \x in {0.9,1.8} {\draw (\x,-0.08) -- (\x,0.08);}
+  \node[below left] at (0,0) {$A$};
+  \draw[-&gt;] (0,0) -- (1.6,1.3) node[above right] {$B$};
+  \draw (1.6,1.3) -- (1.6,0);
+\end{tikzpicture}
+</pre>
+
+\[
+\vec{AB} = 1.5\,\hat i' + 3\hat j'
+\]
+
+<p>
+ components of tensor \(\vec{AB}\) are changing inverse of change of basis vectors.<br />
+</p>
+
+<p>
+ so, we call these tensor as contravariant tensor.<br />
+</p>
+
+<p>
+ If Basis is doubled \(\rightarrow\) component halved.<br />
+</p>
+
+<p>
+ We represent such quantities as<br />
+</p>
+\[
+x^i,\ v^i,\ a^i \ \cdots
+\]
+
+<p>
+ displacement, velocity, accelaration are contravariant vectors.<br />
+</p>
+
+<div id="Chapter 1: Tensors-covariant tensor :-"><h2 id="covariant tensor :-" class="header"><a href="#Chapter 1: Tensors-covariant tensor :-">covariant tensor :-</a></h2></div>
+
+<p>
+A tensor whose components change in same manner as basis change under given transformation.<br />
+</p>
+
+<p>
+ <em>ex</em><br />
+</p>
+\[
+\nabla F = \frac{\partial F}{\partial x}\hat i + \frac{\partial F}{\partial y}\hat j + \frac{\partial F}{\partial z}\hat k
+\]
+
+\[
+\hat i' = 2\hat i
+\]
+\[
+\hat j' = 2\hat j
+\]
+\[
+\hat k' = 2\hat k
+\]
+
+<p>
+ \(\partial x = \) contravariant<br />
+</p>
+
+\[
+\partial x' = \frac{\partial x}{2}\ ,\qquad \partial y' = \frac{\partial y}{2}\ ,\qquad \partial z' = \frac{\partial z}{2}
+\]
+
+\[
+\nabla F = \frac{\partial F}{\partial x'}\hat i' + \frac{\partial F}{\partial y'}\hat j' + \frac{\partial F}{\partial z'}\hat k'
+\]
+
+<p>
+ The quantities \(\frac{\partial F}{\partial x'}, \frac{\partial F}{\partial y'}, \frac{\partial F}{\partial z'}\) also doubles just like basis vectors, such vectors are called as covariant tensors.<br />
+</p>
+
+<div id="Chapter 1: Tensors-Tensor Notation :-"><h2 id="Tensor Notation :-" class="header"><a href="#Chapter 1: Tensors-Tensor Notation :-">Tensor Notation :-</a></h2></div>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,0) -- (4.2,0) node[right] {$\hat e_1$};
+  \draw[-&gt;] (0,0) -- (2.0,2.2) node[right] {$\hat e_2$};
+  \draw[-&gt;] (0,0) -- (3.0,0.9) node[right] {$a$};
+  \draw[dashed] (0,0) -- (0.85,0.95);
+  \draw[dashed] (0.85,0.95) -- (3.0,0.9);
+  \draw[dashed] (2.15,-0.05) -- (3.0,0.9);
+  \node at (0.55,0.75) {$a^2$};
+  \draw[decorate,decoration={brace,mirror,amplitude=4pt}] (0,-0.3) -- (2.15,-0.3);
+  \node at (1.1,-0.62) {$a^1$};
+\end{tikzpicture}
+</pre>
+
+<p>
+ [If \('a'\) is contravariant vector, its components are calculated from parallel projection.]<br />
+</p>
+
+\[
+\vec a = a^1\hat e_1 + a^2\hat e_2
+\]
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,0) -- (4.2,0) node[right] {$\hat e_1$};
+  \draw[-&gt;] (0,0) -- (1.5,2.3) node[right] {$\hat e_2$};
+  \draw[-&gt;] (0,0) -- (2.6,1.1) node[right] {$\vec a$};
+  \draw[dashed] (2.6,1.1) -- (2.6,0);
+  \draw[dashed] (2.6,1.1) -- (1.05,1.61);
+  \node at (0.35,1.05) {$a_2$};
+  \node at (1.3,-0.35) {$a_1$};
+  \node at (2.35,0.45) {$a_1$};
+\end{tikzpicture}
+</pre>
+
+<p>
+ [If \(\vec a\) is covariant tensor, its components are calculated from perpendicular projection.]<br />
+</p>
+
+\[
+\vec a = a_1\hat e_1 + a_2\hat e_2
+\]
+
+<div id="Chapter 1: Tensors-Transformation law :-"><h2 id="Transformation law :-" class="header"><a href="#Chapter 1: Tensors-Transformation law :-">Transformation law :-</a></h2></div>
+
+<p>
+(1) For covariant tensor :-<br />
+</p>
+
+<p>
+ suppose \(F(x)\) is scalar field defined in a coordinate system \((x^i)\)<br />
+</p>
+\[
+F(x) = F(x^1, x^2, x^3 \cdots x^N)
+\]
+\[
+\nabla F = \left(\frac{\partial F}{\partial x^1},\ \frac{\partial F}{\partial x^2},\ \frac{\partial F}{\partial x^3} \cdots \frac{\partial F}{\partial x^n}\right)
+\]
+
+<p>
+ where \(u_i = \frac{\partial F}{\partial x^i}\) \(\qquad (i = 1,2,3\cdots n)\) \(\quad (1 \le i \le n)\)<br />
+</p>
+
+\[
+u_i = \frac{\partial F}{\partial x^i}
+\]
+<p>
+ represents \(i^{th}\) component of \(\nabla F\).<br />
+</p>
+
+<p>
+ used as subsmpt as \(\nabla F\) is covarient tensor.<br />
+</p>
+
+\[
+\nabla F_i = \left(\frac{\partial F}{\partial x^i}\right) = u_i
+\]
+
+<p>
+If the coordinate system transformed to new coordinate system \((\bar x^i)\) gradient is defined as<br />
+</p>
+\[
+\nabla F = \left(\frac{\partial F}{\partial \bar x^1},\ \frac{\partial F}{\partial \bar x^2},\ \frac{\partial F}{\partial \bar x^3} \cdots \frac{\partial F}{\partial \bar x^n}\right)
+\]
+
+<p>
+ where,<br />
+</p>
+\[
+\bar u_i = \frac{\partial F}{\partial \bar x^i} \qquad (1 \le i \le N)
+\]
+
+<p>
+ represents \(i^{th}\) component of \(\nabla F\).<br />
+</p>
+
+\[
+\bar u_i = \frac{\partial F}{\partial \bar x^i} = \frac{\partial F}{\partial \bar x^i}\left(\frac{\partial x^r}{\partial x^r}\right)
+\]
+\[
+= \left(\frac{\partial F}{\partial x^r}\right)\frac{\partial x^r}{\partial \bar x^i} = \frac{\partial F}{\partial x^1}\frac{\partial x^1}{\partial \bar x^i} + \frac{\partial F}{\partial x^2}\frac{\partial x^2}{\partial \bar x^i} + \cdots
+\]
+\[
+\boxed{\ \bar u_i = u_r\,\frac{\partial x^r}{\partial \bar x^i}\ }
+\]
+
+<p>
+ where \(\left(u_r = \frac{\partial F}{\partial x^r}\right)\)<br />
+</p>
+
+\[
+\bar u_i = u_r\frac{\partial x^r}{\partial \bar x^i} \qquad
+\begin{aligned}
+\bar u_i &amp;= \text{component of } \nabla F \text{ in } \bar x^i\\
+u_r &amp;= \underline{\qquad\qquad} \text{ in } x^i
+\end{aligned}
+\]
+
+<p>
+ \(\frac{\partial x^r}{\partial \bar x^i}\) represents transformation from \((x^i\) to \(\bar x^i)\) coordinate system<br />
+</p>
+
+<p>
+ Def\(^n\) :-<br />
+</p>
+
+<p>
+ covariant 1st rank tensor :-<br />
+</p>
+
+<p>
+ The vector field \('u'\) is said to be covariant first rank tensor, if its component \(u_i\) in \((x^i)\) coordinate system and \(\bar u_i\) in \((\bar x^i)\) coordinate system are related by following Transformation.<br />
+</p>
+\[
+\bar u_i = u_r\frac{\partial x^r}{\partial \bar x^i} \qquad (1 \le i \le n)
+\]
+
+<p>
+(2) Transformation for contravariant tensor :-<br />
+</p>
+
+<p>
+ suppose \(v(x) = v(x^1, x^2 \cdots x^n)\) is velocity defined in coordinate system \((x^i)\) \(\quad\) [\((n\)-d space)]<br />
+</p>
+\[
+\vec v = \left(\frac{\partial x^1}{\partial t},\ \frac{\partial x^2}{\partial t},\ \frac{\partial x^3}{\partial t},\ \cdots \frac{\partial x^n}{\partial t}\right)
+\]
+
+<p>
+ where<br />
+</p>
+\[
+v^i = \frac{\partial x^i}{\partial t} \qquad (1 \le i \le n)
+\]
+
+<p>
+If coordinate system is transformed to new coordinate system, \((\bar x^i)\)<br />
+</p>
+\[
+\vec v = \left(\frac{\partial \bar x^1}{\partial t},\ \frac{\partial \bar x^2}{\partial t},\ \frac{\partial \bar x^3}{\partial t},\ \cdots \frac{\partial \bar x^n}{\partial t}\right)
+\]
+\[
+\bar v^i = \frac{\partial \bar x^i}{\partial t}
+\]
+\[
+= \frac{\partial \bar x^i}{\partial t}\ \frac{\partial x^r}{\partial x^r}
+\]
+\[
+= \frac{\partial \bar x^i}{\partial x^r}\left(\frac{\partial x^r}{\partial t}\right) = \frac{\partial \bar x^i}{\partial x^1}\frac{\partial x^1}{\partial t} + \frac{\partial \bar x^i}{\partial x^2}\frac{\partial x^2}{\partial t} + \cdots
+\]
+\[
+\boxed{\ \bar v^i = v^r\,\frac{\partial \bar x^i}{\partial x^r}\ } \qquad v^r = \frac{\partial x^r}{\partial t}
+\]
+
+<p>
+ (ex)<br />
+</p>
+\[
+\bar v^1 = v^r\frac{\partial \bar x^1}{\partial x^r} = v^1\frac{\partial \bar x^1}{\partial x^1} + v^2\frac{\partial \bar x^1}{\partial x^2} + v^3\frac{\partial \bar x^1}{\partial x^3} + \cdots
+\]
+
+<p>
+ Summary<br />
+</p>
+\[
+\bar v^i = v^r\frac{\partial \bar x^i}{\partial x^r} \qquad
+\begin{aligned}
+\bar v^i &amp;= \text{component of } \vec v \text{ in } \bar x^i\\
+v^r &amp;= \underline{\qquad\qquad} \text{ in } x^i
+\end{aligned}
+\]
+
+<p>
+ Def\(^n\) :- The vector field \('v'\) is said to be contravariant 1st rank tensor if its components \(v^i\) in \((x^i)\) coordinate system and \(\bar v^i\) in \(\bar x^i\) coordinate system are related by following set of transformation.<br />
+</p>
+\[
+\bar v^i = v^r\frac{\partial \bar x^i}{\partial x^r} \qquad (1 \le i \le n)
+\]
+
+<div id="Chapter 1: Tensors-Summary :-"><h2 id="Summary :-" class="header"><a href="#Chapter 1: Tensors-Summary :-">Summary :-</a></h2></div>
+
+\[
+\begin{array}{ll}
+\underline{\text{covariant}} &amp; \underline{\text{contravarient}}\\
+(\text{in same manner}) &amp; (\text{in opposite manner})
+\end{array}
+\]
+
+<p>
+ \(-\) Basis &amp; components transform in same manner \(\qquad\) \(-\) Basis and components transform in opposite manner<br />
+</p>
+
+<p>
+ \(-\) Indices are in subscript of component \((T_i)\) \(\qquad\) \(-\) indices are superscript of tensor quantity \((T^i)\)<br />
+</p>
+
+\[
+\vec a = a_1\hat e_1 + a_2\hat e_2 \qquad\qquad \vec a = a^1\hat e_1 + a^2\hat e_2
+\]
+
+<p>
+ <em>ex</em> \(\ \left. \nabla F\right)_i = u_i = \frac{\partial F}{\partial x^i}\) \(\qquad\qquad\) <em>ex</em> displacement, velocity, accelaration, \(\cdots\)<br />
+</p>
+
+<p>
+ \(-\) Transformation rule \(\qquad\qquad\) \(-\) Transformation rule<br />
+</p>
+\[
+\left\{\bar u_i = u_r\frac{\partial x^r}{\partial \bar x^i}\right\} \qquad\qquad \left\{\bar v^i = v^r\frac{\partial \bar x^i}{\partial x^r}\right\}
+\]
+
+<p>
+(Q.1) expand \(a_{ij}(b_i + c_j + d_k)\)<br />
+</p>
+
+<p>
+ \((\times)\)<br />
+</p>
+\[
+\left\{
+\begin{aligned}
+&amp;= a_{ij}b_i + a_{ij}c_j + a_{ij}d_k\\
+&amp;= \left(a_{1j}b_1 + a_{2j}b_2 + a_{3j}b_3\right) + \left(a_{i1}c_1 + a_{i2}c_2 + a_{i3}c_3\right) + a_{ij}d_k
+\end{aligned}\right.
+\]
+
+<p>
+ Brackets in Einstien notation<br />
+</p>
+\[
+a_{ij}(b_i + c_j + d_k)
+\]
+
+<p>
+(step-1) Combine terms outside parantheses with each term inside seperately.<br />
+</p>
+\[
+\left(a_{ij}b_i\right) + \left(a_{ij}c_j\right) + \left(a_{ij}d_k\right)
+\]
+\[
+\begin{array}{lll}
+i=2 &amp; i=1 &amp; i=1\\
+j=1 &amp; j=2 &amp; j=1,\ k&gt;1
+\end{array}
+\]
+\[
+\left.\begin{aligned}
+i_{max} &amp;= 2\\
+j_{max} &amp;= 2
+\end{aligned}\right\} i,j = \text{dummy}
+\]
+\[
+k_{max} = 1 \qquad \longrightarrow\ k = \text{free indices}
+\]
+
+<div id="Chapter 1: Tensors-Non- identities :-"><h2 id="Non- identities :-" class="header"><a href="#Chapter 1: Tensors-Non- identities :-">Non- identities :-</a></h2></div>
+
+<p>
+ (1)<br />
+</p>
+\[
+a_{ij}(x_i + y_j) \neq a_{ij}x_i + a_{ij}y_j
+\]
+
+<p>
+ <em>LHS</em> : \(a_{ij}(x_i + y_j)\) \(\qquad\) \(\left.\begin{aligned} i_{max} &amp;= 2\\ j_{max} &amp;= 2\end{aligned}\right\} i,j = \text{dummys}\)<br />
+</p>
+
+<p>
+ <em>RHS</em> \(\quad a_{ij}x_i + a_{ij}y_j\)<br />
+</p>
+
+<p>
+ [under the first term: \(i = \) dumy, \(j = \) free ; under the second term: \(j = \) dummy, \(i = \) free]<br />
+</p>
+
+<p>
+ RHS is inconsistent with LHS<br />
+</p>
+
+<p>
+ (2)<br />
+</p>
+\[
+a_{ij}x_iy_j \neq a_{ij}x_jy_i \qquad (i,j = \text{dumy both sides})
+\]
+
+<p>
+ but coeff of \(x_1y_2 = \left\{\begin{aligned} a_{12}&amp;\quad \text{LHS}\\ a_{21}&amp;\quad \text{RHS}\end{aligned}\right.\)<br />
+</p>
+
+<p>
+ (3)<br />
+</p>
+\[
+(a_{ij}+a_{ji})\,x_iy_i \ \neq\ 2a_{ij}x_iy_j
+\]
+
+<p>
+ \((i,j = \) dummy both sides but\()\) \(\underline{(a_{ij}+a_{ji})}\) .<br />
+</p>
+
+<div id="Chapter 1: Tensors-Identities :-"><h2 id="Identities :-" class="header"><a href="#Chapter 1: Tensors-Identities :-">Identities :-</a></h2></div>
+
+<p>
+ (1)<br />
+</p>
+\[
+a_{ij}(x_j + y_j) = a_{ij}x_j + a_{ij}y_j
+\]
+
+<p>
+ (2)<br />
+</p>
+\[
+a_{ij}x_iy_j = a_{ij}y_jx_i
+\]
+
+<p>
+ (3)<br />
+</p>
+\[
+a_{ij}x_ix_j = a_{ji}x_ix_j \equiv a_{ji}x_jx_i
+\]
+
+<p>
+ (4)<br />
+</p>
+\[
+(a_{ij}+a_{ji})x_ix_j \equiv 2a_{ij}x_ix_j
+\]
+
+<p>
+ (5)<br />
+</p>
+\[
+(a_{ij}-a_{ji})x_ix_j \equiv 0
+\]
+
+<div id="Chapter 1: Tensors-kronecker delta :-"><h2 id="kronecker delta :-" class="header"><a href="#Chapter 1: Tensors-kronecker delta :-">kronecker delta :-</a></h2></div>
+
+\[
+\delta_{ij} \equiv \delta^i_j \equiv \delta^{ij} \equiv \begin{cases} 1 &amp; i = j\\ 0 &amp; i \neq j\end{cases}
+\]
+\[
+\delta_{ij} = \delta_{ji} \qquad (\forall\ i,j)
+\]
+
+<p>
+ <em>example</em> \(\quad\) Simplify \(\ \delta_{ij}x_ix_j\)<br />
+</p>
+\[
+\delta_{ij}x_ix_j = \delta_{ii}x_ix_i = \delta_{jj}x_jx_j
+\]
+\[
+\delta_{ij}x_ix_j = x_ix_i = x_jx_j \qquad \checkmark
+\]
+
+<div id="Chapter 1: Tensors-Linear Algebra of Tensors :-"><h2 id="Linear Algebra of Tensors :-" class="header"><a href="#Chapter 1: Tensors-Linear Algebra of Tensors :-">Linear Algebra of Tensors :-</a></h2></div>
+
+<p>
+<em>linear transformations</em><br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,0) -- (0,2.6);
+  \draw[-&gt;] (0,0) -- (-1.2,0);
+  \draw[-&gt;] (0,0) -- (-0.7,2.6);
+  \draw[-&gt;] (0,0) -- (-0.5,-0.5);
+  \draw[-&gt;] (0,0) -- (1.3,1.4) node[above left] {$x$};
+  \draw[-&gt;] (0,0) -- (1.5,1.35) node[above right] {$x'$};
+  \draw[-&gt;] (0,0) -- (3.6,0) node[right] {$c$};
+  \draw[-&gt;] (0,0) -- (3.4,0.9) node[right] {$c'$};
+\end{tikzpicture}
+</pre>
+
+<p>
+ [linear \(-\) scaling, rotation]<br />
+</p>
+
+<p>
+Suppose we have vector \('x'\) in coordinate system \(c\), If we do linear transformation of coordinate system to \(c'\), then vector \(x\) will look like \(x'\) in new \(c'\) coordinate system.<br />
+</p>
+\[
+x' = L\,x
+\]
+
+<p>
+ \(\rightarrow\) matrix \((2\times 2)\) Transformation matrix<br />
+</p>
+
+<p>
+<em>General Transformation :</em><br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,0) -- (0,2.4);
+  \draw[-&gt;] (0,0) -- (3.6,0) node[right] {$c$};
+  \draw[-&gt;] (0,0) -- (1.4,1.5) node[above right] {$x$};
+  \draw[-&gt;] (-0.9,-0.7) .. controls (-1.2,0.8) .. (-0.7,1.9);
+  \draw[-&gt;] (-1.4,-0.8) .. controls (0.6,-0.4) and (2.2,0.9) .. (3.3,1.0) node[right] {$c'$};
+\end{tikzpicture}
+</pre>
+
+<p>
+New vector will look like \(x'\) in new coordinate system \(c'\),<br />
+</p>
+\[
+x' = f(x) = T(\vec x)
+\]
+
+<p>
+ (or)<br />
+</p>
+\[
+x'_i = T_p(x_1,x_2,x_3 \cdots x_n)
+\]
+
+<p>
+A bijective transformation is one to one, every \('x'\) in original coordinate system coorespondes to unique \(x'\) in the image coordinate system &amp; every \(x'\) in image coordinate system corresponds to a unique \(x\) in the original coordinate system.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw plot [smooth cycle] coordinates {(0,0) (0.9,0.9) (0.4,1.9) (-0.7,1.6) (-1.0,0.7)};
+  \draw plot [smooth cycle] coordinates {(5.2,0) (6.2,0.8) (5.9,2.0) (4.7,1.8) (4.3,0.8)};
+  \node at (-0.2,-0.6) {$c$};
+  \node at (5.3,-0.6) {$c'$};
+  \node at (-0.55,1.35) {$x_1$}; \fill (-0.25,1.35) circle (0.03);
+  \node at (-0.55,0.75) {$x_2$}; \fill (-0.25,0.75) circle (0.03);
+  \node at (-0.55,0.2) {$x_3$}; \fill (-0.25,0.2) circle (0.03);
+  \node at (5.3,1.5) {$x_1'$};
+  \node at (5.3,1.0) {$x_2'$};
+  \node at (5.3,0.5) {$x_3'$};
+  \draw[-&gt;] (-0.2,1.4) .. controls (2.0,1.9) .. (5.05,1.5);
+  \draw[-&gt;] (-0.2,0.8) .. controls (2.0,1.2) .. (5.05,1.0);
+  \draw[-&gt;] (-0.2,0.25) .. controls (2.0,0.7) .. (5.05,0.5);
+  \node at (2.4,2.0) {one$-$one};
+\end{tikzpicture}
+</pre>
+
+<p>
+The image of \(x'\) of bijective transformation \('T'\) represents a set of admissible coordinates for \(x\)<br />
+</p>
+
+<p>
+ \(\left(\begin{aligned}\text{collection of } x_i &amp;\text{ represents } c\\ "\qquad\quad x'_i &amp;\quad " \qquad c'\end{aligned}\right)\)<br />
+</p>
+
+<p>
+If \(T\) is linear \(x_i\) coordinate system is called affine coordinate system. If \(T\) is non-linear then \(\{x_i\}\) makes up curvilinear coordinate systems ex, polar, cylindrical, spherical coordinate system.<br />
+</p>
+
+<div id="Chapter 1: Tensors-Chain rule of partial derivative :-"><h2 id="Chain rule of partial derivative :-" class="header"><a href="#Chapter 1: Tensors-Chain rule of partial derivative :-">Chain rule of partial derivative :-</a></h2></div>
+
+<p>
+Suppose<br />
+</p>
+\[
+w = f(u_1, u_2, u_3 \cdots u_n)
+\]
+
+<p>
+ where \(u_i = u_i(x_1, x_2 \cdots x_m)\)<br />
+</p>
+
+<p>
+Then we know that<br />
+</p>
+\[
+\frac{\partial w}{\partial x_j} = \frac{\partial f}{\partial u_1}\frac{\partial u_1}{\partial x_j} + \frac{\partial f}{\partial u_2}\frac{\partial u_2}{\partial x_j} + \frac{\partial f}{\partial u_3}\frac{\partial u_3}{\partial x_j} + \cdots
+\]
+
+<p>
+ or<br />
+</p>
+\[
+\left(\frac{\partial w}{\partial x_j} = \frac{\partial f}{\partial u_i}\frac{\partial u_i}{\partial x_j}\right) \quad \longleftarrow \ \text{einstiens summation convention}
+\]
+
+<div id="Chapter 1: Tensors-Coordinate transformation for tensors :-"><h2 id="Coordinate transformation for tensors :-" class="header"><a href="#Chapter 1: Tensors-Coordinate transformation for tensors :-">Coordinate transformation for tensors :-</a></h2></div>
+
+<p>
+<em>New notation :-</em> A vector in \(\mathbb{R}^n\)<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw (0,-0.2) -- (0,1.6);
+  \draw (0,-0.2) -- (2.6,-0.2);
+  \fill (0.25,0.15) circle (0.04); \node[below] at (0.25,0.1) {$P$};
+  \fill (1.3,0.95) circle (0.04); \node[above] at (1.3,1.0) {$Q$};
+  \draw (0.25,0.15) -- (1.3,0.95);
+  \fill (1.15,0.15) circle (0.04); \node[right] at (1.2,0.15) {$A$};
+\end{tikzpicture}
+</pre>
+
+\[
+\overline{PQ} = \begin{pmatrix} x^1 \\ x^2 \\ x^3 \\ \vdots \\ x^N\end{pmatrix}
+\]
+
+<p>
+ [use parantheses for power]<br />
+</p>
+
+<p>
+ [\((a_i)^2 = a_i\,a_i\)]<br />
+</p>
+
+<p>
+ [\((a^i)^2 = a^i \times a^i\)]<br />
+</p>
+
+<p>
+ coordinate of \('A'\) in \(\mathbb{R}^N\) \(=\)<br />
+</p>
+\[
+\begin{pmatrix} a^1 \\ a^2 \\ a^3 \\ \vdots \\ a^N\end{pmatrix}
+\]
+
+<p>
+<em>Ractangular coordinates :-</em><br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw (0,-0.2) -- (0,1.9);
+  \draw (-0.6,0) -- (3.0,0);
+  \node[below left] at (0,0) {$O$};
+  \fill (1.1,1.05) circle (0.04); \node[above left] at (1.1,1.05) {$B$};
+  \draw[decorate,decoration={brace,amplitude=4pt}] (1.25,1.05) -- (1.25,0.05);
+  \node[right] at (1.35,0.55) {$x^2$};
+  \draw[decorate,decoration={brace,mirror,amplitude=4pt}] (0,-0.25) -- (1.1,-0.25);
+  \node[below] at (0.55,-0.35) {$x^1$};
+\end{tikzpicture}
+</pre>
+
+\[
+B = \begin{pmatrix} x^1 \\ x^2\end{pmatrix}
+\]
+
+<p>
+A coordinate system is said to be ractangular if distance b/w two points \(C(x^1x^2 \cdots x^N)\) &amp; \(D(y^1\,y^2 \cdots y^N)\) is given by<br />
+</p>
+\[
+\sqrt{(x^1-y^1)^2 + (x^2-y^2)^2 + (x^3-y^3)^2 + \cdots}
+\]
+
+<p>
+ or<br />
+</p>
+\[
+\sqrt{\delta_{ij}\,\Delta x^i \Delta x^j}
+\]
+
+<p>
+ or<br />
+</p>
+\[
+\sqrt{\Delta x^i \Delta x^i} \qquad\qquad \Delta x^i = (x^i - y^i)
+\]
+
+<div id="Chapter 1: Tensors-curvilinear coordinates :-"><h2 id="curvilinear coordinates :-" class="header"><a href="#Chapter 1: Tensors-curvilinear coordinates :-">curvilinear coordinates :-</a></h2></div>
+
+<p>
+suppose:<br />
+</p>
+
+<ol>
+<li>
+\(P\) is a point in a coordinate system \((x^i)\) in \(\mathbb{R}^n\) given by \(P: (x^1, x^2 \cdots , x^n)\)
+
+<li>
+\((\bar x^i)\) is another coordinate system in \(\mathbb{R}^n\) such that the coordinates of \('p'\) in this system are \((\bar x^1\ \bar x^2 \cdots \bar x^n)\)
+
+<li>
+suppose that \(\bar x^i = \bar x^i(x^1\ x^2\ x^3 \cdots x^N)\) [\(F\) denotes \(N\) such transformations]. If functions \(\bar x^i(x^1 x^2 \cdots x^n)\) are all real valued, have continuous 2nd order partial derivatives every where and are all invertible then \(F\) is called coordinate transformation.
+
+</ol>
+<p>
+If \((x^i)\) being inputs of \(F\) are ractangular coordinates then \((\bar x^i)\) is<br />
+</p>
+
+<ol>
+<li>
+Affine if \(F\) is linear
+
+<li>
+curvilinear if \(F\) is not-linear
+
+</ol>
+<p>
+\(-\) examples of curvilinear coordinates<br />
+</p>
+
+<p>
+ (1) polar coordinates<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,-0.1) -- (0,2.0);
+  \draw[-&gt;] (-0.3,0) -- (2.8,0) node[below] {$x^1$};
+  \fill (1.6,1.2) circle (0.04); \node[above right] at (1.6,1.2) {$P(x^1,x^2)$};
+  \draw (0,0) -- (1.6,1.2);
+  \node[above left] at (0.75,0.6) {$\bar x^1$};
+  \draw (0.5,0) arc (0:37:0.5);
+  \node at (0.72,0.2) {$\bar x^2$};
+  \draw[dashed] (1.6,1.2) -- (1.6,0);
+  \node[right] at (1.65,0.6) {$x^2$};
+\end{tikzpicture}
+</pre>
+
+\[
+\left.\begin{aligned}
+\bar x^1 &amp;= \sqrt{(x^1)^2 + (x^2)^2}\\[4pt]
+\bar x^2 &amp;= \arctan\left(\frac{x^2}{x^1}\right)
+\end{aligned}\right\} T_p
+\]
+
+<p>
+ \(T_p\) is coordinate transformation<br />
+</p>
+
+<p>
+ \(-\) As inputs of &amp; outputs of \(T\) are real numbers<br />
+</p>
+
+<p>
+ \(-\) \(T\) has or functions of \(T\) has continuous 2nd partial derivative everywhere (except origin)<br />
+</p>
+
+<p>
+ \(-\) \(T_p\) is invertible<br />
+</p>
+
+\[
+\left.\begin{aligned}
+x^1 &amp;= \bar x^1\cos(\bar x^2)\\
+x^2 &amp;= \bar x^1\sin(\bar x^2)
+\end{aligned}\right\} T_p^{-1}
+\]
+
+<p>
+ eq\(^n\) of \(T_p\) are non-linear so \(T_p\) represents curvilinear coordinate transformation<br />
+</p>
+
+<p>
+ (2) cylindrical coordinates :<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,-0.2) -- (0,2.2);
+  \draw[-&gt;] (0,0) -- (2.9,0);
+  \draw[-&gt;] (0,0) -- (-1.1,-1.0);
+  \fill (1.1,1.5) circle (0.04); \node[above right] at (1.1,1.5) {$P(x^1,x^2,x^3)$};
+  \draw[dashed] (1.1,1.5) -- (1.1,0.0);
+  \draw (0,0) -- (1.1,0.0);
+  \node[above] at (0.75,0.02) {$\bar x^1$};
+  \draw[decorate,decoration={brace,amplitude=4pt}] (-0.15,1.5) -- (-0.15,0.0);
+  \node[left] at (-0.3,0.75) {$\bar x^3$};
+  \node at (0.55,0.62) {$\bar x^2$};
+  \node at (-0.75,-0.75) {$\bar x^2$};
+\end{tikzpicture}
+</pre>
+
+\[
+\left.\begin{aligned}
+\bar x^1 &amp;= \sqrt{(x^1)^2 + (x^2)^2}\\[4pt]
+\bar x^2 &amp;= \arctan\left(\frac{x^2}{x^1}\right)\\[4pt]
+\bar x^3 &amp;= x^3
+\end{aligned}\right\} T_p
+\]
+
+\[
+T_p^{-1} \Rightarrow \left\{
+\begin{aligned}
+x^1 &amp;= \bar x^1\cos(\bar x^2)\\
+x^2 &amp;= \bar x^1\sin(\bar x^2)\\
+x^3 &amp;= \bar x^3
+\end{aligned}\right.
+\]
+
+<p>
+ [Non-linear so represents Curvilnear Coordinate System.]<br />
+</p>
+
+<p>
+ (3) spherical coordinate system :-<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,-0.2) -- (0,2.3);
+  \draw[-&gt;] (0,0) -- (3.0,0);
+  \draw[-&gt;] (0,0) -- (-1.2,-1.1);
+  \fill (1.2,1.6) circle (0.04); \node[above right] at (1.2,1.6) {$P(x^1,x^2,x^3)$};
+  \draw[dashed] (0,0) -- (1.2,1.6);
+  \node[left] at (0.55,1.0) {$\bar x^1$};
+  \draw (0,0.7) arc (90:53:0.7);
+  \node at (0.28,0.62) {$\bar x^2$};
+  \draw[dashed] (1.2,1.6) -- (1.2,-0.4);
+  \draw[dashed] (0,0) -- (-0.7,-0.65);
+  \draw[dashed] (-0.7,-0.65) -- (1.2,-0.4);
+  \node[below left] at (-0.35,-0.35) {$\bar x^3$};
+\end{tikzpicture}
+</pre>
+
+\[
+\left.\begin{aligned}
+\bar x^1 &amp;= \sqrt{(x^1)^2 + (x^2)^2 + (x^3)^2}\\[6pt]
+\bar x^2 &amp;= \cos^{-1}\left(\frac{x^3}{\sqrt{(x^1)^2+(x^2)^2+(x^3)^2}}\right)\\[6pt]
+\bar x^3 &amp;= \tan^{-1}\left(\frac{x^2}{x^1}\right)
+\end{aligned}\right\} T_p
+\]
+
+\[
+T_p^{-1} \Rightarrow \left\{
+\begin{aligned}
+x^1 &amp;= \bar x^1\sin(\bar x^2)\cos(\bar x^3)\\
+x^2 &amp;= \bar x^1\sin(\bar x^2)\sin(\bar x^3)\\
+x^3 &amp;= \bar x^1\cos(\bar x^2)
+\end{aligned}\right.
+\]
+
+<p>
+\(T_p\) &amp; \(T_p^{-1}\) have non-linear functions so \(T_p\) &amp; \(T_p^{-1}\) represents curvilinear coordinate transformation.<br />
+</p>
+
+<div id="Chapter 1: Tensors-contravariant and covariant tensors :-"><h2 id="contravariant and covariant tensors :-" class="header"><a href="#Chapter 1: Tensors-contravariant and covariant tensors :-">contravariant and covariant tensors :-</a></h2></div>
+
+<p>
+A Tensor whose components change in contravarient/covariant manner is said to be contravariant/Covariant tensor.<br />
+</p>
+
+<ol>
+<li>
+contravariant change :-
+ suppose we have 2-D non-orthogonal coordinate system.
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,0) -- (3.4,0) node[right] {$x^1$};
+  \draw[-&gt;] (0,0) -- (1.4,2.2) node[right] {$x^2$};
+  \draw[-&gt;] (0,0) -- (0.28,0.44) node[left] {$\vec e_2$};
+  \draw[-&gt;] (0,0) -- (0.8,0) node[below] {$\vec e_1$};
+  \draw[-&gt;] (0,0) -- (2.7,1.6) node[right] {$\vec a$};
+  \draw[-&gt;] (0,0) -- (1.15,1.8);
+  \node at (0.72,1.15) {$a^2$};
+  \draw[decorate,decoration={brace,mirror,amplitude=4pt}] (0,-0.45) -- (2.3,-0.45);
+  \node[below] at (1.1,-0.55) {$a^1$};
+\end{tikzpicture}
+</pre>
+\[
+\vec a = a^1\vec e_1 + a^2\vec e_2
+\]
+ \(a^1 = \) no. of \(e_1\) req.
+ \(a^2 = \) no. of \(e_2\) requred.
+
+</ol>
+<p>
+what happens to \(\vec a\) if \(\vec{e_1'} = \alpha\vec{e_1}\) &amp; \(\vec{e_2'} = \beta\vec{e_2}\)<br />
+</p>
+
+<p>
+ \(\vec a\) does not change but its components will change<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,0) -- (3.4,0) node[right] {$x^1$};
+  \draw[-&gt;] (0,0) -- (1.4,2.2) node[right] {$x^2$};
+  \draw[-&gt;] (0,0) -- (0.55,0.87) node[left] {$\bar e_2$};
+  \draw[-&gt;] (0,0) -- (1.6,0) node[below] {$\bar e_1$};
+  \draw[-&gt;] (0,0) -- (2.7,1.4) node[right] {$\vec a$};
+\end{tikzpicture}
+</pre>
+
+\[
+\vec a = \bar a^1\bar e_1 + \bar a^2\bar e_2
+\]
+\[
+\bar a^1 = \frac{a^1}{\alpha} \qquad\qquad \bar a^2 = \frac{a^2}{\beta}
+\]
+
+<p>
+ So components \(\bar a^1\) &amp; \(\bar a^2\) are changing in contrary to \(\bar e_1\) &amp; \(\bar e_2\).<br />
+</p>
+
+<p>
+ For representation purpose we use superscripts to distinguish from covariant quantities.<br />
+</p>
+
+<p>
+<em>Covariant change :-</em><br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,0) -- (3.4,0) node[right] {$x^1$};
+  \draw[-&gt;] (0,0) -- (1.3,2.1) node[right] {$x^2$};
+  \draw[-&gt;] (0,0) -- (0.28,0.45) node[left] {$\vec e_2$};
+  \draw[-&gt;] (0,0) -- (0.7,0) node[below] {$\vec e_1$};
+  \draw[-&gt;] (0,0) -- (2.3,1.5) node[right] {$\vec b$};
+  \draw[-&gt;] (0,0) -- (1.0,1.6);
+  \node at (0.62,1.0) {$b^2$};
+  \draw[dashed] (2.3,1.5) -- (1.3,0.0);
+  \draw[dashed] (2.3,1.5) -- (2.3,0.0);
+  \draw[decorate,decoration={brace,mirror,amplitude=3pt}] (0,-0.28) -- (1.3,-0.28);
+  \node[below] at (0.65,-0.36) {$b^1$};
+  \draw[decorate,decoration={brace,mirror,amplitude=3pt}] (0,-0.85) -- (2.3,-0.85);
+  \node[below] at (1.15,-0.93) {$b_1$};
+\end{tikzpicture}
+</pre>
+
+<p>
+ we can write \(\vec b\) as \(\vec b = b^1e_1 + b^2e_2\) in contravariant components.<br />
+</p>
+
+<p>
+We can also write \(\vec b = b_1e_1 + b_2e_2\)<br />
+</p>
+
+<p>
+ where \(b_1\) &amp; \(b_2\) are covariant components.<br />
+</p>
+\[
+\vec b = b_1\vec e_1 + b_2\vec e_2
+\]
+
+<p>
+ where<br />
+</p>
+\[
+b_1 = \vec b\cdot e_1 = (b^1e_1 + b^2e_2)\cdot e_1 = b^1(e_1\cdot e_1) + b^2(e_2\cdot e_1)
+\]
+\[
+b_2 = \vec b\cdot e_2 = (b^1e_1 + b^2e_2)\cdot e_2 = b^1(e_1\cdot e_2) + b^2(e_2\cdot e_2)
+\]
+
+<p>
+If we change our basis \(e_1' = \alpha e_1\) &amp; \(e_2' = \beta e_2\) then<br />
+</p>
+\[
+\vec b = b_1'e_1' + b_2'e_2'
+\]
+
+<p>
+ where<br />
+</p>
+\[
+b_1' = \vec b\cdot e_1' = \vec b\cdot(\alpha e_1) = \alpha\, b_1
+\]
+\[
+b_2' = \vec b\cdot e_2' = \vec b\cdot(\beta e_2) = \beta\, b_2
+\]
+
+<p>
+ so we can see that components \(b_1'\) &amp; \(b_2'\) also change in same manner as \(e_1'\) &amp; \(e_2'\) are changing so such components are called as covariant components.<br />
+</p>
+
+<p>
+<em>Caveats :-</em><br />
+</p>
+
+<ol>
+<li>
+vectors with covariant components are covectors (different from regular vectors)
+
+<li>
+co-vectors are better thought as functions
+
+<li>
+co-vectors are usually specified with dual vectors as basis instead of conventional basis vectors.
+
+</ol>
+<p>
+\(-\) <em>Note:</em> we have learned that contravariant vector \('v'\) transform under change of coordinate system \((x^i \rightarrow \bar x^i)\) as<br />
+</p>
+\[
+\bar v^i = v^r\,\frac{\partial \bar x^i}{\partial x^r} \qquad 1 \le i \le N
+\]
+
+<p>
+<em>ex</em><br />
+</p>
+
+<p>
+ \(-\) Tangent vector of parametric curve \((x^1, x^2, x^3 \cdots x^N)\) (where \(x^i = x^i(t)\))<br />
+</p>
+\[
+\theta^i = \frac{dx^i}{dt}
+\]
+<p>
+ is also contravariant vector / contravariant tensor of rank 1<br />
+</p>
+
+<p>
+ under coordinate transformation \(x^i \longrightarrow \bar x^i\)<br />
+</p>
+\[
+\bar\theta^i = \frac{d\bar x^i}{dt} \qquad\qquad \bar x^i = \bar x^i(x^1, x^2 \cdots x^N)
+\]
+\[
+\bar\theta^i = \frac{\partial \bar x^i}{\partial x^1}\frac{\partial x^1}{\partial t} + \frac{\partial \bar x^i}{\partial x^2}\frac{\partial x^2}{\partial t} + \cdots
+\]
+\[
+\bar\theta^i = \frac{\partial \bar x^i}{\partial x^r}\left(\frac{\partial x^r}{\partial t}\right)
+\]
+\[
+\boxed{\ \bar\theta^i = \theta^r\,\frac{\partial \bar x^i}{\partial x^r}\ }
+\]
+
+<p>
+ \(\theta^i\) transform like contravariant tensor of rank 1 so it's an contravariant vector.<br />
+</p>
+
+<p>
+we have seen that covariant vector (Tensors of rank 1) transform \(v_i \rightarrow \bar v_i\) under coordinate transformation \(x^i \longrightarrow \bar x^i\).<br />
+</p>
+\[
+\bar v_i = v_r\,\frac{\partial x^r}{\partial \bar x^i}
+\]
+
+<p>
+To know how tensors of higher rank transform, In order to define higher rank tensors, we start with assumption.<br />
+</p>
+
+<p>
+ [the word "components" is inserted above "tensors", and "tensor" is inserted above "rank"]<br />
+</p>
+
+<div id="Chapter 1: Tensors-Contravariant and covariant tensors (formal definition) :-"><h2 id="Contravariant and covariant tensors (formal definition) :-" class="header"><a href="#Chapter 1: Tensors-Contravariant and covariant tensors (formal definition) :-">Contravariant and covariant tensors (formal definition) :-</a></h2></div>
+
+<p>
+<em>Assumptions :-</em> suppose that \((w/V)\) is a matrix field (i.e. \((w/V)\) provides us matrix for every point in space) composed of \(n\times n\) scalar field (functions) defined<br />
+</p>
+
+<p>
+over region 'u' in \(\mathbb{R}^n\).<br />
+</p>
+
+<p>
+ Assume that in \(\{x^i\}\) coordinate system, the components of V are \(V^{ij}\). Assume also that after a coordinate transformation \(T: \bar{x}^i = \bar{x}^i(x^1 x^2 - . x^n)\) that takes us to the \(\bar{x}^i\) coordinate system, the components of V becomes \(\bar{V}^{ij}\).<br />
+</p>
+
+<p>
+ matrix is not a tensor. A tensor is an object that is invariant under change of coordinate systems with components that change according to a special set of mathematical formulae<br />
+</p>
+
+<div id="Chapter 1: Tensors-contravariant tensor (rank 2)"><h2 id="contravariant tensor (rank 2)" class="header"><a href="#Chapter 1: Tensors-contravariant tensor (rank 2)">contravariant tensor (rank 2)</a></h2></div>
+
+<p>
+ A matrix field V is a contravariant tensor of rank 2 if its components \(V^{ij}\) in \(\{x^i\}\) coordinate system transform to \(\bar{V}^{ij}\) in \(\{\bar{x}^i\}\) coordinate system, such that<br />
+</p>
+
+\[
+\bar{V}^{ij} = V^{rs}\,\frac{\partial \bar{x}^i}{\partial x^r}\,\frac{\partial \bar{x}^j}{\partial x^s}
+\]
+
+<p>
+ [\(i,j\) -- free indices]<br />
+</p>
+
+<p>
+ [\(r,s\) -- dummy indices.]<br />
+</p>
+
+\[
+(1 \leq i,j,r,s \leq n)
+\]
+
+<div id="Chapter 1: Tensors-covariant tensor (rank 2)"><h2 id="covariant tensor (rank 2)" class="header"><a href="#Chapter 1: Tensors-covariant tensor (rank 2)">covariant tensor (rank 2)</a></h2></div>
+
+<p>
+ A matrix field 'W' is covariant tensor of rank-2 if its components \(W_{ij}\) in \(\{x^i\}\) coordinate system &amp; \(\bar{W}_{ij}\) in \(\{\bar{x}^i\}\) coordinate system obey<br />
+</p>
+
+\[
+\bar{W}_{ij} = W_{rs}\,\frac{\partial x^r}{\partial \bar{x}^i}\,\frac{\partial x^s}{\partial \bar{x}^j}
+\]
+
+<div id="Chapter 1: Tensors-Mixed tensor (rank -2)"><h2 id="Mixed tensor (rank -2)" class="header"><a href="#Chapter 1: Tensors-Mixed tensor (rank -2)">Mixed tensor (rank -2)</a></h2></div>
+
+<p>
+ suppose that \(Z\) is a matrix field composed of \(n\times n\) scalar fields defined over region \(u\) in \(\mathbb{R}^n\). Assume that in \(\{x^i\}\) coordinate system, the components of \(Z\) are \(Z^i_j\), which becomes \(\bar{Z}^i_j\) after coordinate transformation \(T: \bar{x}^i = \bar{x}^i(x^1 x^2 . x^N)\)<br />
+</p>
+
+<p>
+ then \(Z\) (is matrix field) is mixed tensor of rank-2 of its components \(Z^i_j\) in \(x^i\) coordinate system.<br />
+</p>
+
+<p>
+ &amp; \(\bar{Z}^i_j\) in \(\bar{x}^i\) coordinate system obey<br />
+</p>
+
+\[
+\bar{Z}^i_j = Z^r_s\,\frac{\partial \bar{x}^i}{\partial x^r}\,\frac{\partial x^s}{\partial \bar{x}^j}
+\]
+
+<div id="Chapter 1: Tensors-Tensor Ranks"><h2 id="Tensor Ranks" class="header"><a href="#Chapter 1: Tensors-Tensor Ranks">Tensor Ranks</a></h2></div>
+
+<p>
+ Suppose \(V\) is tensor with components<br />
+</p>
+
+\[
+V^{i_1 i_2 i_3 - i_p}_{j_1 j_2 -- j_q}
+\]
+
+<p>
+ then total rank of \(V\) is \((m = p+q)\).<br />
+</p>
+
+<p>
+ we call \(V\) as \((p,q)\) tensor.<br />
+</p>
+
+<p>
+ [\(p\) -- contravariant rank ; \(q\) -- covariant rank.]<br />
+</p>
+
+<p>
+ ex, If \(A\) is a tensor with components<br />
+</p>
+
+\[
+A^{ij} \quad \text{then } A \text{ is } (2,0) \text{ tensor}
+\]
+
+\[
+A_{ij} \quad \text{then } A \text{ is } (0,2) \text{ tensor}
+\]
+
+\[
+A^i_j \quad \text{-----------} \quad (1,1) \text{ tensor.}
+\]
+
+<div id="Chapter 1: Tensors-General Tensor"><h2 id="General Tensor" class="header"><a href="#Chapter 1: Tensors-General Tensor">General Tensor</a></h2></div>
+
+<p>
+ <em>Assumption</em> :- suppose \(V\) is an array field (It returns 1D/2D/3D -- mD array) For each point in \(\mathbb{R}^n\)) composed of \(n^m\) scalar fields (functions) defined over a region 'u' in \(\mathbb{R}^n\). Assume that in the \((x^i)\) coordinate system components of \(V\) are \(V^{i_1 i_2 -- i_p}_{j_1 j_2 - j_q}\) where \((p+q=m)\). Assume also that after a coordinate transformation \(T: \bar{x}^i = \bar{x}^i(x^1 x^2 - x^N)\) that takes us to \((\bar{x}^i)\) coordinate system components of \(\bar{V}\) becomes.<br />
+</p>
+
+\[
+\bar{V}^{i_1 i_2 -- i_p}_{j_1 j_2 - j_q}
+\]
+
+<p>
+ In order to be array field \(\bar{V}\) to be tensor of rank \(m = p+q\) with contravariant rank \(p\) &amp; covariant rank 'q', then its components \(\bar{V}^{i_1 i_2 -- i_p}_{j_1 j_2 - j_q}\) in \((\bar{x}^i)\) coordinate system &amp; \(V^{i_1 i_2 - i_p}_{j_1 j_2 -- j_q}\) in \((x^i)\) coordinate system should obey<br />
+</p>
+
+\[
+\bar{V}^{i_1 i_2 -- i_p}_{j_1 j_2 -- j_q} = V^{r_1 r_2 -- r_p}_{s_1 s_2 -- s_q}\ \frac{\partial \bar{x}^{i_1}}{\partial x^{r_1}}\frac{\partial \bar{x}^{i_2}}{\partial x^{r_2}}\frac{\partial \bar{x}^{i_3}}{\partial x^{r_3}}\cdots\frac{\partial x^{s_1}}{\partial \bar{x}^{j_1}}\frac{\partial x^{s_2}}{\partial \bar{x}^{j_2}}\frac{\partial x^{s_q}}{\partial \bar{x}^{j_q}}
+\]
+
+\[
+\left(1 \leq i,j,r,s \leq N\right)
+\]
+
+<p>
+ [\(i\)'s &amp; \(j\)'s are free indices]<br />
+</p>
+
+<p>
+ [\(r\)'s &amp; \(s\) are dummy indices.]<br />
+</p>
+
+<div id="Chapter 1: Tensors-Tensor operations"><h2 id="Tensor operations" class="header"><a href="#Chapter 1: Tensors-Tensor operations">Tensor operations</a></h2></div>
+
+<p>
+ suppose that 'S' &amp; 'T' are tensors given by<br />
+</p>
+
+\[
+S \equiv \left( S^{i_1 i_2 -- i_p}_{j_1 j_2 --- j_q} \right) \ , \qquad T \equiv \left( T^{k_1 k_2 - k_r}_{l_1 l_2 -- l_s} \right)
+\]
+
+<p>
+ \(S\) is \((p,q)\) tensor , \(T\) is \((r,s)\) tensor.<br />
+</p>
+
+<ol>
+<li>
+summation :-
+\[
+\left.\begin{array}{c} p = r \\ q = s \end{array}\right\}\ \text{contravariant \&amp; covariant rank should be same.}
+\]
+\[
+S+T = \left( S^{i_1 i_2 --- i_p}_{j_1 j_2 - j_q} + T^{k_1 k_2 -- k_p}_{l_1 l_2 - l_q} \right)
+\]
+ Then \((S+T)\) is tensor of rank same as \(S\) &amp; \(T\).
+ <em>Proof</em> :-
+ Assume that we change coordinates \(x^i \rightarrow \bar{x}^i\)
+ Then
+\[
+\bar{S}^{i_1 i_2 -- i_p}_{j_1 j_2 - j_q} = S^{\alpha_1 \alpha_2 -- \alpha_p}_{\beta_1 \beta_2 - \beta_q}\ \frac{\partial \bar{x}^{i_1}}{\partial x^{\alpha_1}}\frac{\partial \bar{x}^{i_2}}{\partial x^{\alpha_2}}\cdots\frac{\partial \bar{x}^{i_p}}{\partial x^{\alpha_p}}\ \frac{\partial x^{\beta_1}}{\partial \bar{x}^{j_1}}\frac{\partial x^{\beta_2}}{\partial \bar{x}^{j_2}}\cdots\frac{\partial x^{\beta_q}}{\partial \bar{x}^{j_q}} \qquad (1)
+\]
+ Similarly
+\[
+\bar{T}^{i_1 i_2 -- i_p}_{j_1 j_2 -- j_q} = T^{\alpha_1 \alpha_2 - \alpha_p}_{\beta_1 \beta_2 - \beta_q}\ \frac{\partial \bar{x}^{i_1}}{\partial x^{\alpha_1}}\frac{\partial \bar{x}^{i_2}}{\partial x^{\alpha_2}}\cdots\frac{\partial \bar{x}^{i_p}}{\partial x^{\alpha_p}}\ \frac{\partial x^{\beta_1}}{\partial \bar{x}^{j_1}}\frac{\partial x^{\beta_2}}{\partial \bar{x}^{j_2}}\cdots\frac{\partial x^{\beta_q}}{\partial \bar{x}^{j_q}} \qquad (2)
+\]
+ \((1) \pm (2) \Rightarrow\)
+\[
+\bar{S}^{i_1 i_2 - i_p}_{j_1 j_2 - j_q} \pm \bar{T}^{i_1 i_2\ i_p}_{j_1 j_2 - j_q} = \left( S^{\alpha_1 \alpha_2 - \alpha_p}_{\beta_1 \beta_2 - \beta_q} \pm T^{\alpha_1 \alpha_2 - \alpha_p}_{\beta_1 \beta_2 - \beta_q} \right) C
+\]
+\[
+C = \frac{\partial \bar{x}^{i_1}}{\partial x^{\alpha_1}}\frac{\partial \bar{x}^{i_2}}{\partial x^{\alpha_2}}\cdots\frac{\partial \bar{x}^{i_p}}{\partial x^{\alpha_p}}\cdot\frac{\partial x^{\beta_1}}{\partial \bar{x}^{j_1}}\frac{\partial x^{\beta_2}}{\partial \bar{x}^{j_2}}\cdots\frac{\partial x^{\beta_q}}{\partial \bar{x}^{j_q}}
+\]
+ [\(\downarrow\) Transformation law for \((S \pm T)\)]
+ \(S+T\) is also tensor of same rank as \(S\) &amp; \(T\) \((p,q)\)
+\[
+\left(\begin{array}{l} S, T \text{ are } (p,q) \text{ tensor} \\ (S \pm T) \text{ is } (p,q) \text{ tensor} \end{array}\right)
+\]
+
+</ol>
+<div id="Chapter 1: Tensors-Scalar multiplication"><h2 id="Scalar multiplication" class="header"><a href="#Chapter 1: Tensors-Scalar multiplication">Scalar multiplication</a></h2></div>
+
+<p>
+ (2) Scalar multiplication :-<br />
+</p>
+
+<p>
+ Suppose \(A\) is a \((p,q)\) tensor. If \(\phi\) is a scalar then \(\phi A\) is found by<br />
+</p>
+
+\[
+\phi A^{i_1 i_2 -- i_p}_{j_1 j_2 -- j_q}
+\]
+
+<p>
+ i.e. multiplying each component \(A^{i_1 i_2 - i_p}_{j_1 j_2 - j_q}\) by \(\phi\).<br />
+</p>
+
+<p>
+ Then \(\phi A\) is also \((p,q)\) tensor.<br />
+</p>
+
+<p>
+ <em>Proof</em> :- \(A\) transform like -- (If it is a \((p,q)\) tensor)<br />
+</p>
+
+\[
+\bar{A}^{i_1 i_2 -- i_p}_{j_1 j_2 - j_q} = A^{\alpha_1 \alpha_2 -- \alpha_p}_{\beta_1 \beta_2 -- \beta_q}\left(\frac{\partial \bar{x}^{i_1}}{\partial x^{\alpha_1}}\frac{\partial \bar{x}^{i_2}}{\partial x^{\alpha_2}}\cdots\frac{\partial \bar{x}^{i_p}}{\partial x^{\alpha_p}}\right)\left(\frac{\partial x^{\beta_1}}{\partial \bar{x}^{j_1}}\frac{\partial x^{\beta_2}}{\partial \bar{x}^{j_2}}\cdots\frac{\partial x^{\beta_q}}{\partial \bar{x}^{j_q}}\right)
+\]
+
+<p>
+ we can multiply each side by \(\phi\) (scalar)<br />
+</p>
+
+\[
+\phi\,\bar{A}^{i_1 i_2 - i_p}_{j_1 j_2 - j_q} = \phi\,A^{\alpha_1 \alpha_2 - \alpha_p}_{\beta_1 \beta_2 - \beta_q}\left(\frac{\partial \bar{x}^{i_1}}{\partial x^{\alpha_1}}\frac{\partial \bar{x}^{i_2}}{\partial x^{\alpha_2}}\cdots\frac{\partial \bar{x}^{i_p}}{\partial x^{\alpha_p}}\right)\left(\frac{\partial x^{\beta_1}}{\partial \bar{x}^{j_1}}\frac{\partial x^{\beta_2}}{\partial \bar{x}^{j_2}}\cdots\frac{\partial x^{\beta_q}}{\partial \bar{x}^{j_q}}\right)
+\]
+
+<p>
+ since \(\phi\) is scalar \(\left(\bar{\phi} = \phi\right)\)<br />
+</p>
+
+\[
+\bar{\phi}\,\bar{A}^{i_1 i_2 -- i_p}_{j_1 j_2 - j_q} = \phi\,A^{\alpha_1 \alpha_2 - \alpha_p}_{\beta_1 \beta_2 -- \beta_q}\left(\frac{\partial \bar{x}^{i_1}}{\partial x^{\alpha_1}}\frac{\partial \bar{x}^{i_2}}{\partial x^{\alpha_2}}\cdots\frac{\partial \bar{x}^{i_p}}{\partial x^{\alpha_p}}\right)\left(\frac{\partial x^{\beta_1}}{\partial \bar{x}^{j_1}}\frac{\partial x^{\beta_2}}{\partial \bar{x}^{j_2}}\cdots\frac{\partial x^{\beta_q}}{\partial \bar{x}^{j_q}}\right)
+\]
+
+<p>
+ So this implies \((\phi A)\) also obey transformation law of that of \(A\) i.e. \((p,q)\) tensor. So \((\phi A)\) is also a \((p,q)\) tensor.<br />
+</p>
+
+<div id="Chapter 1: Tensors-Linear combinations"><h2 id="Linear combinations" class="header"><a href="#Chapter 1: Tensors-Linear combinations">Linear combinations</a></h2></div>
+
+<p>
+ (3) Linear combinations :-<br />
+</p>
+
+<p>
+ If \((T_1\ T_2\ T_3 -- T_u)\) are tensors of same contravariant &amp; covariant rank i.e. \((p,q)\) tensor<br />
+</p>
+
+<p>
+ then, \(\left(\lambda_1 T_1 + \lambda_2 T_2 + \lambda_3 T_3 - \lambda_u T_u\right)\) is also tensor of same contravariant &amp; covariant rank.<br />
+</p>
+
+<p>
+ i.e.<br />
+</p>
+
+\[
+\left(\lambda_1 T_1 + \lambda_2 T_2 + \cdots \lambda_u T_u\right) = \lambda_i T_i \ \text{ is also } (p,q) \text{ tensor.}
+\]
+
+\[
+\left(\text{if } T_i \text{ is } (p,q) \text{ tensor}\right).
+\]
+
+\[
+(1 \leq i \leq u).
+\]
+
+<div id="Chapter 1: Tensors-Contraction"><h2 id="Contraction" class="header"><a href="#Chapter 1: Tensors-Contraction">Contraction</a></h2></div>
+
+<p>
+ <em>Tensor operations :-</em><br />
+</p>
+
+<p>
+ suppose 'S' &amp; 'T' are tensors given by:<br />
+</p>
+
+\[
+S \text{ is } (p,q) \text{ tensor} \ : \ S = \left( S^{i_1 i_2 -- i_p}_{j_1 j_2 - j_q} \right)
+\]
+
+\[
+T \text{ is } (r,s) \text{ tensor} \ : \ T = \left( T^{k_1 k_2 - k_r}_{l_1 l_2 -- l_s} \right)
+\]
+
+<p>
+ <em>i.e</em><br />
+</p>
+
+\[
+\bar{S}^{i_1 i_2 -- i_p}_{j_1 j_2 - j_q} = S^{\alpha_1 \alpha_2 -- \alpha_p}_{\beta_1 \beta_2 - \beta_q}\left(\frac{\partial \bar{x}^{i_1}}{\partial x^{\alpha_1}}\frac{\partial \bar{x}^{i_2}}{\partial x^{\alpha_2}}\cdots\frac{\partial \bar{x}^{i_p}}{\partial x^{\alpha_p}}\right)\left(\frac{\partial x^{\beta_1}}{\partial \bar{x}^{j_1}}\frac{\partial x^{\beta_2}}{\partial \bar{x}^{j_2}}\cdots\frac{\partial x^{\beta_q}}{\partial \bar{x}^{j_q}}\right)
+\]
+
+\[
+\bar{T}^{k_1 k_2 -- k_r}_{l_1 l_2 -- l_s} = T^{a_1 a_2 -- a_p}_{b_1 b_2 -- b_s}\left(\frac{\partial \bar{x}^{k_1}}{\partial x^{a_1}}\frac{\partial \bar{x}^{k_2}}{\partial x^{a_2}}\cdots\frac{\partial \bar{x}^{k_r}}{\partial x^{a_r}}\right)\left(\frac{\partial x^{b_1}}{\partial \bar{x}^{l_1}}\frac{\partial x^{b_2}}{\partial \bar{x}^{l_2}}\cdots\frac{\partial x^{b_s}}{\partial \bar{x}^{l_s}}\right)
+\]
+
+<p>
+ <em>Contraction :-</em><br />
+</p>
+
+<p>
+ suppose \(S\) is \((p,q)\) tensor such that<br />
+</p>
+
+\[
+S = \left( S^{i_1 i_2 -- i_p}_{j_1 j_2 - j_q} \right)
+\]
+
+<p>
+ The contraction of \(S\) w.r.t a contravariant index \(i_f\) and covariant index \(j_g\) (where \((1 \leq f \leq p)\) &amp; \((1 \leq g \leq q)\)) is given by setting \(\left(i_f = j_g = u\right)\) and evaluating<br />
+</p>
+
+\[
+\left( S' \equiv S^{i_1 i_2 -- i_f -- i_p}_{j_1 j_2 -- u - j_q} \right)
+\]
+
+<p>
+ [\(S'\) is \((p-1, q-1)\) tensor]<br />
+</p>
+
+<p>
+ example :- Suppose we have \((2,2)\) tensor \(A = A^{i_1 i_2}_{j_1 j_2}\)<br />
+</p>
+
+<p>
+ contraction of \(A\) relative to \(i_2\) &amp; \(j_1\) \(\left(A' : A^{i_1 u}_{u j_2}\right)\)<br />
+</p>
+
+<p>
+ \(A' = \) contraction of \(A\) w.r.t \(i_2\) &amp; \(j_1\)<br />
+</p>
+
+\[
+A' = A^{i,u}_{u,j_2}
+\]
+
+<p>
+ [\(\leftarrow\) (repeated index gets summed over)]<br />
+</p>
+
+<p>
+ in \(\mathbb{R}^n\),<br />
+</p>
+
+\[
+A' = A^{i,1}_{1,j_2} + A^{i,2}_{2,j_2} + A^{i,3}_{3,j_2} + \cdots + A^{i,n}_{n,j_2}
+\]
+
+<p>
+ in 3-D \(\left(\mathbb{R}^3\right.\),<br />
+</p>
+
+\[
+A' = A^{i,1}_{1,j_2} + A^{i,2}_{2,j_2} + A^{i,3}_{3,j_2}
+\]
+
+<p>
+ [\((1,1)\) tensor]<br />
+</p>
+
+<p>
+ \(\therefore\) in going from \(A \longrightarrow A'\)<br />
+</p>
+
+<p>
+ contravariant &amp; covariant rank reduces by 1.<br />
+</p>
+
+<p>
+ So \(A'\) is \((1,1)\) tensor.<br />
+</p>
+
+<p>
+ <em>Proof</em> :-<br />
+</p>
+
+<p>
+ For \(S\) is a \((p,q)\) tensor, we know its transformation law,<br />
+</p>
+
+\[
+\bar{S}^{i_1 i_2 - i_p}_{j_1 j_2 - j_q} = S^{\alpha_1 \alpha_2 -- \alpha_f - \alpha_p}_{\beta_1 \beta_2 -- \beta_g -- \beta_q}\ \frac{\partial \bar{x}^{i_1}}{\partial x^{\alpha_1}}\frac{\partial \bar{x}^{i_2}}{\partial x^{\alpha_2}}\cdots\frac{\partial \bar{x}^{i_f}}{\partial x^{\alpha_f}}\cdot\frac{\partial \bar{x}^{i_p}}{\partial x^{\alpha_p}}\ \frac{\partial x^{\beta_1}}{\partial \bar{x}^{j_1}}\frac{\partial x^{\beta_2}}{\partial \bar{x}^{j_2}}\cdots\frac{\partial x^{\beta_g}}{\partial \bar{x}^{j_g}}\cdots\frac{\partial x^{\beta_q}}{\partial \bar{x}^{j_q}} \qquad (1)
+\]
+
+\[
+\left(i_f = j_g = u\right)
+\]
+
+\[
+\bar{S}^{i_1 i_2 - u\ i_p}_{j_1 j_2 - u\ j_q} = S^{\alpha_1 \alpha_2 -- \alpha_p}_{\beta_1 \beta_2 -- \beta_q}\left(\frac{\partial \bar{x}^{i_1}}{\partial x^{\alpha_1}}\frac{\partial \bar{x}^{i_2}}{\partial x^{\alpha_2}}\cdots\frac{\partial \bar{x}^{i_p}}{\partial x^{\beta_p}}\right)\left(\frac{\partial \bar{x}^{u}}{\partial x^{\alpha_f}}\frac{\partial x^{\beta_g}}{\partial \bar{x}^{u}}\right)\left(\frac{\partial x^{\beta_1}}{\partial \bar{x}^{j_1}}\frac{\partial x^{\beta_2}}{\partial \bar{x}^{j_2}}\cdots\frac{\partial x^{\beta_q}}{\partial \bar{x}^{j_q}}\right) \qquad (2)
+\]
+
+<p>
+ we know that from reverse chain rule<br />
+</p>
+
+\[
+\left(\frac{\partial \bar{x}^u}{\partial x^{\alpha_f}}\ \frac{\partial x^{\beta_g}}{\partial \bar{x}^u}\right) = \frac{\partial x^{\beta_g}}{\partial x^{\alpha_f}} = \delta^{\beta_g}_{\alpha_f}
+\]
+
+\[
+\delta^{\beta_g}_{\alpha_f} = \begin{cases} 1 &amp; \beta_g = \alpha_f \\ 0 &amp; \beta_g \neq \alpha_f \end{cases}
+\]
+
+<p>
+ So, eqn (2) becomes transformation law for \((p-1, q-1)\) tensor<br />
+</p>
+
+<p>
+ so \(S'\) represents \((p-1, q-1)\) tensor.<br />
+</p>
+
+<div id="Chapter 1: Tensors-Inner product"><h2 id="Inner product" class="header"><a href="#Chapter 1: Tensors-Inner product">Inner product</a></h2></div>
+
+<p>
+ (2) Inner product :-<br />
+</p>
+
+<p>
+ suppose \(S\) and \(T\) are two tensors given by<br />
+</p>
+
+\[
+S = \left( S^{i_1 i_2 -- i_p}_{j_1 j_2 --- j_q} \right) \quad \text{and} \quad T = \left( T^{k_1 k_2 -- k_r}_{l_1 l_2 -- l_s} \right)
+\]
+
+<p>
+ To find inner product \(S\cdot T\), choose a contravariant index on \(S\) \((i_f)\) and covariant index \((l_g)\) on \(T\).<br />
+</p>
+
+<p>
+ let \(\left(i_f = l_g = u\right)\) then<br />
+</p>
+
+\[
+S \circ T = \left( S^{i_1 i_2 -- u - i_p}_{j_1 j_2 --- j_q}\ T^{k_1 k_2 -- k_r}_{l_1 l_2 - u - l_s} \right)
+\]
+
+<p>
+ \(S\cdot T\) is \((p+r-1,\ q+s-1)\) tensor<br />
+</p>
+
+<p>
+ or total rank of \(S\cdot T = m = p+r-1+q+s-1\)<br />
+</p>
+
+\[
+= p+r+q+s-2
+\]
+
+<p>
+ Proof can be found similer previous method.<br />
+</p>
+
+<p>
+ ex (1) Evaluate \(u\cdot v\) where, \(V = \left(V^i\right)\) and \(u = \left(u_j\right)\)<br />
+</p>
+
+\[
+V\cdot u = V^s u_s \qquad (i=j=s)
+\]
+
+<p>
+ <em>i.e.,</em> \(\left(\text{in } \mathbb{R}^3\right)\)<br />
+</p>
+
+\[
+V\cdot u = V^1 u_1 + V^2 u_2 + V^3 u_3
+\]
+
+<p>
+ \(V, u\) &amp; tensors following<br />
+</p>
+
+\[
+\bar{V}^i = V^r\,\frac{\partial \bar{x}^i}{\partial x^r}
+\]
+
+\[
+\bar{u}_j = u_s\,\frac{\partial x^s}{\partial \bar{x}^j}
+\]
+
+<p>
+ for inner product \((i=j=k)\)<br />
+</p>
+
+\[
+\bar{V}^k \bar{u}_k = \left( V^r\,\frac{\partial \bar{x}^k}{\partial x^r} \right)\left( u_s\,\frac{\partial x^s}{\partial \bar{x}^k} \right)
+\]
+
+\[
+= V^r u_s\ \frac{\partial \bar{x}^k}{\partial x^r}\frac{\partial x^s}{\partial \bar{x}^k}
+\]
+
+\[
+= V^r u_s\ \frac{\partial x^s}{\partial x^r}
+\]
+
+\[
+= V^r u_s\ \delta^s_r
+\]
+
+<p>
+ [\(\dfrac{\partial x^s}{\partial x^r} = \delta^s_r\)]<br />
+</p>
+
+\[
+\left(\bar{V}^k \bar{u}_k = V^s u_s\right)
+\]
+
+<p>
+ inner product of contravariant and covariant vector is invariant / scalar.<br />
+</p>
+
+\[
+m = \text{rank of } S\cdot T\ |\ V\cdot u = p+q+r+s-2
+\]
+
+\[
+= 1+1-2 = \underline{0}
+\]
+
+<p>
+ So \(\left(V\cdot u = \text{scalar}\right)\) <em>i.e.</em> tensor of rank \(\underline{0}\).<br />
+</p>
+
+<div id="Chapter 1: Tensors-Outer product"><h2 id="Outer product" class="header"><a href="#Chapter 1: Tensors-Outer product">Outer product</a></h2></div>
+
+<p>
+ (3) Outer product :-<br />
+</p>
+
+<p>
+ Suppose \(S\) &amp; \(T\) are tensors given by<br />
+</p>
+
+\[
+S = \left( S^{i_1 i_2 -- i_p}_{j_1 j_2 -- j_q} \right) \quad \&amp; \quad T = \left( T^{k_1 k_2 -- k_r}_{l_1 l_2 -- l_s} \right)
+\]
+
+<p>
+ 'S' is \((p,q)\) tensor &amp; 'T' is \((r,s)\) tensor.<br />
+</p>
+
+<p>
+ Then the outer product / direct product / tensor product<br />
+</p>
+
+\[
+S \otimes T \equiv \left( S^{i_1 i_2 - i_p}_{j_1 j_2 - j_q}\cdot T^{k_1 k_2 - k_r}_{l_1 l_2 - l_s} \right)
+\]
+
+<p>
+ \(S\otimes T\) is tensor whose components are product of each component of \(S\) &amp; each component of \(T\).<br />
+</p>
+
+<p>
+ \(S\otimes T\) is \((p+r,\ q+s)\) tensor.<br />
+</p>
+
+<p>
+ \(S\otimes T\) is tensor of rank \((m = p+r+q+s)\).<br />
+</p>
+
+<p>
+ example (1) Find outer product of \(a = \begin{pmatrix} a^1 \\ a^2 \\ a^3 \end{pmatrix}\) &amp; \(b = \begin{pmatrix} b_1 &amp; b_2 &amp; b_3 \end{pmatrix}\)<br />
+</p>
+
+\[
+a \otimes b = \begin{pmatrix} a^1 b_1 &amp; a^1 b_2 &amp; a^1 b_3 \\ a^2 b_1 &amp; a^2 b_2 &amp; a^2 b_3 \\ a^3 b_1 &amp; a^3 b_2 &amp; a^3 b_3 \end{pmatrix}
+\]
+
+<p>
+ [\(\rightarrow\) mixed tensor of rank 2.]<br />
+</p>
+
+\[
+\downarrow
+\]
+
+\[
+a^i \otimes b_j
+\]
+
+<div id="Chapter 1: Tensors-(Chapter -1) The Einstien summation convention"><h2 id="(Chapter -1) The Einstien summation convention" class="header"><a href="#Chapter 1: Tensors-(Chapter -1) The Einstien summation convention">(Chapter -1) The Einstien summation convention</a></h2></div>
+
+<p>
+ [(Schaum's outlines)]<br />
+</p>
+
+<p>
+ <span id="Chapter 1: Tensors-(Chapter -1) The Einstien summation convention-(1)"></span><strong id="(1)">(1)</strong> (i)<br />
+</p>
+
+\[
+a_1 x_1 + a_2 x_2 + \cdots + a_n x_n = \sum_{i=1}^{N} a_i x_i \equiv a_i x_i
+\]
+
+<p>
+ (Repeated indices gets summed over)<br />
+</p>
+
+<p>
+ (ii)<br />
+</p>
+
+\[
+a_{ii} x_K = a_{11} x_K + a_{22} x_K + a_{33} x_K + \cdots + a_{nn} x_n
+\]
+
+<p>
+ (iii)<br />
+</p>
+
+\[
+a_{ij} x_j = a_{i1} x_1 + a_{i2} x_2 + a_{i3} x_3 + \cdots + a_{in} x_n
+\]
+
+<p>
+ repeated indices \(=\) dummy indices<br />
+</p>
+
+<p>
+ non-repeated indices \(=\) free indices.<br />
+</p>
+
+<p>
+ <em>Note</em><br />
+</p>
+
+\[
+a_{ij} x_j \neq a_{kj} x_j \qquad (\text{unless } i=k)
+\]
+
+<p>
+ (iv)<br />
+</p>
+
+\[
+y_i = a_{ir} x_r
+\]
+
+\[
+y_i = a_{i1} x_1 + a_{i2} x_2 + a_{i3} x_3
+\]
+
+<p>
+ [tensor of rank 1]<br />
+</p>
+
+<p>
+ [If \(\left(y_i \in \mathbb{R}^3\right)\)]<br />
+</p>
+
+\[
+y_1 = a_{11} x_1 + a_{12} x_2 + a_{13} x_3
+\]
+
+\[
+y_2 = a_{21} x_1 + a_{22} x_2 + a_{23} x_3
+\]
+
+\[
+y_3 = a_{31} x_1 + a_{32} x_2 + a_{33} x_3
+\]
+
+\[
+\left(x_j\right)\left(y_i\right) = \text{covariant tensor of rank 1}
+\]
+
+\[
+a_{ir} = \text{covariant tensor of rank 2}
+\]
+
+\[
+\begin{pmatrix} y_1 \\ y_2 \\ y_3 \end{pmatrix} = \begin{pmatrix} a_{11} &amp; a_{12} &amp; a_{13} \\ a_{21} &amp; a_{22} &amp; a_{23} \\ a_{31} &amp; a_{32} &amp; a_{33} \end{pmatrix}\begin{pmatrix} x_1 \\ x_2 \\ x_3 \end{pmatrix}
+\]
+
+\[
+\boxed{\,y_i = a_{ir} x_r\,}
+\]
+
+<div id="Chapter 1: Tensors-Einstein summation convention"><h2 id="Einstein summation convention" class="header"><a href="#Chapter 1: Tensors-Einstein summation convention">Einstein summation convention</a></h2></div>
+
+<p>
+ Any expression involving a twice repeated index (occuring twice as superscript, or twice as subscript, or once a superscript and once a subscript) shall automatically stand for its sum over the values \(1,2,3, --- n\). of repeated index.<br />
+</p>
+
+\[
+a^i_i = a^1_1 + a^2_2 + a^3_3 + \cdots + a^n_n
+\]
+
+<p>
+ for \(a^i_j\) to be \((1,1)\) tensor in n-D. \(\left(\mathbb{R}^n\right)\)<br />
+</p>
+
+\[
+a_{ii} = a_{11} + a_{22} + a_{33} + \cdots + a_{nn}
+\]
+
+\[
+a^{jj} = a^{11} + a^{22} + a^{33} + \cdots + a^{nn}
+\]
+
+\[
+a^i x^i = a^1 x^1 + a^2 x^2 + \cdots + a^n x^n
+\]
+
+<p>
+ If \(a^i x^i\) is an tensor of rank 0. (scalar).<br />
+</p>
+
+<div id="Chapter 1: Tensors-Substitutions"><h2 id="Substitutions" class="header"><a href="#Chapter 1: Tensors-Substitutions">Substitutions</a></h2></div>
+
+\[
+Q = b_{ij} y_i x_j \qquad \text{where } y_i = a_{ij} x_j
+\]
+
+<p>
+ But 'j' is duplicated so<br />
+</p>
+
+<p>
+ we replace \(j \rightarrow r\) (different index) to substitute \(y_i\) in \(Q\).<br />
+</p>
+
+\[
+Q = b_{ij} y_i x_j = b_{ij}\left(a_{ir} x_r\right)x_j
+\]
+
+\[
+Q = a_{ir} b_{ij} x_r x_j
+\]
+
+<p>
+ ex If \(y_i = a_{ij}x_j\) then express quadratic form<br />
+</p>
+
+\[
+Q = g_{ij} y_i y_j \quad \text{in terms of } x-\text{variables.}
+\]
+
+\[
+Q = g_{ij} y_i y_j
+\]
+
+<p>
+ where \(y_i = a_{ir} x_r\) (\(j\) is replaced with \(r\)) as \(j\) is duplicated<br />
+</p>
+
+\[
+y_j = a_{js} x_s
+\]
+
+\[
+Q = g_{ij}\left(a_{ir}x_r\right)\left(a_{js}x_s\right) = \left(g_{ij}a_{ir}a_{js}\right)x_r x_s
+\]
+
+<p>
+ (or)<br />
+</p>
+
+\[
+Q = h_{rs} x_r x_s
+\]
+
+<p>
+ where<br />
+</p>
+
+\[
+h_{rs} = g_{ij} a_{ir} a_{js}
+\]
+
+<p>
+ (\(i\) &amp; \(j\) gets summed over).<br />
+</p>
+
+<div id="Chapter 1: Tensors-(1.3) kronecker delta and algebric manipulations"><h2 id="(1.3) kronecker delta and algebric manipulations" class="header"><a href="#Chapter 1: Tensors-(1.3) kronecker delta and algebric manipulations">(1.3) kronecker delta and algebric manipulations</a></h2></div>
+
+<p>
+ A much used symbol in tensor calculus has the effect of annihilating the off-diagonal terms in a double summation.<br />
+</p>
+
+<p>
+ kronecker delta<br />
+</p>
+
+\[
+\delta_{ij} = \delta^{ij} = \delta^i_j = \begin{cases} 1 &amp; i=j \\ 0 &amp; i \neq j \end{cases}
+\]
+
+<p>
+ clearly \(\left(\delta_{ij} = \delta_{ji} \quad \forall\ i\ \&amp;\ j\right)\).<br />
+</p>
+
+<p>
+ ex (1)<br />
+</p>
+
+\[
+\delta_{ij} x_i x_j = ? \qquad \text{for } 1 \leq i,j \leq 3
+\]
+
+\[
+\delta_{ij} x_i x_j = \delta_{i1} x_i x_1 + \delta_{i2} x_i x_2 + \delta_{i3} x_i x_3
+\]
+
+\[
+= \left(\delta_{11}x_1x_1 + \underbrace{\delta_{21}x_2x_1}_{0} + \underbrace{\delta_{31}x_3x_1}_{0}\right) + \left(\delta_{22}x_2x_2 + \underbrace{\delta_{12}x_1x_2}_{0} + \underbrace{\delta_{32}x_3x_2}_{0}\right) + \left(\underbrace{\delta_{13}x_1x_3}_{0} + \underbrace{\delta_{23}x_2x_3}_{0} + \delta_{33}x_3x_3\right)
+\]
+
+\[
+\delta_{ij} x_i x_j = x_1^2 + x_2^2 + x_3^2 = x_i x_i = x_j x_j
+\]
+
+\[
+\delta^r_j a_{ir} x_i = a_{ij} x_i
+\]
+
+\[
+\delta^r_j = \begin{cases} 1 &amp; r=j \\ 0 &amp; r \neq j \end{cases}
+\]
+
+<p>
+ ex 2) Suppose \(T^i = g^i_r a_{rs} y_s\) , \(y_i = b_{ir} x_r\) , \(a_{ir} b_{rj} = \delta_{ij}\)<br />
+</p>
+
+<p>
+ Find \(T^i\) in terms of \(x_p\).<br />
+</p>
+
+\[
+T^i = g^i_r a_{rs} y_s
+\]
+
+<p>
+ [\(y_s = b_{sr} x_r\) but (\(r\) is duplicated) so \(y_s = b_{sj} x_j\)]<br />
+</p>
+
+\[
+T^i = g^i_r \underline{a_{rs} b_{sj}}\, x_j
+\]
+
+\[
+= g^i_r\, \delta_{rj}\, x_j
+\]
+
+\[
+\left(T^i = g^i_r x_r\right)
+\]
+
+<div id="Chapter 1: Tensors-Non-identities"><h2 id="Non-identities" class="header"><a href="#Chapter 1: Tensors-Non-identities">Non-identities</a></h2></div>
+
+\[
+a_{ij}\left(x_i + y_j\right) \neq a_{ij}x_i + a_{ij}y_j
+\]
+
+\[
+a_{ij} x_i y_j \neq a_{ij} y_i x_j
+\]
+
+\[
+\left(a_{ij} + a_{ji}\right)x_i y_j \neq 2a_{ij}x_i x_j
+\]
+
+<div id="Chapter 1: Tensors-Problems"><h2 id="Problems" class="header"><a href="#Chapter 1: Tensors-Problems">Problems</a></h2></div>
+
+<p>
+ <em>Repeated indices :-</em><br />
+</p>
+
+<p>
+ use summation convention to write following<br />
+</p>
+
+<p>
+ (a)<br />
+</p>
+
+\[
+a_{11}b_{11} + a_{21}b_{12} + a_{31}b_{13} + a_{41}b_{14} = a_{i1}b_{1i}
+\]
+
+<p>
+ \(a_{i1}b_{1i}\) is tensor of rank 1 in \(\underline{\mathbb{R}^4}\). \((n=4)\)<br />
+</p>
+
+<p>
+ (b)<br />
+</p>
+
+\[
+a_{11}b_{11} + a_{12}b_{12} + a_{13}b_{13} + a_{14}b_{14} + a_{15}b_{15} + a_{16}b_{16}
+\]
+
+\[
+= a_{1i}b_{1i} \qquad \text{in } \mathbb{R}^6 \qquad (n=6)
+\]
+
+<p>
+ (c)<br />
+</p>
+
+\[
+C^i_{11} + C^i_{22} + C^i_{33} + C^i_{44} + C^i_{55} + C^i_{66} + C^i_{77} + C^i_{88} = C^i_{jj}
+\]
+
+<p>
+ _Tensor in \(\mathbb{R}^8\) \((n=8)\)_<br />
+</p>
+
+<div id="Chapter 1: Tensors-Exercise 1.2"><h2 id="Exercise 1.2" class="header"><a href="#Chapter 1: Tensors-Exercise 1.2">Exercise 1.2</a></h2></div>
+
+<p>
+ <span id="Chapter 1: Tensors-Exercise 1.2-(1.2)"></span><strong id="(1.2)">(1.2)</strong> use summation convention to write following systems.<br />
+</p>
+
+<p>
+ (a)<br />
+</p>
+
+\[
+\left.\begin{array}{l} C_{11}x_1 + C_{12}x_2 + C_{13}x_3 = 2 \\ C_{21}x_1 + C_{22}x_2 + C_{23}x_3 = -3 \\ C_{31}x_1 + C_{32}x_2 + C_{33}x_3 = 5 \end{array}\right\} \qquad \begin{array}{l} C_{1j}x_j = 2 \\ C_{2j}x_j = -3 \\ C_{3j}x_j = 5 \end{array}
+\]
+
+\[
+\boxed{\ C_{ij}x_j = d_i \quad \text{where } \left(d_1 = 2,\ d_2 = -3,\ d_3 = 5\right)\ }
+\]
+
+<p>
+ (b)<br />
+</p>
+
+\[
+a^1_j x_1 + a^2_j x_2 + a^3_j x_3 + a^4_j x_4 = b_j \qquad (j=1,2)
+\]
+
+\[
+a^i_j x_i = b_j
+\]
+
+<p>
+ [\(j\) = free index ; \(i\) = dummy index]<br />
+</p>
+
+<p>
+ [\(j = 1,2\) ; \(i = 1,2,3,4\)]<br />
+</p>
+
+<div id="Chapter 1: Tensors-Exercise 1.3"><h2 id="Exercise 1.3" class="header"><a href="#Chapter 1: Tensors-Exercise 1.3">Exercise 1.3</a></h2></div>
+
+<p>
+ <span id="Chapter 1: Tensors-Exercise 1.3-(1.3)"></span><strong id="(1.3)">(1.3)</strong> write out explicit summations<br />
+</p>
+
+<ol>
+<li>
+\(C_i\left(x_i + y_i\right)\) &amp; \(C_j x_j + C_k y_k\) \((n=4)\)
+\[
+C_i\left(x_i+y_i\right) = C_1\left(x_1+y_1\right) + C_2\left(x_2+y_2\right) + C_3\left(x_3+y_3\right) + C_4\left(x_4+y_4\right)
+\]
+\[
+= \left(C_1x_1 + C_2x_2 + C_3x_3 + C_4x_4\right) + \left(C_1y_1 + C_2y_2 + C_3y_3 + C_4y_4\right)
+\]
+\[
+= C_j x_j + C_k y_k
+\]
+\[
+\boxed{\ C_i\left(x_i+y_i\right) = C_j x_j + C_k y_k\ }
+\]
+ <em>Double sum</em>
+
+</ol>
+<div id="Chapter 1: Tensors-Exercise 1.4"><h2 id="Exercise 1.4" class="header"><a href="#Chapter 1: Tensors-Exercise 1.4">Exercise 1.4</a></h2></div>
+
+<p>
+ <span id="Chapter 1: Tensors-Exercise 1.4-(1.4)"></span><strong id="(1.4)">(1.4)</strong> If \(n=3\), expand \(Q = a^{ij}x_i x_j\)<br />
+</p>
+
+\[
+Q = a^{1j}x_1 x_j + a^{2j}x_2 x_j + a^{3j}x_3 x_j
+\]
+
+\[
+= \left(a^{11}x_1x_1 + a^{12}x_1x_2 + a^{13}x_1x_3\right) + \left(a^{21}x_2x_1 + a^{22}x_2x_2 + a^{23}x_2x_3\right) + \left(a^{31}x_3x_1 + a^{32}x_3x_2 + a^{33}x_3x_3\right)
+\]
+
+<div id="Chapter 1: Tensors-Exercise 1.5"><h2 id="Exercise 1.5" class="header"><a href="#Chapter 1: Tensors-Exercise 1.5">Exercise 1.5</a></h2></div>
+
+<p>
+ <span id="Chapter 1: Tensors-Exercise 1.5-(1.5)"></span><strong id="(1.5)">(1.5)</strong> use summation convention to write the following &amp; state \(n = ?\)<br />
+</p>
+
+<p>
+ (a)<br />
+</p>
+
+\[
+\left(a_{11}b_{11} + a_{21}b_{12} + a_{31}b_{13}\right) + \left(a_{12}b_{21} + a_{22}b_{22} + a_{32}b_{23}\right) + \left(a_{13}b_{31} + a_{23}b_{32} + a_{33}b_{33}\right)
+\]
+
+\[
+= a_{i1}b_{1i} + a_{i2}b_{2i} + a_{i3}b_{3i}
+\]
+
+\[
+= a_{ij}b_{ji} \qquad (n=3)
+\]
+
+<p>
+ (b)<br />
+</p>
+
+\[
+\left( g^1_{11} + g^1_{12} + g^1_{21} + g^1_{22} + g^2_{11} + g^2_{12} + g^2_{21} + g^2_{22} \right)
+\]
+
+\[
+= g^1_{1i}C_i + g^1_{2i}C_i + g^2_{1i}C_i + g^2_{2i}C_i
+\]
+
+\[
+= \left(g^1_{ji}C_j\right)C_i + \left(g^2_{ji}C_j\right)C_i
+\]
+
+<p>
+ [\(C_i, C_j = 1\) \(\forall\ i,j = 1,2\)]<br />
+</p>
+
+\[
+= \left(g^k_{ji}C_k\right)C_j C_i = g^k_{ji}C_k C_j C_i
+\]
+
+\[
+\left(C_k = C_j = C_i = 1\right) \qquad \left(i,j,k = 1,2\right) \quad \text{i.e } \underline{(n=2)}
+\]
+
+<div id="Chapter 1: Tensors-Exercise 1.6"><h2 id="Exercise 1.6" class="header"><a href="#Chapter 1: Tensors-Exercise 1.6">Exercise 1.6</a></h2></div>
+
+<p>
+ <span id="Chapter 1: Tensors-Exercise 1.6-(1.6)"></span><strong id="(1.6)">(1.6)</strong> For \(n=2\) write out explicitly the tripple summation<br />
+</p>
+
+\[
+C_{rst}\,x^r y^s z^t
+\]
+
+\[
+C_{rst}\,x^r y^s z^t = C_{rs1}x^r y^s z^1 + C_{rs2}x^r y^s z^2
+\]
+
+\[
+= C_{r11}x^r y^1 z^1 + C_{r21}x^r y^2 z^1 + C_{r12}x^r y^1 z^2 + C_{r22}x^r y^2 z^2
+\]
+
+\[
+= C_{111}x^1y^1z^1 + C_{211}x^2y^1z^1 + C_{121}x^1y^2z^1 + C_{221}x^2y^2z^1
+\]
+
+\[
++ C_{112}x^1y^1z^2 + C_{212}x^2y^1z^2 + C_{122}x^1y^2z^2 + C_{222}x^2y^2z^2
+\]
+
+<div id="Chapter 1: Tensors-Exercise 1.7"><h2 id="Exercise 1.7" class="header"><a href="#Chapter 1: Tensors-Exercise 1.7">Exercise 1.7</a></h2></div>
+
+<p>
+ <span id="Chapter 1: Tensors-Exercise 1.7-(1.7)"></span><strong id="(1.7)">(1.7)</strong> show that \(a_{ij}x_i x_j = 0\) if \(a_{ij} = i-j\)<br />
+</p>
+
+\[
+(i-j)x_i x_j = (i-1)x_i x_1 + (i-2)x_i x_2
+\]
+
+\[
+= (2-1)x_2x_1 + (1-1)x_1x_1 + (1-2)x_1x_2 + (2-2)x_2x_2
+\]
+
+\[
+= x_2x_1 + 0 + -x_1x_2 + 0
+\]
+
+\[
+= 0
+\]
+
+<div id="Chapter 1: Tensors-Exercise 1.8"><h2 id="Exercise 1.8" class="header"><a href="#Chapter 1: Tensors-Exercise 1.8">Exercise 1.8</a></h2></div>
+
+<p>
+ <span id="Chapter 1: Tensors-Exercise 1.8-(1.8)"></span><strong id="(1.8)">(1.8)</strong> If \(a_{ij}\) are const. calculate partial derivatives<br />
+</p>
+
+\[
+\frac{\partial}{\partial x_K}\left(a_{ij}x_i x_j\right) = a_{ij}\frac{\partial}{\partial x_K}x_i x_j
+\]
+
+\[
+= a_{ij}\,\partial_{x_K}\,x_i x_j
+\]
+
+\[
+= a_{ij}\left(\delta_{iK}x_j + \delta_{Kj}x_i\right)
+\]
+
+\[
+= a_{ij}\delta_{iK}x_j + a_{ij}\delta_{Kj}x_i
+\]
+
+\[
+= a_{Kj}x_j + a_{iK}x_i
+\]
+
+<p>
+ Since \(i,j\) has same range,<br />
+</p>
+
+\[
+\frac{\partial}{\partial x_K}\left(a_{ij}x_i x_j\right) = \left(a_{Ki} + a_{iK}\right)x_i
+\]
+
+<div id="Chapter 1: Tensors-Exercise 1.9"><h2 id="Exercise 1.9" class="header"><a href="#Chapter 1: Tensors-Exercise 1.9">Exercise 1.9</a></h2></div>
+
+<p>
+ <span id="Chapter 1: Tensors-Exercise 1.9-(1.9)"></span><strong id="(1.9)">(1.9)</strong> <em>Substitutions, kronecker delta :-</em><br />
+</p>
+
+<p>
+ express \(b^{ij}y_i y_j\) in Terms of \(x\)-variables, if \(y_i = C_{ij}x_j\)<br />
+</p>
+
+<p>
+ &amp; \(b^{ij}C_{jk} = \delta^i_k\)<br />
+</p>
+
+\[
+b^{ij}y_i y_j = ?
+\]
+
+\[
+y_i = C_{ij}x_j \qquad (\text{but } j \text{ is duplicated})
+\]
+
+<p>
+ replace \(j \rightarrow r\)<br />
+</p>
+
+\[
+y_i = C_{ir}x_r
+\]
+
+\[
+y_j = C_{jk}x_k
+\]
+
+\[
+b^{ij}\left(C_{ir}x_r\right)\left(C_{jk}x_k\right) = \underbrace{b^{ij}C_{ir}}\,C_{jk}\,x_r x_k
+\]
+
+\[
+= \delta^j_r\,C_{jk}\,x_r x_k
+\]
+
+\[
+= C_{rk}\,x_r x_k
+\]
+
+\[
+b^{ij}y_i y_j = C_{rk}x_r x_k
+\]
+
+\[
+= C_{ij}x_i x_j
+\]
+
+<p>
+ [\((i,j,r,k)\) has <em>same range</em>]<br />
+</p>
+
+\[
+\left(1 \leq r,k,i,j \leq n\right)
+\]
+
+<div id="Chapter 1: Tensors-Exercise 1.11"><h2 id="Exercise 1.11" class="header"><a href="#Chapter 1: Tensors-Exercise 1.11">Exercise 1.11</a></h2></div>
+
+<p>
+ <span id="Chapter 1: Tensors-Exercise 1.11-(1.11)"></span><strong id="(1.11)">(1.11)</strong> If \(a_{ij} = a_{ji}\)<br />
+</p>
+
+\[
+\frac{\partial^2}{\partial x_K \partial x_\ell}\left(a_{ij}x_i x_j\right)
+\]
+
+\[
+= \frac{\partial}{\partial x_K}\left(\frac{\partial}{\partial x_\ell}\left(a_{ij}x_i x_j\right)\right)
+\]
+
+\[
+= \frac{\partial}{\partial x_K}\left(a_{ij}\,\delta_{i\ell}\,x_j + a_{ij}\,\delta_{j\ell}\,x_i\right)
+\]
+
+\[
+= \frac{\partial}{\partial x_K}\left(a_{\ell j}x_j + a_{i\ell}x_i\right)
+\]
+
+\[
+= \frac{\partial}{\partial x_K}\left(\left(a_{\ell i} + a_{i\ell}\right)x_i\right)
+\]
+
+\[
+= \left(a_{\ell i} + a_{i\ell}\right)\delta_{iK}
+\]
+
+\[
+= a_{\ell K} + a_{K\ell} = 2a_{K\ell}
+\]
+
+<div id="Chapter 1: Tensors-Exercise 1.12"><h2 id="Exercise 1.12" class="header"><a href="#Chapter 1: Tensors-Exercise 1.12">Exercise 1.12</a></h2></div>
+
+<p>
+ <span id="Chapter 1: Tensors-Exercise 1.12-(1.12)"></span><strong id="(1.12)">(1.12)</strong> consider a system of linear eqn of form \(y^i = a^{ij}x_j\) and suppose that \(\left(b_{ij}\right)\) is matrix of numbers such that \(\forall\ i,j\) \(b_{ir}a^{rj} = \delta^j_i\) (\(b_{ij}\) is inverse of \(a^{ij}\))<br />
+</p>
+
+\[
+y^i = a^{ij}x_j
+\]
+
+\[
+b_{ki}y^i = b_{ki}a^{ij}x_j = \delta^j_k x_j
+\]
+
+\[
+b_{ji}y^i = x_j
+\]
+
+\[
+x_j = b_{ji}y^i
+\]
+
+<p>
+ or<br />
+</p>
+
+\[
+x_i = b_{ij}y^j
+\]
+
+\[
+b_{ki}y^i = x_k
+\]
+
+<p>
+ or<br />
+</p>
+
+\[
+\left(x_i = b_{ij}y^j\right)
+\]
+
+<p>
+ [Both represents same sol\(^n\).]<br />
+</p>
+
+<div id="Chapter 1: Tensors-Exercise 1.13"><h2 id="Exercise 1.13" class="header"><a href="#Chapter 1: Tensors-Exercise 1.13">Exercise 1.13</a></h2></div>
+
+<p>
+ <span id="Chapter 1: Tensors-Exercise 1.13-(1.13)"></span><strong id="(1.13)">(1.13)</strong> show that,<br />
+</p>
+
+\[
+a_{ijk}\left(x_i + y_j\right)z_k \neq a_{ijk}x_i z_k + a_{ijk}y_j z_k
+\]
+
+<p>
+ [\(i,j,k\) = dummy indices ,]<br />
+</p>
+
+<p>
+ [\(\uparrow\) \(j\) = free  ;  \(\uparrow\) \(i\) = free]<br />
+</p>
+
+<p>
+ So <em>not equal</em>.<br />
+</p>
+
+<p>
+ Supplementary problems will be addressed in revision (in the end of all 13-chapters).<br />
+</p>
+
+    </div>
+
+    <!-- Floating buttons: ask this page (added by pagebot.js), go back to the
+         previous page, and scroll to top of this page -->
+    <div class="floating-btns">
+        <button id="btn-back" type="button" title="Go back" aria-label="Go back">&#8592;</button>
+        <button id="btn-top" type="button" title="Back to top" aria-label="Back to top">&#8593;</button>
+    </div>
+
+    <!-- Top-right buttons: site-wide tools — search (docked here at runtime by
+         search.js) and translate. Kept out of the bottom-right stack above,
+         which is for navigating within the current page. -->
+    <div class="top-right-btns">
+        <button id="btn-globe" type="button" title="Translate this page" aria-label="Translate this page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/><path d="M5.3 6.5c1.9 1 4.2 1.6 6.7 1.6s4.8-.6 6.7-1.6"/><path d="M5.3 17.5c1.9-1 4.2-1.6 6.7-1.6s4.8.6 6.7 1.6"/></svg></button>
+    </div>
+
+    <!-- Globe language panel: the only UI the visitor interacts with. Selecting
+         a language drives the hidden Google widget below (see script further
+         down) rather than showing Google's own default dropdown/banner. -->
+    <div id="translate-panel" aria-label="Choose a language">
+        <div class="tp-header">Translate this page</div>
+        <input type="text" id="tp-search" placeholder="Search language...">
+        <div class="tp-list" id="tp-list"></div>
+    </div>
+
+    <!-- Google Website Translator: loaded hidden. It is what actually performs
+         the translation once our panel sets its hidden <select> and fires a
+         change event on it (see script below). -->
+    <div id="google_translate_element"></div>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({ pageLanguage: 'en', autoDisplay: false }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <!-- Breadcrumb trail: the actual navigation chain the visitor clicked
+         through, in order (link1 > link2 > ... > current), NOT the folder path.
+         The chain is stored per-tab in sessionStorage: each page appends itself
+         when reached via a new link, and truncates back to itself when revisited
+         (e.g. clicking an earlier crumb or using the back button). Home is
+         always the root. The label prefers the page's own <h1>. -->
+    <script>
+    (function () {
+        var nav = document.getElementById('breadcrumb');
+        if (!nav) return;
+
+        var KEY = 'wikiBreadcrumbTrail';
+        var path = window.location.pathname;
+
+        function pageLabel() {
+            var h1 = document.querySelector('#content h1');
+            var t = h1 ? h1.textContent.replace(/\s+/g, ' ').trim() : '';
+            if (t) return t;
+            t = (document.title || '').replace(/_+/g, ' ').trim();
+            if (t && t.toLowerCase() !== 'index') return t;
+            var segs = path.split('/').filter(Boolean).map(function (s) {
+                try { return decodeURIComponent(s); } catch (e) { return s; }
+            });
+            var last = segs.pop() || '';
+            if (/^index\.html?$/i.test(last)) last = segs.pop() || 'index';
+            return last.replace(/\.html?$/i, '').replace(/_+/g, ' ').trim() || 'Page';
+        }
+
+        var current = { href: path, label: pageLabel() };
+
+        // Load the existing chain for this tab.
+        var trail = [];
+        try { trail = JSON.parse(sessionStorage.getItem(KEY)) || []; } catch (e) { trail = []; }
+        if (!Array.isArray(trail)) trail = [];
+
+        // If this page is already in the chain (visitor clicked an earlier crumb
+        // or hit back), cut the chain back to it. Otherwise extend the chain.
+        var found = -1;
+        for (var i = 0; i < trail.length; i++) {
+            if (trail[i] && trail[i].href === current.href) { found = i; break; }
+        }
+        if (found !== -1) {
+            trail = trail.slice(0, found + 1);
+            trail[found] = current;            // refresh the label
+        } else {
+            trail.push(current);
+        }
+
+        try { sessionStorage.setItem(KEY, JSON.stringify(trail)); } catch (e) {}
+
+        function addLink(href, text) {
+            var a = document.createElement('a');
+            a.href = href;
+            a.textContent = text;
+            nav.appendChild(a);
+            var sep = document.createElement('span');
+            sep.className = 'breadcrumb-sep';
+            sep.textContent = '\u203A';
+            nav.appendChild(sep);
+        }
+
+        // Home is always the root of the chain.
+        addLink('/index.html', 'Home');
+
+        // Every page in the chain except the current one is a clickable link.
+        for (var j = 0; j < trail.length - 1; j++) {
+            addLink(trail[j].href, trail[j].label);
+        }
+
+        var cur = document.createElement('span');
+        cur.className = 'breadcrumb-current';
+        cur.setAttribute('aria-current', 'page');
+        cur.textContent = trail.length ? trail[trail.length - 1].label : current.label;
+        nav.appendChild(cur);
+    })();
+    </script>
+
+    <!-- Floating buttons: back = previous page, top = smooth-scroll to top of this page -->
+    <script>
+    (function () {
+        var back = document.getElementById('btn-back');
+        var top = document.getElementById('btn-top');
+        if (back) {
+            back.addEventListener('click', function () { window.history.back(); });
+            if (window.history.length <= 1) back.style.display = 'none'; // nothing to go back to
+        }
+        if (top) {
+            top.addEventListener('click', function () {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            var onScroll = function () {
+                top.style.display = (window.pageYOffset > 200) ? 'block' : 'none';
+            };
+            window.addEventListener('scroll', onScroll, { passive: true });
+            onScroll();
+        }
+    })();
+    </script>
+
+    <!-- Globe button: opens the language panel; selecting a language drives the
+         hidden Google Translate widget (loaded above). The chosen language is
+         remembered in localStorage and re-applied on every page the visitor
+         navigates to next, so translation persists across the whole site. -->
+    <script>
+    (function () {
+        var LANGS = [
+            ['af', 'Afrikaans'], ['sq', 'Albanian'], ['am', 'Amharic'], ['ar', 'Arabic'], ['hy', 'Armenian'],
+            ['as', 'Assamese'], ['ay', 'Aymara'], ['az', 'Azerbaijani'], ['bm', 'Bambara'], ['eu', 'Basque'],
+            ['be', 'Belarusian'], ['bn', 'Bengali'], ['bho', 'Bhojpuri'], ['bs', 'Bosnian'], ['bg', 'Bulgarian'],
+            ['ca', 'Catalan'], ['ceb', 'Cebuano'], ['ny', 'Chichewa'], ['zh-CN', 'Chinese (Simplified)'],
+            ['zh-TW', 'Chinese (Traditional)'], ['co', 'Corsican'], ['hr', 'Croatian'], ['cs', 'Czech'],
+            ['da', 'Danish'], ['dv', 'Dhivehi'], ['doi', 'Dogri'], ['nl', 'Dutch'], ['en', 'English'],
+            ['eo', 'Esperanto'], ['et', 'Estonian'], ['ee', 'Ewe'], ['fil', 'Filipino'], ['fi', 'Finnish'],
+            ['fr', 'French'], ['fy', 'Frisian'], ['gl', 'Galician'], ['ka', 'Georgian'], ['de', 'German'],
+            ['el', 'Greek'], ['gn', 'Guarani'], ['gu', 'Gujarati'], ['ht', 'Haitian Creole'], ['ha', 'Hausa'],
+            ['haw', 'Hawaiian'], ['he', 'Hebrew'], ['hi', 'Hindi'], ['hmn', 'Hmong'], ['hu', 'Hungarian'],
+            ['is', 'Icelandic'], ['ig', 'Igbo'], ['ilo', 'Ilocano'], ['id', 'Indonesian'], ['ga', 'Irish'],
+            ['it', 'Italian'], ['ja', 'Japanese'], ['jv', 'Javanese'], ['kn', 'Kannada'], ['kk', 'Kazakh'],
+            ['km', 'Khmer'], ['rw', 'Kinyarwanda'], ['gom', 'Konkani'], ['ko', 'Korean'], ['kri', 'Krio'],
+            ['ku', 'Kurdish'], ['ckb', 'Kurdish (Sorani)'], ['ky', 'Kyrgyz'], ['lo', 'Lao'], ['la', 'Latin'],
+            ['lv', 'Latvian'], ['ln', 'Lingala'], ['lt', 'Lithuanian'], ['lg', 'Luganda'], ['lb', 'Luxembourgish'],
+            ['mk', 'Macedonian'], ['mai', 'Maithili'], ['mg', 'Malagasy'], ['ms', 'Malay'], ['ml', 'Malayalam'],
+            ['mt', 'Maltese'], ['mi', 'Maori'], ['mr', 'Marathi'], ['mni-Mtei', 'Meiteilon (Manipuri)'],
+            ['lus', 'Mizo'], ['mn', 'Mongolian'], ['my', 'Myanmar (Burmese)'], ['ne', 'Nepali'],
+            ['no', 'Norwegian'], ['or', 'Odia (Oriya)'], ['om', 'Oromo'], ['ps', 'Pashto'], ['fa', 'Persian'],
+            ['pl', 'Polish'], ['pt', 'Portuguese'], ['pa', 'Punjabi'], ['qu', 'Quechua'], ['ro', 'Romanian'],
+            ['ru', 'Russian'], ['sm', 'Samoan'], ['sa', 'Sanskrit'], ['gd', 'Scots Gaelic'],
+            ['nso', 'Sepedi'], ['sr', 'Serbian'], ['st', 'Sesotho'], ['sn', 'Shona'], ['sd', 'Sindhi'],
+            ['si', 'Sinhala'], ['sk', 'Slovak'], ['sl', 'Slovenian'], ['so', 'Somali'], ['es', 'Spanish'],
+            ['su', 'Sundanese'], ['sw', 'Swahili'], ['sv', 'Swedish'], ['tg', 'Tajik'], ['ta', 'Tamil'],
+            ['tt', 'Tatar'], ['te', 'Telugu'], ['th', 'Thai'], ['ti', 'Tigrinya'], ['ts', 'Tsonga'],
+            ['tr', 'Turkish'], ['tk', 'Turkmen'], ['ak', 'Twi'], ['uk', 'Ukrainian'], ['ur', 'Urdu'],
+            ['ug', 'Uyghur'], ['uz', 'Uzbek'], ['vi', 'Vietnamese'], ['cy', 'Welsh'], ['xh', 'Xhosa'],
+            ['yi', 'Yiddish'], ['yo', 'Yoruba'], ['zu', 'Zulu']
+        ];
+
+        var STORAGE_KEY = 'wikiTranslateLang';
+        var btn = document.getElementById('btn-globe');
+        var panel = document.getElementById('translate-panel');
+        var search = document.getElementById('tp-search');
+        var list = document.getElementById('tp-list');
+        if (!btn || !panel || !list || !search) return;
+
+        function currentLang() {
+            try { return localStorage.getItem(STORAGE_KEY) || 'en'; } catch (e) { return 'en'; }
+        }
+
+        function renderList(filter) {
+            var f = (filter || '').trim().toLowerCase();
+            var active = currentLang();
+            list.innerHTML = '';
+            LANGS.forEach(function (pair) {
+                var code = pair[0], name = pair[1];
+                if (f && name.toLowerCase().indexOf(f) === -1) return;
+                var b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'tp-lang' + (code === active ? ' active' : '');
+                b.textContent = name;
+                b.addEventListener('click', function () { setLanguage(code); });
+                list.appendChild(b);
+            });
+        }
+
+        function setLanguage(code) {
+            try { localStorage.setItem(STORAGE_KEY, code); } catch (e) {}
+            panel.classList.remove('open');
+            applyLanguage(code);
+        }
+
+        function applyLanguage(code) {
+            if (code === 'en') {
+                // Reset to the original English text.
+                document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + location.hostname + ';';
+                if (document.querySelector('select.goog-te-combo')) location.reload();
+                return;
+            }
+            // The Google widget loads its <select> asynchronously, so poll
+            // briefly until it exists (covers both the click case and the
+            // "re-apply on new page load" case below).
+            var tries = 0;
+            (function tryApply() {
+                var combo = document.querySelector('select.goog-te-combo');
+                if (combo) {
+                    if (combo.value !== code) {
+                        combo.value = code;
+                        combo.dispatchEvent(new Event('change'));
+                    }
+                } else if (tries < 40) {
+                    tries++;
+                    setTimeout(tryApply, 250);
+                }
+            })();
+        }
+
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var opening = !panel.classList.contains('open');
+            panel.classList.toggle('open', opening);
+            if (opening) {
+                search.value = '';
+                renderList('');
+                search.focus();
+            }
+        });
+        document.addEventListener('click', function (e) {
+            if (panel.classList.contains('open') && !panel.contains(e.target) && e.target !== btn) {
+                panel.classList.remove('open');
+            }
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') panel.classList.remove('open');
+        });
+        search.addEventListener('input', function () { renderList(search.value); });
+
+        renderList('');
+
+        // Keep the whole site translated as the visitor moves between pages.
+        var saved = currentLang();
+        if (saved && saved !== 'en') applyLanguage(saved);
+    })();
+    </script>
+
+    <!-- Images: (1) rewrite baked-in local export paths to their web location and
+         trim stray spaces, (2) upgrade http:// -> https://, (3) add a caption under
+         each image using its alt text. Images with no alt are left uncaptioned.
+         NOTE: the image FILES must exist on the server at the mapped location
+         (e.g. /wiki/vimwiki_html/Blogs/cric/) — upload that folder. -->
+    <script>
+    (function () {
+        var LOCAL_ANCHOR = '/vimwiki/';
+        var WEB_ROOT = '/wiki/vimwiki_html/';
+        document.querySelectorAll('#content img').forEach(function (img) {
+            // 1) normalise the src
+            var raw = img.getAttribute('src');
+            if (raw) {
+                var s = raw.trim();
+                var i = s.indexOf(LOCAL_ANCHOR);
+                if (i !== -1) s = WEB_ROOT + s.slice(i + LOCAL_ANCHOR.length);
+                if (/^http:\/\//i.test(s)) s = s.replace(/^http:\/\//i, 'https://');
+                if (s !== raw) img.setAttribute('src', s);
+            }
+            // 2) defer offscreen images: on a long photo post the browser
+            //    would otherwise start fetching every image at once.
+            if (!img.hasAttribute('loading')) img.setAttribute('loading', 'lazy');
+            img.setAttribute('decoding', 'async');
+            // 3) caption from alt text
+            var alt = (img.getAttribute('alt') || '').trim();
+            if (!alt) return;
+            var parent = img.parentNode;
+            if (!parent || parent.tagName === 'FIGURE') return;
+            var fig = document.createElement('figure');
+            fig.className = 'img-figure';
+            var cap = document.createElement('figcaption');
+            cap.textContent = alt;
+            parent.insertBefore(fig, img);
+            fig.appendChild(img);
+            fig.appendChild(cap);
+            // tidy a <br> left immediately after the image
+            var nx = fig.nextSibling;
+            if (nx && nx.nodeType === 1 && nx.tagName === 'BR') nx.parentNode.removeChild(nx);
+        });
+    })();
+    </script>
+
+    <!-- Hover preview cards for internal links, like Wikipedia's page previews.
+         Hovering (or focusing) a same-site link to another .html page fetches
+         that page, and if — and only if — it actually exists (HTTP 200), shows
+         its title, first paragraph, and first image in a small card near the
+         link. Broken/nonexistent links are left alone: nothing is shown. -->
+    <script>
+    (function () {
+        var content = document.getElementById('content');
+        if (!content) return;
+
+        var LOCAL_ANCHOR = '/vimwiki/';
+        var WEB_ROOT = '/wiki/vimwiki_html/';
+        function fixImgSrc(src) {
+            if (!src) return src;
+            var s = src.trim();
+            var i = s.indexOf(LOCAL_ANCHOR);
+            if (i !== -1) s = WEB_ROOT + s.slice(i + LOCAL_ANCHOR.length);
+            if (/^http:\/\//i.test(s)) s = s.replace(/^http:\/\//i, 'https://');
+            return s;
+        }
+
+        var card = document.createElement('div');
+        card.className = 'link-preview-card';
+        document.body.appendChild(card);
+
+        var cache = {};   // resolved URL -> {title, snippet, thumb} | 'missing'
+        var showTimer = null;
+        var hideTimer = null;
+        var activeKey = null;
+
+        function stripHash(href) {
+            var i = href.indexOf('#');
+            return i === -1 ? href : href.slice(0, i);
+        }
+
+        function extract(html) {
+            var doc = new DOMParser().parseFromString(html, 'text/html');
+            var target = doc.getElementById('content');
+            if (!target) return null;
+            var h1 = target.querySelector('h1');
+            var title = h1 ? h1.textContent.replace(/\s+/g, ' ').trim() : (doc.title || '').trim();
+            var snippet = '';
+            var ps = target.querySelectorAll('p');
+            for (var i = 0; i < ps.length; i++) {
+                var t = ps[i].textContent.replace(/\s+/g, ' ').trim();
+                if (t.length > 20) { snippet = t; break; }
+            }
+            if (snippet.length > 220) snippet = snippet.slice(0, 217).trim() + '…';
+            var img = target.querySelector('img');
+            var thumb = img ? fixImgSrc(img.getAttribute('src')) : null;
+            return { title: title || 'Untitled', snippet: snippet, thumb: thumb };
+        }
+
+        function render(data) {
+            var html = '';
+            if (data.thumb) html += '<img class="lp-thumb" src="' + data.thumb + '" alt="">';
+            html += '<div class="lp-body"><div class="lp-title"></div><p class="lp-snippet"></p></div>';
+            card.innerHTML = html;
+            card.querySelector('.lp-title').textContent = data.title;
+            card.querySelector('.lp-snippet').textContent = data.snippet;
+        }
+
+        function position(link) {
+            var rect = link.getBoundingClientRect();
+            var margin = 10;
+            var cardWidth = card.offsetWidth || 300;
+            var left = rect.left;
+            if (left + cardWidth > window.innerWidth - margin) left = window.innerWidth - cardWidth - margin;
+            if (left < margin) left = margin;
+            var top = rect.bottom + 8;
+            var cardHeight = card.offsetHeight || 160;
+            if (top + cardHeight > window.innerHeight - margin && rect.top - cardHeight - 8 > margin) {
+                top = rect.top - cardHeight - 8;
+            }
+            card.style.left = left + 'px';
+            card.style.top = top + 'px';
+        }
+
+        function hide() {
+            card.classList.remove('visible');
+            activeKey = null;
+        }
+
+        function showFor(link, key) {
+            var data = cache[key];
+            if (!data || data === 'missing') return;
+            render(data);
+            position(link);
+            card.classList.add('visible');
+            requestAnimationFrame(function () { position(link); });
+        }
+
+        function handleEnter(link, key) {
+            clearTimeout(hideTimer);
+            clearTimeout(showTimer);
+            activeKey = key;
+            showTimer = setTimeout(function () {
+                if (activeKey !== key) return;
+                if (cache[key] === 'missing') return;
+                if (cache[key]) { showFor(link, key); return; }
+                fetch(key, { credentials: 'same-origin' }).then(function (res) {
+                    if (!res.ok) { cache[key] = 'missing'; return null; }
+                    return res.text();
+                }).then(function (html) {
+                    if (html == null) return;
+                    var data = extract(html);
+                    if (!data) { cache[key] = 'missing'; return; }
+                    cache[key] = data;
+                    if (activeKey === key) showFor(link, key);
+                }).catch(function () { cache[key] = 'missing'; });
+            }, 350);
+        }
+
+        function handleLeave() {
+            clearTimeout(showTimer);
+            activeKey = null;
+            hideTimer = setTimeout(hide, 200);
+        }
+
+        card.addEventListener('mouseenter', function () { clearTimeout(hideTimer); });
+        card.addEventListener('mouseleave', function () { hideTimer = setTimeout(hide, 150); });
+
+        content.querySelectorAll('a[href]').forEach(function (link) {
+            var href = link.getAttribute('href');
+            if (!href || href.charAt(0) === '#') return;
+            if (/^(mailto:|javascript:|tel:)/i.test(href)) return;
+            if (link.hostname !== window.location.hostname) return;
+            var key = stripHash(link.href);
+            if (!/\.html?$/i.test(key.split('?')[0])) return;
+            link.addEventListener('mouseenter', function () { handleEnter(link, key); });
+            link.addEventListener('mouseleave', handleLeave);
+            link.addEventListener('focus', function () { handleEnter(link, key); });
+            link.addEventListener('blur', handleLeave);
+        });
+
+        window.addEventListener('scroll', hide, { passive: true });
+        window.addEventListener('resize', hide);
+    })();
+    </script>
+
+    <!-- 0. Repair asset paths (vimwiki-asset-path-fix).
+         Vimwiki resolves {{...}} images and local:/file: links against the
+         SOURCE wiki tree (.../phd_work/notes/vimwiki/...), which does not exist
+         on the deployed site, and it appends ".html" to any [[link]] even when
+         the target already has an extension. Both are repaired here so the
+         fix survives every re-export instead of needing a manual patch. -->
+    <script>
+    (function () {
+        var ROOT = '/wiki/vimwiki_html/';
+        var NEEDLE = 'notes/vimwiki/';
+        var ATTACH = /\.(pdf|png|jpe?g|gif|svg|webp|zip|txt|csv|tex|docx?|xlsx?|pptx?)\.html$/i;
+        function fix(url) {
+            if (!url || /^(https?:|mailto:|#|data:)/i.test(url)) return url;
+            var i = url.indexOf(NEEDLE);
+            if (i !== -1) url = ROOT + url.slice(i + NEEDLE.length);
+            return url.replace(ATTACH, '.$1');
+        }
+        function sweep(sel, attr) {
+            document.querySelectorAll(sel).forEach(function (el) {
+                var v = el.getAttribute(attr), n = fix(v);
+                if (n !== v) el.setAttribute(attr, n);
+            });
+        }
+        sweep('a[href]', 'href');
+        sweep('img[src]', 'src');
+    })();
+    </script>
+    <!-- 1. Turn vimwiki {{{class="tikz"}}} blocks into TikZJax script tags (must run BEFORE tikzjax.js) -->
+    <script>
+        document.querySelectorAll('pre.tikz').forEach(function (pre) {
+            var s = document.createElement('script');
+            s.type = 'text/tikz';
+            s.textContent = pre.textContent; // browser decodes HTML entities here
+            pre.textContent = '';
+            pre.appendChild(s); // keep <pre class="tikz"> as the container so its
+                                 // text-align:center still applies to the SVG tikzjax inserts
+        });
+    </script>
+    <!-- 2. Syntax-highlight code blocks, but skip diagram blocks -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre:not(.mermaid):not(.tikz)').forEach(function (block) {
+            hljs.highlightBlock(block);
+        });
+    </script>
+    <!-- 3. TikZJax: renders <script type="text/tikz"> into SVG -->
+    <script src="https://tikzjax.com/v1/tikzjax.js"></script>
+    <!-- 4. Mermaid: renders <pre class="mermaid"> into SVG -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+
+    <!-- 5. Ask-this-page search. Purely local: it indexes the text already in
+         #content and shows the passages that match your question. The launcher
+         is added to the .floating-btns stack above, so it inherits those styles.
+         The index is built the first time the panel is opened, by which point
+         MathJax/TikZ/Mermaid have finished rewriting the DOM. -->
+    <script>
+        window.PAGEBOT_CONFIG = {
+            rootSelector: '#content',
+            extraSkip: 'pre.mermaid, pre.tikz, .breadcrumb',
+            launcherSelector: '.floating-btns',
+            launcherLabel: '?',
+            launcherTitle: 'Ask this page',
+            title: 'Ask this page',
+            accent: '#6b4f2a',
+            panelBg: '#fbf6e9',
+            results: 3
+        };
+    </script>
+    <script src="/wiki/assets/pagebot.js"></script>
+
+    <!-- 6. Site-wide search: separate from "Ask this page" above — this finds
+         *which page* to go to, across the whole site, not just this one.
+         Reads wiki/assets/search-index.json (built by build_search_index.py).
+         The launcher is docked into the top-right stack, next to translate,
+         since both are site-wide rather than per-page tools. -->
+    <script>
+        window.SEARCH_CONFIG = {
+            launcherSelector: '.top-right-btns',
+            launcherLabel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16.3 16.3 21 21"/></svg>',
+            launcherTitle: 'Search this site',
+            title: 'Search this site',
+            accent: '#6b4f2a',
+            panelBg: '#fbf6e9',
+            maxResults: 8
+        };
+    </script>
+    <script src="/wiki/assets/search.js"></script>
+</body>
+</html>
