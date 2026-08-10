@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- <link rel="stylesheet" type="text/css" href="style.css"> -->
+    <link rel="stylesheet" href="/wiki/assets/style.css" />
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
+    <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
+    <title>Group Theory - SO(3) and SU(2) (V Balakrishnan) Opus 5</title>
+    <!-- MathJax config: on phone-width screens, break long display equations onto
+         multiple lines instead of overflowing the page. Desktop and tablet keep the
+         default rendering (empty config), so their layout is unchanged. Must run
+         BEFORE the MathJax script below. -->
+    <script>
+        (function () {
+            var isPhone = window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
+            window.MathJax = {
+                chtml: isPhone
+                    ? { scale: 0.8, displayOverflow: 'linebreak', linebreaks: { inline: true } }
+                    : {}
+            };
+        })();
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            /* Absolute, not '../Images/parchment.jpg': the relative form
+               resolved to a different copy of the same image in every section
+               folder, so the browser cached (and re-downloaded) it once per
+               section. One canonical URL = fetched once for the whole site. */
+            background-image: url('/wiki/vimwiki_html/Images/parchment.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 3cm;
+        }
+        #content {
+            color: #333;
+            font-size: 20px;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+        h1 { font-size: 28px; }
+        h2 { font-size: 24px; }
+        h3 { font-size: 20px; }
+        h4, h5, h6 { font-size: 18px; }
+        img {
+            display: block;
+            max-width: 100%;
+            max-height: 500px;
+            margin: 30px auto;
+        }
+        /* Image + caption (built from each image's alt text) */
+        figure.img-figure {
+            margin: 30px auto;
+            text-align: center;
+            max-width: 100%;
+        }
+        figure.img-figure img {
+            margin: 0 auto 8px auto;   /* caption sits right under the image */
+        }
+        figure.img-figure figcaption {
+            font-size: 15px;
+            color: #555;
+            font-style: italic;
+            line-height: 1.4;
+        }
+        /* Diagram blocks (Mermaid + TikZ): centered, no code-box background */
+        pre.mermaid, pre.tikz {
+            background: none;
+            border: none;
+            text-align: center;
+        }
+        #content svg {
+            max-width: 100%;
+            height: auto;
+        }
+        /* Breadcrumb trail */
+        .breadcrumb {
+            font-size: 19px;
+            font-weight: bold;
+            line-height: 1.5;
+            margin-bottom: 22px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid rgba(181, 101, 29, 0.35);
+            word-break: break-word;
+        }
+        .breadcrumb:empty { display: none; }
+        .breadcrumb a { color: #b5651d; text-decoration: none; }
+        .breadcrumb a:hover { color: #8a4a12; text-decoration: underline; }
+        .breadcrumb .breadcrumb-sep { color: #c08a5a; margin: 0 8px; }
+        .breadcrumb .breadcrumb-current { color: #1f3a5f; }
+        /* Floating navigation buttons (ask this page + go back + scroll to top) */
+        .floating-btns {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 1000;
+        }
+        .floating-btns button {
+            width: 48px;
+            height: 48px;
+            border: none;
+            border-radius: 50%;
+            background: #6b4f2a;
+            color: #fff;
+            font-size: 22px;
+            line-height: 48px;
+            text-align: center;
+            padding: 0;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            opacity: 0.85;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .floating-btns button:hover { opacity: 1; transform: translateY(-2px); }
+        #btn-top { display: none; }   /* revealed after scrolling down */
+        /* Top-right button stack: site-wide tools (translate + search), kept
+           separate from the bottom-right stack above, which holds per-page
+           navigation (back / top / ask-this-page). The search launcher is
+           inserted here at runtime by search.js. */
+        .top-right-btns {
+            position: fixed;
+            top: 16px;
+            right: 24px;
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            z-index: 1500;
+        }
+        /* Plain monochrome line icons — no fill, no coloured circle. The icons
+           are inline SVG using stroke: currentColor, so `color` is all that
+           drives their appearance. */
+        .top-right-btns button {
+            width: 48px;
+            height: 48px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 8px;
+            background: none;
+            color: #4a4038;
+            padding: 0;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transition: color 0.15s ease, background-color 0.15s ease;
+        }
+        .top-right-btns button svg { width: 32px; height: 32px; display: block; }
+        .top-right-btns button:hover { color: #1f1a15; background: rgba(107, 79, 42, 0.12); }
+        @media (max-width: 600px) {
+            .floating-btns { right: 14px; bottom: 14px; }
+            .floating-btns button { width: 44px; height: 44px; font-size: 20px; line-height: 44px; }
+            .top-right-btns { top: 12px; right: 14px; gap: 4px; }
+            .top-right-btns button { width: 44px; height: 44px; }
+            .top-right-btns button svg { width: 30px; height: 30px; }
+        }
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            body { padding: 12px; }
+            #content {
+                padding: 8px 10px;
+                max-width: 100%;
+                font-size: 13px;    /* smaller text -> proportionally smaller equations that fit */
+                line-height: 1.5;
+            }
+            h1 { font-size: 20px; }
+            h2 { font-size: 18px; }
+            h3 { font-size: 16px; }
+            h4, h5, h6 { font-size: 15px; }
+            .breadcrumb { font-size: 15px; }
+            /* Wide math: never let it stretch the page. If it can't be broken onto
+               multiple lines, it scrolls inside its own box instead. */
+            mjx-container[display="true"] {
+                max-width: 100%;
+                overflow-x: auto;
+                overflow-y: hidden;
+            }
+            mjx-container { max-width: 100%; }
+        }
+        /* Google Translate: the widget itself stays hidden. We drive it entirely
+           through our own globe button + language panel below. Suppress every
+           bit of Google's own chrome in all cases — the "Translated to … /
+           Show original" top banner, the floating balloon, the feedback tab,
+           and the "suggest a better translation" hover tooltip. None of it
+           should ever surface; the visitor switches back to English from our
+           own globe menu instead.
+
+           The banner is injected as a top-level <iframe class="skiptranslate">,
+           which is why hiding only the .goog-te-* classes wasn't enough. */
+        #google_translate_element { display: none !important; }
+        .goog-te-gadget { display: none !important; }
+        iframe.skiptranslate,
+        .skiptranslate > iframe,
+        .goog-te-banner-frame,
+        .goog-te-banner-frame.skiptranslate,
+        .goog-te-ftab,
+        .goog-te-ftab-float,
+        .goog-te-balloon-frame,
+        .goog-te-gadget-icon,
+        .goog-te-menu-frame,
+        #goog-gt-tt,
+        .goog-tooltip,
+        .goog-tooltip:hover {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        /* Google pushes the page down with an inline body { top: 40px;
+           position: relative } to make room for that banner. !important here
+           outranks its inline style, so the layout never shifts. */
+        body {
+            top: 0px !important;
+            position: static !important;
+        }
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
+        /* Globe language panel */
+        #translate-panel {
+            display: none;
+            flex-direction: column;
+            position: fixed;
+            right: 24px;
+            top: 72px;
+            width: 260px;
+            max-height: 360px;
+            background: #fbf6e9;
+            border-radius: 10px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+            z-index: 1001;
+            overflow: hidden;
+        }
+        #translate-panel.open { display: flex; }
+        #translate-panel .tp-header {
+            padding: 10px 12px 6px 12px;
+            font-weight: bold;
+            color: #6b4f2a;
+            border-bottom: 1px solid rgba(107, 79, 42, 0.2);
+        }
+        #translate-panel input[type="text"] {
+            margin: 8px 12px;
+            padding: 6px 8px;
+            border: 1px solid rgba(107, 79, 42, 0.3);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        #translate-panel .tp-list {
+            overflow-y: auto;
+            padding: 0 6px 8px 6px;
+        }
+        #translate-panel .tp-lang {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            padding: 7px 10px;
+            font-size: 14px;
+            color: #333;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+        #translate-panel .tp-lang:hover { background: rgba(107, 79, 42, 0.12); }
+        #translate-panel .tp-lang.active { background: #6b4f2a; color: #fff; }
+        @media (max-width: 600px) {
+            #translate-panel { right: 14px; top: 64px; width: 220px; max-height: 300px; }
+        }
+        /* Hover preview card for internal links (Wikipedia-style). Only ever
+           populated for links whose target page actually exists — see the
+           script below, which fetches the target and stays hidden on 404. */
+        .link-preview-card {
+            position: fixed;
+            z-index: 1002;
+            width: 300px;
+            max-width: calc(100vw - 24px);
+            background: #fbf6e9;
+            border: 1px solid rgba(107, 79, 42, 0.3);
+            border-radius: 10px;
+            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(4px);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            font-family: Arial, sans-serif;
+        }
+        .link-preview-card.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+        .link-preview-card .lp-thumb {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            display: block;
+            background: rgba(107, 79, 42, 0.08);
+        }
+        .link-preview-card .lp-body { padding: 12px 14px; }
+        .link-preview-card .lp-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #6b4f2a;
+            margin: 0 0 6px 0;
+            line-height: 1.3;
+        }
+        .link-preview-card .lp-snippet {
+            font-size: 13px;
+            color: #444;
+            line-height: 1.45;
+            margin: 0;
+        }
+        /* Hover previews don't make sense on touch devices, so keep this off
+           on narrow/mobile viewports rather than leaving a stuck-open card. */
+        @media (max-width: 600px) {
+            .link-preview-card { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        <!-- Breadcrumb: Home > section > current, based on which top-level wiki
+             folder this page lives under. See the script below for the mapping. -->
+        <nav id="breadcrumb" class="breadcrumb" aria-label="Breadcrumb"></nav>
+        
+<div id="Contents" class="toc"><h1 id="Contents" class="header"><a href="#Contents">Contents</a></h1></div>
+<ul>
+<li>
+<a href="Group Theory - SO(3) and SU(2) (V Balakrishnan) Opus 5.html#Connection between SO(3) and SU(2) :-">#Connection between SO(3) and SU(2) :-</a>
+
+<ul>
+<li>
+<a href="Group Theory - SO(3) and SU(2) (V Balakrishnan) Opus 5.html#Parameter space of the set of rotations">#Parameter space of the set of rotations</a>
+
+<li>
+<a href="Group Theory - SO(3) and SU(2) (V Balakrishnan) Opus 5.html#Connectivity of the parameter space">#Connectivity of the parameter space</a>
+
+<li>
+<a href="Group Theory - SO(3) and SU(2) (V Balakrishnan) Opus 5.html#Fundamental homotopy group pi_1(V)">#Fundamental homotopy group pi_1(V)</a>
+
+<li>
+<a href="Group Theory - SO(3) and SU(2) (V Balakrishnan) Opus 5.html#what is pi_1(S^2) :-">#what is pi_1(S^2) :-</a>
+
+<li>
+<a href="Group Theory - SO(3) and SU(2) (V Balakrishnan) Opus 5.html#Points on sphere :- (Rotation group points)">#Points on sphere :- (Rotation group points)</a>
+
+<li>
+<a href="Group Theory - SO(3) and SU(2) (V Balakrishnan) Opus 5.html#Tensor and spinnor representations">#Tensor and spinnor representations</a>
+
+</ul>
+<li>
+<a href="Group Theory - SO(3) and SU(2) (V Balakrishnan) Opus 5.html#Lec 25 : Representation of SO(3) in SU(2)">#Lec 25 : Representation of SO(3) in SU(2)</a>
+
+<ul>
+<li>
+<a href="Group Theory - SO(3) and SU(2) (V Balakrishnan) Opus 5.html#Representation of 3x3 Rotation group SO(3) in 2x2 matrix SU(2)">#Representation of 3x3 Rotation group SO(3) in 2x2 matrix SU(2)</a>
+
+</ul>
+<li>
+<a href="Group Theory - SO(3) and SU(2) (V Balakrishnan) Opus 5.html#Lec 25 (continued) : Stereographic projection and rotations">#Lec 25 (continued) : Stereographic projection and rotations</a>
+
+<ul>
+<li>
+<a href="Group Theory - SO(3) and SU(2) (V Balakrishnan) Opus 5.html#Rotation in 3-D space and the Riemann sphere">#Rotation in 3-D space and the Riemann sphere</a>
+
+<li>
+<a href="Group Theory - SO(3) and SU(2) (V Balakrishnan) Opus 5.html#Unitary and unimodular condition">#Unitary and unimodular condition</a>
+
+</ul>
+</ul>
+<p>
+<a href="V Balakrishnan's lecture notes.html">V. Balakrishnan</a>  |  <a href="../../../../phd_work/notes/vimwiki/Lecture_notes/PDFs/Classical_Mechanics_Notes_Opus5.pdf">PDF</a>  |  <a href="Classical Mechanics Lec 34-36 (V Balakrishnan) Opus 5.html">&lt;&lt; prev</a><br />
+</p>
+
+<div id="Connection between SO(3) and SU(2) :-"><h1 id="Connection between SO(3) and SU(2) :-" class="header"><a href="#Connection between SO(3) and SU(2) :-">Connection between SO(3) and SU(2) :-</a></h1></div>
+
+<p>
+We know that in 3-Dimensional space, I would like to generate rotations (linear transformation of the coordinates, which leaves a point (origin) unchanged. Its linear and homogeneous. also \(|M_T| = 1\). (\(M_T\) = transformation matrix). These three conditions suffice to define rotations and they form a group, this group is called \(SO(3)\).<br />
+</p>
+
+<p>
+where `\(S\)' stands for \(|M_T| = +1\) (special)<br />
+</p>
+
+<p>
+`\(O\)' stands for orthogonal (because the transformations has to be orthogonal to ensure that distance b/w two points remain unchanged, \(|x_1 - x_2| = |x_1' - x_2'|\).<br />
+</p>
+
+<p>
+`\(3\)' : comes from 3-diamensions.<br />
+</p>
+
+<p>
+The set of \(3\times3\) matrices, which are orthogonal, with determinent \(+1\), they form a group. These matrices from a representation of the abstract group of rotations.<br />
+</p>
+
+<p>
+Rotations are operators in their abstract, but they are explicitly represented by set of orthogonal, \((3\times3)\) matrices with \(\det M_T = +1\).<br />
+</p>
+
+<div id="Connection between SO(3) and SU(2) :--Parameter space of the set of rotations"><h2 id="Parameter space of the set of rotations" class="header"><a href="#Connection between SO(3) and SU(2) :--Parameter space of the set of rotations">Parameter space of the set of rotations</a></h2></div>
+
+<p>
+what is parameter space of set of rotations ?<br />
+</p>
+
+<p>
+In other words what are values of angles that specifies the possible rotations. Now these can be specified in many ways, as you know you can go to one coordinate system to a rotated one by specifieng three Euler angles, but you can specify those euler angles in many different ways, they all turn out to be equivalent with each other but there is nothing unique about it.<br />
+</p>
+
+<p>
+The most convenient way of specifying these rotations is to say that the rotations occur about some axis (\(\hat{n}\)) in space with respect to some fixed coordinate system through a certain amount of rotation. (angle).<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+\draw[-&gt;] (0,0) -- (0,2.0);
+\draw[-&gt;] (0,0) -- (2.4,0);
+\draw[-&gt;] (0,0) -- (-1.2,-1.0);
+\draw[-&gt;,thick] (0,0) -- (1.5,1.7) node[above right] {$\hat{n}$};
+\draw[dashed] (0.62,0.55) ellipse (0.85 and 0.32);
+\draw[-&gt;] (1.47,0.62) arc (0:300:0.85 and 0.32);
+\end{tikzpicture}
+</pre>
+
+<p>
+\(R(\hat{n}, \psi)\) where \(\hat{n}\) is specified by \((\theta, \phi)\), so that<br />
+</p>
+\[
+\hat{n} = \left( \sin\theta\cos\phi,\ \sin\theta\sin\phi,\ \cos\theta \right)
+\]
+\[
+0 \le \theta \le \pi \ , \qquad 0 \le \phi &lt; 2\pi \ , \qquad 0 \le \psi \le 2\pi
+\]
+
+<table>
+<tr>
+<td>
+<span id="Connection between SO(3) and SU(2) :--Parameter space of the set of rotations-equation"></span><strong id="equation">equation</strong>
+</td>
+<td>
+<span id="Connection between SO(3) and SU(2) :--Parameter space of the set of rotations-Locus"></span><strong id="Locus">Locus</strong>
+</td>
+</tr>
+<tr>
+<td>
+\(x = \) const
+</td>
+<td>
+plane
+</td>
+</tr>
+<tr>
+<td>
+\(R = \) const w.r.t
+</td>
+<td>
+sphere
+</td>
+</tr>
+<tr>
+<td>
+\(\theta = \) const.
+</td>
+<td>
+half cone
+</td>
+</tr>
+<tr>
+<td>
+\(\phi = \) const
+</td>
+<td>
+half plane
+</td>
+</tr>
+</table>
+
+<p>
+Now we can specify Rotation using three variables \((\theta, \phi, \psi)\) and we can put these sets \((\theta, \phi, \psi)\) as point in certain space.<br />
+</p>
+
+<p>
+Lets model \((\theta, \phi, \psi)\) on sphere (solid sphere).<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0,&gt;=Stealth]
+\draw (0,0) circle (1.2);
+\draw[dashed] (0,0) ellipse (1.2 and 0.4);
+\draw[-&gt;] (0,0) -- (0,1.4);
+\draw[-&gt;,thick] (0,0) -- (0.86,1.02);
+\draw[dashed] (0,0) -- (0.86,-0.29);
+\draw (0,0.62) arc (90:50:0.62);
+\node at (0.34,0.78) {\scriptsize $\theta$};
+\draw (0.62,0) arc (0:-19:0.62);
+\node at (0.82,-0.1) {\scriptsize $\phi$};
+\node[above right] at (0.86,1.02) {\scriptsize $\hat{n}$};
+\end{tikzpicture}
+</pre>
+
+<p>
+If we cleverly choose \(R = 2\pi\) then length of arrow can represent amount of rotation \((\psi)\).<br />
+</p>
+
+<p>
+points in such solid sphere coorespondes to only one rotation. (But here point of origin &amp; all points on sphere should be same, so this representation is not good).<br />
+</p>
+
+<p>
+But it is a fact of 3 Dimencion that rotating an object through \(\pi\) about \(\hat{n}\) is same as rotating about \((-\hat{n})\) through \(\pi\).<br />
+</p>
+
+<p>
+so \(R = \pi\) is enough.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.1,&gt;=Stealth]
+\draw (0,0) circle (1.1);
+\draw[dashed] (0,0) ellipse (1.1 and 0.36);
+\draw (-1.1,0) -- (1.1,0);
+\draw[-&gt;] (0,0) -- (0.78,0.78);
+\node at (0.3,0.42) {\scriptsize $\pi$};
+\node[right] at (1.15,0.55) {$(\pi, \theta, \phi)$};
+\node[right] at (2.6,0.55) {$\pi_1(V)$};
+\node[right,align=left] at (3.5,0.55) {(Fundamental homotopy\\ group)};
+\fill (0.78,0.78) circle (1.1pt);
+\node[above] at (0.78,0.85) {\scriptsize $A$};
+\fill (-0.78,-0.78) circle (1.1pt);
+\node[below] at (-0.78,-0.85) {\scriptsize $B$};
+\end{tikzpicture}
+</pre>
+
+<p>
+But there is further complication, <code>\(A\)' and </code>\(B\)' are mathematically identical points; in this parameter space because both coresponds to rotation by \(\pi\) about \(\hat{n}\) axis or its opposite and they physically cooresponds to the same rotation.<br />
+</p>
+
+<p>
+So the parameter space of \(SO(3)\) is complicated. It is a solid sphere, its radius is \(\pi\). Such a space can not be represented in 3-Ecludien dimensions. But we can look at all of its mathematical property given this property.<br />
+</p>
+
+<div id="Connection between SO(3) and SU(2) :--Connectivity of the parameter space"><h2 id="Connectivity of the parameter space" class="header"><a href="#Connection between SO(3) and SU(2) :--Connectivity of the parameter space">Connectivity of the parameter space</a></h2></div>
+
+<p>
+This space is connected. A connected space is one where you can go from any point in this space to any other point in space continuously, without leaving the space. so this space is certainty connected.<br />
+</p>
+
+<p>
+But it is not simply connected, a simply connected space is one where any path, any contineous close path in the space can be contineously deformed or shrunk to a point without leaving the space.<br />
+</p>
+
+<p>
+<span id="Connection between SO(3) and SU(2) :--Connectivity of the parameter space-connected and simply connected"></span><strong id="connected and simply connected">connected and simply connected</strong> :<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+\draw plot[smooth cycle,tension=0.8] coordinates {(-1.6,0.3) (-1.1,1.1) (0.3,1.3) (1.5,0.8) (1.7,-0.3) (0.8,-1.0) (-0.6,-0.9) (-1.5,-0.4)};
+\draw[-&gt;] (-1.0,0.1) -- (-0.6,0.35);
+\end{tikzpicture}
+</pre>
+
+<p>
+any closed path can be shrunk continuously to a point without leaving this paper. so this space is connected as well as simply connected.<br />
+</p>
+
+<p>
+<span id="Connection between SO(3) and SU(2) :--Connectivity of the parameter space-Not connected, Not simply connected"></span><strong id="Not connected, Not simply connected">Not connected, Not simply connected</strong><br />
+</p>
+
+<p>
+so a space for example has pieces seperated.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.85,&gt;=Stealth]
+\draw plot[smooth cycle,tension=0.85] coordinates {(-0.5,0.5) (0.1,0.7) (0.5,0.2) (0.3,-0.5) (-0.35,-0.6) (-0.65,-0.05)};
+\begin{scope}[xshift=2.6cm]
+\draw plot[smooth cycle,tension=0.85] coordinates {(-0.5,0.5) (0.1,0.7) (0.5,0.2) (0.3,-0.5) (-0.35,-0.6) (-0.65,-0.05)};
+\end{scope}
+\draw[-&gt;] (1.35,-0.9) .. controls (2.1,-1.3) .. (3.0,-1.3);
+\node[right,align=left] at (3.1,-1.3) {This seperation does not belong to the\\ space, so is not connected. (we can't join\\ the contineously)};
+\end{tikzpicture}
+</pre>
+
+<p>
+<span id="Connection between SO(3) and SU(2) :--Connectivity of the parameter space-connected but not simply connected"></span><strong id="connected but not simply connected">connected but not simply connected</strong> :-<br />
+</p>
+
+<p>
+<span id="Connection between SO(3) and SU(2) :--Connectivity of the parameter space-For example"></span><strong id="For example">For example</strong> :-<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.95,&gt;=Stealth]
+\draw plot[smooth cycle,tension=0.8] coordinates {(-1.5,0.4) (-0.9,1.2) (0.4,1.3) (1.4,0.6) (1.4,-0.5) (0.4,-1.1) (-0.9,-0.9) (-1.5,-0.3)};
+\draw plot[smooth cycle,tension=0.85] coordinates {(-0.55,0.75) (0.0,0.95) (0.45,0.5) (0.1,0.05) (-0.5,0.15)};
+\draw[fill=black!12] plot[smooth cycle,tension=0.85] coordinates {(-0.35,0.65) (0.05,0.78) (0.3,0.45) (0.0,0.2) (-0.35,0.3)};
+\draw plot[smooth cycle,tension=0.9] coordinates {(-0.75,-0.35) (-0.5,-0.2) (-0.3,-0.45) (-0.55,-0.65)};
+\draw[-&gt;] (0.55,0.6) -- (1.9,0.6);
+\node[right] at (1.9,0.6) {Hole};
+\draw[-&gt;] (-0.7,-0.55) .. controls (-0.4,-1.3) .. (0.6,-1.55);
+\node[right] at (0.6,-1.55) {can shrink to zero};
+\node[right,align=left] at (2.0,-0.35) {space is connected (can go from\\ Any point to another point\\ without leaving the space)};
+\end{tikzpicture}
+</pre>
+
+<p>
+path does not shrink to zero. so space is not simple connected.<br />
+</p>
+
+<p>
+<span id="Connection between SO(3) and SU(2) :--Connectivity of the parameter space-(Q)"></span><strong id="(Q)">(Q)</strong> If it is <span id="Connection between SO(3) and SU(2) :--Connectivity of the parameter space-Not"></span><strong id="Not">Not</strong> simply connected, what kind of connectivity it have ?<br />
+</p>
+
+<ol>
+<li>
+Paths are equivalent to each other if you can deform one to the other, continueously.
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0,&gt;=Stealth]
+\draw plot[smooth cycle,tension=0.8] coordinates {(-1.5,0.4) (-0.9,1.2) (0.4,1.3) (1.4,0.6) (1.4,-0.6) (0.4,-1.2) (-0.9,-1.0) (-1.5,-0.3)};
+\draw (-0.95,0.5) circle (0.28);
+\node at (-0.95,0.5) {\scriptsize 1};
+\draw (-0.1,0.7) circle (0.28);
+\node at (-0.1,0.7) {\scriptsize 2};
+\draw (-0.35,-0.05) circle (0.26);
+\node at (-0.35,-0.05) {\scriptsize 3};
+\draw (0.25,-0.5) circle (0.34);
+\node at (0.25,-0.5) {\scriptsize 4};
+\draw[fill=black!12] plot[smooth cycle,tension=0.9] coordinates {(0.1,-0.42) (0.35,-0.32) (0.45,-0.6) (0.2,-0.72)};
+\draw[-&gt;] (0.6,-0.55) -- (1.75,-0.75);
+\node[right] at (1.75,-0.75) {Hole};
+\node[right,align=left] at (1.8,0.6) {all 3 paths are equivalent to each\\ other. $(1,2,3)$};
+\end{tikzpicture}
+</pre>
+
+</ol>
+<p>
+Path (4) is not equivalent to path \((1,2,3)\) as path (4) can't be shrunk to a point.<br />
+</p>
+
+<p>
+<span id="Connection between SO(3) and SU(2) :--Connectivity of the parameter space-(Q)"></span><strong id="(Q)">(Q)</strong> what are classes of paths that can all be deform to each other.<br />
+</p>
+
+<p>
+All paths that can be deformed to each other forms a class known as equivalence class. (They are all equivalent to each other).<br />
+</p>
+
+<div id="Connection between SO(3) and SU(2) :--Fundamental homotopy group pi_1(V)"><h2 id="Fundamental homotopy group pi_1(V)" class="header"><a href="#Connection between SO(3) and SU(2) :--Fundamental homotopy group pi_1(V)">Fundamental homotopy group pi_1(V)</a></h2></div>
+
+<p>
+<span id="Connection between SO(3) and SU(2) :--Fundamental homotopy group pi_1(V)-(Q)"></span><strong id="(Q)">(Q)</strong> what are different equivalence classes of paths that you have in a space.<br />
+</p>
+
+<p>
+It turns out by obvious rule of composition of class, these equivalence class forms elements of a group. This group is called fundamental group of space.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0,&gt;=Stealth]
+\draw plot[smooth cycle,tension=0.8] coordinates {(-1.4,0.4) (-0.8,1.2) (0.5,1.3) (1.4,0.6) (1.3,-0.6) (0.3,-1.1) (-0.9,-0.9) (-1.4,-0.2)};
+\draw (-0.1,0.35) circle (0.62);
+\node at (-0.42,0.62) {\scriptsize 1};
+\draw (0.35,-0.3) circle (0.35);
+\node at (0.35,-0.02) {\scriptsize 2};
+\draw[fill=black!12] plot[smooth cycle,tension=0.9] coordinates {(0.22,-0.35) (0.45,-0.25) (0.55,-0.52) (0.3,-0.62)};
+\node[right,align=left] at (1.8,0.5) {Total path is composed\\ of path \textcircled{1} and path \textcircled{2}.};
+\end{tikzpicture}
+</pre>
+
+<p>
+and together they form a element of a group (3rd path in a group), \(\pi(V')\).<br />
+</p>
+
+<p>
+<span id="Connection between SO(3) and SU(2) :--Fundamental homotopy group pi_1(V)-example"></span><strong id="example">example</strong> :-<br />
+</p>
+
+<p>
+Suppose the space is \(S^1\) (1-D circle). what are equivalence classes of paths ?<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0,&gt;=Stealth]
+\draw[thick] (0,0) circle (0.8);
+\node[above right] at (0.6,0.6) {$S^1$};
+\begin{scope}[xshift=3.4cm]
+\draw (0,0) ellipse (0.45 and 0.32);
+\end{scope}
+\end{tikzpicture}
+</pre>
+
+<p>
+all these paths can shrunk to a point, while this complete circular path can no longer be shrunk to point.<br />
+</p>
+
+<p>
+Also winding of such path can also not be able to shrunk to a point, so<br />
+</p>
+\[
+\pi_1(S^1) = \mathbb{Z} \quad \text{(Integers)}
+\]
+
+<div id="Connection between SO(3) and SU(2) :--what is pi_1(S^2) :-"><h2 id="what is pi_1(S^2) :-" class="header"><a href="#Connection between SO(3) and SU(2) :--what is pi_1(S^2) :-">what is pi_1(S^2) :-</a></h2></div>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0,&gt;=Stealth]
+\draw (0,0) circle (1.0);
+\draw[dashed] (0,0) ellipse (1.0 and 0.32);
+\draw (0.05,0.55) ellipse (0.3 and 0.18);
+\node[right,align=left] at (1.4,0.2) {all paths can shrunk to a\\ point without leaving the space\\ (2-D space).};
+\end{tikzpicture}
+</pre>
+
+<p>
+``You can not lasso basket ball, rubber will slip off and shrunk to (\(\sim\)zero) again''.<br />
+</p>
+\[
+\pi_1(S^2) = \{1\} \ \text{ or } \ \{e\} = 0 \quad \text{(only one element)}.
+\]
+
+<p>
+Similarly, \(\pi_1(S^3) = 0\).<br />
+</p>
+
+<p>
+\(\pi_1(T^2)\) :-<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0,&gt;=Stealth]
+\draw (0,0) ellipse (1.3 and 0.75);
+\draw (0,0) ellipse (0.5 and 0.22);
+\draw (-0.9,0.1) arc (180:360:0.9 and 0.45);
+\draw (0.55,0.05) ellipse (0.24 and 0.5);
+\end{tikzpicture}
+</pre>
+
+<p>
+so that<br />
+</p>
+\[
+T^2 \ \text{(torous)} \ = S^1 \otimes S^1
+\]
+\[
+\pi_1(T^2) = \mathbb{Z} \otimes \mathbb{Z}
+\]
+
+<div id="Connection between SO(3) and SU(2) :--Points on sphere :- (Rotation group points)"><h2 id="Points on sphere :- (Rotation group points)" class="header"><a href="#Connection between SO(3) and SU(2) :--Points on sphere :- (Rotation group points)">Points on sphere :- (Rotation group points)</a></h2></div>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.1,&gt;=Stealth]
+\draw (0,0) circle (1.0);
+\fill (0,0) circle (1.1pt);
+\node[below right] at (0.03,-0.02) {\scriptsize $O$};
+\draw[-&gt;] (0,0) -- (0.55,0.83);
+\node[above right] at (0.55,0.83) {\scriptsize $A\ (R=\pi)$};
+\draw[-&gt;] (0,0) -- (-0.55,-0.83);
+\node[below] at (-0.55,-0.9) {\scriptsize $B$};
+\node[left,align=right] at (-1.3,-0.5) {\scriptsize ($2\pi$ rotation)};
+\end{tikzpicture}
+</pre>
+
+<p>
+since points \(A\) and \(B\) are identical this represents a closed path in that space (Hard to imagine, lol).<br />
+</p>
+
+<p>
+and it is completely distinct from other class of closed paths (which can be shrunk to a point). Because this path (\(B\)-\(O\)-\(A\) closed path) can not be shrunk to a point.<br />
+</p>
+
+<p>
+But I can rotate it again (\(2\pi\) angle \((\pi+\pi)\)) and shrink to zero by following trick.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.85,&gt;=Stealth]
+\draw (0,0) circle (1.0);
+\draw (-0.62,-0.78) .. controls (-0.1,-0.1) and (0.1,0.1) .. (0.62,0.78);
+\draw (-0.72,-0.68) .. controls (-0.2,-0.2) and (0.0,0.05) .. (0.5,0.86);
+\node[above] at (0.6,0.86) {\scriptsize $B$};
+\node[below] at (-0.7,-0.85) {\scriptsize $\hat{n}$};
+\node[left,align=right] at (-1.5,0.6) {($4\pi$ rotation)\\ (shrinks to point)};
+\draw[-&gt;] (1.3,0) -- (1.9,0);
+\begin{scope}[xshift=3.2cm]
+\draw (0,0) circle (1.0);
+\draw (-0.5,-0.85) .. controls (0.15,-0.2) and (-0.15,0.3) .. (0.45,0.88);
+\draw (-0.68,-0.72) .. controls (0.05,-0.05) and (-0.05,0.2) .. (0.3,0.94);
+\end{scope}
+\draw[-&gt;] (4.5,0) -- (5.1,0);
+\begin{scope}[xshift=6.4cm]
+\draw (0,0) circle (1.0);
+\draw (-0.2,-0.97) .. controls (0.55,-0.3) and (0.35,0.35) .. (0.15,0.98);
+\draw (-0.42,-0.9) .. controls (0.4,-0.15) and (0.2,0.4) .. (-0.05,0.99);
+\end{scope}
+\draw[-&gt;] (6.4,-1.6) -- (4.6,-1.6);
+\begin{scope}[xshift=3.2cm,yshift=-1.6cm]
+\draw (0,0) circle (0.72);
+\end{scope}
+\draw[-&gt;] (2.4,-1.6) -- (1.4,-1.6);
+\begin{scope}[xshift=0.4cm,yshift=-1.6cm]
+\draw (0,0) circle (0.6);
+\end{scope}
+\end{tikzpicture}
+</pre>
+
+<p>
+so there actually exists 2 class of objects in this parameter space, those that come to themselves after a rotation of \(2\pi\) and other objects which come to themselves after rotation of \(4\pi\).<br />
+</p>
+
+<div id="Connection between SO(3) and SU(2) :--Tensor and spinnor representations"><h2 id="Tensor and spinnor representations" class="header"><a href="#Connection between SO(3) and SU(2) :--Tensor and spinnor representations">Tensor and spinnor representations</a></h2></div>
+
+<p>
+This is the origin of \(\tfrac{1}{2}\) integer valued representations of rotation group.<br />
+</p>
+\[
+\begin{aligned}
+j &amp;= 0, 1, 2, 3 \cdots &amp;&amp; \text{(tensor representations)}\\
+j &amp;= \tfrac{1}{2}, \tfrac{3}{2}, \tfrac{5}{2} \cdots &amp;&amp; \text{(spinnor representations)}
+\end{aligned}
+\]
+
+<p>
+so we know that in normal tensor representations<br />
+</p>
+
+<p>
+Tensor of rank `\(0\)' is a scalar.<br />
+</p>
+
+<p>
+Tensor of rank `\(1\)' is a vector. \(\cdots\) and so on.<br />
+</p>
+
+<p>
+The spinnors short of speak interpolate between these.<br />
+</p>
+
+<p>
+spinnors change sign on \(2\pi\) rotation, so they need one more \(2\pi\) rotation to get same orientation of object.<br />
+</p>
+
+<p>
+\(\pi_1(SO(3))\) is doubly connected \(= \mathbb{Z}_2\). (just two elements in group).<br />
+</p>
+
+<div id="Lec 25 : Representation of SO(3) in SU(2)"><h1 id="Lec 25 : Representation of SO(3) in SU(2)" class="header"><a href="#Lec 25 : Representation of SO(3) in SU(2)">Lec 25 : Representation of SO(3) in SU(2)</a></h1></div>
+
+<p>
+let us complete the corespondence that was supposed to bring out between group of \(3\times3\) rotations and certain \(2\times2\) matrixes (\(SU(2)\)).<br />
+</p>
+
+<p>
+We recognize that rotations in \(3\times3\) space \(R\) is specified by unit vector \(\hat{n}(\theta,\phi)\) and \(\psi\) (amount of rotation) or \(R(\hat{n},\psi)\) led to parameter space (specified by \(\hat{n}, \psi\)) which was not simply connected and was doubly connected and there are two classes of closed paths in this space which could not be reduced to each other (two inequivalent classes of closed paths).<br />
+</p>
+
+<p>
+This was the main reason for the fact that we had single and double valued representations of the rotation group because we also saw that the second class of closed paths could be shrunk to a point (if we do such two rotations (\(4\pi\) total) instead of \(2\pi\)).<br />
+</p>
+
+<p>
+All those representations of the rotation group which transform such that when you went to a rotation of \(2\pi\), you return to the original state, are called tensor representations and others (rotation of \(4\pi\)) were called spinnor representations.<br />
+</p>
+
+<div id="Lec 25 : Representation of SO(3) in SU(2)-Representation of 3x3 Rotation group SO(3) in 2x2 matrix SU(2)"><h2 id="Representation of 3x3 Rotation group SO(3) in 2x2 matrix SU(2)" class="header"><a href="#Lec 25 : Representation of SO(3) in SU(2)-Representation of 3x3 Rotation group SO(3) in 2x2 matrix SU(2)">Representation of 3x3 Rotation group SO(3) in 2x2 matrix SU(2)</a></h2></div>
+
+<p>
+We normally represent position by three parameters in 3-D.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
+\draw[-&gt;] (0,0) -- (0,1.6) node[above] {\scriptsize $z$};
+\draw[-&gt;] (0,0) -- (1.9,0) node[right] {\scriptsize $y$};
+\draw[-&gt;] (0,0) -- (-1.1,-1.0) node[below] {\scriptsize $x$};
+\node[above right] at (0.05,1.35) {\scriptsize $(x,y,z)$};
+\end{tikzpicture}
+</pre>
+
+<p>
+so that \(\vec{r} = \begin{pmatrix} x \\ y \\ z \end{pmatrix}\).<br />
+</p>
+
+<p>
+instead of writing \(\vec{r}\) in column matrix we can express another representation of position<br />
+</p>
+\[
+\vec{r}\cdot\vec{\sigma} = x\,\sigma_x + y\,\sigma_y + z\,\sigma_z = \begin{pmatrix} z &amp; x-iy \\ x+iy &amp; -z \end{pmatrix}
+\]
+\[
+\sigma_x = \begin{pmatrix} 0 &amp; 1 \\ 1 &amp; 0 \end{pmatrix} , \qquad
+\sigma_y = \begin{pmatrix} 0 &amp; -i \\ i &amp; 0 \end{pmatrix} , \qquad
+\sigma_z = \begin{pmatrix} 1 &amp; 0 \\ 0 &amp; -1 \end{pmatrix}
+\]
+
+<p>
+So if we have \(\vec{r}\cdot\vec{\sigma}\) we can work back and find \(x, y, z\) as, (also, any \(2\times2\) matrix can be written in terms of unit matrix and pauli matrixes \(\sigma_i\))<br />
+</p>
+
+<p>
+So once \(\vec{r}\cdot\vec{\sigma}\) is given we can work back and find vector \(\vec{r}\) itself.<br />
+</p>
+
+<p>
+So there is a correspondence between vectors \(\vec{r}\) and matrices \(\vec{r}\cdot\vec{\sigma}\).<br />
+</p>
+
+<p>
+like wise we used Rotation matrix \((g) \in SO(3)\) (\(3\times3\) matrix)<br />
+</p>
+\[
+\begin{pmatrix} x' \\ y' \\ z' \end{pmatrix} = g \begin{pmatrix} x \\ y \\ z \end{pmatrix} \ , \qquad \vec{r}\,' = g\,\vec{r}
+\]
+
+<p>
+in exactly same way we have \(2\times2\) matrix \((U)\) corresponding to element `\(g\)' such that \(U (\vec{r}\cdot\vec{\sigma}) U^{-1} = \vec{r}\,'\cdot\vec{\sigma}\).<br />
+</p>
+
+<p>
+Therefore this <code>\(U\)' is representative of rotation matrix </code>\(g\)'.<br />
+</p>
+
+<p>
+<span id="Lec 25 : Representation of SO(3) in SU(2)-Representation of 3x3 Rotation group SO(3) in 2x2 matrix SU(2)-(Q)"></span><strong id="(Q)">(Q)</strong> what kind of relation is there between <code>\(g\)' and </code>\(U\)' ?<br />
+</p>
+
+<ul>
+<li>
+`\(U\)' should also be parametrised by \((\theta,\phi,\psi)\) or \((\hat{n},\psi)\)
+
+<li>
+It should be a \(2\times2\) matrix.
+
+<li>
+These matrices will turn out to be unitary with \(|U| = +1\) \(\therefore\) \(U \in SU(2)\).
+
+<li>
+The elements of \(SO(3)\) were real but elements of \(SU(2)\) can also be complex numbers.
+
+<li>
+The advantage of using \(SU(2)\) over \(SO(3)\) is that group \(SU(2)\) is simply connected. (its like a sphere).
+
+</ul>
+<div id="Lec 25 (continued) : Stereographic projection and rotations"><h1 id="Lec 25 (continued) : Stereographic projection and rotations" class="header"><a href="#Lec 25 (continued) : Stereographic projection and rotations">Lec 25 (continued) : Stereographic projection and rotations</a></h1></div>
+
+<p>
+we can use stereographic projection to map surface of unit sphere to a plane (complex plane).<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0,&gt;=Stealth]
+\draw (-2.2,-0.45) -- (2.6,-0.45) -- (3.5,0.35) -- (-1.3,0.35) -- cycle;
+\draw (0,0) circle (0.85);
+\draw[dashed] (0,0) ellipse (0.85 and 0.28);
+\fill (0,0.85) circle (1.1pt);
+\node[above left] at (0.02,0.88) {\scriptsize $N\,(0,0,1)$};
+\draw (0,0.85) -- (2.05,-0.45);
+\fill (0.68,0.42) circle (1.0pt);
+\node[above right] at (0.7,0.44) {\scriptsize $(\xi_1,\xi_2,\xi_3)$};
+\fill (2.05,-0.45) circle (1.0pt);
+\node[below] at (2.1,-0.5) {\scriptsize $z$};
+\end{tikzpicture}
+</pre>
+
+<p>
+point on sphere \((\xi_1, \xi_2, \xi_3)\). For every point on sphere we have a point on plane and vice versa.<br />
+</p>
+
+<p>
+<span id="Lec 25 (continued) : Stereographic projection and rotations-example"></span><strong id="example">example</strong> :- The North pole is mapped on to `\(\infty\)'. The south pole is mapped on to origin. Equator \((\xi_1^2 + \xi_2^2 = 1)\) remains mapped to \((|z| = 1)\).<br />
+</p>
+
+\[
+\xi_1 = \frac{2x}{|z|^2+1} \ , \qquad \xi_2 = \frac{2y}{|z|^2+1} \ , \qquad \xi_3 = \frac{|z|^2-1}{|z|^2+1}
+\]
+\[
+\left( \xi_1^2 + \xi_2^2 + \xi_3^2 = 1 \right) \quad \text{unit sphere}
+\]
+
+<p>
+So we map this Riemann sphere on this complex plane using stereographic projection, which are; \(x = \dfrac{\xi_1}{1-\xi_3}\) , \(y = \dfrac{\xi_2}{1-\xi_3}\).<br />
+</p>
+
+<p>
+This projection has many interesting property; example : It preserves/maps circles on spheres to either circles or straight lines.<br />
+</p>
+
+<p>
+Any latitude is mapped on the circle with cocentric origin, any longitude is mapped on the straight line passing through the origin. (does it pass through origin ?)<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.95,&gt;=Stealth]
+\node[left] at (-2.4,0) {(1)};
+\draw (-2.1,-0.45) -- (2.0,-0.45) -- (2.9,0.35) -- (-1.2,0.35) -- cycle;
+\draw (0,0) circle (0.8);
+\fill (0,0.8) circle (1.0pt);
+\node[above] at (0,0.85) {\scriptsize $N$};
+\draw[dashed] (0,0.3) ellipse (0.74 and 0.22);
+\draw (0,0.8) -- (1.55,-0.45);
+\draw (0,0.8) -- (-1.05,-0.45);
+\draw (0.3,-0.15) ellipse (0.95 and 0.28);
+\draw[-&gt;] (2.1,0.1) -- (3.1,0.1);
+\node[right] at (3.1,0.1) {circle on complex plane};
+\end{tikzpicture}
+</pre>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=0.95,&gt;=Stealth]
+\node[left] at (-2.4,0) {(2)};
+\draw (-2.1,-0.45) -- (2.0,-0.45) -- (2.9,0.35) -- (-1.2,0.35) -- cycle;
+\draw (0,0) circle (0.8);
+\fill (0,0.8) circle (1.0pt);
+\node[above] at (0,0.85) {\scriptsize $N$};
+\draw[dashed] (0,0) ellipse (0.28 and 0.8);
+\draw (1.35,-0.35) -- (1.65,0.1);
+\node[below right] at (1.5,-0.3) {\scriptsize line};
+\end{tikzpicture}
+</pre>
+
+<div id="Lec 25 (continued) : Stereographic projection and rotations-Rotation in 3-D space and the Riemann sphere"><h2 id="Rotation in 3-D space and the Riemann sphere" class="header"><a href="#Lec 25 (continued) : Stereographic projection and rotations-Rotation in 3-D space and the Riemann sphere">Rotation in 3-D space and the Riemann sphere</a></h2></div>
+
+<p>
+Now Rotation in 3-D space would corresponds to rotating Riemann sphere and what does it do on the plane ? It induces of course a transformation on plane as well. It is easy to check (prove yourself) that if we rotate in physical 3-D space (rotate in \(x\)-\(y\) plane about \(\hat{z}\) axis) then the rotation matrix is (in simple form).<br />
+</p>
+
+<p>
+if, \(\hat{n} = \hat{e}_z\) , \(\psi = \gamma\)<br />
+</p>
+\[
+g \in SO(3) = \begin{pmatrix} \cos\gamma &amp; \sin\gamma &amp; 0 \\ -\sin\gamma &amp; \cos\gamma &amp; 0 \\ 0 &amp; 0 &amp; 1 \end{pmatrix}
+\]
+
+<p>
+If we put that back to Riemann sphere and ask what that transformation corresponds to (the rotation in \(\xi_1\)-\(\xi_2\) plane about \(\xi_3\) axis) Then it is easy to see that<br />
+</p>
+\[
+U = \pm \begin{pmatrix} e^{i\gamma/2} &amp; 0 \\ 0 &amp; e^{-i\gamma/2} \end{pmatrix}
+\]
+
+<p>
+So the Transformation is represented as, \(U (\vec{r}\cdot\vec{\sigma}) U^{-1} = \vec{r}\,'\cdot\vec{\sigma}\), where<br />
+</p>
+\[
+\vec{r}\cdot\vec{\sigma} = x\sigma_1 + y\sigma_2 + z\sigma_3 = \begin{pmatrix} z &amp; x-iy \\ x+iy &amp; -z \end{pmatrix}
+\]
+
+<p>
+So the counterpart of `\(g\)' is to the pair of matrices<br />
+</p>
+\[
+U = \pm \begin{pmatrix} e^{i\gamma/2} &amp; 0 \\ 0 &amp; e^{-i\gamma/2} \end{pmatrix}
+\]
+
+<p>
+Similarly; The No transformation (i.e. No rotation at all) would corresponds to \((\gamma = 0)\)<br />
+</p>
+\[
+U = \pm \begin{pmatrix} 1 &amp; 0 \\ 0 &amp; 1 \end{pmatrix} = \pm I
+\]
+\[
+U (\vec{r}\cdot\vec{\sigma}) U^{-1} = I (\vec{r}\cdot\vec{\sigma}) I^{-1} = \vec{r}\cdot\vec{\sigma} = \vec{r}\,'\cdot\vec{\sigma}
+\]
+
+<div id="Lec 25 (continued) : Stereographic projection and rotations-Unitary and unimodular condition"><h2 id="Unitary and unimodular condition" class="header"><a href="#Lec 25 (continued) : Stereographic projection and rotations-Unitary and unimodular condition">Unitary and unimodular condition</a></h2></div>
+
+<p>
+The requirement that \(|r'| = |r|\) suffices that these matrices \((U)\) must be unitary and unimodular.<br />
+</p>
+\[
+\begin{aligned}
+\text{Unitary} &amp;:- \quad U U^{\dagger} = I = U^{\dagger} U \quad \text{or} \quad \left( U^{\dagger} = U^{-1} \right)\\
+\text{unimodular} &amp;:- \quad |U| = +1
+\end{aligned}
+\]
+
+<p>
+<span id="Lec 25 (continued) : Stereographic projection and rotations-Unitary and unimodular condition-Important"></span><strong id="Important">Important</strong> : All \(2\times2\) matrices, which satisfies these conditions would represent physical rotations in 3-D space.<br />
+</p>
+
+<p>
+A general such \(2\times2\) matrix has \(\begin{pmatrix} a+bi &amp; c+di \\ e+fi &amp; g+ih \end{pmatrix}\) 8 reel elements \((a,b,c,d,e,f,g,h)\).<br />
+</p>
+
+<p>
+\(U U^{\dagger} = I\) provides 4 conditions and further \(|U| = +1\) provides one more conditions. (So parameter left \(= 8-5 = 3\))<br />
+</p>
+
+<p>
+so we need \((8-5=3)\) 3 adependent parameters to specify rotation in physical 3-D space which is exactly what we need in \(SO(3)\), \(R(\hat{n},\psi)\), \(R(\theta,\phi,\psi)\).<br />
+</p>
+
+<p>
+upon solving one gets<br />
+</p>
+\[
+U = \begin{pmatrix} \alpha &amp; \beta \\ -\beta^{*} &amp; \alpha^{*} \end{pmatrix} , \qquad
+\left( |\alpha|^2 + |\beta|^2 = 1 \right) \ \text{ or } \ \alpha\alpha^{*} + \beta\beta^{*} = +1
+\]
+\[
+\left( \alpha_1^2 + \alpha_2^2 + \beta_1^2 + \beta_2^2 = 1 \right) , \qquad \alpha = \alpha_1 + i\alpha_2 \ , \quad \beta = \beta_1 + i\beta_2
+\]
+
+    </div>
+
+    <!-- Floating buttons: ask this page (added by pagebot.js), go back to the
+         previous page, and scroll to top of this page -->
+    <div class="floating-btns">
+        <button id="btn-back" type="button" title="Go back" aria-label="Go back">&#8592;</button>
+        <button id="btn-top" type="button" title="Back to top" aria-label="Back to top">&#8593;</button>
+    </div>
+
+    <!-- Top-right buttons: site-wide tools — search (docked here at runtime by
+         search.js) and translate. Kept out of the bottom-right stack above,
+         which is for navigating within the current page. -->
+    <div class="top-right-btns">
+        <button id="btn-globe" type="button" title="Translate this page" aria-label="Translate this page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/><path d="M5.3 6.5c1.9 1 4.2 1.6 6.7 1.6s4.8-.6 6.7-1.6"/><path d="M5.3 17.5c1.9-1 4.2-1.6 6.7-1.6s4.8.6 6.7 1.6"/></svg></button>
+    </div>
+
+    <!-- Globe language panel: the only UI the visitor interacts with. Selecting
+         a language drives the hidden Google widget below (see script further
+         down) rather than showing Google's own default dropdown/banner. -->
+    <div id="translate-panel" aria-label="Choose a language">
+        <div class="tp-header">Translate this page</div>
+        <input type="text" id="tp-search" placeholder="Search language...">
+        <div class="tp-list" id="tp-list"></div>
+    </div>
+
+    <!-- Google Website Translator: loaded hidden. It is what actually performs
+         the translation once our panel sets its hidden <select> and fires a
+         change event on it (see script below). -->
+    <div id="google_translate_element"></div>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({ pageLanguage: 'en', autoDisplay: false }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <!-- Breadcrumb trail: the actual navigation chain the visitor clicked
+         through, in order (link1 > link2 > ... > current), NOT the folder path.
+         The chain is stored per-tab in sessionStorage: each page appends itself
+         when reached via a new link, and truncates back to itself when revisited
+         (e.g. clicking an earlier crumb or using the back button). Home is
+         always the root. The label prefers the page's own <h1>. -->
+    <script>
+    (function () {
+        var nav = document.getElementById('breadcrumb');
+        if (!nav) return;
+
+        var KEY = 'wikiBreadcrumbTrail';
+        var path = window.location.pathname;
+
+        function pageLabel() {
+            var h1 = document.querySelector('#content h1');
+            var t = h1 ? h1.textContent.replace(/\s+/g, ' ').trim() : '';
+            if (t) return t;
+            t = (document.title || '').replace(/_+/g, ' ').trim();
+            if (t && t.toLowerCase() !== 'index') return t;
+            var segs = path.split('/').filter(Boolean).map(function (s) {
+                try { return decodeURIComponent(s); } catch (e) { return s; }
+            });
+            var last = segs.pop() || '';
+            if (/^index\.html?$/i.test(last)) last = segs.pop() || 'index';
+            return last.replace(/\.html?$/i, '').replace(/_+/g, ' ').trim() || 'Page';
+        }
+
+        var current = { href: path, label: pageLabel() };
+
+        // Load the existing chain for this tab.
+        var trail = [];
+        try { trail = JSON.parse(sessionStorage.getItem(KEY)) || []; } catch (e) { trail = []; }
+        if (!Array.isArray(trail)) trail = [];
+
+        // If this page is already in the chain (visitor clicked an earlier crumb
+        // or hit back), cut the chain back to it. Otherwise extend the chain.
+        var found = -1;
+        for (var i = 0; i < trail.length; i++) {
+            if (trail[i] && trail[i].href === current.href) { found = i; break; }
+        }
+        if (found !== -1) {
+            trail = trail.slice(0, found + 1);
+            trail[found] = current;            // refresh the label
+        } else {
+            trail.push(current);
+        }
+
+        try { sessionStorage.setItem(KEY, JSON.stringify(trail)); } catch (e) {}
+
+        function addLink(href, text) {
+            var a = document.createElement('a');
+            a.href = href;
+            a.textContent = text;
+            nav.appendChild(a);
+            var sep = document.createElement('span');
+            sep.className = 'breadcrumb-sep';
+            sep.textContent = '\u203A';
+            nav.appendChild(sep);
+        }
+
+        // Home is always the root of the chain.
+        addLink('/index.html', 'Home');
+
+        // Every page in the chain except the current one is a clickable link.
+        for (var j = 0; j < trail.length - 1; j++) {
+            addLink(trail[j].href, trail[j].label);
+        }
+
+        var cur = document.createElement('span');
+        cur.className = 'breadcrumb-current';
+        cur.setAttribute('aria-current', 'page');
+        cur.textContent = trail.length ? trail[trail.length - 1].label : current.label;
+        nav.appendChild(cur);
+    })();
+    </script>
+
+    <!-- Floating buttons: back = previous page, top = smooth-scroll to top of this page -->
+    <script>
+    (function () {
+        var back = document.getElementById('btn-back');
+        var top = document.getElementById('btn-top');
+        if (back) {
+            back.addEventListener('click', function () { window.history.back(); });
+            if (window.history.length <= 1) back.style.display = 'none'; // nothing to go back to
+        }
+        if (top) {
+            top.addEventListener('click', function () {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            var onScroll = function () {
+                top.style.display = (window.pageYOffset > 200) ? 'block' : 'none';
+            };
+            window.addEventListener('scroll', onScroll, { passive: true });
+            onScroll();
+        }
+    })();
+    </script>
+
+    <!-- Globe button: opens the language panel; selecting a language drives the
+         hidden Google Translate widget (loaded above). The chosen language is
+         remembered in localStorage and re-applied on every page the visitor
+         navigates to next, so translation persists across the whole site. -->
+    <script>
+    (function () {
+        var LANGS = [
+            ['af', 'Afrikaans'], ['sq', 'Albanian'], ['am', 'Amharic'], ['ar', 'Arabic'], ['hy', 'Armenian'],
+            ['as', 'Assamese'], ['ay', 'Aymara'], ['az', 'Azerbaijani'], ['bm', 'Bambara'], ['eu', 'Basque'],
+            ['be', 'Belarusian'], ['bn', 'Bengali'], ['bho', 'Bhojpuri'], ['bs', 'Bosnian'], ['bg', 'Bulgarian'],
+            ['ca', 'Catalan'], ['ceb', 'Cebuano'], ['ny', 'Chichewa'], ['zh-CN', 'Chinese (Simplified)'],
+            ['zh-TW', 'Chinese (Traditional)'], ['co', 'Corsican'], ['hr', 'Croatian'], ['cs', 'Czech'],
+            ['da', 'Danish'], ['dv', 'Dhivehi'], ['doi', 'Dogri'], ['nl', 'Dutch'], ['en', 'English'],
+            ['eo', 'Esperanto'], ['et', 'Estonian'], ['ee', 'Ewe'], ['fil', 'Filipino'], ['fi', 'Finnish'],
+            ['fr', 'French'], ['fy', 'Frisian'], ['gl', 'Galician'], ['ka', 'Georgian'], ['de', 'German'],
+            ['el', 'Greek'], ['gn', 'Guarani'], ['gu', 'Gujarati'], ['ht', 'Haitian Creole'], ['ha', 'Hausa'],
+            ['haw', 'Hawaiian'], ['he', 'Hebrew'], ['hi', 'Hindi'], ['hmn', 'Hmong'], ['hu', 'Hungarian'],
+            ['is', 'Icelandic'], ['ig', 'Igbo'], ['ilo', 'Ilocano'], ['id', 'Indonesian'], ['ga', 'Irish'],
+            ['it', 'Italian'], ['ja', 'Japanese'], ['jv', 'Javanese'], ['kn', 'Kannada'], ['kk', 'Kazakh'],
+            ['km', 'Khmer'], ['rw', 'Kinyarwanda'], ['gom', 'Konkani'], ['ko', 'Korean'], ['kri', 'Krio'],
+            ['ku', 'Kurdish'], ['ckb', 'Kurdish (Sorani)'], ['ky', 'Kyrgyz'], ['lo', 'Lao'], ['la', 'Latin'],
+            ['lv', 'Latvian'], ['ln', 'Lingala'], ['lt', 'Lithuanian'], ['lg', 'Luganda'], ['lb', 'Luxembourgish'],
+            ['mk', 'Macedonian'], ['mai', 'Maithili'], ['mg', 'Malagasy'], ['ms', 'Malay'], ['ml', 'Malayalam'],
+            ['mt', 'Maltese'], ['mi', 'Maori'], ['mr', 'Marathi'], ['mni-Mtei', 'Meiteilon (Manipuri)'],
+            ['lus', 'Mizo'], ['mn', 'Mongolian'], ['my', 'Myanmar (Burmese)'], ['ne', 'Nepali'],
+            ['no', 'Norwegian'], ['or', 'Odia (Oriya)'], ['om', 'Oromo'], ['ps', 'Pashto'], ['fa', 'Persian'],
+            ['pl', 'Polish'], ['pt', 'Portuguese'], ['pa', 'Punjabi'], ['qu', 'Quechua'], ['ro', 'Romanian'],
+            ['ru', 'Russian'], ['sm', 'Samoan'], ['sa', 'Sanskrit'], ['gd', 'Scots Gaelic'],
+            ['nso', 'Sepedi'], ['sr', 'Serbian'], ['st', 'Sesotho'], ['sn', 'Shona'], ['sd', 'Sindhi'],
+            ['si', 'Sinhala'], ['sk', 'Slovak'], ['sl', 'Slovenian'], ['so', 'Somali'], ['es', 'Spanish'],
+            ['su', 'Sundanese'], ['sw', 'Swahili'], ['sv', 'Swedish'], ['tg', 'Tajik'], ['ta', 'Tamil'],
+            ['tt', 'Tatar'], ['te', 'Telugu'], ['th', 'Thai'], ['ti', 'Tigrinya'], ['ts', 'Tsonga'],
+            ['tr', 'Turkish'], ['tk', 'Turkmen'], ['ak', 'Twi'], ['uk', 'Ukrainian'], ['ur', 'Urdu'],
+            ['ug', 'Uyghur'], ['uz', 'Uzbek'], ['vi', 'Vietnamese'], ['cy', 'Welsh'], ['xh', 'Xhosa'],
+            ['yi', 'Yiddish'], ['yo', 'Yoruba'], ['zu', 'Zulu']
+        ];
+
+        var STORAGE_KEY = 'wikiTranslateLang';
+        var btn = document.getElementById('btn-globe');
+        var panel = document.getElementById('translate-panel');
+        var search = document.getElementById('tp-search');
+        var list = document.getElementById('tp-list');
+        if (!btn || !panel || !list || !search) return;
+
+        function currentLang() {
+            try { return localStorage.getItem(STORAGE_KEY) || 'en'; } catch (e) { return 'en'; }
+        }
+
+        function renderList(filter) {
+            var f = (filter || '').trim().toLowerCase();
+            var active = currentLang();
+            list.innerHTML = '';
+            LANGS.forEach(function (pair) {
+                var code = pair[0], name = pair[1];
+                if (f && name.toLowerCase().indexOf(f) === -1) return;
+                var b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'tp-lang' + (code === active ? ' active' : '');
+                b.textContent = name;
+                b.addEventListener('click', function () { setLanguage(code); });
+                list.appendChild(b);
+            });
+        }
+
+        function setLanguage(code) {
+            try { localStorage.setItem(STORAGE_KEY, code); } catch (e) {}
+            panel.classList.remove('open');
+            applyLanguage(code);
+        }
+
+        function applyLanguage(code) {
+            if (code === 'en') {
+                // Reset to the original English text.
+                document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + location.hostname + ';';
+                if (document.querySelector('select.goog-te-combo')) location.reload();
+                return;
+            }
+            // The Google widget loads its <select> asynchronously, so poll
+            // briefly until it exists (covers both the click case and the
+            // "re-apply on new page load" case below).
+            var tries = 0;
+            (function tryApply() {
+                var combo = document.querySelector('select.goog-te-combo');
+                if (combo) {
+                    if (combo.value !== code) {
+                        combo.value = code;
+                        combo.dispatchEvent(new Event('change'));
+                    }
+                } else if (tries < 40) {
+                    tries++;
+                    setTimeout(tryApply, 250);
+                }
+            })();
+        }
+
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var opening = !panel.classList.contains('open');
+            panel.classList.toggle('open', opening);
+            if (opening) {
+                search.value = '';
+                renderList('');
+                search.focus();
+            }
+        });
+        document.addEventListener('click', function (e) {
+            if (panel.classList.contains('open') && !panel.contains(e.target) && e.target !== btn) {
+                panel.classList.remove('open');
+            }
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') panel.classList.remove('open');
+        });
+        search.addEventListener('input', function () { renderList(search.value); });
+
+        renderList('');
+
+        // Keep the whole site translated as the visitor moves between pages.
+        var saved = currentLang();
+        if (saved && saved !== 'en') applyLanguage(saved);
+    })();
+    </script>
+
+    <!-- Images: (1) rewrite baked-in local export paths to their web location and
+         trim stray spaces, (2) upgrade http:// -> https://, (3) add a caption under
+         each image using its alt text. Images with no alt are left uncaptioned.
+         NOTE: the image FILES must exist on the server at the mapped location
+         (e.g. /wiki/vimwiki_html/Blogs/cric/) — upload that folder. -->
+    <script>
+    (function () {
+        var LOCAL_ANCHOR = '/vimwiki/';
+        var WEB_ROOT = '/wiki/vimwiki_html/';
+        document.querySelectorAll('#content img').forEach(function (img) {
+            // 1) normalise the src
+            var raw = img.getAttribute('src');
+            if (raw) {
+                var s = raw.trim();
+                var i = s.indexOf(LOCAL_ANCHOR);
+                if (i !== -1) s = WEB_ROOT + s.slice(i + LOCAL_ANCHOR.length);
+                if (/^http:\/\//i.test(s)) s = s.replace(/^http:\/\//i, 'https://');
+                if (s !== raw) img.setAttribute('src', s);
+            }
+            // 2) defer offscreen images: on a long photo post the browser
+            //    would otherwise start fetching every image at once.
+            if (!img.hasAttribute('loading')) img.setAttribute('loading', 'lazy');
+            img.setAttribute('decoding', 'async');
+            // 3) caption from alt text
+            var alt = (img.getAttribute('alt') || '').trim();
+            if (!alt) return;
+            var parent = img.parentNode;
+            if (!parent || parent.tagName === 'FIGURE') return;
+            var fig = document.createElement('figure');
+            fig.className = 'img-figure';
+            var cap = document.createElement('figcaption');
+            cap.textContent = alt;
+            parent.insertBefore(fig, img);
+            fig.appendChild(img);
+            fig.appendChild(cap);
+            // tidy a <br> left immediately after the image
+            var nx = fig.nextSibling;
+            if (nx && nx.nodeType === 1 && nx.tagName === 'BR') nx.parentNode.removeChild(nx);
+        });
+    })();
+    </script>
+
+    <!-- Hover preview cards for internal links, like Wikipedia's page previews.
+         Hovering (or focusing) a same-site link to another .html page fetches
+         that page, and if — and only if — it actually exists (HTTP 200), shows
+         its title, first paragraph, and first image in a small card near the
+         link. Broken/nonexistent links are left alone: nothing is shown. -->
+    <script>
+    (function () {
+        var content = document.getElementById('content');
+        if (!content) return;
+
+        var LOCAL_ANCHOR = '/vimwiki/';
+        var WEB_ROOT = '/wiki/vimwiki_html/';
+        function fixImgSrc(src) {
+            if (!src) return src;
+            var s = src.trim();
+            var i = s.indexOf(LOCAL_ANCHOR);
+            if (i !== -1) s = WEB_ROOT + s.slice(i + LOCAL_ANCHOR.length);
+            if (/^http:\/\//i.test(s)) s = s.replace(/^http:\/\//i, 'https://');
+            return s;
+        }
+
+        var card = document.createElement('div');
+        card.className = 'link-preview-card';
+        document.body.appendChild(card);
+
+        var cache = {};   // resolved URL -> {title, snippet, thumb} | 'missing'
+        var showTimer = null;
+        var hideTimer = null;
+        var activeKey = null;
+
+        function stripHash(href) {
+            var i = href.indexOf('#');
+            return i === -1 ? href : href.slice(0, i);
+        }
+
+        function extract(html) {
+            var doc = new DOMParser().parseFromString(html, 'text/html');
+            var target = doc.getElementById('content');
+            if (!target) return null;
+            var h1 = target.querySelector('h1');
+            var title = h1 ? h1.textContent.replace(/\s+/g, ' ').trim() : (doc.title || '').trim();
+            var snippet = '';
+            var ps = target.querySelectorAll('p');
+            for (var i = 0; i < ps.length; i++) {
+                var t = ps[i].textContent.replace(/\s+/g, ' ').trim();
+                if (t.length > 20) { snippet = t; break; }
+            }
+            if (snippet.length > 220) snippet = snippet.slice(0, 217).trim() + '…';
+            var img = target.querySelector('img');
+            var thumb = img ? fixImgSrc(img.getAttribute('src')) : null;
+            return { title: title || 'Untitled', snippet: snippet, thumb: thumb };
+        }
+
+        function render(data) {
+            var html = '';
+            if (data.thumb) html += '<img class="lp-thumb" src="' + data.thumb + '" alt="">';
+            html += '<div class="lp-body"><div class="lp-title"></div><p class="lp-snippet"></p></div>';
+            card.innerHTML = html;
+            card.querySelector('.lp-title').textContent = data.title;
+            card.querySelector('.lp-snippet').textContent = data.snippet;
+        }
+
+        function position(link) {
+            var rect = link.getBoundingClientRect();
+            var margin = 10;
+            var cardWidth = card.offsetWidth || 300;
+            var left = rect.left;
+            if (left + cardWidth > window.innerWidth - margin) left = window.innerWidth - cardWidth - margin;
+            if (left < margin) left = margin;
+            var top = rect.bottom + 8;
+            var cardHeight = card.offsetHeight || 160;
+            if (top + cardHeight > window.innerHeight - margin && rect.top - cardHeight - 8 > margin) {
+                top = rect.top - cardHeight - 8;
+            }
+            card.style.left = left + 'px';
+            card.style.top = top + 'px';
+        }
+
+        function hide() {
+            card.classList.remove('visible');
+            activeKey = null;
+        }
+
+        function showFor(link, key) {
+            var data = cache[key];
+            if (!data || data === 'missing') return;
+            render(data);
+            position(link);
+            card.classList.add('visible');
+            requestAnimationFrame(function () { position(link); });
+        }
+
+        function handleEnter(link, key) {
+            clearTimeout(hideTimer);
+            clearTimeout(showTimer);
+            activeKey = key;
+            showTimer = setTimeout(function () {
+                if (activeKey !== key) return;
+                if (cache[key] === 'missing') return;
+                if (cache[key]) { showFor(link, key); return; }
+                fetch(key, { credentials: 'same-origin' }).then(function (res) {
+                    if (!res.ok) { cache[key] = 'missing'; return null; }
+                    return res.text();
+                }).then(function (html) {
+                    if (html == null) return;
+                    var data = extract(html);
+                    if (!data) { cache[key] = 'missing'; return; }
+                    cache[key] = data;
+                    if (activeKey === key) showFor(link, key);
+                }).catch(function () { cache[key] = 'missing'; });
+            }, 350);
+        }
+
+        function handleLeave() {
+            clearTimeout(showTimer);
+            activeKey = null;
+            hideTimer = setTimeout(hide, 200);
+        }
+
+        card.addEventListener('mouseenter', function () { clearTimeout(hideTimer); });
+        card.addEventListener('mouseleave', function () { hideTimer = setTimeout(hide, 150); });
+
+        content.querySelectorAll('a[href]').forEach(function (link) {
+            var href = link.getAttribute('href');
+            if (!href || href.charAt(0) === '#') return;
+            if (/^(mailto:|javascript:|tel:)/i.test(href)) return;
+            if (link.hostname !== window.location.hostname) return;
+            var key = stripHash(link.href);
+            if (!/\.html?$/i.test(key.split('?')[0])) return;
+            link.addEventListener('mouseenter', function () { handleEnter(link, key); });
+            link.addEventListener('mouseleave', handleLeave);
+            link.addEventListener('focus', function () { handleEnter(link, key); });
+            link.addEventListener('blur', handleLeave);
+        });
+
+        window.addEventListener('scroll', hide, { passive: true });
+        window.addEventListener('resize', hide);
+    })();
+    </script>
+
+    <!-- 0. Repair asset paths (vimwiki-asset-path-fix).
+         Vimwiki resolves {{...}} images and local:/file: links against the
+         SOURCE wiki tree (.../phd_work/notes/vimwiki/...), which does not exist
+         on the deployed site, and it appends ".html" to any [[link]] even when
+         the target already has an extension. Both are repaired here so the
+         fix survives every re-export instead of needing a manual patch. -->
+    <script>
+    (function () {
+        var ROOT = '/wiki/vimwiki_html/';
+        var NEEDLE = 'notes/vimwiki/';
+        var ATTACH = /\.(pdf|png|jpe?g|gif|svg|webp|zip|txt|csv|tex|docx?|xlsx?|pptx?)\.html$/i;
+        function fix(url) {
+            if (!url || /^(https?:|mailto:|#|data:)/i.test(url)) return url;
+            var i = url.indexOf(NEEDLE);
+            if (i !== -1) url = ROOT + url.slice(i + NEEDLE.length);
+            return url.replace(ATTACH, '.$1');
+        }
+        function sweep(sel, attr) {
+            document.querySelectorAll(sel).forEach(function (el) {
+                var v = el.getAttribute(attr), n = fix(v);
+                if (n !== v) el.setAttribute(attr, n);
+            });
+        }
+        sweep('a[href]', 'href');
+        sweep('img[src]', 'src');
+    })();
+    </script>
+    <!-- 1. Turn vimwiki {{{class="tikz"}}} blocks into TikZJax script tags (must run BEFORE tikzjax.js) -->
+    <script>
+        document.querySelectorAll('pre.tikz').forEach(function (pre) {
+            var s = document.createElement('script');
+            s.type = 'text/tikz';
+            s.textContent = pre.textContent; // browser decodes HTML entities here
+            pre.textContent = '';
+            pre.appendChild(s); // keep <pre class="tikz"> as the container so its
+                                 // text-align:center still applies to the SVG tikzjax inserts
+        });
+    </script>
+    <!-- 2. Syntax-highlight code blocks, but skip diagram blocks -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('pre:not(.mermaid):not(.tikz)').forEach(function (block) {
+            hljs.highlightBlock(block);
+        });
+    </script>
+    <!-- 3. TikZJax: renders <script type="text/tikz"> into SVG -->
+    <script src="https://tikzjax.com/v1/tikzjax.js"></script>
+    <!-- 4. Mermaid: renders <pre class="mermaid"> into SVG -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+
+    <!-- 5. Ask-this-page search. Purely local: it indexes the text already in
+         #content and shows the passages that match your question. The launcher
+         is added to the .floating-btns stack above, so it inherits those styles.
+         The index is built the first time the panel is opened, by which point
+         MathJax/TikZ/Mermaid have finished rewriting the DOM. -->
+    <script>
+        window.PAGEBOT_CONFIG = {
+            rootSelector: '#content',
+            extraSkip: 'pre.mermaid, pre.tikz, .breadcrumb',
+            launcherSelector: '.floating-btns',
+            launcherLabel: '?',
+            launcherTitle: 'Ask this page',
+            title: 'Ask this page',
+            accent: '#6b4f2a',
+            panelBg: '#fbf6e9',
+            results: 3
+        };
+    </script>
+    <script src="/wiki/assets/pagebot.js"></script>
+
+    <!-- 6. Site-wide search: separate from "Ask this page" above — this finds
+         *which page* to go to, across the whole site, not just this one.
+         Reads wiki/assets/search-index.json (built by build_search_index.py).
+         The launcher is docked into the top-right stack, next to translate,
+         since both are site-wide rather than per-page tools. -->
+    <script>
+        window.SEARCH_CONFIG = {
+            launcherSelector: '.top-right-btns',
+            launcherLabel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16.3 16.3 21 21"/></svg>',
+            launcherTitle: 'Search this site',
+            title: 'Search this site',
+            accent: '#6b4f2a',
+            panelBg: '#fbf6e9',
+            maxResults: 8
+        };
+    </script>
+    <script src="/wiki/assets/search.js"></script>
+</body>
+</html>
