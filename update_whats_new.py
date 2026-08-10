@@ -235,7 +235,7 @@ def inject(section, block, dry_run):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--max", type=int, default=6, help="items per panel")
+    ap.add_argument("--max", type=int, default=12, help="items per panel")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
