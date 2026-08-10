@@ -92,6 +92,7 @@ and computational science.
 <div class="whats-new">
 <h3>New arrivals</h3>
 <!-- WHATS_NEW:Blogs START (auto-filled by update_whats_new.py — do not edit inside) -->
+<div class="new-arrivals-scroll" data-visible="5">
 <ul>
 <li><a href="/wiki/vimwiki_html/Blogs/diary/2026-08-06.html">The Debate of Ashtavakra and Bandi</a> <span class="new-date">(6 Aug 2026)</span></li>
 <li><a href="/wiki/vimwiki_html/Blogs/diary/2026-08-03.html">Purpose of Life</a> <span class="new-date">(5 Aug 2026)</span></li>
@@ -106,6 +107,34 @@ and computational science.
 <li><a href="/wiki/vimwiki_html/Blogs/diary/States.html">States</a> <span class="new-date">(22 Sep 2024)</span></li>
 <li><a href="/wiki/vimwiki_html/Blogs/diary/2024-09-02.html">Absence of Free Will</a> <span class="new-date">(4 Sep 2024)</span></li>
 </ul>
+</div>
+<script>
+(function () {
+  var box = document.currentScript.previousElementSibling;
+  if (!box || !box.classList.contains("new-arrivals-scroll")) return;
+  var n = parseInt(box.getAttribute("data-visible"), 10) || 5;
+  var items = box.querySelectorAll(":scope > ul > li");
+
+  function size() {
+    box.style.maxHeight = "none";
+    box.style.overflowY = "visible";
+    if (items.length <= n) return;
+    // Distance from the box's own top edge to the bottom of the Nth item,
+    // not a sum of individual item heights - this way any margin on the
+    // <ul> itself, or gaps between <li>s, are included automatically.
+    var h = items[n - 1].getBoundingClientRect().bottom - box.getBoundingClientRect().top;
+    box.style.maxHeight = Math.ceil(h) + "px";
+    box.style.overflowY = "auto";
+  }
+
+  size();
+  var t;
+  window.addEventListener("resize", function () {
+    clearTimeout(t);
+    t = setTimeout(size, 150);
+  });
+})();
+</script>
 <!-- WHATS_NEW:Blogs END -->
 </div>
 

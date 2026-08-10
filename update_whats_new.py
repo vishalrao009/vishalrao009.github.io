@@ -26,8 +26,9 @@ USAGE
     Then commit updates.json together with the changed HTML.
 
     Options:
-        --max N     how many items to list per panel (default 6)
-        --dry-run   print what would change without writing files
+        --max N       how many items to keep in the panel in total (default 12)
+        --visible N   how many items show before the rest scroll (default 5)
+        --dry-run     print what would change without writing files
 """
 
 import argparse
@@ -186,10 +187,46 @@ def fmt_date(iso):
         return iso
 
 
-def render_panel(items):
+SCROLL_BOX_SCRIPT = """<script>
+(function () {
+  var box = document.currentScript.previousElementSibling;
+  if (!box || !box.classList.contains("new-arrivals-scroll")) return;
+  var n = parseInt(box.getAttribute("data-visible"), 10) || 5;
+  var items = box.querySelectorAll(":scope > ul > li");
+
+  function size() {
+    box.style.maxHeight = "none";
+    box.style.overflowY = "visible";
+    if (items.length <= n) return;
+    // Distance from the box's own top edge to the bottom of the Nth item,
+    // not a sum of individual item heights - this way any margin on the
+    // <ul> itself, or gaps between <li>s, are included automatically.
+    var h = items[n - 1].getBoundingClientRect().bottom - box.getBoundingClientRect().top;
+    box.style.maxHeight = Math.ceil(h) + "px";
+    box.style.overflowY = "auto";
+  }
+
+  size();
+  var t;
+  window.addEventListener("resize", function () {
+    clearTimeout(t);
+    t = setTimeout(size, 150);
+  });
+})();
+</script>"""
+
+
+def render_panel(items, visible=5):
     if not items:
         return '<p class="new-empty">Nothing new just yet.</p>'
-    lines = ["<ul>"]
+    scrollable = visible > 0 and len(items) > visible
+    lines = []
+    if scrollable:
+        # Sized in JS (not fixed CSS) to exactly N real <li> heights, so it
+        # stays correct regardless of your list's font-size/line-height/
+        # padding and any responsive changes to them (see style.css).
+        lines.append('<div class="new-arrivals-scroll" data-visible="%d">' % visible)
+    lines.append("<ul>")
     for url, title, date in items:
         # The date is the first-seen date from the manifest, not the file's
         # mtime, so it stays put when you regenerate the wiki. Wrapped in a
@@ -203,6 +240,9 @@ def render_panel(items):
             )
         )
     lines.append("</ul>")
+    if scrollable:
+        lines.append("</div>")
+        lines.append(SCROLL_BOX_SCRIPT)
     return "\n".join(lines)
 
 
@@ -235,7 +275,9 @@ def inject(section, block, dry_run):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--max", type=int, default=12, help="items per panel")
+    ap.add_argument("--max", type=int, default=12, help="items kept in the panel in total")
+    ap.add_argument("--visible", type=int, default=5,
+                     help="items shown before the rest scroll (0 disables scrolling)")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
@@ -287,7 +329,7 @@ def main():
         items.sort(key=lambda x: x[2], reverse=True)
         items = items[: args.max]
         print("%s panel: %d item(s)" % (section, len(items)))
-        inject(section, render_panel(items), args.dry_run)
+        inject(section, render_panel(items, args.visible), args.dry_run)
 
     if args.dry_run:
         print("\n(dry run — no files written)")

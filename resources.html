@@ -76,6 +76,7 @@ in theoretical and computational physics.
 <div class="whats-new">
 <h3>New arrivals</h3>
 <!-- WHATS_NEW:Resources START (auto-filled by update_whats_new.py — do not edit inside) -->
+<div class="new-arrivals-scroll" data-visible="5">
 <ul>
 <li><a href="/wiki/vimwiki_html/Lecture_notes/kinematics_Lec_4.html">kinematics_Lec_4</a> <span class="new-date">(10 Aug 2026)</span></li>
 <li><a href="/wiki/vimwiki_html/Lecture_notes/Special Theory of Relativity.html">Special Theory of Relativity</a> <span class="new-date">(10 Aug 2026)</span></li>
@@ -90,6 +91,34 @@ in theoretical and computational physics.
 <li><a href="/wiki/vimwiki_html/Lecture_notes/Tensors chapter 2.html">Tensors chapter 2</a> <span class="new-date">(9 Aug 2026)</span></li>
 <li><a href="/wiki/vimwiki_html/Lecture_notes/Tensors chapter 1.html">Tensors chapter 1</a> <span class="new-date">(9 Aug 2026)</span></li>
 </ul>
+</div>
+<script>
+(function () {
+  var box = document.currentScript.previousElementSibling;
+  if (!box || !box.classList.contains("new-arrivals-scroll")) return;
+  var n = parseInt(box.getAttribute("data-visible"), 10) || 5;
+  var items = box.querySelectorAll(":scope > ul > li");
+
+  function size() {
+    box.style.maxHeight = "none";
+    box.style.overflowY = "visible";
+    if (items.length <= n) return;
+    // Distance from the box's own top edge to the bottom of the Nth item,
+    // not a sum of individual item heights - this way any margin on the
+    // <ul> itself, or gaps between <li>s, are included automatically.
+    var h = items[n - 1].getBoundingClientRect().bottom - box.getBoundingClientRect().top;
+    box.style.maxHeight = Math.ceil(h) + "px";
+    box.style.overflowY = "auto";
+  }
+
+  size();
+  var t;
+  window.addEventListener("resize", function () {
+    clearTimeout(t);
+    t = setTimeout(size, 150);
+  });
+})();
+</script>
 <!-- WHATS_NEW:Resources END -->
 </div>
 
