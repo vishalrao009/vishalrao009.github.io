@@ -98,6 +98,81 @@
         .breadcrumb a:hover { color: #8a4a12; text-decoration: underline; }
         .breadcrumb .breadcrumb-sep { color: #c08a5a; margin: 0 8px; }
         .breadcrumb .breadcrumb-current { color: #1f3a5f; }
+        /* TOC sidebar (Wikipedia-style). Built at runtime by the "TOC sidebar"
+           script below, which pulls the vimwiki-generated "Contents" block out
+           of the normal content flow and rebuilds it here. Below the
+           min-width: 901px rule further down, it just stays a boxed list
+           above the article; the sticky left-column treatment only kicks in
+           once there's room for it. */
+        #content-layout { display: block; }
+        #toc-sidebar {
+            margin: 0 0 24px 0;
+            padding: 14px 16px;
+            background: rgba(251, 246, 233, 0.75);
+            border: 1px solid rgba(107, 79, 42, 0.25);
+            border-radius: 8px;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        #toc-sidebar .toc-sidebar-title {
+            font-weight: bold;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #6b4f2a;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(107, 79, 42, 0.25);
+        }
+        #toc-sidebar .toc-sidebar-list,
+        #toc-sidebar .toc-sidebar-list ul {
+            list-style: none;
+            margin: 0;
+            padding-left: 0;
+        }
+        #toc-sidebar .toc-sidebar-list ul { padding-left: 16px; }
+        #toc-sidebar .toc-sidebar-list li { margin: 3px 0; }
+        #toc-sidebar .toc-sidebar-list a {
+            display: block;
+            color: #4a4038;
+            text-decoration: none;
+            padding: 3px 8px;
+            border-left: 3px solid transparent;
+            border-radius: 3px;
+        }
+        #toc-sidebar .toc-sidebar-list a:hover {
+            background: rgba(107, 79, 42, 0.1);
+            color: #1f1a15;
+        }
+        #toc-sidebar .toc-sidebar-list a.active {
+            border-left-color: #6b4f2a;
+            background: rgba(107, 79, 42, 0.14);
+            color: #1f3a5f;
+            font-weight: bold;
+        }
+        #article-body { min-width: 0; }
+        @media (min-width: 901px) {
+            /* Enough room for a left sidebar: switch to a two-column layout
+               and shrink the reading column a bit to make space for it. */
+            #content-layout {
+                display: flex;
+                align-items: flex-start;
+                gap: 32px;
+            }
+            #toc-sidebar {
+                flex: 0 0 240px;
+                max-width: 240px;
+                margin-bottom: 0;
+                position: sticky;
+                top: 20px;
+                max-height: calc(100vh - 40px);
+                overflow-y: auto;
+            }
+            #article-body {
+                flex: 1 1 auto;
+                max-width: 880px;
+            }
+        }
         /* Floating navigation buttons (ask this page + go back + scroll to top) */
         .floating-btns {
             position: fixed;
@@ -829,6 +904,128 @@ We have also compared the results of all zero temperature potentials with that o
 
         window.addEventListener('scroll', hide, { passive: true });
         window.addEventListener('resize', hide);
+    })();
+    </script>
+
+    <!-- TOC sidebar: pulls the vimwiki-generated "Contents" block (a heading
+         immediately followed by a list of same-page "#..." links — that's how
+         :VimwikiTOC renders) out of the normal reading flow and rebuilds it as
+         a left-hand sidebar, Wikipedia-style. Everything else that was in
+         #content gets wrapped into #article-body next to it. If a page has no
+         such block, this does nothing and the page renders exactly as before.
+         Must run after the hover-preview script above (so that script still
+         walks the original, unmodified #content), and before the numbered
+         pipeline below, since step 1 (TikZ) looks for pre.tikz wherever it
+         ends up nested and doesn't care about this move. -->
+    <script>
+    (function () {
+        var contentEl = document.getElementById('content');
+        if (!contentEl) return;
+
+        var kids = Array.prototype.slice.call(contentEl.children).filter(function (el) {
+            return el.id !== 'breadcrumb';
+        });
+        if (!kids.length) return;
+
+        // Find "<heading> immediately followed by <ul of only same-page links>".
+        // Prefer one whose heading text is literally "Contents" (the vimwiki
+        // default); fall back to the first structural match otherwise.
+        var tocHeading = null, tocList = null;
+        for (var i = 0; i < kids.length - 1; i++) {
+            var el = kids[i], next = kids[i + 1];
+            if (!/^H[1-6]$/.test(el.tagName)) continue;
+            if (next.tagName !== 'UL') continue;
+            var anchors = next.querySelectorAll('a[href]');
+            if (!anchors.length) continue;
+            var allFragment = Array.prototype.every.call(anchors, function (a) {
+                var href = a.getAttribute('href');
+                return href && href.charAt(0) === '#';
+            });
+            if (!allFragment) continue;
+            var isContentsLabel = el.textContent.replace(/\s+/g, ' ').trim().toLowerCase() === 'contents';
+            if (tocHeading === null || isContentsLabel) {
+                tocHeading = el;
+                tocList = next;
+                if (isContentsLabel) break;
+            }
+        }
+        if (!tocHeading || !tocList) return; // no TOC on this page — leave layout untouched
+
+        var tocLabel = tocHeading.textContent.replace(/\s+/g, ' ').trim() || 'Contents';
+
+        tocHeading.parentNode.removeChild(tocHeading);
+        tocList.parentNode.removeChild(tocList);
+        tocList.removeAttribute('id');
+        tocList.className = (tocList.className + ' toc-sidebar-list').trim();
+
+        var sidebar = document.createElement('aside');
+        sidebar.id = 'toc-sidebar';
+        sidebar.setAttribute('aria-label', tocLabel);
+        var label = document.createElement('div');
+        label.className = 'toc-sidebar-title';
+        label.textContent = tocLabel;
+        sidebar.appendChild(label);
+        sidebar.appendChild(tocList);
+
+        var article = document.createElement('div');
+        article.id = 'article-body';
+        kids.forEach(function (el) {
+            if (el === tocHeading || el === tocList) return; // already moved into the sidebar above
+            article.appendChild(el); // moves the existing node, doesn't clone it
+        });
+
+        var layout = document.createElement('div');
+        layout.id = 'content-layout';
+        layout.appendChild(sidebar);
+        layout.appendChild(article);
+        contentEl.appendChild(layout);
+
+        // ---- Scrollspy: highlight whichever section is currently being read ----
+        var links = Array.prototype.slice.call(tocList.querySelectorAll('a[href^="#"]'));
+        var map = {};       // heading id -> its sidebar <a>
+        var headings = [];  // heading elements, in document order
+        links.forEach(function (a) {
+            var id = a.getAttribute('href').slice(1);
+            if (!id) return;
+            var target = document.getElementById(id);
+            if (!target) return;
+            map[id] = a;
+            headings.push(target);
+        });
+        if (!headings.length) return;
+
+        var activeLink = null;
+        function setActive(id) {
+            var link = id ? map[id] : null;
+            if (link === activeLink) return;
+            if (activeLink) activeLink.classList.remove('active');
+            if (link) link.classList.add('active');
+            activeLink = link;
+        }
+
+        var OFFSET = 100; // px from the top of the viewport that counts as "current"
+        var ticking = false;
+        function update() {
+            ticking = false;
+            var currentId = headings[0].id;
+            for (var i = 0; i < headings.length; i++) {
+                if (headings[i].getBoundingClientRect().top - OFFSET <= 0) {
+                    currentId = headings[i].id;
+                } else {
+                    break;
+                }
+            }
+            setActive(currentId);
+        }
+        function requestUpdate() {
+            if (!ticking) {
+                ticking = true;
+                requestAnimationFrame(update);
+            }
+        }
+        window.addEventListener('scroll', requestUpdate, { passive: true });
+        window.addEventListener('resize', requestUpdate);
+        update();
     })();
     </script>
 
