@@ -99,14 +99,14 @@
         .breadcrumb .breadcrumb-sep { color: #c08a5a; margin: 0 8px; }
         .breadcrumb .breadcrumb-current { color: #1f3a5f; }
         /* TOC sidebar (Wikipedia-style). Built at runtime by the "TOC sidebar"
-           script below, which pulls the vimwiki-generated "Contents" block out
-           of the normal content flow and rebuilds it here. Below the
-           min-width: 901px rule further down, it just stays a boxed list
-           above the article; the sticky left-column treatment only kicks in
-           once there's room for it. */
-        #content-layout { display: block; }
+           script below, which pulls the vimwiki-generated "Contents" block
+           out of the normal content flow and rebuilds it as a sibling of
+           #content — outside its card/padding, in the freed-up margin to its
+           left — rather than inside it. The script only ever runs on
+           windows at least 901px wide (matching the media query below); on
+           narrower/phone viewports it doesn't touch the page at all, so none
+           of this CSS applies there either. */
         #toc-sidebar {
-            margin: 0 0 24px 0;
             padding: 14px 16px;
             background: rgba(251, 246, 233, 0.75);
             border: 1px solid rgba(107, 79, 42, 0.25);
@@ -150,27 +150,30 @@
             color: #1f3a5f;
             font-weight: bold;
         }
-        #article-body { min-width: 0; }
         @media (min-width: 901px) {
-            /* Enough room for a left sidebar: switch to a two-column layout
-               and shrink the reading column a bit to make space for it. */
-            #content-layout {
+            /* #page-shell takes over #content's old page-centering role, now
+               shared between the sidebar and the (now narrower) content
+               card, so the page's overall width budget stays the same. */
+            #page-shell {
+                max-width: 1200px;
+                margin: 0 auto;
                 display: flex;
                 align-items: flex-start;
                 gap: 32px;
             }
+            #page-shell > #content {
+                margin: 0;
+                max-width: none;
+                flex: 1 1 auto;
+                min-width: 0; /* let wide equations/code wrap instead of forcing the column wider */
+            }
             #toc-sidebar {
                 flex: 0 0 240px;
                 max-width: 240px;
-                margin-bottom: 0;
                 position: sticky;
                 top: 20px;
                 max-height: calc(100vh - 40px);
                 overflow-y: auto;
-            }
-            #article-body {
-                flex: 1 1 auto;
-                max-width: 880px;
             }
         }
         /* Floating navigation buttons (ask this page + go back + scroll to top) */
@@ -867,6 +870,9 @@ Every field is divided to Classical part(Solutions of EOM) and quantum part. The
          ends up nested and doesn't care about this move. -->
     <script>
     (function () {
+        var DESKTOP_BREAKPOINT = 901; // must match the CSS media query below
+        if (window.innerWidth < DESKTOP_BREAKPOINT) return; // phones/narrow: leave the page 100% untouched, exactly as before this feature existed
+
         var contentEl = document.getElementById('content');
         if (!contentEl) return;
 
@@ -935,18 +941,17 @@ Every field is divided to Classical part(Solutions of EOM) and quantum part. The
         sidebar.appendChild(label);
         sidebar.appendChild(tocList);
 
-        var article = document.createElement('div');
-        article.id = 'article-body';
-        kids.forEach(function (el) {
-            if (el === tocHeading || el === tocList) return; // already moved into the sidebar above
-            article.appendChild(el); // moves the existing node, doesn't clone it
-        });
-
-        var layout = document.createElement('div');
-        layout.id = 'content-layout';
-        layout.appendChild(sidebar);
-        layout.appendChild(article);
-        contentEl.appendChild(layout);
+        // Put the sidebar OUTSIDE #content — as a sibling to its left inside
+        // a shared wrapper — rather than nesting it inside the card's own
+        // padding/background. #content (with just the TOC removed) already
+        // holds everything else, so it doubles as the "article" column
+        // as-is; no separate wrapper needed for its contents.
+        var pageShell = document.createElement('div');
+        pageShell.id = 'page-shell';
+        var contentParent = contentEl.parentNode;
+        contentParent.insertBefore(pageShell, contentEl);
+        pageShell.appendChild(sidebar);
+        pageShell.appendChild(contentEl); // moves #content itself, doesn't clone it
 
         // ---- Scrollspy: highlight whichever section is currently being read ----
         var links = Array.prototype.slice.call(tocList.querySelectorAll('a[href]'));
@@ -994,6 +999,17 @@ Every field is divided to Classical part(Solutions of EOM) and quantum part. The
         window.addEventListener('scroll', requestUpdate, { passive: true });
         window.addEventListener('resize', requestUpdate);
         update();
+
+        // Restructuring the DOM reflows the whole page (narrower column,
+        // different wrapping), so if the browser already auto-scrolled to a
+        // URL fragment (e.g. a link landing on "#Some Section") *before*
+        // this script ran, that scroll position is now stale and points at
+        // the wrong spot. Re-apply it against the new layout.
+        if (window.location.hash) {
+            var targetId = decodeURIComponent(window.location.hash.slice(1));
+            var scrollTarget = document.getElementById(targetId);
+            if (scrollTarget) scrollTarget.scrollIntoView();
+        }
     })();
     </script>
 
