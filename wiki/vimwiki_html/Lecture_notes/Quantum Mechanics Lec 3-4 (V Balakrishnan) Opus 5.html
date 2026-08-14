@@ -151,11 +151,14 @@
             font-weight: bold;
         }
         @media (min-width: 901px) {
-            /* #page-shell takes over #content's old page-centering role, now
-               shared between the sidebar and the (now narrower) content
-               card, so the page's overall width budget stays the same. */
+            /* #page-shell takes over #content's old page-centering role.
+               Widened past the original 1200px so the content column can
+               get back close to its original reading width even with the
+               240px sidebar added alongside it — on a wide screen this
+               shell sits further out toward both edges (sidebar moves left,
+               content gets wider) rather than squeezing content down. */
             #page-shell {
-                max-width: 1200px;
+                max-width: 1500px;
                 margin: 0 auto;
                 display: flex;
                 align-items: flex-start;
@@ -1741,6 +1744,15 @@ f(x) = \int_{-\infty}^{\infty} dk\ \tilde f(k)\,e^{ikx} \ , \qquad \tilde f(k) =
         tocList.parentNode.removeChild(tocList);
         tocList.removeAttribute('id');
         tocList.className = (tocList.className + ' toc-sidebar-list').trim();
+
+        // Vimwiki prefixes each TOC entry's visible text with "#" (e.g.
+        // "#Definition") — strip that from the sidebar's display text only;
+        // the href is untouched, so the link still points to the right place.
+        Array.prototype.forEach.call(tocList.querySelectorAll('a'), function (a) {
+            if (a.textContent.charAt(0) === '#') {
+                a.textContent = a.textContent.slice(1);
+            }
+        });
 
         var sidebar = document.createElement('aside');
         sidebar.id = 'toc-sidebar';
