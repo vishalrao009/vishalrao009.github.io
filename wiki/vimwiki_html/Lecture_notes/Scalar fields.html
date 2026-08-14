@@ -986,31 +986,51 @@ Using our plane wave solutions \(e^{i\vec{k}.\vec{x}}\), we get, <br />
         });
         if (!kids.length) return;
 
-        // Find "<heading> immediately followed by <ul of only same-page links>".
-        // Prefer one whose heading text is literally "Contents" (the vimwiki
-        // default); fall back to the first structural match otherwise.
-        var tocHeading = null, tocList = null;
+        // Find "<heading-bearing element> immediately followed by <ul of only
+        // same-page links>". Vimwiki wraps every heading in its own
+        // <div id="..."><h1 class="header">...</h1></div>, and specifically
+        // marks the auto-generated Contents block with class="toc" on that
+        // wrapper div — so a heading can be the element itself (a bare
+        // <h1>-<h6>) or that wrapper div containing one. TOC links are
+        // relative same-page links like "PageName.html#fragment", not bare
+        // "#fragment", so anchors are matched by "has a # with a valid
+        // in-page id after it" rather than "starts with #".
+        function directHeading(el) {
+            if (/^H[1-6]$/.test(el.tagName)) return el;
+            for (var j = 0; j < el.children.length; j++) {
+                if (/^H[1-6]$/.test(el.children[j].tagName)) return el.children[j];
+            }
+            return null;
+        }
+        function fragmentId(href) {
+            var hashIdx = href.indexOf('#');
+            return hashIdx === -1 ? '' : href.slice(hashIdx + 1);
+        }
+
+        var tocHeading = null, tocList = null, tocLabel = '';
         for (var i = 0; i < kids.length - 1; i++) {
             var el = kids[i], next = kids[i + 1];
-            if (!/^H[1-6]$/.test(el.tagName)) continue;
             if (next.tagName !== 'UL') continue;
+            var heading = directHeading(el);
+            if (!heading) continue;
             var anchors = next.querySelectorAll('a[href]');
             if (!anchors.length) continue;
-            var allFragment = Array.prototype.every.call(anchors, function (a) {
-                var href = a.getAttribute('href');
-                return href && href.charAt(0) === '#';
+            var allSamePage = Array.prototype.every.call(anchors, function (a) {
+                var id = fragmentId(a.getAttribute('href') || '');
+                return !!id && document.getElementById(id) != null;
             });
-            if (!allFragment) continue;
-            var isContentsLabel = el.textContent.replace(/\s+/g, ' ').trim().toLowerCase() === 'contents';
-            if (tocHeading === null || isContentsLabel) {
+            if (!allSamePage) continue;
+            var isTocMarked = !!(el.classList && el.classList.contains('toc'));
+            var isContentsLabel = heading.textContent.replace(/\s+/g, ' ').trim().toLowerCase() === 'contents';
+            if (tocHeading === null || isTocMarked || isContentsLabel) {
                 tocHeading = el;
                 tocList = next;
-                if (isContentsLabel) break;
+                tocLabel = heading.textContent.replace(/\s+/g, ' ').trim();
+                if (isTocMarked || isContentsLabel) break;
             }
         }
         if (!tocHeading || !tocList) return; // no TOC on this page — leave layout untouched
-
-        var tocLabel = tocHeading.textContent.replace(/\s+/g, ' ').trim() || 'Contents';
+        tocLabel = tocLabel || 'Contents';
 
         tocHeading.parentNode.removeChild(tocHeading);
         tocList.parentNode.removeChild(tocList);
@@ -1040,11 +1060,11 @@ Using our plane wave solutions \(e^{i\vec{k}.\vec{x}}\), we get, <br />
         contentEl.appendChild(layout);
 
         // ---- Scrollspy: highlight whichever section is currently being read ----
-        var links = Array.prototype.slice.call(tocList.querySelectorAll('a[href^="#"]'));
+        var links = Array.prototype.slice.call(tocList.querySelectorAll('a[href]'));
         var map = {};       // heading id -> its sidebar <a>
         var headings = [];  // heading elements, in document order
         links.forEach(function (a) {
-            var id = a.getAttribute('href').slice(1);
+            var id = fragmentId(a.getAttribute('href') || '');
             if (!id) return;
             var target = document.getElementById(id);
             if (!target) return;
