@@ -98,6 +98,81 @@
         .breadcrumb a:hover { color: #8a4a12; text-decoration: underline; }
         .breadcrumb .breadcrumb-sep { color: #c08a5a; margin: 0 8px; }
         .breadcrumb .breadcrumb-current { color: #1f3a5f; }
+        /* TOC sidebar (Wikipedia-style). Built at runtime by the "TOC sidebar"
+           script below, which pulls the vimwiki-generated "Contents" block out
+           of the normal content flow and rebuilds it here. Below the
+           min-width: 901px rule further down, it just stays a boxed list
+           above the article; the sticky left-column treatment only kicks in
+           once there's room for it. */
+        #content-layout { display: block; }
+        #toc-sidebar {
+            margin: 0 0 24px 0;
+            padding: 14px 16px;
+            background: rgba(251, 246, 233, 0.75);
+            border: 1px solid rgba(107, 79, 42, 0.25);
+            border-radius: 8px;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        #toc-sidebar .toc-sidebar-title {
+            font-weight: bold;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #6b4f2a;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(107, 79, 42, 0.25);
+        }
+        #toc-sidebar .toc-sidebar-list,
+        #toc-sidebar .toc-sidebar-list ul {
+            list-style: none;
+            margin: 0;
+            padding-left: 0;
+        }
+        #toc-sidebar .toc-sidebar-list ul { padding-left: 16px; }
+        #toc-sidebar .toc-sidebar-list li { margin: 3px 0; }
+        #toc-sidebar .toc-sidebar-list a {
+            display: block;
+            color: #4a4038;
+            text-decoration: none;
+            padding: 3px 8px;
+            border-left: 3px solid transparent;
+            border-radius: 3px;
+        }
+        #toc-sidebar .toc-sidebar-list a:hover {
+            background: rgba(107, 79, 42, 0.1);
+            color: #1f1a15;
+        }
+        #toc-sidebar .toc-sidebar-list a.active {
+            border-left-color: #6b4f2a;
+            background: rgba(107, 79, 42, 0.14);
+            color: #1f3a5f;
+            font-weight: bold;
+        }
+        #article-body { min-width: 0; }
+        @media (min-width: 901px) {
+            /* Enough room for a left sidebar: switch to a two-column layout
+               and shrink the reading column a bit to make space for it. */
+            #content-layout {
+                display: flex;
+                align-items: flex-start;
+                gap: 32px;
+            }
+            #toc-sidebar {
+                flex: 0 0 240px;
+                max-width: 240px;
+                margin-bottom: 0;
+                position: sticky;
+                top: 20px;
+                max-height: calc(100vh - 40px);
+                overflow-y: auto;
+            }
+            #article-body {
+                flex: 1 1 auto;
+                max-width: 880px;
+            }
+        }
         /* Floating navigation buttons (ask this page + go back + scroll to top) */
         .floating-btns {
             position: fixed;
@@ -337,6 +412,45 @@ When I was a kid, I had no idea from where I came, what is my purpose in life, w
 
 <p>
 The better question is to ask "who are we?" <br />
+</p>
+
+<p>
+Am I the thoughts? am I the set of ideals and beliefs? Am I the memory? what define me? <br />
+Am I constant in time? whatever I experience, the observer seems to be the same. Probably I am the observer. But what is the observer inside our physical body? It lives inside brain. It does not go out of brain if we move, implies it is related to the physical body.<br />
+</p>
+
+<p>
+Is it the physical body? but it changes with time. After years, I won't recognize myself in the mirror. I will be a different person. So, I am not the body.<br />
+</p>
+
+<p>
+If we are not the body, then what are we? what defines us? are we unique? or are we different than all?<br />
+Is the observer universal? or is it local? If it is universal (it lives in different dimension than space-time, such that it has access to all these things and it remains unaffected by space-time), it has to only interact with a living brain and then we are all related inderectly. We are all one. We are the same. We are the one observer for the universe itself and we exerperience or perceive things differently due to different set of memory and experiences in different bodies. <br />
+</p>
+
+<p>
+If we are local and unique, then we are different than all. We are the observer for our own self. We are the one who perceives things differently than others, then only the exchange of ideas between individuals can reveal the objective truth. <br />
+</p>
+
+
+<p>
+Think, who are we? think!!! for the sake of knowing. <br />
+</p>
+
+<p>
+But, when we say who are we, we want an answer. We will try to find a thing which describe us, what if that thing or idea does not exist in our world.<br />
+</p>
+
+<p>
+We have insticts, thoughts, emotions, feelings. We see colors, hear sounds, smell odors, taste foods. All these things could be unique to us or univsersal with zero to little variation.<br />
+</p>
+
+<p>
+The world does not contain colours,sounds, taste, odors, experience of touch, as the world is made up of matter (or <a href="../../Research_work/fundamental particles.html">fundamental particles</a>) in space time with certain physical laws. The world is dark place. It is our consciousness which gives us the experience of colors, sounds, taste, odors, touch. You can use phyical forces to explain touch, chemicals to explain the taste and odors, longitudnal sound waves to explain the sound, and electromagnetic waves to explain the colors. But these are not the experience of touch, taste, odors, sound and colors. These are just the physical explanation of how we perceive these things. The experience is unique to us. It is our consciousness which gives us the experience of these things. <br />
+</p>
+
+<p>
+There is huge gap between the physical world and our experience of the world. The physical world is made up of matter and energy in space-time, but our experience of the world is made up of consciousness. The physical world is objective, but our experience of the world is subjective. The physical world is external, but our experience of the world is internal. The physical world is public, but our experience of the world is private.<br />
 </p>
 
     </div>
@@ -777,6 +891,128 @@ The better question is to ask "who are we?" <br />
 
         window.addEventListener('scroll', hide, { passive: true });
         window.addEventListener('resize', hide);
+    })();
+    </script>
+
+    <!-- TOC sidebar: pulls the vimwiki-generated "Contents" block (a heading
+         immediately followed by a list of same-page "#..." links — that's how
+         :VimwikiTOC renders) out of the normal reading flow and rebuilds it as
+         a left-hand sidebar, Wikipedia-style. Everything else that was in
+         #content gets wrapped into #article-body next to it. If a page has no
+         such block, this does nothing and the page renders exactly as before.
+         Must run after the hover-preview script above (so that script still
+         walks the original, unmodified #content), and before the numbered
+         pipeline below, since step 1 (TikZ) looks for pre.tikz wherever it
+         ends up nested and doesn't care about this move. -->
+    <script>
+    (function () {
+        var contentEl = document.getElementById('content');
+        if (!contentEl) return;
+
+        var kids = Array.prototype.slice.call(contentEl.children).filter(function (el) {
+            return el.id !== 'breadcrumb';
+        });
+        if (!kids.length) return;
+
+        // Find "<heading> immediately followed by <ul of only same-page links>".
+        // Prefer one whose heading text is literally "Contents" (the vimwiki
+        // default); fall back to the first structural match otherwise.
+        var tocHeading = null, tocList = null;
+        for (var i = 0; i < kids.length - 1; i++) {
+            var el = kids[i], next = kids[i + 1];
+            if (!/^H[1-6]$/.test(el.tagName)) continue;
+            if (next.tagName !== 'UL') continue;
+            var anchors = next.querySelectorAll('a[href]');
+            if (!anchors.length) continue;
+            var allFragment = Array.prototype.every.call(anchors, function (a) {
+                var href = a.getAttribute('href');
+                return href && href.charAt(0) === '#';
+            });
+            if (!allFragment) continue;
+            var isContentsLabel = el.textContent.replace(/\s+/g, ' ').trim().toLowerCase() === 'contents';
+            if (tocHeading === null || isContentsLabel) {
+                tocHeading = el;
+                tocList = next;
+                if (isContentsLabel) break;
+            }
+        }
+        if (!tocHeading || !tocList) return; // no TOC on this page — leave layout untouched
+
+        var tocLabel = tocHeading.textContent.replace(/\s+/g, ' ').trim() || 'Contents';
+
+        tocHeading.parentNode.removeChild(tocHeading);
+        tocList.parentNode.removeChild(tocList);
+        tocList.removeAttribute('id');
+        tocList.className = (tocList.className + ' toc-sidebar-list').trim();
+
+        var sidebar = document.createElement('aside');
+        sidebar.id = 'toc-sidebar';
+        sidebar.setAttribute('aria-label', tocLabel);
+        var label = document.createElement('div');
+        label.className = 'toc-sidebar-title';
+        label.textContent = tocLabel;
+        sidebar.appendChild(label);
+        sidebar.appendChild(tocList);
+
+        var article = document.createElement('div');
+        article.id = 'article-body';
+        kids.forEach(function (el) {
+            if (el === tocHeading || el === tocList) return; // already moved into the sidebar above
+            article.appendChild(el); // moves the existing node, doesn't clone it
+        });
+
+        var layout = document.createElement('div');
+        layout.id = 'content-layout';
+        layout.appendChild(sidebar);
+        layout.appendChild(article);
+        contentEl.appendChild(layout);
+
+        // ---- Scrollspy: highlight whichever section is currently being read ----
+        var links = Array.prototype.slice.call(tocList.querySelectorAll('a[href^="#"]'));
+        var map = {};       // heading id -> its sidebar <a>
+        var headings = [];  // heading elements, in document order
+        links.forEach(function (a) {
+            var id = a.getAttribute('href').slice(1);
+            if (!id) return;
+            var target = document.getElementById(id);
+            if (!target) return;
+            map[id] = a;
+            headings.push(target);
+        });
+        if (!headings.length) return;
+
+        var activeLink = null;
+        function setActive(id) {
+            var link = id ? map[id] : null;
+            if (link === activeLink) return;
+            if (activeLink) activeLink.classList.remove('active');
+            if (link) link.classList.add('active');
+            activeLink = link;
+        }
+
+        var OFFSET = 100; // px from the top of the viewport that counts as "current"
+        var ticking = false;
+        function update() {
+            ticking = false;
+            var currentId = headings[0].id;
+            for (var i = 0; i < headings.length; i++) {
+                if (headings[i].getBoundingClientRect().top - OFFSET <= 0) {
+                    currentId = headings[i].id;
+                } else {
+                    break;
+                }
+            }
+            setActive(currentId);
+        }
+        function requestUpdate() {
+            if (!ticking) {
+                ticking = true;
+                requestAnimationFrame(update);
+            }
+        }
+        window.addEventListener('scroll', requestUpdate, { passive: true });
+        window.addEventListener('resize', requestUpdate);
+        update();
     })();
     </script>
 
