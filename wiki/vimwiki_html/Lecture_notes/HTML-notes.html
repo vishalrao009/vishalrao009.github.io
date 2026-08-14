@@ -162,7 +162,7 @@
                 margin: 0 auto;
                 display: flex;
                 align-items: flex-start;
-                gap: 32px;
+                gap: 0; /* the draggable #toc-resizer below provides the gutter instead */
             }
             #page-shell > #content {
                 margin: 0;
@@ -178,7 +178,41 @@
                 max-height: calc(100vh - 40px);
                 overflow-y: auto;
             }
+            /* Draggable divider between the sidebar and the article, built
+               by the same script that builds the sidebar. Sticky so it's
+               reachable at any scroll position, matching the sidebar. */
+            #toc-resizer {
+                flex: 0 0 24px;
+                max-width: 24px;
+                cursor: col-resize;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                touch-action: none;
+                -webkit-tap-highlight-color: transparent;
+                position: sticky;
+                top: 20px;
+                height: calc(100vh - 40px);
+                outline: none;
+            }
+            #toc-resizer .toc-resizer-grip {
+                width: 4px;
+                height: 48px;
+                border-radius: 4px;
+                background: rgba(107, 79, 42, 0.3);
+                transition: background 0.15s ease, height 0.15s ease;
+            }
+            #toc-resizer:hover .toc-resizer-grip,
+            #toc-resizer.dragging .toc-resizer-grip,
+            #toc-resizer:focus-visible .toc-resizer-grip {
+                background: #6b4f2a;
+                height: 72px;
+            }
         }
+        /* Applied to <body> only while actively dragging the resizer, so the
+           cursor/no-select behavior holds even if the pointer strays off the
+           thin handle mid-drag. */
+        body.toc-resizing { cursor: col-resize; user-select: none; }
         /* Floating navigation buttons (ask this page + go back + scroll to top) */
         .floating-btns {
             position: fixed;
@@ -975,6 +1009,80 @@ The web notes are divided into following parts:<br />
         contentParent.insertBefore(pageShell, contentEl);
         pageShell.appendChild(sidebar);
         pageShell.appendChild(contentEl); // moves #content itself, doesn't clone it
+
+        // ---- Draggable resizer: lets the reader drag the sidebar/article
+        // split themselves, remembered across page loads the same way the
+        // language picker's choice already is (see the globe-button script
+        // above). Keyboard-operable per the ARIA "separator" pattern
+        // (Left/Right arrows), double-click resets to the default width.
+        var MIN_SIDEBAR = 160, MAX_SIDEBAR = 480, DEFAULT_SIDEBAR = 240;
+        var WIDTH_KEY = 'wikiTocSidebarWidth';
+
+        var resizer = document.createElement('div');
+        resizer.id = 'toc-resizer';
+        resizer.setAttribute('role', 'separator');
+        resizer.setAttribute('aria-orientation', 'vertical');
+        resizer.setAttribute('aria-label', 'Resize contents sidebar');
+        resizer.setAttribute('aria-valuemin', String(MIN_SIDEBAR));
+        resizer.setAttribute('aria-valuemax', String(MAX_SIDEBAR));
+        resizer.tabIndex = 0;
+        var grip = document.createElement('div');
+        grip.className = 'toc-resizer-grip';
+        resizer.appendChild(grip);
+        pageShell.insertBefore(resizer, contentEl); // sits between the sidebar and #content
+
+        function clampWidth(w) { return Math.max(MIN_SIDEBAR, Math.min(MAX_SIDEBAR, w)); }
+        var currentWidth = DEFAULT_SIDEBAR; // tracked directly — no need to re-derive it from live layout
+        function applyWidth(w) {
+            currentWidth = w;
+            sidebar.style.flexBasis = w + 'px';
+            sidebar.style.maxWidth = w + 'px';
+            resizer.setAttribute('aria-valuenow', String(Math.round(w)));
+        }
+        function persistWidth() {
+            try { localStorage.setItem(WIDTH_KEY, Math.round(currentWidth)); } catch (e) {}
+        }
+        try {
+            var savedWidth = parseInt(localStorage.getItem(WIDTH_KEY), 10);
+            applyWidth(!isNaN(savedWidth) ? clampWidth(savedWidth) : DEFAULT_SIDEBAR);
+        } catch (e) {
+            applyWidth(DEFAULT_SIDEBAR);
+        }
+
+        var dragging = false, dragStartX = 0, dragStartWidth = 0;
+        resizer.addEventListener('pointerdown', function (e) {
+            dragging = true;
+            dragStartX = e.clientX;
+            dragStartWidth = currentWidth;
+            resizer.classList.add('dragging');
+            document.body.classList.add('toc-resizing');
+            try { resizer.setPointerCapture(e.pointerId); } catch (err) {}
+            e.preventDefault();
+        });
+        resizer.addEventListener('pointermove', function (e) {
+            if (!dragging) return;
+            applyWidth(clampWidth(dragStartWidth + (e.clientX - dragStartX)));
+        });
+        function endDrag(e) {
+            if (!dragging) return;
+            dragging = false;
+            resizer.classList.remove('dragging');
+            document.body.classList.remove('toc-resizing');
+            try { resizer.releasePointerCapture(e.pointerId); } catch (err) {}
+            persistWidth();
+        }
+        resizer.addEventListener('pointerup', endDrag);
+        resizer.addEventListener('pointercancel', endDrag);
+        resizer.addEventListener('dblclick', function () {
+            applyWidth(DEFAULT_SIDEBAR);
+            try { localStorage.removeItem(WIDTH_KEY); } catch (e) {}
+        });
+        resizer.addEventListener('keydown', function (e) {
+            var step = 20;
+            var current = currentWidth || DEFAULT_SIDEBAR;
+            if (e.key === 'ArrowLeft') { applyWidth(clampWidth(current - step)); persistWidth(); e.preventDefault(); }
+            else if (e.key === 'ArrowRight') { applyWidth(clampWidth(current + step)); persistWidth(); e.preventDefault(); }
+        });
 
         // ---- Scrollspy: highlight whichever section is currently being read ----
         var links = Array.prototype.slice.call(tocList.querySelectorAll('a[href]'));
