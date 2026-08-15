@@ -192,6 +192,14 @@
             font-size: 15px;
             line-height: 1.5;
         }
+        /* Once dragged at least once (see the drag-to-move script further
+           down), the sidebar detaches from the sticky flex column into a
+           freely-positioned floating panel, remembered across page loads. */
+        #toc-sidebar.floating {
+            position: fixed !important;
+            z-index: 999;
+            box-shadow: 0 6px 22px var(--shadow-color-strong);
+        }
         #toc-sidebar .toc-sidebar-title {
             font-weight: bold;
             font-size: 14px;
@@ -201,7 +209,16 @@
             margin-bottom: 8px;
             padding-bottom: 6px;
             border-bottom: 1px solid var(--panel-border-soft);
+            cursor: grab;
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
+        #toc-sidebar .toc-sidebar-title:active,
+        #toc-sidebar .toc-sidebar-title.dragging-title {
+            cursor: grabbing;
+        }
+        body.toc-dragging-position { cursor: grabbing; user-select: none; }
         #toc-sidebar .toc-sidebar-list,
         #toc-sidebar .toc-sidebar-list ul {
             list-style: none;
@@ -1173,6 +1190,7 @@ It reduceds to sum of two real scalar field lagrangians.<br />
         var label = document.createElement('div');
         label.className = 'toc-sidebar-title';
         label.textContent = tocLabel;
+        label.title = 'Drag to move';
         sidebar.appendChild(label);
         sidebar.appendChild(tocList);
 
@@ -1261,6 +1279,75 @@ It reduceds to sum of two real scalar field lagrangians.<br />
             if (e.key === 'ArrowLeft') { applyWidth(clampWidth(current - step)); persistWidth(); e.preventDefault(); }
             else if (e.key === 'ArrowRight') { applyWidth(clampWidth(current + step)); persistWidth(); e.preventDefault(); }
         });
+
+        // ---- Drag-to-move: grab the "Contents" title to reposition the
+        // whole sidebar anywhere on screen (left, down, wherever). Detaches
+        // it from the sticky flex column into a freely-positioned floating
+        // panel (position:fixed) the first time it's dragged; remembered
+        // across page loads the same way the width above already is. The
+        // width-resizer is hidden while floating since "column width" isn't
+        // a meaningful idea once the sidebar isn't part of that column
+        // anymore; double-clicking the title undoes this and goes back to
+        // the normal sticky-in-column layout.
+        var POS_KEY = 'wikiTocSidebarPos';
+        function floatAt(left, top) {
+            left = Math.max(4, Math.min(window.innerWidth - 60, left));
+            top = Math.max(4, Math.min(window.innerHeight - 60, top));
+            sidebar.classList.add('floating');
+            sidebar.style.position = 'fixed';
+            sidebar.style.left = left + 'px';
+            sidebar.style.top = top + 'px';
+            sidebar.style.width = (currentWidth || DEFAULT_SIDEBAR) + 'px';
+            sidebar.style.maxHeight = 'calc(100vh - ' + (top + 20) + 'px)';
+            resizer.style.display = 'none';
+            return { left: left, top: top };
+        }
+        function unfloat() {
+            sidebar.classList.remove('floating');
+            sidebar.style.position = '';
+            sidebar.style.left = '';
+            sidebar.style.top = '';
+            sidebar.style.width = '';
+            sidebar.style.maxHeight = '';
+            resizer.style.display = '';
+            try { localStorage.removeItem(POS_KEY); } catch (e) {}
+        }
+        try {
+            var savedPos = JSON.parse(localStorage.getItem(POS_KEY));
+            if (savedPos && typeof savedPos.left === 'number' && typeof savedPos.top === 'number') {
+                floatAt(savedPos.left, savedPos.top);
+            }
+        } catch (e) {}
+
+        var draggingTitle = false, titleStartX = 0, titleStartY = 0, boxStartLeft = 0, boxStartTop = 0;
+        label.addEventListener('pointerdown', function (e) {
+            draggingTitle = true;
+            var rect = sidebar.getBoundingClientRect();
+            titleStartX = e.clientX;
+            titleStartY = e.clientY;
+            boxStartLeft = rect.left;
+            boxStartTop = rect.top;
+            label.classList.add('dragging-title');
+            document.body.classList.add('toc-dragging-position');
+            try { label.setPointerCapture(e.pointerId); } catch (err) {}
+            e.preventDefault();
+        });
+        label.addEventListener('pointermove', function (e) {
+            if (!draggingTitle) return;
+            floatAt(boxStartLeft + (e.clientX - titleStartX), boxStartTop + (e.clientY - titleStartY));
+        });
+        function endTitleDrag(e) {
+            if (!draggingTitle) return;
+            draggingTitle = false;
+            label.classList.remove('dragging-title');
+            document.body.classList.remove('toc-dragging-position');
+            try { label.releasePointerCapture(e.pointerId); } catch (err) {}
+            var rect = sidebar.getBoundingClientRect();
+            try { localStorage.setItem(POS_KEY, JSON.stringify({ left: rect.left, top: rect.top })); } catch (err) {}
+        }
+        label.addEventListener('pointerup', endTitleDrag);
+        label.addEventListener('pointercancel', endTitleDrag);
+        label.addEventListener('dblclick', unfloat);
 
         // ---- Right-edge resizer: drag to shrink #content from the right,
         // leaving an adjustable empty margin between it and the shell's edge
