@@ -320,7 +320,6 @@
                 cursor: col-resize;
                 display: flex;
                 align-items: center;
-                justify-content: center;
                 touch-action: none;
                 -webkit-tap-highlight-color: transparent;
                 position: sticky;
@@ -328,6 +327,15 @@
                 height: calc(100vh - 40px);
                 outline: none;
             }
+            /* #toc-resizer's own width grows to become the gap itself (see
+               the script), so its grip must stay pinned to the edge nearest
+               #content rather than centering — centered, it would visually
+               drift away from the actual content boundary as the gap grows.
+               #content-resizer's box is always a fixed 24px regardless of
+               drag, so centering there was never actually a problem, but
+               it's pinned the same way for a consistent look either side. */
+            #toc-resizer { justify-content: flex-end; }
+            #content-resizer { justify-content: flex-start; }
             #toc-resizer .toc-resizer-grip,
             #content-resizer .toc-resizer-grip {
                 width: 4px;
@@ -725,6 +733,7 @@ The handwritten notes of the lectures are shared on the google drive <a href="ht
         <button id="btn-font-dec" type="button" class="text-btn" title="Decrease text size" aria-label="Decrease text size">A−</button>
         <button id="btn-font-inc" type="button" class="text-btn" title="Increase text size" aria-label="Increase text size">A+</button>
         <button id="btn-theme" type="button" title="Switch to dark theme" aria-label="Switch to dark theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"/></svg></button>
+        <button id="btn-toc-toggle" type="button" title="Hide contents" aria-label="Hide contents" aria-pressed="true" style="display: none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg></button>
         <button id="btn-globe" type="button" title="Translate this page" aria-label="Translate this page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/><path d="M5.3 6.5c1.9 1 4.2 1.6 6.7 1.6s4.8-.6 6.7-1.6"/><path d="M5.3 17.5c1.9-1 4.2-1.6 6.7-1.6s4.8.6 6.7 1.6"/></svg></button>
     </div>
 
@@ -1532,6 +1541,45 @@ The handwritten notes of the lectures are shared on the google drive <a href="ht
         label.addEventListener('pointerup', endTitleDrag);
         label.addEventListener('pointercancel', endTitleDrag);
         label.addEventListener('dblclick', unfloat);
+
+        // ---- Show/hide toggle (top-right button): lets the reader hide the
+        // Contents box entirely, and — importantly — showing it again always
+        // snaps it back to the normal docked-on-the-left position rather
+        // than wherever it might have been left floating. That makes this
+        // button a reliable "fix the layout" control if the box has drifted
+        // into an awkward floating spot, not just a show/hide switch.
+        // Hidden by default in the HTML; only shown here, since it's only
+        // meaningful on pages where a sidebar actually got built.
+        var HIDDEN_KEY = 'wikiTocSidebarHidden';
+        var toggleBtn = document.getElementById('btn-toc-toggle');
+        if (toggleBtn) {
+            toggleBtn.style.display = '';
+            function setToggleLabel(hidden) {
+                var text = hidden ? 'Show contents' : 'Hide contents';
+                toggleBtn.title = text;
+                toggleBtn.setAttribute('aria-label', text);
+                toggleBtn.setAttribute('aria-pressed', hidden ? 'false' : 'true');
+            }
+            function hideSidebar() {
+                sidebar.style.display = 'none';
+                setToggleLabel(true);
+                try { localStorage.setItem(HIDDEN_KEY, '1'); } catch (e) {}
+            }
+            function showSidebar() {
+                sidebar.style.display = '';
+                if (sidebar.classList.contains('floating')) unfloat(); // always land back on the left, not wherever it last floated
+                setToggleLabel(false);
+                try { localStorage.removeItem(HIDDEN_KEY); } catch (e) {}
+            }
+            toggleBtn.addEventListener('click', function () {
+                if (sidebar.style.display === 'none') showSidebar(); else hideSidebar();
+            });
+            try {
+                if (localStorage.getItem(HIDDEN_KEY) === '1') hideSidebar(); else setToggleLabel(false);
+            } catch (e) {
+                setToggleLabel(false);
+            }
+        }
 
         // ---- Right-edge resizer: drag to shrink #content from the right,
         // leaving an adjustable empty margin between it and the shell's edge
