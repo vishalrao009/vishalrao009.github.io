@@ -1522,6 +1522,7 @@ int main()
                 if (!dragging) return;
                 applyWidth(clampWidth(startWidth + (e.clientX - startX)));
                 h.setAttribute('aria-valuenow', String(Math.round(currentWidth)));
+                requestFitContent(); // sidebar just grew/shrank — #content may need to yield room
             });
             function end(e) {
                 if (!dragging) return;
@@ -1533,14 +1534,26 @@ int main()
             }
             h.addEventListener('pointerup', end);
             h.addEventListener('pointercancel', end);
+            // Safety net: if pointerup/pointercancel never reach the handle
+            // itself — e.g. the window loses focus mid-drag, which is
+            // exactly what happens when the OS's own window-resize drag
+            // takes over — the drag would otherwise get stuck forever: the
+            // resize cursor and disabled text-selection are applied to
+            // <body>, so a stuck drag "stays and affects" the whole page,
+            // not just this handle. end() is a no-op unless a drag is
+            // actually in progress, so listening this broadly is harmless.
+            window.addEventListener('pointerup', end);
+            window.addEventListener('pointercancel', end);
+            window.addEventListener('blur', end);
             h.addEventListener('dblclick', function () {
                 applyWidth(DEFAULT_SIDEBAR);
                 persistWidth();
+                requestFitContent();
             });
             h.addEventListener('keydown', function (e) {
                 var step = 20;
-                if (e.key === 'ArrowLeft') { applyWidth(clampWidth(currentWidth - step)); persistWidth(); e.preventDefault(); }
-                else if (e.key === 'ArrowRight') { applyWidth(clampWidth(currentWidth + step)); persistWidth(); e.preventDefault(); }
+                if (e.key === 'ArrowLeft') { applyWidth(clampWidth(currentWidth - step)); persistWidth(); requestFitContent(); e.preventDefault(); }
+                else if (e.key === 'ArrowRight') { applyWidth(clampWidth(currentWidth + step)); persistWidth(); requestFitContent(); e.preventDefault(); }
             });
             return h;
         }
@@ -1612,6 +1625,7 @@ int main()
         resizer.addEventListener('pointermove', function (e) {
             if (!draggingGap) return;
             applyGap(clampGap(gapStartWidth + (e.clientX - gapStartX)));
+            requestFitContent(); // gap just grew/shrank — #content may need to yield room
         });
         function endGapDrag(e) {
             if (!draggingGap) return;
@@ -1623,14 +1637,20 @@ int main()
         }
         resizer.addEventListener('pointerup', endGapDrag);
         resizer.addEventListener('pointercancel', endGapDrag);
+        // Safety net — see the matching comment on the sidebar's own
+        // resize handles above.
+        window.addEventListener('pointerup', endGapDrag);
+        window.addEventListener('pointercancel', endGapDrag);
+        window.addEventListener('blur', endGapDrag);
         resizer.addEventListener('dblclick', function () {
             applyGap(DEFAULT_GAP);
             persistGap();
+            requestFitContent();
         });
         resizer.addEventListener('keydown', function (e) {
             var step = 20;
-            if (e.key === 'ArrowLeft') { applyGap(clampGap(currentGap - step)); persistGap(); e.preventDefault(); }
-            else if (e.key === 'ArrowRight') { applyGap(clampGap(currentGap + step)); persistGap(); e.preventDefault(); }
+            if (e.key === 'ArrowLeft') { applyGap(clampGap(currentGap - step)); persistGap(); requestFitContent(); e.preventDefault(); }
+            else if (e.key === 'ArrowRight') { applyGap(clampGap(currentGap + step)); persistGap(); requestFitContent(); e.preventDefault(); }
         });
 
         // ---- Drag-to-move: grab the "Contents" title to reposition the
@@ -1701,6 +1721,11 @@ int main()
         }
         label.addEventListener('pointerup', endTitleDrag);
         label.addEventListener('pointercancel', endTitleDrag);
+        // Safety net — see the matching comment on the sidebar's own
+        // resize handles above.
+        window.addEventListener('pointerup', endTitleDrag);
+        window.addEventListener('pointercancel', endTitleDrag);
+        window.addEventListener('blur', endTitleDrag);
         label.addEventListener('dblclick', unfloat);
 
         // ---- Show/hide toggle (top-right button): lets the reader hide the
@@ -1766,17 +1791,62 @@ int main()
         pageShell.appendChild(contentResizer); // after #content — it's the last child
 
         function clampContentWidth(w) { return Math.max(MIN_CONTENT, Math.min(MAX_CONTENT, w)); }
-        var contentCurrentWidth = null; // null = auto (flex:1 1 auto, the original default)
-        function applyContentWidth(w) {
-            contentCurrentWidth = w;
-            if (w === null) {
+        var contentCurrentWidth = null; // null = auto (flex:1 1 auto, the original default) — this
+                                         // is the reader's PREFERRED width. The width actually
+                                         // painted to the screen is computed by renderContentWidth()
+                                         // below, which may shrink it further to fit the window; the
+                                         // preference itself is never overwritten by that shrinking,
+                                         // so it comes back as soon as there's room for it again.
+
+        // Everything in the #page-shell flex row besides #content: the
+        // sidebar (only counts while docked — floating takes it out of the
+        // flow via position:fixed), the gap strip before it, and the
+        // content-resizer's own fixed-width handle.
+        function fitReservedWidth() {
+            var w = 24; // content-resizer's own box, always present
+            if (!sidebar.classList.contains('floating')) w += currentWidth;
+            w += currentGap;
+            return w;
+        }
+
+        // Paints #content's actual width from the reader's preference and
+        // whatever room is actually available right now, so a custom width
+        // set on a wide screen can never overflow past the sidebar on a
+        // narrower one — #content is always the one that gives way, never
+        // the sidebar, so Contents can't be squeezed off the edge of the
+        // window. See the resize listener and the sidebar/gap drag handlers
+        // above, which call this too whenever the available room changes.
+        function renderContentWidth() {
+            if (sidebar.style.display === 'none') return; // hideSidebar() owns #content's size while collapsed
+            if (contentCurrentWidth === null) {
                 contentEl.style.flex = '';
                 contentEl.style.maxWidth = 'none';
-            } else {
-                contentEl.style.flex = '0 0 ' + w + 'px';
-                contentEl.style.maxWidth = w + 'px';
+                contentResizer.setAttribute('aria-valuenow', '');
+                return;
             }
-            contentResizer.setAttribute('aria-valuenow', w === null ? '' : String(Math.round(w)));
+            var shellWidth = pageShell.getBoundingClientRect().width;
+            if (!shellWidth) return; // not laid out yet
+            var available = Math.max(shellWidth - fitReservedWidth(), 0);
+            var w = Math.min(contentCurrentWidth, available);
+            contentEl.style.flex = '0 0 ' + w + 'px';
+            contentEl.style.maxWidth = w + 'px';
+            contentResizer.setAttribute('aria-valuenow', String(Math.round(w)));
+        }
+
+        var fitTicking = false;
+        function requestFitContent() {
+            if (fitTicking) return;
+            fitTicking = true;
+            requestAnimationFrame(function () {
+                fitTicking = false;
+                renderContentWidth();
+            });
+        }
+        window.addEventListener('resize', requestFitContent);
+
+        function applyContentWidth(w) {
+            contentCurrentWidth = w;
+            renderContentWidth();
         }
         function persistContentWidth() {
             try {
@@ -1813,6 +1883,11 @@ int main()
         }
         contentResizer.addEventListener('pointerup', endContentDrag);
         contentResizer.addEventListener('pointercancel', endContentDrag);
+        // Safety net — see the matching comment on the sidebar's own
+        // resize handles above.
+        window.addEventListener('pointerup', endContentDrag);
+        window.addEventListener('pointercancel', endContentDrag);
+        window.addEventListener('blur', endContentDrag);
         contentResizer.addEventListener('dblclick', function () {
             applyContentWidth(null);
             persistContentWidth();
