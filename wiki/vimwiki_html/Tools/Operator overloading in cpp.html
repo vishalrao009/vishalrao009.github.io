@@ -185,6 +185,7 @@
            narrower/phone viewports it doesn't touch the page at all, so none
            of this CSS applies there either. */
         #toc-sidebar {
+            position: relative; /* positioning context for the resize handles below */
             padding: 14px 16px;
             background: var(--sidebar-bg);
             border: 1px solid var(--panel-border-soft);
@@ -199,6 +200,42 @@
             position: fixed !important;
             z-index: 999;
             box-shadow: 0 6px 22px var(--shadow-color-strong);
+        }
+        /* PowerPoint/picture-style resize handles: small squares on the
+           box's own right edge, rather than a strip elsewhere on the page.
+           Only a horizontal (width) resize is offered — the box's height is
+           content-driven with its own scrollbar, so there's nothing
+           meaningful to drag vertically. Work identically whether the box
+           is docked or floating, since #toc-sidebar establishes a
+           positioning context in both states (sticky and fixed both do). */
+        #toc-sidebar .toc-resize-handle {
+            position: absolute;
+            right: -6px;
+            width: 12px;
+            border-radius: 3px;
+            background: var(--accent);
+            border: 2px solid var(--panel-bg);
+            cursor: ew-resize;
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+            opacity: 0.8;
+            z-index: 5;
+            transition: opacity 0.15s ease, transform 0.15s ease;
+        }
+        #toc-sidebar .toc-resize-handle:hover,
+        #toc-sidebar .toc-resize-handle:focus-visible,
+        #toc-sidebar .toc-resize-handle.dragging {
+            opacity: 1;
+            transform: scale(1.15);
+        }
+        #toc-sidebar .toc-resize-handle.corner {
+            bottom: -6px;
+            height: 12px;
+        }
+        #toc-sidebar .toc-resize-handle.edge {
+            top: 50%;
+            height: 28px;
+            margin-top: -14px;
         }
         #toc-sidebar .toc-sidebar-title {
             font-weight: bold;
@@ -1376,6 +1413,82 @@ struct mycollection{
         sidebar.appendChild(label);
         sidebar.appendChild(tocList);
 
+        // ---- Sidebar's own width: small square handles directly on the box
+        // (bottom-right corner + a taller easier-to-grab handle on the
+        // middle of its right edge), PowerPoint/picture-style, rather than
+        // a big strip elsewhere on the page. Works whether the box is
+        // docked (flex-basis) or floating (width) — see applyWidth below.
+        var MIN_SIDEBAR = 160, MAX_SIDEBAR = 480, DEFAULT_SIDEBAR = 240;
+        var WIDTH_KEY = 'wikiTocSidebarWidth';
+
+        function clampWidth(w) { return Math.max(MIN_SIDEBAR, Math.min(MAX_SIDEBAR, w)); }
+        var currentWidth = DEFAULT_SIDEBAR; // tracked directly — no need to re-derive it from live layout
+        function applyWidth(w) {
+            currentWidth = w;
+            sidebar.style.flexBasis = w + 'px';
+            sidebar.style.maxWidth = w + 'px';
+            sidebar.style.width = w + 'px'; // authoritative once floating (position:fixed ignores flex-basis)
+        }
+        function persistWidth() {
+            try { localStorage.setItem(WIDTH_KEY, Math.round(currentWidth)); } catch (e) {}
+        }
+        try {
+            var savedWidth = parseInt(localStorage.getItem(WIDTH_KEY), 10);
+            applyWidth(!isNaN(savedWidth) ? clampWidth(savedWidth) : DEFAULT_SIDEBAR);
+        } catch (e) {
+            applyWidth(DEFAULT_SIDEBAR);
+        }
+
+        function makeSidebarHandle(extraClass) {
+            var h = document.createElement('div');
+            h.className = 'toc-resize-handle ' + extraClass;
+            h.setAttribute('role', 'separator');
+            h.setAttribute('aria-orientation', 'vertical');
+            h.setAttribute('aria-label', 'Resize contents box');
+            h.setAttribute('aria-valuemin', String(MIN_SIDEBAR));
+            h.setAttribute('aria-valuemax', String(MAX_SIDEBAR));
+            h.tabIndex = 0;
+            sidebar.appendChild(h);
+
+            var dragging = false, startX = 0, startWidth = 0;
+            h.addEventListener('pointerdown', function (e) {
+                dragging = true;
+                startX = e.clientX;
+                startWidth = currentWidth;
+                h.classList.add('dragging');
+                document.body.classList.add('toc-resizing');
+                try { h.setPointerCapture(e.pointerId); } catch (err) {}
+                e.preventDefault();
+            });
+            h.addEventListener('pointermove', function (e) {
+                if (!dragging) return;
+                applyWidth(clampWidth(startWidth + (e.clientX - startX)));
+                h.setAttribute('aria-valuenow', String(Math.round(currentWidth)));
+            });
+            function end(e) {
+                if (!dragging) return;
+                dragging = false;
+                h.classList.remove('dragging');
+                document.body.classList.remove('toc-resizing');
+                try { h.releasePointerCapture(e.pointerId); } catch (err) {}
+                persistWidth();
+            }
+            h.addEventListener('pointerup', end);
+            h.addEventListener('pointercancel', end);
+            h.addEventListener('dblclick', function () {
+                applyWidth(DEFAULT_SIDEBAR);
+                persistWidth();
+            });
+            h.addEventListener('keydown', function (e) {
+                var step = 20;
+                if (e.key === 'ArrowLeft') { applyWidth(clampWidth(currentWidth - step)); persistWidth(); e.preventDefault(); }
+                else if (e.key === 'ArrowRight') { applyWidth(clampWidth(currentWidth + step)); persistWidth(); e.preventDefault(); }
+            });
+            return h;
+        }
+        makeSidebarHandle('corner');
+        makeSidebarHandle('edge');
+
         // Put the sidebar OUTSIDE #content — as a sibling to its left inside
         // a shared wrapper — rather than nesting it inside the card's own
         // padding/background. #content (with just the TOC removed) already
@@ -1388,79 +1501,78 @@ struct mycollection{
         pageShell.appendChild(sidebar);
         pageShell.appendChild(contentEl); // moves #content itself, doesn't clone it
 
-        // ---- Draggable resizer: lets the reader drag the sidebar/article
-        // split themselves, remembered across page loads the same way the
-        // language picker's choice already is (see the globe-button script
-        // above). Keyboard-operable per the ARIA "separator" pattern
-        // (Left/Right arrows), double-click resets to the default width.
-        var MIN_SIDEBAR = 160, MAX_SIDEBAR = 480, DEFAULT_SIDEBAR = 240;
-        var WIDTH_KEY = 'wikiTocSidebarWidth';
+        // ---- Big strip between the sidebar and #content: this now
+        // controls the empty gap/margin in front of the ARTICLE, entirely
+        // independent of the sidebar's own size (that's the two handles
+        // above, on the box itself) — dragging this moves the main content
+        // column, not the small contents box, matching how the mirrored
+        // strip on the article's right edge already behaves.
+        var MIN_GAP = 16, MAX_GAP = 400, DEFAULT_GAP = 24;
+        var GAP_KEY = 'wikiContentLeftGap';
 
         var resizer = document.createElement('div');
         resizer.id = 'toc-resizer';
         resizer.setAttribute('role', 'separator');
         resizer.setAttribute('aria-orientation', 'vertical');
-        resizer.setAttribute('aria-label', 'Resize contents sidebar');
-        resizer.setAttribute('aria-valuemin', String(MIN_SIDEBAR));
-        resizer.setAttribute('aria-valuemax', String(MAX_SIDEBAR));
+        resizer.setAttribute('aria-label', 'Resize space before the article');
+        resizer.setAttribute('aria-valuemin', String(MIN_GAP));
+        resizer.setAttribute('aria-valuemax', String(MAX_GAP));
         resizer.tabIndex = 0;
         var grip = document.createElement('div');
         grip.className = 'toc-resizer-grip';
         resizer.appendChild(grip);
         pageShell.insertBefore(resizer, contentEl); // sits between the sidebar and #content
 
-        function clampWidth(w) { return Math.max(MIN_SIDEBAR, Math.min(MAX_SIDEBAR, w)); }
-        var currentWidth = DEFAULT_SIDEBAR; // tracked directly — no need to re-derive it from live layout
-        function applyWidth(w) {
-            currentWidth = w;
-            sidebar.style.flexBasis = w + 'px';
-            sidebar.style.maxWidth = w + 'px';
-            sidebar.style.width = w + 'px'; // authoritative once floating (position:fixed ignores flex-basis)
+        function clampGap(w) { return Math.max(MIN_GAP, Math.min(MAX_GAP, w)); }
+        var currentGap = DEFAULT_GAP;
+        function applyGap(w) {
+            currentGap = w;
+            resizer.style.flexBasis = w + 'px';
+            resizer.style.maxWidth = w + 'px';
             resizer.setAttribute('aria-valuenow', String(Math.round(w)));
         }
-        function persistWidth() {
-            try { localStorage.setItem(WIDTH_KEY, Math.round(currentWidth)); } catch (e) {}
+        function persistGap() {
+            try { localStorage.setItem(GAP_KEY, Math.round(currentGap)); } catch (e) {}
         }
         try {
-            var savedWidth = parseInt(localStorage.getItem(WIDTH_KEY), 10);
-            applyWidth(!isNaN(savedWidth) ? clampWidth(savedWidth) : DEFAULT_SIDEBAR);
+            var savedGap = parseInt(localStorage.getItem(GAP_KEY), 10);
+            applyGap(!isNaN(savedGap) ? clampGap(savedGap) : DEFAULT_GAP);
         } catch (e) {
-            applyWidth(DEFAULT_SIDEBAR);
+            applyGap(DEFAULT_GAP);
         }
 
-        var dragging = false, dragStartX = 0, dragStartWidth = 0;
+        var draggingGap = false, gapStartX = 0, gapStartWidth = 0;
         resizer.addEventListener('pointerdown', function (e) {
-            dragging = true;
-            dragStartX = e.clientX;
-            dragStartWidth = currentWidth;
+            draggingGap = true;
+            gapStartX = e.clientX;
+            gapStartWidth = currentGap;
             resizer.classList.add('dragging');
             document.body.classList.add('toc-resizing');
             try { resizer.setPointerCapture(e.pointerId); } catch (err) {}
             e.preventDefault();
         });
         resizer.addEventListener('pointermove', function (e) {
-            if (!dragging) return;
-            applyWidth(clampWidth(dragStartWidth + (e.clientX - dragStartX)));
+            if (!draggingGap) return;
+            applyGap(clampGap(gapStartWidth + (e.clientX - gapStartX)));
         });
-        function endDrag(e) {
-            if (!dragging) return;
-            dragging = false;
+        function endGapDrag(e) {
+            if (!draggingGap) return;
+            draggingGap = false;
             resizer.classList.remove('dragging');
             document.body.classList.remove('toc-resizing');
             try { resizer.releasePointerCapture(e.pointerId); } catch (err) {}
-            persistWidth();
+            persistGap();
         }
-        resizer.addEventListener('pointerup', endDrag);
-        resizer.addEventListener('pointercancel', endDrag);
+        resizer.addEventListener('pointerup', endGapDrag);
+        resizer.addEventListener('pointercancel', endGapDrag);
         resizer.addEventListener('dblclick', function () {
-            applyWidth(DEFAULT_SIDEBAR);
-            try { localStorage.removeItem(WIDTH_KEY); } catch (e) {}
+            applyGap(DEFAULT_GAP);
+            persistGap();
         });
         resizer.addEventListener('keydown', function (e) {
             var step = 20;
-            var current = currentWidth || DEFAULT_SIDEBAR;
-            if (e.key === 'ArrowLeft') { applyWidth(clampWidth(current - step)); persistWidth(); e.preventDefault(); }
-            else if (e.key === 'ArrowRight') { applyWidth(clampWidth(current + step)); persistWidth(); e.preventDefault(); }
+            if (e.key === 'ArrowLeft') { applyGap(clampGap(currentGap - step)); persistGap(); e.preventDefault(); }
+            else if (e.key === 'ArrowRight') { applyGap(clampGap(currentGap + step)); persistGap(); e.preventDefault(); }
         });
 
         // ---- Drag-to-move: grab the "Contents" title to reposition the
@@ -1468,12 +1580,11 @@ struct mycollection{
         // it from the sticky flex column into a freely-positioned floating
         // panel (position:fixed) the first time it's dragged; remembered
         // across page loads the same way the width above already is. The
-        // width-resizer stays visible and working the whole time — once the
-        // sidebar floats out of the flex row, the resizer just becomes the
-        // leftmost item in it (a thin strip at the content's left edge,
-        // mirroring the one on its right) and still adjusts the same
-        // tracked width, which applyWidth() now writes to both flex-basis
-        // (docked) and width (floating) so either mode picks it up.
+        // sidebar's own corner/edge handles keep working the same way in
+        // either state — applyWidth() writes to both flex-basis (docked)
+        // and width (floating) — and the gap strip stays exactly where it
+        // is, controlling the article's left margin regardless of whether
+        // the box is currently docked or off floating somewhere else.
         // Double-clicking the title undoes the float and goes back to the
         // normal sticky-in-column layout.
         var POS_KEY = 'wikiTocSidebarPos';
