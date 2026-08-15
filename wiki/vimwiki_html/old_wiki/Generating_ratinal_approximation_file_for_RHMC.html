@@ -365,6 +365,19 @@
            cursor/no-select behavior holds even if the pointer strays off the
            thin handle mid-drag. */
         body.toc-resizing { cursor: col-resize; user-select: none; }
+        /* Read mode: hides every floating button/icon except the read-mode
+           toggle itself (so there's always a way back out), on every screen
+           size. Deliberately untouched here: #content, #toc-sidebar, and
+           its resizers — read mode only hides chrome, the article layout
+           itself stays exactly as it was. */
+        body.read-mode .top-right-btns > *:not(#btn-read-mode),
+        body.read-mode .floating-btns {
+            display: none;
+        }
+        #btn-read-mode[aria-pressed="true"] {
+            color: var(--accent-strong);
+            background: var(--panel-hover);
+        }
         /* Mobile Contents toggle + glass panel. Built by a separate,
            self-contained script (own copy of the TOC-detection logic) that
            only ever runs below the same 900px point where the desktop
@@ -875,6 +888,7 @@ The error increases a bit for given degree of polynomial if we increase the rati
         <button id="btn-font-dec" type="button" class="text-btn" title="Decrease text size" aria-label="Decrease text size">A−</button>
         <button id="btn-font-inc" type="button" class="text-btn" title="Increase text size" aria-label="Increase text size">A+</button>
         <button id="btn-theme" type="button" title="Switch to dark theme" aria-label="Switch to dark theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"/></svg></button>
+        <button id="btn-read-mode" type="button" title="Read mode" aria-label="Read mode" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></button>
         <button id="btn-toc-toggle" type="button" title="Hide contents" aria-label="Hide contents" aria-pressed="true" style="display: none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg></button>
         <button id="btn-globe" type="button" title="Translate this page" aria-label="Translate this page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/><path d="M5.3 6.5c1.9 1 4.2 1.6 6.7 1.6s4.8-.6 6.7-1.6"/><path d="M5.3 17.5c1.9-1 4.2-1.6 6.7-1.6s4.8.6 6.7 1.6"/></svg></button>
     </div>
@@ -1174,6 +1188,27 @@ The error increases a bit for given degree of polynomial if we increase the rati
                 applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
             });
         }
+    })();
+    (function () {
+        var READ_MODE_KEY = 'wikiReadMode';
+        var btn = document.getElementById('btn-read-mode');
+        if (!btn) return;
+        function applyReadMode(on) {
+            document.body.classList.toggle('read-mode', on);
+            var label = on ? 'Exit read mode' : 'Read mode';
+            btn.title = label;
+            btn.setAttribute('aria-label', label);
+            btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+            try { localStorage.setItem(READ_MODE_KEY, on ? '1' : '0'); } catch (e) {}
+        }
+        var savedReadMode = false;
+        try { savedReadMode = localStorage.getItem(READ_MODE_KEY) === '1'; } catch (e) {}
+        applyReadMode(savedReadMode);
+        btn.addEventListener('click', function () {
+            var turningOn = !document.body.classList.contains('read-mode');
+            applyReadMode(turningOn);
+            if (turningOn) window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
     })();
     </script>
 
