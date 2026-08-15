@@ -303,6 +303,17 @@
                 justify-content: center;
                 gap: 0; /* the draggable #toc-resizer below provides the gutter instead */
             }
+            /* The sidebar's own padding/border already separate it from the
+               viewport edge, so the full 3cm reading margin body normally
+               carries is more than this side needs — added by the sidebar
+               script via document.body.classList.add('has-toc-sidebar')
+               once it confirms a page actually has a Contents block. Left
+               only: the article's right-hand margin is untouched. Scoped to
+               this breakpoint so it automatically reverts to the normal 3cm
+               if the window narrows into the mobile layout. */
+            body.has-toc-sidebar {
+                padding-left: 1cm;
+            }
             #page-shell > #content {
                 margin: 0;
                 max-width: none;
@@ -3396,6 +3407,7 @@ fill up the complete interval.<br />
         }
         if (!tocHeading || !tocList) return; // no TOC on this page — leave layout untouched
         tocLabel = tocLabel || 'Contents';
+        document.body.classList.add('has-toc-sidebar'); // see the matching @media rule — reclaims the left margin next to the sidebar
 
         tocHeading.parentNode.removeChild(tocHeading);
         tocList.parentNode.removeChild(tocList);
@@ -3699,17 +3711,19 @@ fill up the complete interval.<br />
             function hideSidebar() {
                 sidebar.style.display = 'none';
                 resizer.style.display = 'none'; // also collapse the gap strip — otherwise hiding the box just leaves dead space where it was
-                contentEl.style.maxWidth = '1200px'; // cap it back to a normal reading width so it recenters symmetrically instead of stretching edge-to-edge across the freed-up space
+                contentEl.style.maxWidth = '1200px'; // immediate fallback in case this runs before renderContentWidth() exists yet (see below); it recomputes this properly once it does, and keeps it in sync afterwards
                 setToggleLabel(true);
                 try { localStorage.setItem(HIDDEN_KEY, '1'); } catch (e) {}
+                renderContentWidth();
             }
             function showSidebar() {
                 sidebar.style.display = '';
                 resizer.style.display = ''; // restore the gap strip too, at whatever width it was (untouched by hiding)
-                contentEl.style.maxWidth = 'none'; // remove the cap — back to filling the space next to the sidebar
+                contentEl.style.maxWidth = 'none'; // immediate fallback — see hideSidebar() above
                 if (sidebar.classList.contains('floating')) unfloat(); // always land back on the left, not wherever it last floated
                 setToggleLabel(false);
                 try { localStorage.removeItem(HIDDEN_KEY); } catch (e) {}
+                renderContentWidth();
             }
             toggleBtn.addEventListener('click', function () {
                 if (sidebar.style.display === 'none') showSidebar(); else hideSidebar();
@@ -3749,13 +3763,14 @@ fill up the complete interval.<br />
                                          // so it comes back as soon as there's room for it again.
 
         // Everything in the #page-shell flex row besides #content: the
-        // sidebar (only counts while docked — floating takes it out of the
-        // flow via position:fixed), the gap strip before it, and the
-        // content-resizer's own fixed-width handle.
+        // sidebar and gap strip (only while docked and visible — hidden via
+        // the Contents toggle, or floating, both take them out of the flow)
+        // plus the content-resizer's own fixed-width handle.
         function fitReservedWidth() {
             var w = 24; // content-resizer's own box, always present
-            if (!sidebar.classList.contains('floating')) w += currentWidth;
-            w += currentGap;
+            var sidebarHidden = sidebar.style.display === 'none';
+            if (!sidebarHidden && !sidebar.classList.contains('floating')) w += currentWidth;
+            if (!sidebarHidden) w += currentGap;
             return w;
         }
 
@@ -3764,13 +3779,22 @@ fill up the complete interval.<br />
         // set on a wide screen can never overflow past the sidebar on a
         // narrower one — #content is always the one that gives way, never
         // the sidebar, so Contents can't be squeezed off the edge of the
-        // window. See the resize listener and the sidebar/gap drag handlers
-        // above, which call this too whenever the available room changes.
+        // window. Works the same whether the sidebar is currently shown or
+        // hidden (hideSidebar()/showSidebar() below both call this too) —
+        // the content-resizer stays draggable either way, it just has less
+        // reserved space to share with once the sidebar's gone. See the
+        // resize listener and the sidebar/gap drag handlers above, which
+        // call this too whenever the available room changes.
         function renderContentWidth() {
-            if (sidebar.style.display === 'none') return; // hideSidebar() owns #content's size while collapsed
+            if (!contentResizer) return; // called before this section has run yet — hideSidebar()/showSidebar()'s own fallback below covers that case
+            var sidebarHidden = sidebar.style.display === 'none';
             if (contentCurrentWidth === null) {
                 contentEl.style.flex = '';
-                contentEl.style.maxWidth = 'none';
+                // Hidden: cap at a normal reading width so #content recenters
+                // symmetrically instead of stretching edge-to-edge across the
+                // freed-up space. Shown: no cap — fills whatever's left next
+                // to the sidebar.
+                contentEl.style.maxWidth = sidebarHidden ? '1200px' : 'none';
                 contentResizer.setAttribute('aria-valuenow', '');
                 return;
             }
