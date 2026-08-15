@@ -4,7 +4,8 @@
     <!-- <link rel="stylesheet" type="text/css" href="style.css"> -->
     <link rel="stylesheet" href="/wiki/assets/style.css" />
     <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <link id="hljs-theme-light" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <link id="hljs-theme-dark" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" disabled />
     <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
     <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
     <title>Physics_notes</title>
@@ -26,32 +27,109 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
+        /* Theme variables. Light values live at :root; the dark theme
+           (toggled by the theme button, script near the end of <body>)
+           overrides them on html[data-theme="dark"]. --content-font-scale
+           is the reading-size multiplier driven by the +/- buttons. */
+        :root {
+            --content-font-scale: 1;
+            --page-bg-image: url('/wiki/vimwiki_html/Images/parchment.jpg');
+            --page-bg-color: transparent;
+            --text-color: #333;
+            --muted-text: #555;
+            --content-bg: rgba(255, 255, 255, 0.5);
+            --link-color: #b5651d;
+            --link-hover-color: #8a4a12;
+            --breadcrumb-sep-color: #c08a5a;
+            --breadcrumb-current-color: #1f3a5f;
+            --border-accent: rgba(181, 101, 29, 0.35);
+            --accent: #6b4f2a;
+            --accent-strong: #1f1a15;
+            --btn-icon-color: #4a4038;
+            --btn-text-on-accent: #fff;
+            --panel-bg: #fbf6e9;
+            --panel-border: rgba(107, 79, 42, 0.3);
+            --panel-border-soft: rgba(107, 79, 42, 0.25);
+            --panel-border-faint: rgba(107, 79, 42, 0.2);
+            --panel-hover: rgba(107, 79, 42, 0.12);
+            --grip-color: rgba(107, 79, 42, 0.3);
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --shadow-color-strong: rgba(0, 0, 0, 0.35);
+            --sidebar-bg: rgba(251, 246, 233, 0.75);
+            --sidebar-link-color: #4a4038;
+            --sidebar-active-bg: rgba(107, 79, 42, 0.14);
+            --sidebar-active-color: #1f3a5f;
+            --sidebar-hover-bg: rgba(107, 79, 42, 0.1);
+            --sidebar-hover-color: #1f1a15;
+            --lp-snippet-color: #444;
+            --lp-thumb-bg: rgba(107, 79, 42, 0.08);
+        }
+        html[data-theme="dark"] {
+            --page-bg-image: none;
+            --page-bg-color: #14110d;
+            --text-color: #e6e0d4;
+            --muted-text: #b5ab98;
+            --content-bg: rgba(24, 21, 17, 0.82);
+            --link-color: #e3a75e;
+            --link-hover-color: #f2c187;
+            --breadcrumb-sep-color: #a9825a;
+            --breadcrumb-current-color: #f2c187;
+            --border-accent: rgba(227, 167, 94, 0.35);
+            --accent: #d3a76b;
+            --accent-strong: #f5ead8;
+            --btn-icon-color: #d8cfc0;
+            --btn-text-on-accent: #1a1712;
+            --panel-bg: #211c16;
+            --panel-border: rgba(211, 167, 107, 0.35);
+            --panel-border-soft: rgba(211, 167, 107, 0.28);
+            --panel-border-faint: rgba(211, 167, 107, 0.22);
+            --panel-hover: rgba(211, 167, 107, 0.16);
+            --grip-color: rgba(211, 167, 107, 0.4);
+            --shadow-color: rgba(0, 0, 0, 0.55);
+            --shadow-color-strong: rgba(0, 0, 0, 0.6);
+            --sidebar-bg: rgba(33, 28, 22, 0.85);
+            --sidebar-link-color: #d8cfc0;
+            --sidebar-active-bg: rgba(211, 167, 107, 0.2);
+            --sidebar-active-color: #f2c187;
+            --sidebar-hover-bg: rgba(211, 167, 107, 0.14);
+            --sidebar-hover-color: #f5ead8;
+            --lp-snippet-color: #c9c0b0;
+            --lp-thumb-bg: rgba(211, 167, 107, 0.12);
+        }
+        /* TikZ diagrams are rendered as black-on-transparent SVG with no
+           color hooks of their own, so under dark theme they're inverted
+           back to light-on-dark rather than staying illegibly dark-on-dark. */
+        html[data-theme="dark"] pre.tikz svg {
+            filter: invert(0.92) hue-rotate(180deg);
+        }
         body {
             /* Absolute, not '../Images/parchment.jpg': the relative form
                resolved to a different copy of the same image in every section
                folder, so the browser cached (and re-downloaded) it once per
                section. One canonical URL = fetched once for the whole site. */
-            background-image: url('/wiki/vimwiki_html/Images/parchment.jpg');
+            background-image: var(--page-bg-image);
+            background-color: var(--page-bg-color);
             background-size: cover;
             background-repeat: no-repeat;
             background-attachment: fixed;
             margin: 0;
             font-family: Arial, sans-serif;
             padding: 3cm;
+            color: var(--text-color);
         }
         #content {
-            color: #333;
-            font-size: 20px;
+            color: var(--text-color);
+            font-size: calc(20px * var(--content-font-scale));
             line-height: 1.6;
             max-width: 1200px;
             margin: 0 auto;
             padding: 10px;
-            background-color: rgba(255, 255, 255, 0.5);
+            background-color: var(--content-bg);
         }
-        h1 { font-size: 28px; }
-        h2 { font-size: 24px; }
-        h3 { font-size: 20px; }
-        h4, h5, h6 { font-size: 18px; }
+        h1 { font-size: calc(28px * var(--content-font-scale)); }
+        h2 { font-size: calc(24px * var(--content-font-scale)); }
+        h3 { font-size: calc(20px * var(--content-font-scale)); }
+        h4, h5, h6 { font-size: calc(18px * var(--content-font-scale)); }
         img {
             display: block;
             max-width: 100%;
@@ -69,7 +147,7 @@
         }
         figure.img-figure figcaption {
             font-size: 15px;
-            color: #555;
+            color: var(--muted-text);
             font-style: italic;
             line-height: 1.4;
         }
@@ -90,14 +168,14 @@
             line-height: 1.5;
             margin-bottom: 22px;
             padding-bottom: 12px;
-            border-bottom: 2px solid rgba(181, 101, 29, 0.35);
+            border-bottom: 2px solid var(--border-accent);
             word-break: break-word;
         }
         .breadcrumb:empty { display: none; }
-        .breadcrumb a { color: #b5651d; text-decoration: none; }
-        .breadcrumb a:hover { color: #8a4a12; text-decoration: underline; }
-        .breadcrumb .breadcrumb-sep { color: #c08a5a; margin: 0 8px; }
-        .breadcrumb .breadcrumb-current { color: #1f3a5f; }
+        .breadcrumb a { color: var(--link-color); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--link-hover-color); text-decoration: underline; }
+        .breadcrumb .breadcrumb-sep { color: var(--breadcrumb-sep-color); margin: 0 8px; }
+        .breadcrumb .breadcrumb-current { color: var(--breadcrumb-current-color); }
         /* TOC sidebar (Wikipedia-style). Built at runtime by the "TOC sidebar"
            script below, which pulls the vimwiki-generated "Contents" block
            out of the normal content flow and rebuilds it as a sibling of
@@ -108,8 +186,8 @@
            of this CSS applies there either. */
         #toc-sidebar {
             padding: 14px 16px;
-            background: rgba(251, 246, 233, 0.75);
-            border: 1px solid rgba(107, 79, 42, 0.25);
+            background: var(--sidebar-bg);
+            border: 1px solid var(--panel-border-soft);
             border-radius: 8px;
             font-size: 15px;
             line-height: 1.5;
@@ -119,10 +197,10 @@
             font-size: 14px;
             text-transform: uppercase;
             letter-spacing: 0.04em;
-            color: #6b4f2a;
+            color: var(--accent);
             margin-bottom: 8px;
             padding-bottom: 6px;
-            border-bottom: 1px solid rgba(107, 79, 42, 0.25);
+            border-bottom: 1px solid var(--panel-border-soft);
         }
         #toc-sidebar .toc-sidebar-list,
         #toc-sidebar .toc-sidebar-list ul {
@@ -134,20 +212,20 @@
         #toc-sidebar .toc-sidebar-list li { margin: 3px 0; }
         #toc-sidebar .toc-sidebar-list a {
             display: block;
-            color: #4a4038;
+            color: var(--sidebar-link-color);
             text-decoration: none;
             padding: 3px 8px;
             border-left: 3px solid transparent;
             border-radius: 3px;
         }
         #toc-sidebar .toc-sidebar-list a:hover {
-            background: rgba(107, 79, 42, 0.1);
-            color: #1f1a15;
+            background: var(--sidebar-hover-bg);
+            color: var(--sidebar-hover-color);
         }
         #toc-sidebar .toc-sidebar-list a.active {
-            border-left-color: #6b4f2a;
-            background: rgba(107, 79, 42, 0.14);
-            color: #1f3a5f;
+            border-left-color: var(--accent);
+            background: var(--sidebar-active-bg);
+            color: var(--sidebar-active-color);
             font-weight: bold;
         }
         @media (min-width: 901px) {
@@ -178,10 +256,11 @@
                 max-height: calc(100vh - 40px);
                 overflow-y: auto;
             }
-            /* Draggable divider between the sidebar and the article, built
-               by the same script that builds the sidebar. Sticky so it's
-               reachable at any scroll position, matching the sidebar. */
-            #toc-resizer {
+            /* Draggable dividers, built by the same script that builds the
+               sidebar: one between the sidebar and the article, one after
+               the article so its right-hand margin is adjustable too. Both
+               sticky so they're reachable at any scroll position. */
+            #toc-resizer, #content-resizer {
                 flex: 0 0 24px;
                 max-width: 24px;
                 cursor: col-resize;
@@ -195,17 +274,21 @@
                 height: calc(100vh - 40px);
                 outline: none;
             }
-            #toc-resizer .toc-resizer-grip {
+            #toc-resizer .toc-resizer-grip,
+            #content-resizer .toc-resizer-grip {
                 width: 4px;
                 height: 48px;
                 border-radius: 4px;
-                background: rgba(107, 79, 42, 0.3);
+                background: var(--grip-color);
                 transition: background 0.15s ease, height 0.15s ease;
             }
             #toc-resizer:hover .toc-resizer-grip,
             #toc-resizer.dragging .toc-resizer-grip,
-            #toc-resizer:focus-visible .toc-resizer-grip {
-                background: #6b4f2a;
+            #toc-resizer:focus-visible .toc-resizer-grip,
+            #content-resizer:hover .toc-resizer-grip,
+            #content-resizer.dragging .toc-resizer-grip,
+            #content-resizer:focus-visible .toc-resizer-grip {
+                background: var(--accent);
                 height: 72px;
             }
         }
@@ -228,14 +311,14 @@
             height: 48px;
             border: none;
             border-radius: 50%;
-            background: #6b4f2a;
-            color: #fff;
+            background: var(--accent);
+            color: var(--btn-text-on-accent);
             font-size: 22px;
             line-height: 48px;
             text-align: center;
             padding: 0;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 8px var(--shadow-color);
             opacity: 0.85;
             transition: opacity 0.2s, transform 0.2s;
         }
@@ -266,14 +349,17 @@
             border: none;
             border-radius: 8px;
             background: none;
-            color: #4a4038;
+            color: var(--btn-icon-color);
             padding: 0;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
             transition: color 0.15s ease, background-color 0.15s ease;
         }
         .top-right-btns button svg { width: 32px; height: 32px; display: block; }
-        .top-right-btns button:hover { color: #1f1a15; background: rgba(107, 79, 42, 0.12); }
+        .top-right-btns button:hover { color: var(--accent-strong); background: var(--panel-hover); }
+        /* Font-size buttons are plain text ("A-" / "A+"), not SVG icons, so
+           they need their own font sizing on top of the shared button box. */
+        .top-right-btns button.text-btn { font-size: 15px; font-weight: bold; font-family: Arial, sans-serif; }
         @media (max-width: 600px) {
             .floating-btns { right: 14px; bottom: 14px; }
             .floating-btns button { width: 44px; height: 44px; font-size: 20px; line-height: 44px; }
@@ -287,13 +373,13 @@
             #content {
                 padding: 8px 10px;
                 max-width: 100%;
-                font-size: 13px;    /* smaller text -> proportionally smaller equations that fit */
+                font-size: calc(13px * var(--content-font-scale));    /* smaller text -> proportionally smaller equations that fit */
                 line-height: 1.5;
             }
-            h1 { font-size: 20px; }
-            h2 { font-size: 18px; }
-            h3 { font-size: 16px; }
-            h4, h5, h6 { font-size: 15px; }
+            h1 { font-size: calc(20px * var(--content-font-scale)); }
+            h2 { font-size: calc(18px * var(--content-font-scale)); }
+            h3 { font-size: calc(16px * var(--content-font-scale)); }
+            h4, h5, h6 { font-size: calc(15px * var(--content-font-scale)); }
             .breadcrumb { font-size: 15px; }
             /* Wide math: never let it stretch the page. If it can't be broken onto
                multiple lines, it scrolls inside its own box instead. */
@@ -348,9 +434,9 @@
             top: 72px;
             width: 260px;
             max-height: 360px;
-            background: #fbf6e9;
+            background: var(--panel-bg);
             border-radius: 10px;
-            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+            box-shadow: 0 4px 18px var(--shadow-color-strong);
             z-index: 1001;
             overflow: hidden;
         }
@@ -358,13 +444,13 @@
         #translate-panel .tp-header {
             padding: 10px 12px 6px 12px;
             font-weight: bold;
-            color: #6b4f2a;
-            border-bottom: 1px solid rgba(107, 79, 42, 0.2);
+            color: var(--accent);
+            border-bottom: 1px solid var(--panel-border-faint);
         }
         #translate-panel input[type="text"] {
             margin: 8px 12px;
             padding: 6px 8px;
-            border: 1px solid rgba(107, 79, 42, 0.3);
+            border: 1px solid var(--panel-border);
             border-radius: 6px;
             font-size: 14px;
         }
@@ -380,12 +466,12 @@
             border: none;
             padding: 7px 10px;
             font-size: 14px;
-            color: #333;
+            color: var(--text-color);
             cursor: pointer;
             border-radius: 6px;
         }
-        #translate-panel .tp-lang:hover { background: rgba(107, 79, 42, 0.12); }
-        #translate-panel .tp-lang.active { background: #6b4f2a; color: #fff; }
+        #translate-panel .tp-lang:hover { background: var(--panel-hover); }
+        #translate-panel .tp-lang.active { background: var(--accent); color: var(--btn-text-on-accent); }
         @media (max-width: 600px) {
             #translate-panel { right: 14px; top: 64px; width: 220px; max-height: 300px; }
         }
@@ -397,10 +483,10 @@
             z-index: 1002;
             width: 300px;
             max-width: calc(100vw - 24px);
-            background: #fbf6e9;
-            border: 1px solid rgba(107, 79, 42, 0.3);
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
             border-radius: 10px;
-            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
+            box-shadow: 0 6px 22px var(--shadow-color-strong);
             overflow: hidden;
             opacity: 0;
             pointer-events: none;
@@ -414,19 +500,19 @@
             height: 140px;
             object-fit: cover;
             display: block;
-            background: rgba(107, 79, 42, 0.08);
+            background: var(--lp-thumb-bg);
         }
         .link-preview-card .lp-body { padding: 12px 14px; }
         .link-preview-card .lp-title {
             font-size: 15px;
             font-weight: bold;
-            color: #6b4f2a;
+            color: var(--accent);
             margin: 0 0 6px 0;
             line-height: 1.3;
         }
         .link-preview-card .lp-snippet {
             font-size: 13px;
-            color: #444;
+            color: var(--lp-snippet-color);
             line-height: 1.45;
             margin: 0;
         }
@@ -474,10 +560,16 @@
         <button id="btn-top" type="button" title="Back to top" aria-label="Back to top">&#8593;</button>
     </div>
 
-    <!-- Top-right buttons: site-wide tools — search (docked here at runtime by
-         search.js) and translate. Kept out of the bottom-right stack above,
-         which is for navigating within the current page. -->
+    <!-- Top-right buttons: site-wide tools — text size, theme, translate, and
+         search (docked here at runtime by search.js). Kept out of the
+         bottom-right stack above, which is for navigating within the
+         current page. Text-size and theme both work on phones too (their
+         script isn't gated to desktop widths); the theme icon is swapped
+         between sun/moon by that same script based on the active theme. -->
     <div class="top-right-btns">
+        <button id="btn-font-dec" type="button" class="text-btn" title="Decrease text size" aria-label="Decrease text size">A−</button>
+        <button id="btn-font-inc" type="button" class="text-btn" title="Increase text size" aria-label="Increase text size">A+</button>
+        <button id="btn-theme" type="button" title="Switch to dark theme" aria-label="Switch to dark theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"/></svg></button>
         <button id="btn-globe" type="button" title="Translate this page" aria-label="Translate this page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/><path d="M5.3 6.5c1.9 1 4.2 1.6 6.7 1.6s4.8-.6 6.7-1.6"/><path d="M5.3 17.5c1.9-1 4.2-1.6 6.7-1.6s4.8.6 6.7 1.6"/></svg></button>
     </div>
 
@@ -721,6 +813,61 @@
         // Keep the whole site translated as the visitor moves between pages.
         var saved = currentLang();
         if (saved && saved !== 'en') applyLanguage(saved);
+    })();
+    </script>
+
+    <!-- Text size + theme: both run on every viewport (including phones),
+         unlike the TOC-sidebar script further down, which only touches
+         desktop-width pages. Text size drives --content-font-scale (used by
+         #content and its headings — see the <style> block). Theme toggles
+         html[data-theme="dark"] and swaps in the dark highlight.js
+         stylesheet to match. Both choices persist in localStorage, same
+         pattern as the language picker above. -->
+    <script>
+    (function () {
+        var FONT_KEY = 'wikiFontScale';
+        var FONT_MIN = 0.75, FONT_MAX = 1.6, FONT_STEP = 0.1;
+        var btnDec = document.getElementById('btn-font-dec');
+        var btnInc = document.getElementById('btn-font-inc');
+        var scale = 1;
+        try {
+            var savedScale = parseFloat(localStorage.getItem(FONT_KEY));
+            if (!isNaN(savedScale)) scale = savedScale;
+        } catch (e) {}
+        function applyScale(s) {
+            scale = Math.max(FONT_MIN, Math.min(FONT_MAX, s));
+            document.documentElement.style.setProperty('--content-font-scale', scale.toFixed(2));
+            try { localStorage.setItem(FONT_KEY, scale.toFixed(2)); } catch (e) {}
+        }
+        applyScale(scale);
+        if (btnDec) btnDec.addEventListener('click', function () { applyScale(scale - FONT_STEP); });
+        if (btnInc) btnInc.addEventListener('click', function () { applyScale(scale + FONT_STEP); });
+    })();
+    (function () {
+        var THEME_KEY = 'wikiTheme';
+        var SUN_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>';
+        var MOON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"/></svg>';
+        var btnTheme = document.getElementById('btn-theme');
+        var hljsDark = document.getElementById('hljs-theme-dark');
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            if (btnTheme) {
+                btnTheme.innerHTML = theme === 'dark' ? SUN_SVG : MOON_SVG;
+                var label = theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
+                btnTheme.title = label;
+                btnTheme.setAttribute('aria-label', label);
+            }
+            if (hljsDark) hljsDark.disabled = (theme !== 'dark');
+            try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
+        }
+        var savedTheme = 'light';
+        try { savedTheme = localStorage.getItem(THEME_KEY) || 'light'; } catch (e) {}
+        applyTheme(savedTheme);
+        if (btnTheme) {
+            btnTheme.addEventListener('click', function () {
+                applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+            });
+        }
     })();
     </script>
 
@@ -1082,6 +1229,84 @@
             var current = currentWidth || DEFAULT_SIDEBAR;
             if (e.key === 'ArrowLeft') { applyWidth(clampWidth(current - step)); persistWidth(); e.preventDefault(); }
             else if (e.key === 'ArrowRight') { applyWidth(clampWidth(current + step)); persistWidth(); e.preventDefault(); }
+        });
+
+        // ---- Right-edge resizer: drag to shrink #content from the right,
+        // leaving an adjustable empty margin between it and the shell's edge
+        // (the shell's default flex-start alignment means that space just
+        // shows up as page background once #content stops auto-filling it).
+        // Mirrors the sidebar resizer above; "null" means "let it auto-fill"
+        // (the original, unmodified default) rather than any specific width.
+        var MIN_CONTENT = 400, MAX_CONTENT = 1300;
+        var CONTENT_WIDTH_KEY = 'wikiContentWidth';
+        var contentResizer = document.createElement('div');
+        contentResizer.id = 'content-resizer';
+        contentResizer.setAttribute('role', 'separator');
+        contentResizer.setAttribute('aria-orientation', 'vertical');
+        contentResizer.setAttribute('aria-label', 'Resize content width');
+        contentResizer.tabIndex = 0;
+        var contentGrip = document.createElement('div');
+        contentGrip.className = 'toc-resizer-grip';
+        contentResizer.appendChild(contentGrip);
+        pageShell.appendChild(contentResizer); // after #content — it's the last child
+
+        function clampContentWidth(w) { return Math.max(MIN_CONTENT, Math.min(MAX_CONTENT, w)); }
+        var contentCurrentWidth = null; // null = auto (flex:1 1 auto, the original default)
+        function applyContentWidth(w) {
+            contentCurrentWidth = w;
+            if (w === null) {
+                contentEl.style.flex = '';
+                contentEl.style.maxWidth = 'none';
+            } else {
+                contentEl.style.flex = '0 0 ' + w + 'px';
+                contentEl.style.maxWidth = w + 'px';
+            }
+            contentResizer.setAttribute('aria-valuenow', w === null ? '' : String(Math.round(w)));
+        }
+        function persistContentWidth() {
+            try {
+                if (contentCurrentWidth === null) localStorage.removeItem(CONTENT_WIDTH_KEY);
+                else localStorage.setItem(CONTENT_WIDTH_KEY, Math.round(contentCurrentWidth));
+            } catch (e) {}
+        }
+        try {
+            var savedContentWidth = parseInt(localStorage.getItem(CONTENT_WIDTH_KEY), 10);
+            if (!isNaN(savedContentWidth)) applyContentWidth(clampContentWidth(savedContentWidth));
+        } catch (e) {}
+
+        var draggingContent = false, contentDragStartX = 0, contentDragStartWidth = 0;
+        contentResizer.addEventListener('pointerdown', function (e) {
+            draggingContent = true;
+            contentDragStartX = e.clientX;
+            contentDragStartWidth = contentCurrentWidth != null ? contentCurrentWidth : contentEl.getBoundingClientRect().width;
+            contentResizer.classList.add('dragging');
+            document.body.classList.add('toc-resizing');
+            try { contentResizer.setPointerCapture(e.pointerId); } catch (err) {}
+            e.preventDefault();
+        });
+        contentResizer.addEventListener('pointermove', function (e) {
+            if (!draggingContent) return;
+            applyContentWidth(clampContentWidth(contentDragStartWidth + (e.clientX - contentDragStartX)));
+        });
+        function endContentDrag(e) {
+            if (!draggingContent) return;
+            draggingContent = false;
+            contentResizer.classList.remove('dragging');
+            document.body.classList.remove('toc-resizing');
+            try { contentResizer.releasePointerCapture(e.pointerId); } catch (err) {}
+            persistContentWidth();
+        }
+        contentResizer.addEventListener('pointerup', endContentDrag);
+        contentResizer.addEventListener('pointercancel', endContentDrag);
+        contentResizer.addEventListener('dblclick', function () {
+            applyContentWidth(null);
+            persistContentWidth();
+        });
+        contentResizer.addEventListener('keydown', function (e) {
+            var step = 20;
+            var current = contentCurrentWidth != null ? contentCurrentWidth : contentEl.getBoundingClientRect().width;
+            if (e.key === 'ArrowLeft') { applyContentWidth(clampContentWidth(current - step)); persistContentWidth(); e.preventDefault(); }
+            else if (e.key === 'ArrowRight') { applyContentWidth(clampContentWidth(current + step)); persistContentWidth(); e.preventDefault(); }
         });
 
         // ---- Scrollspy: highlight whichever section is currently being read ----
