@@ -1677,11 +1677,13 @@ By following these steps, you can create a header file that provides a common in
             }
             function hideSidebar() {
                 sidebar.style.display = 'none';
+                resizer.style.display = 'none'; // also collapse the gap strip — otherwise hiding the box just leaves dead space where it was
                 setToggleLabel(true);
                 try { localStorage.setItem(HIDDEN_KEY, '1'); } catch (e) {}
             }
             function showSidebar() {
                 sidebar.style.display = '';
+                resizer.style.display = ''; // restore the gap strip too, at whatever width it was (untouched by hiding)
                 if (sidebar.classList.contains('floating')) unfloat(); // always land back on the left, not wherever it last floated
                 setToggleLabel(false);
                 try { localStorage.removeItem(HIDDEN_KEY); } catch (e) {}
