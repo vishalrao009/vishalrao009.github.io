@@ -516,8 +516,12 @@
         }
         /* Plain monochrome line icons — no fill, no coloured circle. The icons
            are inline SVG using stroke: currentColor, so `color` is all that
-           drives their appearance. */
-        .top-right-btns button {
+           drives their appearance. The home link is an <a> rather than a
+           <button> — it's pure navigation, so it works with JS disabled and
+           supports middle-click/ctrl-click to open in a new tab — but gets
+           the exact same box treatment as the icon buttons around it. */
+        .top-right-btns button,
+        .top-right-btns a {
             width: 48px;
             height: 48px;
             display: inline-flex;
@@ -529,11 +533,14 @@
             color: var(--btn-icon-color);
             padding: 0;
             cursor: pointer;
+            text-decoration: none;
             -webkit-tap-highlight-color: transparent;
             transition: color 0.15s ease, background-color 0.15s ease;
         }
-        .top-right-btns button svg { width: 32px; height: 32px; display: block; }
-        .top-right-btns button:hover { color: var(--accent-strong); background: var(--panel-hover); }
+        .top-right-btns button svg,
+        .top-right-btns a svg { width: 32px; height: 32px; display: block; }
+        .top-right-btns button:hover,
+        .top-right-btns a:hover { color: var(--accent-strong); background: var(--panel-hover); }
         /* Font-size buttons are plain text ("A-" / "A+"), not SVG icons, so
            they need their own font sizing on top of the shared button box. */
         .top-right-btns button.text-btn { font-size: 15px; font-weight: bold; font-family: Arial, sans-serif; }
@@ -541,8 +548,10 @@
             .floating-btns { right: 14px; bottom: 14px; }
             .floating-btns button { width: 44px; height: 44px; font-size: 20px; line-height: 44px; }
             .top-right-btns { top: 12px; right: 14px; gap: 4px; }
-            .top-right-btns button { width: 44px; height: 44px; }
-            .top-right-btns button svg { width: 30px; height: 30px; }
+            .top-right-btns button,
+            .top-right-btns a { width: 44px; height: 44px; }
+            .top-right-btns button svg,
+            .top-right-btns a svg { width: 30px; height: 30px; }
         }
         /* Mobile Styles */
         @media only screen and (max-width: 600px) {
@@ -800,13 +809,18 @@ To print the type names we can include &lt;typeinfo&gt;
         <button id="btn-top" type="button" title="Back to top" aria-label="Back to top">&#8593;</button>
     </div>
 
-    <!-- Top-right buttons: site-wide tools — text size, theme, translate, and
-         search (docked here at runtime by search.js). Kept out of the
-         bottom-right stack above, which is for navigating within the
-         current page. Text-size and theme both work on phones too (their
-         script isn't gated to desktop widths); the theme icon is swapped
-         between sun/moon by that same script based on the active theme. -->
+    <!-- Top-right buttons: site-wide tools — home, text size, theme, toggle
+         contents, translate, and search (docked here at runtime by
+         search.js, which always inserts itself as the very first child —
+         see the small reordering script right after search.js's own
+         <script> tag near the end of the body, which puts home back in
+         front of it every time). Kept out of the bottom-right stack above,
+         which is for navigating within the current page. Home, text-size,
+         and theme all work on phones too (none of their scripts are gated
+         to desktop widths); the theme icon is swapped between sun/moon by
+         that script based on the active theme. -->
     <div class="top-right-btns">
+        <a id="btn-home" href="https://vishalrao.in/index.html" title="Home" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 9.5V20a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V9.5"/><path d="M9.5 21v-6a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v6"/></svg></a>
         <button id="btn-font-dec" type="button" class="text-btn" title="Decrease text size" aria-label="Decrease text size">A−</button>
         <button id="btn-font-inc" type="button" class="text-btn" title="Increase text size" aria-label="Increase text size">A+</button>
         <button id="btn-theme" type="button" title="Switch to dark theme" aria-label="Switch to dark theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"/></svg></button>
@@ -2018,5 +2032,23 @@ To print the type names we can include &lt;typeinfo&gt;
         };
     </script>
     <script src="/wiki/assets/search.js"></script>
+
+    <!-- search.js (just above) always inserts its own launcher button as the
+         very first child of whatever container it's docked into — see its
+         own "holder.insertBefore(docked, holder.firstChild)" — regardless
+         of where #btn-home already sits. Since that script isn't deferred,
+         it's already run and already inserted its button by the time this
+         tag executes, so simply re-asserting #btn-home as the first child
+         here is enough to guarantee the final order is home, then search,
+         then everything else — every time, regardless of load order. -->
+    <script>
+    (function () {
+        var home = document.getElementById('btn-home');
+        var stack = document.querySelector('.top-right-btns');
+        if (home && stack && stack.firstChild !== home) {
+            stack.insertBefore(home, stack.firstChild);
+        }
+    })();
+    </script>
 </body>
 </html>

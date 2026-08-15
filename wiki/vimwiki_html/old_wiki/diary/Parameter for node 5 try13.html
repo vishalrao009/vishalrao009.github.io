@@ -4,7 +4,8 @@
     <!-- <link rel="stylesheet" type="text/css" href="../style.css"> -->
     <link rel="stylesheet" href="/wiki/assets/style.css" />
     <link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <link id="hljs-theme-light" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
+    <link id="hljs-theme-dark" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" disabled />
     <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
     <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
     <title>Parameter for node 5 try13</title>
@@ -26,32 +27,109 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
+        /* Theme variables. Light values live at :root; the dark theme
+           (toggled by the theme button, script near the end of <body>)
+           overrides them on html[data-theme="dark"]. --content-font-scale
+           is the reading-size multiplier driven by the +/- buttons. */
+        :root {
+            --content-font-scale: 1;
+            --page-bg-image: url('/wiki/vimwiki_html/Images/parchment.jpg');
+            --page-bg-color: transparent;
+            --text-color: #333;
+            --muted-text: #555;
+            --content-bg: rgba(255, 255, 255, 0.5);
+            --link-color: #b5651d;
+            --link-hover-color: #8a4a12;
+            --breadcrumb-sep-color: #c08a5a;
+            --breadcrumb-current-color: #1f3a5f;
+            --border-accent: rgba(181, 101, 29, 0.35);
+            --accent: #6b4f2a;
+            --accent-strong: #1f1a15;
+            --btn-icon-color: #4a4038;
+            --btn-text-on-accent: #fff;
+            --panel-bg: #fbf6e9;
+            --panel-border: rgba(107, 79, 42, 0.3);
+            --panel-border-soft: rgba(107, 79, 42, 0.25);
+            --panel-border-faint: rgba(107, 79, 42, 0.2);
+            --panel-hover: rgba(107, 79, 42, 0.12);
+            --grip-color: rgba(107, 79, 42, 0.3);
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --shadow-color-strong: rgba(0, 0, 0, 0.35);
+            --sidebar-bg: rgba(251, 246, 233, 0.75);
+            --sidebar-link-color: #4a4038;
+            --sidebar-active-bg: rgba(107, 79, 42, 0.14);
+            --sidebar-active-color: #1f3a5f;
+            --sidebar-hover-bg: rgba(107, 79, 42, 0.1);
+            --sidebar-hover-color: #1f1a15;
+            --lp-snippet-color: #444;
+            --lp-thumb-bg: rgba(107, 79, 42, 0.08);
+        }
+        html[data-theme="dark"] {
+            --page-bg-image: none;
+            --page-bg-color: #14110d;
+            --text-color: #e6e0d4;
+            --muted-text: #b5ab98;
+            --content-bg: rgba(24, 21, 17, 0.82);
+            --link-color: #e3a75e;
+            --link-hover-color: #f2c187;
+            --breadcrumb-sep-color: #a9825a;
+            --breadcrumb-current-color: #f2c187;
+            --border-accent: rgba(227, 167, 94, 0.35);
+            --accent: #d3a76b;
+            --accent-strong: #f5ead8;
+            --btn-icon-color: #d8cfc0;
+            --btn-text-on-accent: #1a1712;
+            --panel-bg: #211c16;
+            --panel-border: rgba(211, 167, 107, 0.35);
+            --panel-border-soft: rgba(211, 167, 107, 0.28);
+            --panel-border-faint: rgba(211, 167, 107, 0.22);
+            --panel-hover: rgba(211, 167, 107, 0.16);
+            --grip-color: rgba(211, 167, 107, 0.4);
+            --shadow-color: rgba(0, 0, 0, 0.55);
+            --shadow-color-strong: rgba(0, 0, 0, 0.6);
+            --sidebar-bg: rgba(33, 28, 22, 0.85);
+            --sidebar-link-color: #d8cfc0;
+            --sidebar-active-bg: rgba(211, 167, 107, 0.2);
+            --sidebar-active-color: #f2c187;
+            --sidebar-hover-bg: rgba(211, 167, 107, 0.14);
+            --sidebar-hover-color: #f5ead8;
+            --lp-snippet-color: #c9c0b0;
+            --lp-thumb-bg: rgba(211, 167, 107, 0.12);
+        }
+        /* TikZ diagrams are rendered as black-on-transparent SVG with no
+           color hooks of their own, so under dark theme they're inverted
+           back to light-on-dark rather than staying illegibly dark-on-dark. */
+        html[data-theme="dark"] pre.tikz svg {
+            filter: invert(0.92) hue-rotate(180deg);
+        }
         body {
             /* Absolute, not '../Images/parchment.jpg': the relative form
                resolved to a different copy of the same image in every section
                folder, so the browser cached (and re-downloaded) it once per
                section. One canonical URL = fetched once for the whole site. */
-            background-image: url('/wiki/vimwiki_html/Images/parchment.jpg');
+            background-image: var(--page-bg-image);
+            background-color: var(--page-bg-color);
             background-size: cover;
             background-repeat: no-repeat;
             background-attachment: fixed;
             margin: 0;
             font-family: Arial, sans-serif;
             padding: 3cm;
+            color: var(--text-color);
         }
         #content {
-            color: #333;
-            font-size: 20px;
+            color: var(--text-color);
+            font-size: calc(20px * var(--content-font-scale));
             line-height: 1.6;
             max-width: 1200px;
             margin: 0 auto;
             padding: 10px;
-            background-color: rgba(255, 255, 255, 0.5);
+            background-color: var(--content-bg);
         }
-        h1 { font-size: 28px; }
-        h2 { font-size: 24px; }
-        h3 { font-size: 20px; }
-        h4, h5, h6 { font-size: 18px; }
+        h1 { font-size: calc(28px * var(--content-font-scale)); }
+        h2 { font-size: calc(24px * var(--content-font-scale)); }
+        h3 { font-size: calc(20px * var(--content-font-scale)); }
+        h4, h5, h6 { font-size: calc(18px * var(--content-font-scale)); }
         img {
             display: block;
             max-width: 100%;
@@ -69,7 +147,7 @@
         }
         figure.img-figure figcaption {
             font-size: 15px;
-            color: #555;
+            color: var(--muted-text);
             font-style: italic;
             line-height: 1.4;
         }
@@ -90,14 +168,311 @@
             line-height: 1.5;
             margin-bottom: 22px;
             padding-bottom: 12px;
-            border-bottom: 2px solid rgba(181, 101, 29, 0.35);
+            border-bottom: 2px solid var(--border-accent);
             word-break: break-word;
         }
         .breadcrumb:empty { display: none; }
-        .breadcrumb a { color: #b5651d; text-decoration: none; }
-        .breadcrumb a:hover { color: #8a4a12; text-decoration: underline; }
-        .breadcrumb .breadcrumb-sep { color: #c08a5a; margin: 0 8px; }
-        .breadcrumb .breadcrumb-current { color: #1f3a5f; }
+        .breadcrumb a { color: var(--link-color); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--link-hover-color); text-decoration: underline; }
+        .breadcrumb .breadcrumb-sep { color: var(--breadcrumb-sep-color); margin: 0 8px; }
+        .breadcrumb .breadcrumb-current { color: var(--breadcrumb-current-color); }
+        /* TOC sidebar (Wikipedia-style). Built at runtime by the "TOC sidebar"
+           script below, which pulls the vimwiki-generated "Contents" block
+           out of the normal content flow and rebuilds it as a sibling of
+           #content — outside its card/padding, in the freed-up margin to its
+           left — rather than inside it. The script only ever runs on
+           windows at least 901px wide (matching the media query below); on
+           narrower/phone viewports it doesn't touch the page at all, so none
+           of this CSS applies there either. */
+        #toc-sidebar {
+            position: relative; /* positioning context for the resize handles below */
+            padding: 14px 16px;
+            background: var(--sidebar-bg);
+            border: 1px solid var(--panel-border-soft);
+            border-radius: 8px;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        /* Once dragged at least once (see the drag-to-move script further
+           down), the sidebar detaches from the sticky flex column into a
+           freely-positioned floating panel, remembered across page loads. */
+        #toc-sidebar.floating {
+            position: fixed !important;
+            z-index: 999;
+            box-shadow: 0 6px 22px var(--shadow-color-strong);
+        }
+        /* PowerPoint/picture-style resize handles: small squares on the
+           box's own right edge, rather than a strip elsewhere on the page.
+           Only a horizontal (width) resize is offered — the box's height is
+           content-driven with its own scrollbar, so there's nothing
+           meaningful to drag vertically. Work identically whether the box
+           is docked or floating, since #toc-sidebar establishes a
+           positioning context in both states (sticky and fixed both do). */
+        #toc-sidebar .toc-resize-handle {
+            position: absolute;
+            right: -6px;
+            width: 12px;
+            border-radius: 3px;
+            background: var(--accent);
+            border: 2px solid var(--panel-bg);
+            cursor: ew-resize;
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+            opacity: 0.8;
+            z-index: 5;
+            transition: opacity 0.15s ease, transform 0.15s ease;
+        }
+        #toc-sidebar .toc-resize-handle:hover,
+        #toc-sidebar .toc-resize-handle:focus-visible,
+        #toc-sidebar .toc-resize-handle.dragging {
+            opacity: 1;
+            transform: scale(1.15);
+        }
+        #toc-sidebar .toc-resize-handle.corner {
+            bottom: -6px;
+            height: 12px;
+        }
+        #toc-sidebar .toc-resize-handle.edge {
+            top: 50%;
+            height: 28px;
+            margin-top: -14px;
+        }
+        #toc-sidebar .toc-sidebar-title {
+            font-weight: bold;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--accent);
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--panel-border-soft);
+            cursor: grab;
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        #toc-sidebar .toc-sidebar-title:active,
+        #toc-sidebar .toc-sidebar-title.dragging-title {
+            cursor: grabbing;
+        }
+        body.toc-dragging-position { cursor: grabbing; user-select: none; }
+        #toc-sidebar .toc-sidebar-list,
+        #toc-sidebar .toc-sidebar-list ul {
+            list-style: none;
+            margin: 0;
+            padding-left: 0;
+        }
+        #toc-sidebar .toc-sidebar-list ul { padding-left: 16px; }
+        #toc-sidebar .toc-sidebar-list li { margin: 3px 0; }
+        #toc-sidebar .toc-sidebar-list a {
+            display: block;
+            color: var(--sidebar-link-color);
+            text-decoration: none;
+            padding: 3px 8px;
+            border-left: 3px solid transparent;
+            border-radius: 3px;
+        }
+        #toc-sidebar .toc-sidebar-list a:hover {
+            background: var(--sidebar-hover-bg);
+            color: var(--sidebar-hover-color);
+        }
+        #toc-sidebar .toc-sidebar-list a.active {
+            border-left-color: var(--accent);
+            background: var(--sidebar-active-bg);
+            color: var(--sidebar-active-color);
+            font-weight: bold;
+        }
+        @media (min-width: 901px) {
+            /* #page-shell takes over #content's old page-centering role.
+               Widened past the original 1200px so the content column can
+               get back close to its original reading width even with the
+               240px sidebar added alongside it — on a wide screen this
+               shell sits further out toward both edges (sidebar moves left,
+               content gets wider) rather than squeezing content down. */
+            #page-shell {
+                max-width: 1500px;
+                margin: 0 auto;
+                display: flex;
+                align-items: flex-start;
+                gap: 0; /* the draggable #toc-resizer below provides the gutter instead */
+            }
+            #page-shell > #content {
+                margin: 0;
+                max-width: none;
+                flex: 1 1 auto;
+                min-width: 0; /* let wide equations/code wrap instead of forcing the column wider */
+            }
+            #toc-sidebar {
+                flex: 0 0 240px;
+                max-width: 240px;
+                position: sticky;
+                top: 20px;
+                max-height: calc(100vh - 40px);
+                overflow-y: auto;
+            }
+            /* Draggable dividers, built by the same script that builds the
+               sidebar: one between the sidebar and the article, one after
+               the article so its right-hand margin is adjustable too. Both
+               sticky so they're reachable at any scroll position. */
+            #toc-resizer, #content-resizer {
+                flex: 0 0 24px;
+                max-width: 24px;
+                cursor: col-resize;
+                display: flex;
+                align-items: center;
+                touch-action: none;
+                -webkit-tap-highlight-color: transparent;
+                position: sticky;
+                top: 20px;
+                height: calc(100vh - 40px);
+                outline: none;
+            }
+            /* #toc-resizer's own width grows to become the gap itself (see
+               the script), so its grip must stay pinned to the edge nearest
+               #content rather than centering — centered, it would visually
+               drift away from the actual content boundary as the gap grows.
+               #content-resizer's box is always a fixed 24px regardless of
+               drag, so centering there was never actually a problem, but
+               it's pinned the same way for a consistent look either side. */
+            #toc-resizer { justify-content: flex-end; }
+            #content-resizer { justify-content: flex-start; }
+            #toc-resizer .toc-resizer-grip,
+            #content-resizer .toc-resizer-grip {
+                width: 4px;
+                height: 48px;
+                border-radius: 4px;
+                background: var(--grip-color);
+                transition: background 0.15s ease, height 0.15s ease;
+            }
+            #toc-resizer:hover .toc-resizer-grip,
+            #toc-resizer.dragging .toc-resizer-grip,
+            #toc-resizer:focus-visible .toc-resizer-grip,
+            #content-resizer:hover .toc-resizer-grip,
+            #content-resizer.dragging .toc-resizer-grip,
+            #content-resizer:focus-visible .toc-resizer-grip {
+                background: var(--accent);
+                height: 72px;
+            }
+        }
+        /* Applied to <body> only while actively dragging the resizer, so the
+           cursor/no-select behavior holds even if the pointer strays off the
+           thin handle mid-drag. */
+        body.toc-resizing { cursor: col-resize; user-select: none; }
+        /* Mobile Contents toggle + glass panel. Built by a separate,
+           self-contained script (own copy of the TOC-detection logic) that
+           only ever runs below the same 900px point where the desktop
+           sidebar script bails out — the two never run on the same page
+           load, so there's no interaction between them to worry about. */
+        @media (max-width: 900px) {
+            #toc-toggle {
+                position: fixed;
+                left: 24px;
+                bottom: 24px;
+                width: 52px;
+                height: 52px;
+                border-radius: 50%;
+                border: none;
+                background: var(--accent);
+                color: var(--btn-text-on-accent);
+                box-shadow: 0 2px 10px var(--shadow-color);
+                z-index: 1052;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                -webkit-tap-highlight-color: transparent;
+                transition: transform 0.15s ease;
+            }
+            #toc-toggle:active { transform: scale(0.92); }
+            #toc-toggle svg { width: 26px; height: 26px; display: block; }
+            #toc-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.25);
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.2s ease;
+                z-index: 1050;
+            }
+            #toc-overlay.open { opacity: 1; pointer-events: auto; }
+            /* The actual "glass": translucent + blurred backdrop so the
+               article text is still dimly visible (and scroll position
+               legible) behind the panel while it's open. */
+            #toc-panel {
+                position: fixed;
+                left: 12px;
+                right: 12px;
+                bottom: 12px;
+                max-height: 70vh;
+                display: flex;
+                flex-direction: column;
+                background: rgba(251, 246, 233, 0.55);
+                -webkit-backdrop-filter: blur(16px) saturate(160%);
+                backdrop-filter: blur(16px) saturate(160%);
+                border: 1px solid rgba(255, 255, 255, 0.4);
+                border-radius: 16px;
+                box-shadow: 0 10px 40px var(--shadow-color-strong);
+                z-index: 1051;
+                overflow: hidden;
+                transform: translateY(16px) scale(0.98);
+                opacity: 0;
+                pointer-events: none;
+                transition: transform 0.22s ease, opacity 0.22s ease;
+            }
+            #toc-panel.open {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+                pointer-events: auto;
+            }
+            html[data-theme="dark"] #toc-panel {
+                background: rgba(33, 28, 22, 0.5);
+                border-color: rgba(255, 255, 255, 0.12);
+            }
+            #toc-panel .toc-panel-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 14px 16px 10px 16px;
+                font-weight: bold;
+                font-size: 14px;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                color: var(--accent);
+                border-bottom: 1px solid var(--panel-border-soft);
+                flex: 0 0 auto;
+            }
+            #toc-panel .toc-panel-close {
+                border: none;
+                background: none;
+                color: inherit;
+                font-size: 22px;
+                line-height: 1;
+                padding: 4px 6px;
+                cursor: pointer;
+                -webkit-tap-highlight-color: transparent;
+            }
+            #toc-panel .toc-panel-body {
+                overflow-y: auto;
+                padding: 8px 10px 14px 10px;
+                font-size: 16px;
+            }
+            #toc-panel .toc-panel-body ul,
+            #toc-panel .toc-panel-body ul ul {
+                list-style: none;
+                margin: 0;
+                padding-left: 0;
+            }
+            #toc-panel .toc-panel-body ul ul { padding-left: 18px; }
+            #toc-panel .toc-panel-body li { margin: 2px 0; }
+            #toc-panel .toc-panel-body a {
+                display: block;
+                color: var(--sidebar-link-color);
+                text-decoration: none;
+                padding: 9px 10px;
+                border-radius: 8px;
+            }
+            #toc-panel .toc-panel-body a:active { background: var(--panel-hover); }
+        }
         /* Floating navigation buttons (ask this page + go back + scroll to top) */
         .floating-btns {
             position: fixed;
@@ -113,14 +488,14 @@
             height: 48px;
             border: none;
             border-radius: 50%;
-            background: #6b4f2a;
-            color: #fff;
+            background: var(--accent);
+            color: var(--btn-text-on-accent);
             font-size: 22px;
             line-height: 48px;
             text-align: center;
             padding: 0;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 8px var(--shadow-color);
             opacity: 0.85;
             transition: opacity 0.2s, transform 0.2s;
         }
@@ -141,8 +516,12 @@
         }
         /* Plain monochrome line icons — no fill, no coloured circle. The icons
            are inline SVG using stroke: currentColor, so `color` is all that
-           drives their appearance. */
-        .top-right-btns button {
+           drives their appearance. The home link is an <a> rather than a
+           <button> — it's pure navigation, so it works with JS disabled and
+           supports middle-click/ctrl-click to open in a new tab — but gets
+           the exact same box treatment as the icon buttons around it. */
+        .top-right-btns button,
+        .top-right-btns a {
             width: 48px;
             height: 48px;
             display: inline-flex;
@@ -151,20 +530,28 @@
             border: none;
             border-radius: 8px;
             background: none;
-            color: #4a4038;
+            color: var(--btn-icon-color);
             padding: 0;
             cursor: pointer;
+            text-decoration: none;
             -webkit-tap-highlight-color: transparent;
             transition: color 0.15s ease, background-color 0.15s ease;
         }
-        .top-right-btns button svg { width: 32px; height: 32px; display: block; }
-        .top-right-btns button:hover { color: #1f1a15; background: rgba(107, 79, 42, 0.12); }
+        .top-right-btns button svg,
+        .top-right-btns a svg { width: 32px; height: 32px; display: block; }
+        .top-right-btns button:hover,
+        .top-right-btns a:hover { color: var(--accent-strong); background: var(--panel-hover); }
+        /* Font-size buttons are plain text ("A-" / "A+"), not SVG icons, so
+           they need their own font sizing on top of the shared button box. */
+        .top-right-btns button.text-btn { font-size: 15px; font-weight: bold; font-family: Arial, sans-serif; }
         @media (max-width: 600px) {
             .floating-btns { right: 14px; bottom: 14px; }
             .floating-btns button { width: 44px; height: 44px; font-size: 20px; line-height: 44px; }
             .top-right-btns { top: 12px; right: 14px; gap: 4px; }
-            .top-right-btns button { width: 44px; height: 44px; }
-            .top-right-btns button svg { width: 30px; height: 30px; }
+            .top-right-btns button,
+            .top-right-btns a { width: 44px; height: 44px; }
+            .top-right-btns button svg,
+            .top-right-btns a svg { width: 30px; height: 30px; }
         }
         /* Mobile Styles */
         @media only screen and (max-width: 600px) {
@@ -172,13 +559,13 @@
             #content {
                 padding: 8px 10px;
                 max-width: 100%;
-                font-size: 13px;    /* smaller text -> proportionally smaller equations that fit */
+                font-size: calc(13px * var(--content-font-scale));    /* smaller text -> proportionally smaller equations that fit */
                 line-height: 1.5;
             }
-            h1 { font-size: 20px; }
-            h2 { font-size: 18px; }
-            h3 { font-size: 16px; }
-            h4, h5, h6 { font-size: 15px; }
+            h1 { font-size: calc(20px * var(--content-font-scale)); }
+            h2 { font-size: calc(18px * var(--content-font-scale)); }
+            h3 { font-size: calc(16px * var(--content-font-scale)); }
+            h4, h5, h6 { font-size: calc(15px * var(--content-font-scale)); }
             .breadcrumb { font-size: 15px; }
             /* Wide math: never let it stretch the page. If it can't be broken onto
                multiple lines, it scrolls inside its own box instead. */
@@ -233,9 +620,9 @@
             top: 72px;
             width: 260px;
             max-height: 360px;
-            background: #fbf6e9;
+            background: var(--panel-bg);
             border-radius: 10px;
-            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+            box-shadow: 0 4px 18px var(--shadow-color-strong);
             z-index: 1001;
             overflow: hidden;
         }
@@ -243,13 +630,13 @@
         #translate-panel .tp-header {
             padding: 10px 12px 6px 12px;
             font-weight: bold;
-            color: #6b4f2a;
-            border-bottom: 1px solid rgba(107, 79, 42, 0.2);
+            color: var(--accent);
+            border-bottom: 1px solid var(--panel-border-faint);
         }
         #translate-panel input[type="text"] {
             margin: 8px 12px;
             padding: 6px 8px;
-            border: 1px solid rgba(107, 79, 42, 0.3);
+            border: 1px solid var(--panel-border);
             border-radius: 6px;
             font-size: 14px;
         }
@@ -265,12 +652,12 @@
             border: none;
             padding: 7px 10px;
             font-size: 14px;
-            color: #333;
+            color: var(--text-color);
             cursor: pointer;
             border-radius: 6px;
         }
-        #translate-panel .tp-lang:hover { background: rgba(107, 79, 42, 0.12); }
-        #translate-panel .tp-lang.active { background: #6b4f2a; color: #fff; }
+        #translate-panel .tp-lang:hover { background: var(--panel-hover); }
+        #translate-panel .tp-lang.active { background: var(--accent); color: var(--btn-text-on-accent); }
         @media (max-width: 600px) {
             #translate-panel { right: 14px; top: 64px; width: 220px; max-height: 300px; }
         }
@@ -282,10 +669,10 @@
             z-index: 1002;
             width: 300px;
             max-width: calc(100vw - 24px);
-            background: #fbf6e9;
-            border: 1px solid rgba(107, 79, 42, 0.3);
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
             border-radius: 10px;
-            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
+            box-shadow: 0 6px 22px var(--shadow-color-strong);
             overflow: hidden;
             opacity: 0;
             pointer-events: none;
@@ -299,19 +686,19 @@
             height: 140px;
             object-fit: cover;
             display: block;
-            background: rgba(107, 79, 42, 0.08);
+            background: var(--lp-thumb-bg);
         }
         .link-preview-card .lp-body { padding: 12px 14px; }
         .link-preview-card .lp-title {
             font-size: 15px;
             font-weight: bold;
-            color: #6b4f2a;
+            color: var(--accent);
             margin: 0 0 6px 0;
             line-height: 1.3;
         }
         .link-preview-card .lp-snippet {
             font-size: 13px;
-            color: #444;
+            color: var(--lp-snippet-color);
             line-height: 1.45;
             margin: 0;
         }
@@ -372,10 +759,22 @@ write_every = 10             # write every 11th accept-reject process<br />
         <button id="btn-top" type="button" title="Back to top" aria-label="Back to top">&#8593;</button>
     </div>
 
-    <!-- Top-right buttons: site-wide tools — search (docked here at runtime by
-         search.js) and translate. Kept out of the bottom-right stack above,
-         which is for navigating within the current page. -->
+    <!-- Top-right buttons: site-wide tools — home, text size, theme, toggle
+         contents, translate, and search (docked here at runtime by
+         search.js, which always inserts itself as the very first child —
+         see the small reordering script right after search.js's own
+         <script> tag near the end of the body, which puts home back in
+         front of it every time). Kept out of the bottom-right stack above,
+         which is for navigating within the current page. Home, text-size,
+         and theme all work on phones too (none of their scripts are gated
+         to desktop widths); the theme icon is swapped between sun/moon by
+         that script based on the active theme. -->
     <div class="top-right-btns">
+        <a id="btn-home" href="https://vishalrao.in/index.html" title="Home" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 9.5V20a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V9.5"/><path d="M9.5 21v-6a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v6"/></svg></a>
+        <button id="btn-font-dec" type="button" class="text-btn" title="Decrease text size" aria-label="Decrease text size">A−</button>
+        <button id="btn-font-inc" type="button" class="text-btn" title="Increase text size" aria-label="Increase text size">A+</button>
+        <button id="btn-theme" type="button" title="Switch to dark theme" aria-label="Switch to dark theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"/></svg></button>
+        <button id="btn-toc-toggle" type="button" title="Hide contents" aria-label="Hide contents" aria-pressed="true" style="display: none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg></button>
         <button id="btn-globe" type="button" title="Translate this page" aria-label="Translate this page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/><path d="M5.3 6.5c1.9 1 4.2 1.6 6.7 1.6s4.8-.6 6.7-1.6"/><path d="M5.3 17.5c1.9-1 4.2-1.6 6.7-1.6s4.8.6 6.7 1.6"/></svg></button>
     </div>
 
@@ -622,6 +1021,61 @@ write_every = 10             # write every 11th accept-reject process<br />
     })();
     </script>
 
+    <!-- Text size + theme: both run on every viewport (including phones),
+         unlike the TOC-sidebar script further down, which only touches
+         desktop-width pages. Text size drives --content-font-scale (used by
+         #content and its headings — see the <style> block). Theme toggles
+         html[data-theme="dark"] and swaps in the dark highlight.js
+         stylesheet to match. Both choices persist in localStorage, same
+         pattern as the language picker above. -->
+    <script>
+    (function () {
+        var FONT_KEY = 'wikiFontScale';
+        var FONT_MIN = 0.75, FONT_MAX = 1.6, FONT_STEP = 0.1;
+        var btnDec = document.getElementById('btn-font-dec');
+        var btnInc = document.getElementById('btn-font-inc');
+        var scale = 1;
+        try {
+            var savedScale = parseFloat(localStorage.getItem(FONT_KEY));
+            if (!isNaN(savedScale)) scale = savedScale;
+        } catch (e) {}
+        function applyScale(s) {
+            scale = Math.max(FONT_MIN, Math.min(FONT_MAX, s));
+            document.documentElement.style.setProperty('--content-font-scale', scale.toFixed(2));
+            try { localStorage.setItem(FONT_KEY, scale.toFixed(2)); } catch (e) {}
+        }
+        applyScale(scale);
+        if (btnDec) btnDec.addEventListener('click', function () { applyScale(scale - FONT_STEP); });
+        if (btnInc) btnInc.addEventListener('click', function () { applyScale(scale + FONT_STEP); });
+    })();
+    (function () {
+        var THEME_KEY = 'wikiTheme';
+        var SUN_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>';
+        var MOON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"/></svg>';
+        var btnTheme = document.getElementById('btn-theme');
+        var hljsDark = document.getElementById('hljs-theme-dark');
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            if (btnTheme) {
+                btnTheme.innerHTML = theme === 'dark' ? SUN_SVG : MOON_SVG;
+                var label = theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
+                btnTheme.title = label;
+                btnTheme.setAttribute('aria-label', label);
+            }
+            if (hljsDark) hljsDark.disabled = (theme !== 'dark');
+            try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
+        }
+        var savedTheme = 'light';
+        try { savedTheme = localStorage.getItem(THEME_KEY) || 'light'; } catch (e) {}
+        applyTheme(savedTheme);
+        if (btnTheme) {
+            btnTheme.addEventListener('click', function () {
+                applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+            });
+        }
+    })();
+    </script>
+
     <!-- Images: (1) rewrite baked-in local export paths to their web location and
          trim stray spaces, (2) upgrade http:// -> https://, (3) add a caption under
          each image using its alt text. Images with no alt are left uncaptioned.
@@ -804,6 +1258,640 @@ write_every = 10             # write every 11th accept-reject process<br />
     })();
     </script>
 
+    <!-- TOC sidebar: pulls the vimwiki-generated "Contents" block (a heading
+         immediately followed by a list of same-page "#..." links — that's how
+         :VimwikiTOC renders) out of the normal reading flow and rebuilds it as
+         a left-hand sidebar, Wikipedia-style. Everything else that was in
+         #content gets wrapped into #article-body next to it. If a page has no
+         such block, this does nothing and the page renders exactly as before.
+         Must run after the hover-preview script above (so that script still
+         walks the original, unmodified #content), and before the numbered
+         pipeline below, since step 1 (TikZ) looks for pre.tikz wherever it
+         ends up nested and doesn't care about this move. -->
+    <script>
+    (function () {
+        var DESKTOP_BREAKPOINT = 901; // must match the CSS media query below
+        if (window.innerWidth < DESKTOP_BREAKPOINT) return; // phones/narrow: leave the page 100% untouched, exactly as before this feature existed
+
+        var contentEl = document.getElementById('content');
+        if (!contentEl) return;
+
+        var kids = Array.prototype.slice.call(contentEl.children).filter(function (el) {
+            return el.id !== 'breadcrumb';
+        });
+        if (!kids.length) return;
+
+        // Find "<heading-bearing element> immediately followed by <ul of only
+        // same-page links>". Vimwiki wraps every heading in its own
+        // <div id="..."><h1 class="header">...</h1></div>, and specifically
+        // marks the auto-generated Contents block with class="toc" on that
+        // wrapper div — so a heading can be the element itself (a bare
+        // <h1>-<h6>) or that wrapper div containing one. TOC links are
+        // relative same-page links like "PageName.html#fragment", not bare
+        // "#fragment", so anchors are matched by "has a # with a valid
+        // in-page id after it" rather than "starts with #".
+        function directHeading(el) {
+            if (/^H[1-6]$/.test(el.tagName)) return el;
+            for (var j = 0; j < el.children.length; j++) {
+                if (/^H[1-6]$/.test(el.children[j].tagName)) return el.children[j];
+            }
+            return null;
+        }
+        function fragmentId(href) {
+            var hashIdx = href.indexOf('#');
+            return hashIdx === -1 ? '' : href.slice(hashIdx + 1);
+        }
+
+        var tocHeading = null, tocList = null, tocLabel = '';
+        for (var i = 0; i < kids.length - 1; i++) {
+            var el = kids[i], next = kids[i + 1];
+            if (next.tagName !== 'UL') continue;
+            var heading = directHeading(el);
+            if (!heading) continue;
+            var anchors = next.querySelectorAll('a[href]');
+            if (!anchors.length) continue;
+            var allSamePage = Array.prototype.every.call(anchors, function (a) {
+                var id = fragmentId(a.getAttribute('href') || '');
+                return !!id && document.getElementById(id) != null;
+            });
+            if (!allSamePage) continue;
+            var isTocMarked = !!(el.classList && el.classList.contains('toc'));
+            var isContentsLabel = heading.textContent.replace(/\s+/g, ' ').trim().toLowerCase() === 'contents';
+            if (tocHeading === null || isTocMarked || isContentsLabel) {
+                tocHeading = el;
+                tocList = next;
+                tocLabel = heading.textContent.replace(/\s+/g, ' ').trim();
+                if (isTocMarked || isContentsLabel) break;
+            }
+        }
+        if (!tocHeading || !tocList) return; // no TOC on this page — leave layout untouched
+        tocLabel = tocLabel || 'Contents';
+
+        tocHeading.parentNode.removeChild(tocHeading);
+        tocList.parentNode.removeChild(tocList);
+        tocList.removeAttribute('id');
+        tocList.className = (tocList.className + ' toc-sidebar-list').trim();
+
+        // Vimwiki prefixes each TOC entry's visible text with "#" (e.g.
+        // "#Definition") — strip that from the sidebar's display text only;
+        // the href is untouched, so the link still points to the right place.
+        Array.prototype.forEach.call(tocList.querySelectorAll('a'), function (a) {
+            if (a.textContent.charAt(0) === '#') {
+                a.textContent = a.textContent.slice(1);
+            }
+        });
+
+        var sidebar = document.createElement('aside');
+        sidebar.id = 'toc-sidebar';
+        sidebar.setAttribute('aria-label', tocLabel);
+        var label = document.createElement('div');
+        label.className = 'toc-sidebar-title';
+        label.textContent = tocLabel;
+        label.title = 'Drag to move';
+        sidebar.appendChild(label);
+        sidebar.appendChild(tocList);
+
+        // ---- Sidebar's own width: small square handles directly on the box
+        // (bottom-right corner + a taller easier-to-grab handle on the
+        // middle of its right edge), PowerPoint/picture-style, rather than
+        // a big strip elsewhere on the page. Works whether the box is
+        // docked (flex-basis) or floating (width) — see applyWidth below.
+        var MIN_SIDEBAR = 160, MAX_SIDEBAR = 480, DEFAULT_SIDEBAR = 240;
+        var WIDTH_KEY = 'wikiTocSidebarWidth';
+
+        function clampWidth(w) { return Math.max(MIN_SIDEBAR, Math.min(MAX_SIDEBAR, w)); }
+        var currentWidth = DEFAULT_SIDEBAR; // tracked directly — no need to re-derive it from live layout
+        function applyWidth(w) {
+            currentWidth = w;
+            sidebar.style.flexBasis = w + 'px';
+            sidebar.style.maxWidth = w + 'px';
+            sidebar.style.width = w + 'px'; // authoritative once floating (position:fixed ignores flex-basis)
+        }
+        function persistWidth() {
+            try { localStorage.setItem(WIDTH_KEY, Math.round(currentWidth)); } catch (e) {}
+        }
+        try {
+            var savedWidth = parseInt(localStorage.getItem(WIDTH_KEY), 10);
+            applyWidth(!isNaN(savedWidth) ? clampWidth(savedWidth) : DEFAULT_SIDEBAR);
+        } catch (e) {
+            applyWidth(DEFAULT_SIDEBAR);
+        }
+
+        function makeSidebarHandle(extraClass) {
+            var h = document.createElement('div');
+            h.className = 'toc-resize-handle ' + extraClass;
+            h.setAttribute('role', 'separator');
+            h.setAttribute('aria-orientation', 'vertical');
+            h.setAttribute('aria-label', 'Resize contents box');
+            h.setAttribute('aria-valuemin', String(MIN_SIDEBAR));
+            h.setAttribute('aria-valuemax', String(MAX_SIDEBAR));
+            h.tabIndex = 0;
+            sidebar.appendChild(h);
+
+            var dragging = false, startX = 0, startWidth = 0;
+            h.addEventListener('pointerdown', function (e) {
+                dragging = true;
+                startX = e.clientX;
+                startWidth = currentWidth;
+                h.classList.add('dragging');
+                document.body.classList.add('toc-resizing');
+                try { h.setPointerCapture(e.pointerId); } catch (err) {}
+                e.preventDefault();
+            });
+            h.addEventListener('pointermove', function (e) {
+                if (!dragging) return;
+                applyWidth(clampWidth(startWidth + (e.clientX - startX)));
+                h.setAttribute('aria-valuenow', String(Math.round(currentWidth)));
+            });
+            function end(e) {
+                if (!dragging) return;
+                dragging = false;
+                h.classList.remove('dragging');
+                document.body.classList.remove('toc-resizing');
+                try { h.releasePointerCapture(e.pointerId); } catch (err) {}
+                persistWidth();
+            }
+            h.addEventListener('pointerup', end);
+            h.addEventListener('pointercancel', end);
+            h.addEventListener('dblclick', function () {
+                applyWidth(DEFAULT_SIDEBAR);
+                persistWidth();
+            });
+            h.addEventListener('keydown', function (e) {
+                var step = 20;
+                if (e.key === 'ArrowLeft') { applyWidth(clampWidth(currentWidth - step)); persistWidth(); e.preventDefault(); }
+                else if (e.key === 'ArrowRight') { applyWidth(clampWidth(currentWidth + step)); persistWidth(); e.preventDefault(); }
+            });
+            return h;
+        }
+        makeSidebarHandle('corner');
+        makeSidebarHandle('edge');
+
+        // Put the sidebar OUTSIDE #content — as a sibling to its left inside
+        // a shared wrapper — rather than nesting it inside the card's own
+        // padding/background. #content (with just the TOC removed) already
+        // holds everything else, so it doubles as the "article" column
+        // as-is; no separate wrapper needed for its contents.
+        var pageShell = document.createElement('div');
+        pageShell.id = 'page-shell';
+        var contentParent = contentEl.parentNode;
+        contentParent.insertBefore(pageShell, contentEl);
+        pageShell.appendChild(sidebar);
+        pageShell.appendChild(contentEl); // moves #content itself, doesn't clone it
+
+        // ---- Big strip between the sidebar and #content: this now
+        // controls the empty gap/margin in front of the ARTICLE, entirely
+        // independent of the sidebar's own size (that's the two handles
+        // above, on the box itself) — dragging this moves the main content
+        // column, not the small contents box, matching how the mirrored
+        // strip on the article's right edge already behaves.
+        var MIN_GAP = 16, MAX_GAP = 400, DEFAULT_GAP = 24;
+        var GAP_KEY = 'wikiContentLeftGap';
+
+        var resizer = document.createElement('div');
+        resizer.id = 'toc-resizer';
+        resizer.setAttribute('role', 'separator');
+        resizer.setAttribute('aria-orientation', 'vertical');
+        resizer.setAttribute('aria-label', 'Resize space before the article');
+        resizer.setAttribute('aria-valuemin', String(MIN_GAP));
+        resizer.setAttribute('aria-valuemax', String(MAX_GAP));
+        resizer.tabIndex = 0;
+        var grip = document.createElement('div');
+        grip.className = 'toc-resizer-grip';
+        resizer.appendChild(grip);
+        pageShell.insertBefore(resizer, contentEl); // sits between the sidebar and #content
+
+        function clampGap(w) { return Math.max(MIN_GAP, Math.min(MAX_GAP, w)); }
+        var currentGap = DEFAULT_GAP;
+        function applyGap(w) {
+            currentGap = w;
+            resizer.style.flexBasis = w + 'px';
+            resizer.style.maxWidth = w + 'px';
+            resizer.setAttribute('aria-valuenow', String(Math.round(w)));
+        }
+        function persistGap() {
+            try { localStorage.setItem(GAP_KEY, Math.round(currentGap)); } catch (e) {}
+        }
+        try {
+            var savedGap = parseInt(localStorage.getItem(GAP_KEY), 10);
+            applyGap(!isNaN(savedGap) ? clampGap(savedGap) : DEFAULT_GAP);
+        } catch (e) {
+            applyGap(DEFAULT_GAP);
+        }
+
+        var draggingGap = false, gapStartX = 0, gapStartWidth = 0;
+        resizer.addEventListener('pointerdown', function (e) {
+            draggingGap = true;
+            gapStartX = e.clientX;
+            gapStartWidth = currentGap;
+            resizer.classList.add('dragging');
+            document.body.classList.add('toc-resizing');
+            try { resizer.setPointerCapture(e.pointerId); } catch (err) {}
+            e.preventDefault();
+        });
+        resizer.addEventListener('pointermove', function (e) {
+            if (!draggingGap) return;
+            applyGap(clampGap(gapStartWidth + (e.clientX - gapStartX)));
+        });
+        function endGapDrag(e) {
+            if (!draggingGap) return;
+            draggingGap = false;
+            resizer.classList.remove('dragging');
+            document.body.classList.remove('toc-resizing');
+            try { resizer.releasePointerCapture(e.pointerId); } catch (err) {}
+            persistGap();
+        }
+        resizer.addEventListener('pointerup', endGapDrag);
+        resizer.addEventListener('pointercancel', endGapDrag);
+        resizer.addEventListener('dblclick', function () {
+            applyGap(DEFAULT_GAP);
+            persistGap();
+        });
+        resizer.addEventListener('keydown', function (e) {
+            var step = 20;
+            if (e.key === 'ArrowLeft') { applyGap(clampGap(currentGap - step)); persistGap(); e.preventDefault(); }
+            else if (e.key === 'ArrowRight') { applyGap(clampGap(currentGap + step)); persistGap(); e.preventDefault(); }
+        });
+
+        // ---- Drag-to-move: grab the "Contents" title to reposition the
+        // whole sidebar anywhere on screen (left, down, wherever). Detaches
+        // it from the sticky flex column into a freely-positioned floating
+        // panel (position:fixed) the first time it's dragged; remembered
+        // across page loads the same way the width above already is. The
+        // sidebar's own corner/edge handles keep working the same way in
+        // either state — applyWidth() writes to both flex-basis (docked)
+        // and width (floating) — and the gap strip stays exactly where it
+        // is, controlling the article's left margin regardless of whether
+        // the box is currently docked or off floating somewhere else.
+        // Double-clicking the title undoes the float and goes back to the
+        // normal sticky-in-column layout.
+        var POS_KEY = 'wikiTocSidebarPos';
+        function floatAt(left, top) {
+            left = Math.max(4, Math.min(window.innerWidth - 60, left));
+            top = Math.max(4, Math.min(window.innerHeight - 60, top));
+            sidebar.classList.add('floating');
+            sidebar.style.position = 'fixed';
+            sidebar.style.left = left + 'px';
+            sidebar.style.top = top + 'px';
+            sidebar.style.width = (currentWidth || DEFAULT_SIDEBAR) + 'px';
+            sidebar.style.maxHeight = 'calc(100vh - ' + (top + 20) + 'px)';
+            return { left: left, top: top };
+        }
+        function unfloat() {
+            sidebar.classList.remove('floating');
+            sidebar.style.position = '';
+            sidebar.style.left = '';
+            sidebar.style.top = '';
+            sidebar.style.width = '';
+            sidebar.style.maxHeight = '';
+            try { localStorage.removeItem(POS_KEY); } catch (e) {}
+        }
+        try {
+            var savedPos = JSON.parse(localStorage.getItem(POS_KEY));
+            if (savedPos && typeof savedPos.left === 'number' && typeof savedPos.top === 'number') {
+                floatAt(savedPos.left, savedPos.top);
+            }
+        } catch (e) {}
+
+        var draggingTitle = false, titleStartX = 0, titleStartY = 0, boxStartLeft = 0, boxStartTop = 0;
+        label.addEventListener('pointerdown', function (e) {
+            draggingTitle = true;
+            var rect = sidebar.getBoundingClientRect();
+            titleStartX = e.clientX;
+            titleStartY = e.clientY;
+            boxStartLeft = rect.left;
+            boxStartTop = rect.top;
+            label.classList.add('dragging-title');
+            document.body.classList.add('toc-dragging-position');
+            try { label.setPointerCapture(e.pointerId); } catch (err) {}
+            e.preventDefault();
+        });
+        label.addEventListener('pointermove', function (e) {
+            if (!draggingTitle) return;
+            floatAt(boxStartLeft + (e.clientX - titleStartX), boxStartTop + (e.clientY - titleStartY));
+        });
+        function endTitleDrag(e) {
+            if (!draggingTitle) return;
+            draggingTitle = false;
+            label.classList.remove('dragging-title');
+            document.body.classList.remove('toc-dragging-position');
+            try { label.releasePointerCapture(e.pointerId); } catch (err) {}
+            var rect = sidebar.getBoundingClientRect();
+            try { localStorage.setItem(POS_KEY, JSON.stringify({ left: rect.left, top: rect.top })); } catch (err) {}
+        }
+        label.addEventListener('pointerup', endTitleDrag);
+        label.addEventListener('pointercancel', endTitleDrag);
+        label.addEventListener('dblclick', unfloat);
+
+        // ---- Show/hide toggle (top-right button): lets the reader hide the
+        // Contents box entirely, and — importantly — showing it again always
+        // snaps it back to the normal docked-on-the-left position rather
+        // than wherever it might have been left floating. That makes this
+        // button a reliable "fix the layout" control if the box has drifted
+        // into an awkward floating spot, not just a show/hide switch.
+        // Hidden by default in the HTML; only shown here, since it's only
+        // meaningful on pages where a sidebar actually got built.
+        var HIDDEN_KEY = 'wikiTocSidebarHidden';
+        var toggleBtn = document.getElementById('btn-toc-toggle');
+        if (toggleBtn) {
+            toggleBtn.style.display = '';
+            function setToggleLabel(hidden) {
+                var text = hidden ? 'Show contents' : 'Hide contents';
+                toggleBtn.title = text;
+                toggleBtn.setAttribute('aria-label', text);
+                toggleBtn.setAttribute('aria-pressed', hidden ? 'false' : 'true');
+            }
+            function hideSidebar() {
+                sidebar.style.display = 'none';
+                setToggleLabel(true);
+                try { localStorage.setItem(HIDDEN_KEY, '1'); } catch (e) {}
+            }
+            function showSidebar() {
+                sidebar.style.display = '';
+                if (sidebar.classList.contains('floating')) unfloat(); // always land back on the left, not wherever it last floated
+                setToggleLabel(false);
+                try { localStorage.removeItem(HIDDEN_KEY); } catch (e) {}
+            }
+            toggleBtn.addEventListener('click', function () {
+                if (sidebar.style.display === 'none') showSidebar(); else hideSidebar();
+            });
+            try {
+                if (localStorage.getItem(HIDDEN_KEY) === '1') hideSidebar(); else setToggleLabel(false);
+            } catch (e) {
+                setToggleLabel(false);
+            }
+        }
+
+        // ---- Right-edge resizer: drag to shrink #content from the right,
+        // leaving an adjustable empty margin between it and the shell's edge
+        // (the shell's default flex-start alignment means that space just
+        // shows up as page background once #content stops auto-filling it).
+        // Mirrors the sidebar resizer above; "null" means "let it auto-fill"
+        // (the original, unmodified default) rather than any specific width.
+        var MIN_CONTENT = 400, MAX_CONTENT = 1300;
+        var CONTENT_WIDTH_KEY = 'wikiContentWidth';
+        var contentResizer = document.createElement('div');
+        contentResizer.id = 'content-resizer';
+        contentResizer.setAttribute('role', 'separator');
+        contentResizer.setAttribute('aria-orientation', 'vertical');
+        contentResizer.setAttribute('aria-label', 'Resize content width');
+        contentResizer.tabIndex = 0;
+        var contentGrip = document.createElement('div');
+        contentGrip.className = 'toc-resizer-grip';
+        contentResizer.appendChild(contentGrip);
+        pageShell.appendChild(contentResizer); // after #content — it's the last child
+
+        function clampContentWidth(w) { return Math.max(MIN_CONTENT, Math.min(MAX_CONTENT, w)); }
+        var contentCurrentWidth = null; // null = auto (flex:1 1 auto, the original default)
+        function applyContentWidth(w) {
+            contentCurrentWidth = w;
+            if (w === null) {
+                contentEl.style.flex = '';
+                contentEl.style.maxWidth = 'none';
+            } else {
+                contentEl.style.flex = '0 0 ' + w + 'px';
+                contentEl.style.maxWidth = w + 'px';
+            }
+            contentResizer.setAttribute('aria-valuenow', w === null ? '' : String(Math.round(w)));
+        }
+        function persistContentWidth() {
+            try {
+                if (contentCurrentWidth === null) localStorage.removeItem(CONTENT_WIDTH_KEY);
+                else localStorage.setItem(CONTENT_WIDTH_KEY, Math.round(contentCurrentWidth));
+            } catch (e) {}
+        }
+        try {
+            var savedContentWidth = parseInt(localStorage.getItem(CONTENT_WIDTH_KEY), 10);
+            if (!isNaN(savedContentWidth)) applyContentWidth(clampContentWidth(savedContentWidth));
+        } catch (e) {}
+
+        var draggingContent = false, contentDragStartX = 0, contentDragStartWidth = 0;
+        contentResizer.addEventListener('pointerdown', function (e) {
+            draggingContent = true;
+            contentDragStartX = e.clientX;
+            contentDragStartWidth = contentCurrentWidth != null ? contentCurrentWidth : contentEl.getBoundingClientRect().width;
+            contentResizer.classList.add('dragging');
+            document.body.classList.add('toc-resizing');
+            try { contentResizer.setPointerCapture(e.pointerId); } catch (err) {}
+            e.preventDefault();
+        });
+        contentResizer.addEventListener('pointermove', function (e) {
+            if (!draggingContent) return;
+            applyContentWidth(clampContentWidth(contentDragStartWidth + (e.clientX - contentDragStartX)));
+        });
+        function endContentDrag(e) {
+            if (!draggingContent) return;
+            draggingContent = false;
+            contentResizer.classList.remove('dragging');
+            document.body.classList.remove('toc-resizing');
+            try { contentResizer.releasePointerCapture(e.pointerId); } catch (err) {}
+            persistContentWidth();
+        }
+        contentResizer.addEventListener('pointerup', endContentDrag);
+        contentResizer.addEventListener('pointercancel', endContentDrag);
+        contentResizer.addEventListener('dblclick', function () {
+            applyContentWidth(null);
+            persistContentWidth();
+        });
+        contentResizer.addEventListener('keydown', function (e) {
+            var step = 20;
+            var current = contentCurrentWidth != null ? contentCurrentWidth : contentEl.getBoundingClientRect().width;
+            if (e.key === 'ArrowLeft') { applyContentWidth(clampContentWidth(current - step)); persistContentWidth(); e.preventDefault(); }
+            else if (e.key === 'ArrowRight') { applyContentWidth(clampContentWidth(current + step)); persistContentWidth(); e.preventDefault(); }
+        });
+
+        // ---- Scrollspy: highlight whichever section is currently being read ----
+        var links = Array.prototype.slice.call(tocList.querySelectorAll('a[href]'));
+        var map = {};       // heading id -> its sidebar <a>
+        var headings = [];  // heading elements, in document order
+        links.forEach(function (a) {
+            var id = fragmentId(a.getAttribute('href') || '');
+            if (!id) return;
+            var target = document.getElementById(id);
+            if (!target) return;
+            map[id] = a;
+            headings.push(target);
+        });
+        if (!headings.length) return;
+
+        var activeLink = null;
+        function setActive(id) {
+            var link = id ? map[id] : null;
+            if (link === activeLink) return;
+            if (activeLink) activeLink.classList.remove('active');
+            if (link) link.classList.add('active');
+            activeLink = link;
+        }
+
+        var OFFSET = 100; // px from the top of the viewport that counts as "current"
+        var ticking = false;
+        function update() {
+            ticking = false;
+            var currentId = headings[0].id;
+            for (var i = 0; i < headings.length; i++) {
+                if (headings[i].getBoundingClientRect().top - OFFSET <= 0) {
+                    currentId = headings[i].id;
+                } else {
+                    break;
+                }
+            }
+            setActive(currentId);
+        }
+        function requestUpdate() {
+            if (!ticking) {
+                ticking = true;
+                requestAnimationFrame(update);
+            }
+        }
+        window.addEventListener('scroll', requestUpdate, { passive: true });
+        window.addEventListener('resize', requestUpdate);
+        update();
+
+        // Restructuring the DOM reflows the whole page (narrower column,
+        // different wrapping), so if the browser already auto-scrolled to a
+        // URL fragment (e.g. a link landing on "#Some Section") *before*
+        // this script ran, that scroll position is now stale and points at
+        // the wrong spot. Re-apply it against the new layout.
+        if (window.location.hash) {
+            var targetId = decodeURIComponent(window.location.hash.slice(1));
+            var scrollTarget = document.getElementById(targetId);
+            if (scrollTarget) scrollTarget.scrollIntoView();
+        }
+    })();
+    </script>
+
+    <!-- Mobile Contents toggle: a separate, self-contained script (own copy
+         of the same TOC-detection logic as the desktop sidebar script above)
+         that only ever runs below 900px — exactly where that script bails
+         out — so the two are mutually exclusive on any given page load and
+         can't interact with or break one another. Pulls the same
+         auto-generated "Contents" block out of the reading flow and puts it
+         behind a floating toggle button instead, opening a translucent
+         "glass" panel (backdrop-filter blur) for jumping to a section. -->
+    <script>
+    (function () {
+        var MOBILE_BREAKPOINT = 900; // must match the CSS media query above
+        if (window.innerWidth > MOBILE_BREAKPOINT) return; // desktop/tablet: the sidebar script above handles it instead
+
+        var contentEl = document.getElementById('content');
+        if (!contentEl) return;
+
+        var kids = Array.prototype.slice.call(contentEl.children).filter(function (el) {
+            return el.id !== 'breadcrumb';
+        });
+        if (!kids.length) return;
+
+        function directHeading(el) {
+            if (/^H[1-6]$/.test(el.tagName)) return el;
+            for (var j = 0; j < el.children.length; j++) {
+                if (/^H[1-6]$/.test(el.children[j].tagName)) return el.children[j];
+            }
+            return null;
+        }
+        function fragmentId(href) {
+            var hashIdx = href.indexOf('#');
+            return hashIdx === -1 ? '' : href.slice(hashIdx + 1);
+        }
+
+        var tocHeading = null, tocList = null, tocLabel = '';
+        for (var i = 0; i < kids.length - 1; i++) {
+            var el = kids[i], next = kids[i + 1];
+            if (next.tagName !== 'UL') continue;
+            var heading = directHeading(el);
+            if (!heading) continue;
+            var anchors = next.querySelectorAll('a[href]');
+            if (!anchors.length) continue;
+            var allSamePage = Array.prototype.every.call(anchors, function (a) {
+                var id = fragmentId(a.getAttribute('href') || '');
+                return !!id && document.getElementById(id) != null;
+            });
+            if (!allSamePage) continue;
+            var isTocMarked = !!(el.classList && el.classList.contains('toc'));
+            var isContentsLabel = heading.textContent.replace(/\s+/g, ' ').trim().toLowerCase() === 'contents';
+            if (tocHeading === null || isTocMarked || isContentsLabel) {
+                tocHeading = el;
+                tocList = next;
+                tocLabel = heading.textContent.replace(/\s+/g, ' ').trim();
+                if (isTocMarked || isContentsLabel) break;
+            }
+        }
+        if (!tocHeading || !tocList) return; // no TOC on this page — leave it alone
+        tocLabel = tocLabel || 'Contents';
+
+        tocHeading.parentNode.removeChild(tocHeading);
+        tocList.parentNode.removeChild(tocList);
+        tocList.removeAttribute('id');
+
+        // Same "#Definition" -> "Definition" cleanup as the desktop sidebar.
+        Array.prototype.forEach.call(tocList.querySelectorAll('a'), function (a) {
+            if (a.textContent.charAt(0) === '#') a.textContent = a.textContent.slice(1);
+        });
+
+        var toggle = document.createElement('button');
+        toggle.id = 'toc-toggle';
+        toggle.type = 'button';
+        toggle.title = 'Browse sections';
+        toggle.setAttribute('aria-label', 'Browse sections');
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h11M4 18h16"/></svg>';
+
+        var overlay = document.createElement('div');
+        overlay.id = 'toc-overlay';
+
+        var panel = document.createElement('div');
+        panel.id = 'toc-panel';
+        panel.setAttribute('role', 'dialog');
+        panel.setAttribute('aria-label', tocLabel);
+
+        var header = document.createElement('div');
+        header.className = 'toc-panel-header';
+        var titleEl = document.createElement('span');
+        titleEl.textContent = tocLabel;
+        var closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.className = 'toc-panel-close';
+        closeBtn.setAttribute('aria-label', 'Close');
+        closeBtn.innerHTML = '&times;';
+        header.appendChild(titleEl);
+        header.appendChild(closeBtn);
+
+        var body = document.createElement('nav');
+        body.className = 'toc-panel-body';
+        body.appendChild(tocList);
+
+        panel.appendChild(header);
+        panel.appendChild(body);
+
+        document.body.appendChild(overlay);
+        document.body.appendChild(panel);
+        document.body.appendChild(toggle);
+
+        function openPanel() {
+            panel.classList.add('open');
+            overlay.classList.add('open');
+            toggle.setAttribute('aria-expanded', 'true');
+        }
+        function closePanel() {
+            panel.classList.remove('open');
+            overlay.classList.remove('open');
+            toggle.setAttribute('aria-expanded', 'false');
+        }
+        toggle.addEventListener('click', function () {
+            if (panel.classList.contains('open')) closePanel(); else openPanel();
+        });
+        closeBtn.addEventListener('click', closePanel);
+        overlay.addEventListener('click', closePanel);
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && panel.classList.contains('open')) closePanel();
+        });
+        // Jumping to a section closes the panel so it doesn't sit on top of
+        // the very content the visitor just asked to see.
+        Array.prototype.forEach.call(tocList.querySelectorAll('a'), function (a) {
+            a.addEventListener('click', closePanel);
+        });
+    })();
+    </script>
+
     <!-- 0. Repair asset paths (vimwiki-asset-path-fix).
          Vimwiki resolves {{...}} images and local:/file: links against the
          SOURCE wiki tree (.../phd_work/notes/vimwiki/...), which does not exist
@@ -894,5 +1982,23 @@ write_every = 10             # write every 11th accept-reject process<br />
         };
     </script>
     <script src="/wiki/assets/search.js"></script>
+
+    <!-- search.js (just above) always inserts its own launcher button as the
+         very first child of whatever container it's docked into — see its
+         own "holder.insertBefore(docked, holder.firstChild)" — regardless
+         of where #btn-home already sits. Since that script isn't deferred,
+         it's already run and already inserted its button by the time this
+         tag executes, so simply re-asserting #btn-home as the first child
+         here is enough to guarantee the final order is home, then search,
+         then everything else — every time, regardless of load order. -->
+    <script>
+    (function () {
+        var home = document.getElementById('btn-home');
+        var stack = document.querySelector('.top-right-btns');
+        if (home && stack && stack.firstChild !== home) {
+            stack.insertBefore(home, stack.firstChild);
+        }
+    })();
+    </script>
 </body>
 </html>
