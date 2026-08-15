@@ -288,12 +288,19 @@
                get back close to its original reading width even with the
                240px sidebar added alongside it — on a wide screen this
                shell sits further out toward both edges (sidebar moves left,
-               content gets wider) rather than squeezing content down. */
+               content gets wider) rather than squeezing content down.
+               justify-content:center keeps whatever's currently visible
+               centered within that shell — normally a no-op, since #content
+               already fills all remaining space there, but it's what makes
+               the layout re-center symmetrically (rather than sitting
+               flush-left with a dead gap on the right) once the sidebar and
+               its gap strip are hidden via the Contents toggle button. */
             #page-shell {
                 max-width: 1500px;
                 margin: 0 auto;
                 display: flex;
                 align-items: flex-start;
+                justify-content: center;
                 gap: 0; /* the draggable #toc-resizer below provides the gutter instead */
             }
             #page-shell > #content {
@@ -1599,12 +1606,14 @@
             function hideSidebar() {
                 sidebar.style.display = 'none';
                 resizer.style.display = 'none'; // also collapse the gap strip — otherwise hiding the box just leaves dead space where it was
+                contentEl.style.maxWidth = '1200px'; // cap it back to a normal reading width so it recenters symmetrically instead of stretching edge-to-edge across the freed-up space
                 setToggleLabel(true);
                 try { localStorage.setItem(HIDDEN_KEY, '1'); } catch (e) {}
             }
             function showSidebar() {
                 sidebar.style.display = '';
                 resizer.style.display = ''; // restore the gap strip too, at whatever width it was (untouched by hiding)
+                contentEl.style.maxWidth = 'none'; // remove the cap — back to filling the space next to the sidebar
                 if (sidebar.classList.contains('floating')) unfloat(); // always land back on the left, not wherever it last floated
                 setToggleLabel(false);
                 try { localStorage.removeItem(HIDDEN_KEY); } catch (e) {}
@@ -1983,17 +1992,29 @@
     <!-- search.js (just above) always inserts its own launcher button as the
          very first child of whatever container it's docked into — see its
          own "holder.insertBefore(docked, holder.firstChild)" — regardless
-         of where #btn-home already sits. Since that script isn't deferred,
-         it's already run and already inserted its button by the time this
-         tag executes, so simply re-asserting #btn-home as the first child
-         here is enough to guarantee the final order is home, then search,
-         then everything else — every time, regardless of load order. -->
+         of where #btn-home already sits. That insertion is itself deferred
+         to DOMContentLoaded (search.js checks document.readyState, and at
+         this point in the parse it's still "loading", not "complete"), so
+         this script needs to defer the same way rather than run immediately
+         — otherwise it fires before search.js has actually inserted
+         anything and re-asserting home's position is a no-op. Deferring
+         here also guarantees correct order: same-event listeners run in
+         registration order, and search.js's listener was registered first
+         (its script tag comes first), so its insertion always happens
+         before this one re-asserts #btn-home in front of it. -->
     <script>
     (function () {
-        var home = document.getElementById('btn-home');
-        var stack = document.querySelector('.top-right-btns');
-        if (home && stack && stack.firstChild !== home) {
-            stack.insertBefore(home, stack.firstChild);
+        function reorderHome() {
+            var home = document.getElementById('btn-home');
+            var stack = document.querySelector('.top-right-btns');
+            if (home && stack && stack.firstChild !== home) {
+                stack.insertBefore(home, stack.firstChild);
+            }
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', reorderHome);
+        } else {
+            reorderHome();
         }
     })();
     </script>
