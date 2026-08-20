@@ -63,6 +63,8 @@
             --sidebar-hover-color: #1f1a15;
             --lp-snippet-color: #444;
             --lp-thumb-bg: rgba(107, 79, 42, 0.08);
+            --focus-ring: rgba(107, 79, 42, 0.45);
+            --focus-ring-fade: rgba(107, 79, 42, 0);
         }
         html[data-theme="dark"] {
             --page-bg-image: none;
@@ -95,6 +97,8 @@
             --sidebar-hover-color: #f5ead8;
             --lp-snippet-color: #c9c0b0;
             --lp-thumb-bg: rgba(211, 167, 107, 0.12);
+            --focus-ring: rgba(211, 167, 107, 0.5);
+            --focus-ring-fade: rgba(211, 167, 107, 0);
         }
         /* TikZ diagrams are rendered as black-on-transparent SVG with no
            color hooks of their own, so under dark theme they're inverted
@@ -380,14 +384,101 @@
            toggle itself (so there's always a way back out), on every screen
            size. Deliberately untouched here: #content, #toc-sidebar, and
            its resizers — read mode only hides chrome, the article layout
-           itself stays exactly as it was. */
+           itself stays exactly as it was.
+           Hiding now happens in two phases so the chrome fades instead of
+           blinking out mid-scroll: .focus-fading makes it transparent while
+           it's still laid out, then .read-mode removes it for real once the
+           transition has finished. The script below swaps the classes; its
+           FADE_MS must match the 0.22s duration used here.
+           #toc-toggle is the phone-only Contents button — it sits outside
+           both button stacks, so it has to be named explicitly. */
+
+        /* Every selector below is deliberately over-qualified with `body`.
+           These rules sit earlier in this stylesheet than the .top-right-btns
+           / #toc-toggle rules they need to beat, so they can't rely on
+           source order and win on specificity instead. The color/background
+           transitions are repeated here because this rule replaces, rather
+           than adds to, the one on .top-right-btns button. */
+        body .top-right-btns > button,
+        body .top-right-btns > a,
+        body .floating-btns,
+        body #toc-toggle {
+            transition: opacity 0.22s ease, transform 0.22s ease,
+                        color 0.15s ease, background-color 0.15s ease;
+        }
+        body.focus-fading .top-right-btns > *:not(#btn-read-mode),
+        body.focus-fading .floating-btns,
+        body.focus-fading #toc-toggle {
+            opacity: 0;
+            transform: scale(0.9);
+            pointer-events: none;
+        }
         body.read-mode .top-right-btns > *:not(#btn-read-mode),
-        body.read-mode .floating-btns {
+        body.read-mode .floating-btns,
+        body.read-mode #toc-toggle {
             display: none;
         }
         #btn-read-mode[aria-pressed="true"] {
             color: var(--accent-strong);
             background: var(--panel-hover);
+        }
+        /* Two ripples out of the eye as focus mode engages — it's the only
+           control left on screen, so it's the one the reader has to find. */
+        @keyframes focus-eye-pulse {
+            0%   { box-shadow: 0 0 0 0 var(--focus-ring); }
+            100% { box-shadow: 0 0 0 16px var(--focus-ring-fade); }
+        }
+        #btn-read-mode.focus-pulse { animation: focus-eye-pulse 0.9s ease-out 2; }
+        /* Toast: says *why* the buttons just disappeared, plus a way out for
+           readers who don't connect it to the eye. Identical on phone and
+           desktop; shown once per page load, not on every re-engage. */
+        #focus-toast {
+            position: fixed;
+            left: 50%;
+            bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: calc(100vw - 32px);
+            padding: 9px 10px 9px 16px;
+            border: 1px solid var(--panel-border);
+            border-radius: 999px;
+            background: var(--panel-bg);
+            color: var(--text-color);
+            font: 14px/1.3 Arial, sans-serif;
+            box-shadow: 0 6px 22px var(--shadow-color-strong);
+            opacity: 0;
+            transform: translateX(-50%) translateY(10px);
+            pointer-events: none;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+            z-index: 1600;   /* above the top-right stack (1500) and the mobile TOC panel (1051) */
+        }
+        #focus-toast.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+            pointer-events: auto;
+        }
+        #focus-toast .focus-toast-btn {
+            flex: 0 0 auto;
+            border: none;
+            border-radius: 999px;
+            background: var(--accent);
+            color: var(--btn-text-on-accent);
+            font: bold 13px/1 Arial, sans-serif;
+            padding: 7px 12px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        @media (max-width: 600px) {
+            #focus-toast { bottom: 16px; font-size: 13px; padding: 8px 8px 8px 14px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            body .top-right-btns > button,
+            body .top-right-btns > a,
+            body .floating-btns,
+            body #toc-toggle,
+            #focus-toast { transition: none; }
+            #btn-read-mode.focus-pulse { animation: none; }
         }
         /* Mobile Contents toggle + glass panel. Built by a separate,
            self-contained script (own copy of the TOC-detection logic) that
@@ -1343,22 +1434,144 @@ gpt3.5<br />
         var READ_MODE_KEY = 'wikiReadMode';
         var btn = document.getElementById('btn-read-mode');
         if (!btn) return;
-        function applyReadMode(on) {
-            document.body.classList.toggle('read-mode', on);
+
+        var FADE_MS  = 220;   // must match the .focus-fading transition in the <style> block
+        var ENTER_AT = 320;   // px down the page before focus mode may engage on its own
+        var EXIT_AT  = 80;    // px: getting back this close to the top releases it again
+        var MIN_DOWN = 120;   // px of uninterrupted DOWNWARD scrolling required first, so a
+                              // stray flick doesn't trigger it
+        var MAX_JUMP = 400;   // a single scroll event bigger than this is a jump (TOC link,
+                              // back-navigation restore), not reading — doesn't count
+
+        var readOn = false;          // authoritative state; the body classes are mid-transition sometimes
+        var autoEngaged = false;     // on because of scrolling, not because of a click
+        var suppressed = false;      // reader switched it off by hand — don't fight them until
+                                     // they're back at the top of the page
+        var toastShown = false;      // the explanation is shown once per page load, not every re-engage
+        var fadeTimer = null, toastTimer = null, toast = null;
+
+        function pulse() {
+            btn.classList.remove('focus-pulse');
+            void btn.offsetWidth;    // forces a reflow so re-adding actually restarts the animation
+            btn.classList.add('focus-pulse');
+        }
+
+        function ensureToast() {
+            if (toast) return toast;
+            toast = document.createElement('div');
+            toast.id = 'focus-toast';
+            toast.setAttribute('role', 'status');
+            toast.setAttribute('aria-live', 'polite');
+            var msg = document.createElement('span');
+            msg.textContent = 'Reading mode — page buttons hidden';
+            var show = document.createElement('button');
+            show.type = 'button';
+            show.className = 'focus-toast-btn';
+            show.textContent = 'Show';
+            show.addEventListener('click', function () {
+                suppressed = true;   // an explicit "no" — same weight as clicking the eye
+                autoEngaged = false;
+                applyReadMode(false);
+            });
+            toast.appendChild(msg);
+            toast.appendChild(show);
+            document.body.appendChild(toast);
+            return toast;
+        }
+        function showToast() {
+            var t = ensureToast();
+            clearTimeout(toastTimer);
+            requestAnimationFrame(function () { t.classList.add('visible'); });
+            toastTimer = setTimeout(hideToast, 2800);
+        }
+        function hideToast() {
+            clearTimeout(toastTimer);
+            if (toast) toast.classList.remove('visible');
+        }
+
+        function setChrome(on, animate) {
+            clearTimeout(fadeTimer);
+            if (!animate) {                                        // page load: no fade, just the end state
+                document.body.classList.remove('focus-fading');
+                document.body.classList.toggle('read-mode', on);
+                return;
+            }
+            if (on) {
+                document.body.classList.add('focus-fading');       // fade out, still laid out
+                fadeTimer = setTimeout(function () {
+                    document.body.classList.add('read-mode');      // now actually gone
+                    document.body.classList.remove('focus-fading');
+                }, FADE_MS);
+            } else {
+                document.body.classList.remove('read-mode');       // back in the layout...
+                document.body.classList.add('focus-fading');       // ...but still transparent
+                requestAnimationFrame(function () {                // two frames: guarantees the
+                    requestAnimationFrame(function () {            // browser has painted the
+                        document.body.classList.remove('focus-fading');  // transparent state first
+                    });
+                });
+            }
+        }
+
+        function applyReadMode(on, opts) {
+            opts = opts || {};
+            readOn = on;
+            setChrome(on, opts.animate !== false);
             var label = on ? 'Exit read mode' : 'Read mode';
             btn.title = label;
             btn.setAttribute('aria-label', label);
             btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-            try { localStorage.setItem(READ_MODE_KEY, on ? '1' : '0'); } catch (e) {}
+            // Only deliberate choices are remembered across pages. Auto-engaging
+            // passes persist:false, so a reader who never touched the button never
+            // lands on a page with its controls already hidden.
+            if (opts.persist !== false) {
+                try { localStorage.setItem(READ_MODE_KEY, on ? '1' : '0'); } catch (e) {}
+            }
+            if (on && opts.announce) {
+                pulse();
+                if (!toastShown) { toastShown = true; showToast(); }
+            }
+            if (!on) hideToast();
         }
+
         var savedReadMode = false;
         try { savedReadMode = localStorage.getItem(READ_MODE_KEY) === '1'; } catch (e) {}
-        applyReadMode(savedReadMode);
+        applyReadMode(savedReadMode, { animate: false, persist: false });
+
         btn.addEventListener('click', function () {
-            var turningOn = !document.body.classList.contains('read-mode');
-            applyReadMode(turningOn);
+            var turningOn = !readOn;
+            suppressed = !turningOn;   // turned it off by hand -> stay off until back at the top
+            autoEngaged = false;       // from here on it's the reader's, not the scroll watcher's
+            applyReadMode(turningOn, { announce: turningOn });
             if (turningOn) window.scrollTo({ top: 0, behavior: 'smooth' });
         });
+
+        // ---- Scroll watcher: engage focus mode once the reader is clearly
+        // reading, release it once they're clearly done. Runs on every viewport,
+        // phones included. It only ever turns OFF what it itself turned on, so a
+        // saved read-mode preference (or a click) is never undone by scrolling.
+        var lastY = window.pageYOffset, downRun = 0;
+        window.addEventListener('scroll', function () {
+            var y = window.pageYOffset;
+            var dy = y - lastY;
+            lastY = y;
+            if (dy > MAX_JUMP) downRun = 0;                        // jumped, didn't read — start over
+            else if (dy > 0) downRun += dy;
+            else if (dy < 0) downRun = 0;                          // any upward move restarts the run
+
+            if (y <= EXIT_AT) {
+                suppressed = false;                                // back at the top: re-arm
+                if (autoEngaged && readOn) {
+                    autoEngaged = false;
+                    applyReadMode(false, { persist: false });
+                }
+                return;
+            }
+            if (!readOn && !suppressed && y >= ENTER_AT && downRun >= MIN_DOWN) {
+                autoEngaged = true;
+                applyReadMode(true, { persist: false, announce: true });
+            }
+        }, { passive: true });
     })();
     </script>
 
