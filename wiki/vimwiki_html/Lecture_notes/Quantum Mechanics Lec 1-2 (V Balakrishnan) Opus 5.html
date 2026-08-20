@@ -1626,7 +1626,11 @@ All objects in Q.M are treated with state vector which is generalization of wave
             suppressed = !turningOn;   // turned it off by hand -> stay off until back at the top
             autoEngaged = false;       // from here on it's the reader's, not the scroll watcher's
             applyReadMode(turningOn, { announce: turningOn });
-            if (turningOn) window.scrollTo({ top: 0, behavior: 'smooth' });
+            // Deliberately does NOT scroll anywhere. The original handler jumped
+            // to the top on switching read mode on, which was harmless when the
+            // button was the only way in; now that focus mode engages mid-scroll
+            // on its own, toggling it must never move the reader off the line
+            // they're on. The "back to top" arrow is still there for that.
         });
 
         // ---- Scroll watcher: engage focus mode once the reader is clearly
