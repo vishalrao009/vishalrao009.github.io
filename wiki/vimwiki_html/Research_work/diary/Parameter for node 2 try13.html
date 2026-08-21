@@ -380,14 +380,18 @@
            cursor/no-select behavior holds even if the pointer strays off the
            thin handle mid-drag. */
         body.toc-resizing { cursor: col-resize; user-select: none; }
-        /* Read mode: hides every floating button/icon except the read-mode
-           toggle itself (so there's always a way back out), on every screen
-           size. Deliberately untouched here: #content, #toc-sidebar, and
-           its resizers — read mode only hides chrome, the article layout
-           itself stays exactly as it was.
-           Hiding now happens in two phases so the chrome fades instead of
-           blinking out mid-scroll: .focus-fading makes it transparent while
-           it's still laid out, then .read-mode removes it for real once the
+        /* Read mode: hides the site-wide tool icons in the top-right stack —
+           everything except the read-mode toggle itself, so there's always a
+           way back out — on every screen size.
+           NOT hidden: the bottom-right .floating-btns stack (back / back-to-top
+           / ask-this-page). Those are per-page reading aids rather than chrome;
+           losing them mid-article is exactly when they're most wanted.
+           Also deliberately untouched: #content, #toc-sidebar, and its
+           resizers — read mode only hides chrome, the article layout itself
+           stays exactly as it was.
+           Hiding happens in two phases so the icons fade instead of blinking
+           out mid-scroll: .focus-fading makes them transparent while they're
+           still laid out, then .read-mode removes them for real once the
            transition has finished. The script below swaps the classes; its
            FADE_MS must match the 0.22s duration used here.
            #toc-toggle is the phone-only Contents button — it sits outside
@@ -401,20 +405,17 @@
            than adds to, the one on .top-right-btns button. */
         body .top-right-btns > button,
         body .top-right-btns > a,
-        body .floating-btns,
         body #toc-toggle {
             transition: opacity 0.22s ease, transform 0.22s ease,
                         color 0.15s ease, background-color 0.15s ease;
         }
         body.focus-fading .top-right-btns > *:not(#btn-read-mode),
-        body.focus-fading .floating-btns,
         body.focus-fading #toc-toggle {
             opacity: 0;
             transform: scale(0.9);
             pointer-events: none;
         }
         body.read-mode .top-right-btns > *:not(#btn-read-mode),
-        body.read-mode .floating-btns,
         body.read-mode #toc-toggle {
             display: none;
         }
@@ -475,7 +476,6 @@
         @media (prefers-reduced-motion: reduce) {
             body .top-right-btns > button,
             body .top-right-btns > a,
-            body .floating-btns,
             body #toc-toggle,
             #focus-toast { transition: none; }
             #btn-read-mode.focus-pulse { animation: none; }
@@ -1290,12 +1290,6 @@ write_every = 10             # write every 11th accept-reject process<br />
             btn.title = label;
             btn.setAttribute('aria-label', label);
             btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-            // Only deliberate choices are remembered across pages. Auto-engaging
-            // passes persist:false, so a reader who never touched the button never
-            // lands on a page with its controls already hidden.
-            if (opts.persist !== false) {
-                try { localStorage.setItem(READ_MODE_KEY, on ? '1' : '0'); } catch (e) {}
-            }
             if (on && opts.announce) {
                 pulse();
                 if (!toastShown) { toastShown = true; showToast(); }
@@ -1303,9 +1297,15 @@ write_every = 10             # write every 11th accept-reject process<br />
             if (!on) hideToast();
         }
 
-        var savedReadMode = false;
-        try { savedReadMode = localStorage.getItem(READ_MODE_KEY) === '1'; } catch (e) {}
-        applyReadMode(savedReadMode, { animate: false, persist: false });
+        // Focus mode is per-page-load: every page starts with its chrome
+        // visible, and gets hidden either by the scroll watcher below or by a
+        // click. Nothing is restored from storage, so a page can never open
+        // already hidden — which is what a stale saved 'on' used to cause
+        // (the pre-scroll version of this script persisted the state on every
+        // call, including page load, so one click stuck forever). The old key
+        // is cleared on sight so existing visitors self-heal on first load.
+        try { localStorage.removeItem(READ_MODE_KEY); } catch (e) {}
+        applyReadMode(false, { animate: false });
 
         btn.addEventListener('click', function () {
             var turningOn = !readOn;
@@ -1336,13 +1336,13 @@ write_every = 10             # write every 11th accept-reject process<br />
                 suppressed = false;                                // back at the top: re-arm
                 if (autoEngaged && readOn) {
                     autoEngaged = false;
-                    applyReadMode(false, { persist: false });
+                    applyReadMode(false);
                 }
                 return;
             }
             if (!readOn && !suppressed && y >= ENTER_AT && downRun >= MIN_DOWN) {
                 autoEngaged = true;
-                applyReadMode(true, { persist: false, announce: true });
+                applyReadMode(true, { announce: true });
             }
         }, { passive: true });
     })();
