@@ -8,7 +8,160 @@
     <link id="hljs-theme-dark" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" disabled />
     <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
     <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
-    <title>Symanzik Improvement</title>
+    <!-- Page title carries the site owner's name on every page, so a wiki page
+         can surface for "<topic> Vishal Rao" and not just the bare topic.
+         Vimwiki substitutes Symanzik Improvement with this page's own heading. NOTE: if this
+         same template is ever used for the homepage, drop the suffix there —
+         "Vishal Rao — Vishal Rao" reads as spam to both people and crawlers. -->
+    <title>Symanzik Improvement — Vishal Rao</title>
+    <meta name="author" content="Vishal Rao">
+    <!-- Site-level fallback description. Search engines usually write their own
+         snippet from the matched passage and ignore this, so it is a floor, not
+         a lever — the real per-page description would have to be generated at
+         export time, which this template can't do (vimwiki only substitutes
+         Symanzik Improvement / 
+<div id="Symanzik Improvement"><h1 id="Symanzik Improvement" class="header"><a href="#Symanzik Improvement">Symanzik Improvement</a></h1></div>
+
+<div id="Symanzik Improvement-Motivation"><h2 id="Motivation" class="header"><a href="#Symanzik Improvement-Motivation">Motivation</a></h2></div>
+
+<ul>
+<li>
+When introducing the QCD action on the lattice we had to discretize the derivative terms that show up in the continuum action. It was pointed out then that any discretization, e.g., symmetric differences for the first derivative in the fermion action, gives rise to discretization eﬀects. Typically the discretization eﬀects are of \(\mathcal{O}(a)\)  for fermions and of \(\mathcal{O}(a^2)\)  for the gauge fields.
+
+<li>
+These disappear only in the continuum limit when the lattice spacing 'a' is sent to zero. Performing the continuum limit is, however, a nontrivial task. As one decreases 'a', the number of lattice points has to increase, such that the physical volume remains constant (ideally one would first send the number of lattice points to infinity before sending a to zero).
+
+<li>
+Thus in a numerical simulation one always works with finite 'a' and the discretization errors have
+	to be dealt with, e.g., by including them in the extrapolation to vanishing a.
+
+</ul>
+<div id="Symanzik Improvement-Solution"><h2 id="Solution" class="header"><a href="#Symanzik Improvement-Solution">Solution</a></h2></div>
+
+<ul>
+<li>
+An elegant way of approaching the problem is a systematical reduction of the discretization errors. We have already mentioned that the discretization we have chosen is not unique. Also other discretizations give rise to the same formal continuum limit.
+
+<li>
+In particular one may combine different terms to obtain a lattice action with reduced discretization eﬀects. Adding, e.g. an extra term to the Wilson fermion action and matching its coefficient appropriately, one can reduce the discretization error from \(\mathcal{O}\)(a) to \(\mathcal{O}(a^{2})\).
+
+<li>
+<u>In a similar way it is possible (and necessary for a full improvement) to reduce also the discretization errors of the observables used.</u>
+
+</ul>
+	
+
+
+<div id="Symanzik Improvement-Solution-A toy example"><h3 id="A toy example" class="header"><a href="#Symanzik Improvement-Solution-A toy example">A toy example</a></h3></div>
+
+<p>
+Let us begin our discussion of improvement with a toy example which already contains most of the steps that will be taken when improving lattice QCD actions.<br />
+</p>
+
+<ul>
+<li>
+We consider the (symmetric) discretization of the derivative f'(x) for some function f(x) of a single real variable x:
+\[
+\frac{f(x+a)-f(x-a)}{2a}=f'(x) + a ^{2}C ^{2}(x) + a ^{4}C ^{4}(x)+ \mathcal{O} (a^ {6})
+\]
+	For dimensions to be equal both sides, we can deduce that the mass dimensions of \(C ^{k}\) must be (K+1). i.e. the length dimensions shall be -(1+k). Note that these \( C ^{k} \) can be identified with higher order derivative terms. Using the Taylor series expansion :
+\[
+f(x+a)=f(x)+af'(x)+\frac{a ^{2}}{2}f''(x)+\frac{a ^{3}}{6}f'''(x)+\mathcal{O}(a^{4})  
+\]
+	we can deduce that the term \( C ^{2}(x)=\frac{f'''(x)}{6} \). 
+
+<li>
+The central idea is to write the discretized version of f'(x). So if we are fine with \(\mathcal{O}(a^{2})\) accuracy then our definition of f'(x) will become : 
+\[
+f'(x) = \frac{f(x+a)-f(x-a)}{2a} + \mathcal{O}(a^{2})    
+\]
+	If we need accuracy upto \( \mathcal{O}(a^{2})\) (or in other words : for improvements of \( \mathcal{O}(a^{2}) \)) , then we need to write the \( C^k (x)\) (in our case \( C ^{2}(x) =\frac{f'''(x)}{6} \)) in terms of \( f(x+a), f(x-a), f(x+2a), f(x-2a) \) i.e.:
+\[
+f'''(x)=\frac{f(x+2a)-2f(x+a)+2f(x-a)-f(x-2a)}{2a ^{3}}
+\]
+
+</ul>
+<p>
+So for improvemnts in order \( \mathcal{O}(a^{2}) \) the discretized version of f'(x) becomes:<br />
+</p>
+\[
+\begin{eqnarray}
+f'(x) = \frac{f(x+a)-f(x-a)}{2a} - (1/6)f'''(x)+\mathcal{O}(a^{4})   \\
+f'(x) = \frac{f(x+a)-f(x-a)}{2a} - \frac{f(x+2a)-2f(x+a)+2f(x-a)-f(x-2a)}{12a ^{3}}+\mathcal{O}(a^{4})  \\
+\end{eqnarray}
+\]
+
+
+<p>
+{{\(              }}\) <br />
+\(  \)<br />
+$\(  \)$<br />
+\(   )\<br />
+\[    ]<br />
+</p>
+ /  / utf-8 / rss.xml). -->
+    <meta name="description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:site_name" content="Vishal Rao">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Symanzik Improvement — Vishal Rao">
+    <meta property="og:description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:image" content="https://vishalrao.in/pp.jpg">
+    <meta name="twitter:card" content="summary">
+    <!-- og:url and rel=canonical need this page's absolute address, which the
+         template doesn't know, so they're filled in at runtime below. Google
+         renders JS before indexing, so it does see these — but a build-time
+         canonical written straight into the HTML is strictly more reliable, and
+         is worth doing in the export script if you ever add one. -->
+    <link id="canonical-url" rel="canonical" href="">
+    <meta id="og-url" property="og:url" content="">
+    <script>
+        (function () {
+            // Strip ?query and #fragment: those are the same document, and
+            // letting them be indexed separately splits the page's ranking
+            // signals across near-duplicate URLs.
+            var url = location.origin + location.pathname;
+            var c = document.getElementById('canonical-url');
+            var o = document.getElementById('og-url');
+            if (c) c.href = url;
+            if (o) o.setAttribute('content', url);
+        })();
+    </script>
+    <!-- Person entity. This is the piece that actually matters for a name
+         search: it tells Google that the "Vishal Rao" of this site is the IISc
+         lattice-QCD one, distinct from the several well-known people who share
+         the name. sameAs is the disambiguator — FILL IN every profile you
+         actually have (inSPIRE-HEP, ORCID, Google Scholar, arXiv, GitHub,
+         LinkedIn, your CHEP people-page) and DELETE the lines you don't. Each
+         of those profiles should link back here; the two-way link is what ties
+         the identity together. An unfilled or wrong URL here is worse than no
+         markup at all, so don't leave the examples in place. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Vishal Rao",
+      "url": "https://vishalrao.in/",
+      "image": "https://vishalrao.in/pp.jpg",
+      "jobTitle": "PhD Researcher",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "Centre for High Energy Physics, Indian Institute of Science",
+        "url": "https://chep.iisc.ac.in/"
+      },
+      "knowsAbout": [
+        "Lattice Quantum Chromodynamics",
+        "Lattice Gauge Theory",
+        "Finite-Temperature Gauge Theories",
+        "High-Performance Computing"
+      ],
+      "sameAs": [
+        "REPLACE-WITH-YOUR-INSPIRE-HEP-AUTHOR-URL",
+        "REPLACE-WITH-YOUR-ORCID-URL",
+        "REPLACE-WITH-YOUR-GOOGLE-SCHOLAR-URL",
+        "REPLACE-WITH-YOUR-GITHUB-URL"
+      ]
+    }
+    </script>
     <!-- MathJax config: on phone-width screens, break long display equations onto
          multiple lines instead of overflowing the page. Desktop and tablet keep the
          default rendering (empty config), so their layout is unchanged. Must run

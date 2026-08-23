@@ -8,7 +8,144 @@
     <link id="hljs-theme-dark" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" disabled />
     <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
     <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
-    <title>spinors</title>
+    <!-- Page title carries the site owner's name on every page, so a wiki page
+         can surface for "<topic> Vishal Rao" and not just the bare topic.
+         Vimwiki substitutes spinors with this page's own heading. NOTE: if this
+         same template is ever used for the homepage, drop the suffix there —
+         "Vishal Rao — Vishal Rao" reads as spam to both people and crawlers. -->
+    <title>spinors — Vishal Rao</title>
+    <meta name="author" content="Vishal Rao">
+    <!-- Site-level fallback description. Search engines usually write their own
+         snippet from the matched passage and ignore this, so it is a floor, not
+         a lever — the real per-page description would have to be generated at
+         export time, which this template can't do (vimwiki only substitutes
+         spinors / 
+<div id="Spinors"><h1 id="Spinors" class="header"><a href="#Spinors">Spinors</a></h1></div>
+
+<p>
+A (Dirac) spinor is the 4-component field \(\psi_\alpha(x)\), \(\alpha=1,2,3,4\), that describes a spin-\(\tfrac12\) <a href="fermion.html">fermion</a>. It transforms in the \((\tfrac12,0)\oplus(0,\tfrac12)\) representation of the Lorentz group and is the object on which the \(\gamma\)-matrices act. In QCD each <a href="quarks.html">quark</a> is such a spinor for every color \(a\) and flavour \(f\), so \(\psi_{\substack{\alpha \\ a}}^{f}\) has \(4\times 3\) components per flavour.<br />
+</p>
+
+<div id="Spinors-Dirac algebra"><h2 id="Dirac algebra" class="header"><a href="#Spinors-Dirac algebra">Dirac algebra</a></h2></div>
+
+<p>
+The \(\gamma^\mu\) are \(4\times4\) matrices satisfying the Clifford algebra<br />
+</p>
+
+\[
+\{\gamma^\mu,\gamma^\nu\} = 2\,\eta^{\mu\nu}\,\mathbb{1},
+\]
+
+<p>
+with \(\eta^{\mu\nu}=\mathrm{diag}(+,-,-,-)\). The Dirac conjugate is \(\overline{\psi}=\psi^\dagger\gamma^0\), chosen so that \(\overline\psi\psi\) is a Lorentz scalar and \(\overline\psi\gamma^\mu\psi\) a Lorentz vector.<br />
+</p>
+
+<div id="Spinors-Lorentz transformation"><h2 id="Lorentz transformation" class="header"><a href="#Spinors-Lorentz transformation">Lorentz transformation</a></h2></div>
+
+<p>
+Under a Lorentz transformation \(\Lambda\) the spinor rotates as<br />
+</p>
+
+\[
+\psi(x)\ \to\ S(\Lambda)\,\psi(\Lambda^{-1}x),\qquad
+S(\Lambda)=\exp\!\Big(-\tfrac{i}{4}\,\omega_{\mu\nu}\,\sigma^{\mu\nu}\Big),\quad
+\sigma^{\mu\nu}=\tfrac{i}{2}[\gamma^\mu,\gamma^\nu].
+\]
+
+<p>
+The bilinear \(\overline\psi\,(i\gamma^\mu\partial_\mu - m)\,\psi\) is therefore Lorentz invariant, which is why the free quark <a href="Lagrangian.html">Lagrangian</a> takes the Dirac form.<br />
+</p>
+
+<div id="Spinors-Dirac equation"><h2 id="Dirac equation" class="header"><a href="#Spinors-Dirac equation">Dirac equation</a></h2></div>
+
+<p>
+Extremizing the free Lagrangian gives the Dirac equation<br />
+</p>
+
+\[
+(i\gamma^\mu\partial_\mu - m)\,\psi(x) = 0 .
+\]
+
+<p>
+Its plane-wave solutions come in two positive-energy (\(u\)) and two negative-energy (\(v\)) spinors, describing particle and antiparticle with the two spin projections.<br />
+</p>
+
+<div id="Spinors-Chirality"><h2 id="Chirality" class="header"><a href="#Spinors-Chirality">Chirality</a></h2></div>
+
+<p>
+Using \(\gamma_5=i\gamma^0\gamma^1\gamma^2\gamma^3\) one splits a Dirac spinor into left- and right-handed <span id="Spinors-Chirality-Weyl"></span><strong id="Weyl">Weyl</strong> components,<br />
+</p>
+
+\[
+\psi_{L,R} = \tfrac12(1\mp\gamma_5)\,\psi ,
+\]
+
+<p>
+a decomposition central to the chiral structure of the weak interaction and to the discussion of chiral symmetry breaking in QCD. On the lattice, faithfully representing chirality is subtle (the Nielsen–Ninomiya no-go theorem), which motivates improved fermion actions such as <a href="HISQ.html">HISQ</a>.<br />
+</p>
+ /  / utf-8 / rss.xml). -->
+    <meta name="description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:site_name" content="Vishal Rao">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="spinors — Vishal Rao">
+    <meta property="og:description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:image" content="https://vishalrao.in/pp.jpg">
+    <meta name="twitter:card" content="summary">
+    <!-- og:url and rel=canonical need this page's absolute address, which the
+         template doesn't know, so they're filled in at runtime below. Google
+         renders JS before indexing, so it does see these — but a build-time
+         canonical written straight into the HTML is strictly more reliable, and
+         is worth doing in the export script if you ever add one. -->
+    <link id="canonical-url" rel="canonical" href="">
+    <meta id="og-url" property="og:url" content="">
+    <script>
+        (function () {
+            // Strip ?query and #fragment: those are the same document, and
+            // letting them be indexed separately splits the page's ranking
+            // signals across near-duplicate URLs.
+            var url = location.origin + location.pathname;
+            var c = document.getElementById('canonical-url');
+            var o = document.getElementById('og-url');
+            if (c) c.href = url;
+            if (o) o.setAttribute('content', url);
+        })();
+    </script>
+    <!-- Person entity. This is the piece that actually matters for a name
+         search: it tells Google that the "Vishal Rao" of this site is the IISc
+         lattice-QCD one, distinct from the several well-known people who share
+         the name. sameAs is the disambiguator — FILL IN every profile you
+         actually have (inSPIRE-HEP, ORCID, Google Scholar, arXiv, GitHub,
+         LinkedIn, your CHEP people-page) and DELETE the lines you don't. Each
+         of those profiles should link back here; the two-way link is what ties
+         the identity together. An unfilled or wrong URL here is worse than no
+         markup at all, so don't leave the examples in place. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Vishal Rao",
+      "url": "https://vishalrao.in/",
+      "image": "https://vishalrao.in/pp.jpg",
+      "jobTitle": "PhD Researcher",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "Centre for High Energy Physics, Indian Institute of Science",
+        "url": "https://chep.iisc.ac.in/"
+      },
+      "knowsAbout": [
+        "Lattice Quantum Chromodynamics",
+        "Lattice Gauge Theory",
+        "Finite-Temperature Gauge Theories",
+        "High-Performance Computing"
+      ],
+      "sameAs": [
+        "REPLACE-WITH-YOUR-INSPIRE-HEP-AUTHOR-URL",
+        "REPLACE-WITH-YOUR-ORCID-URL",
+        "REPLACE-WITH-YOUR-GOOGLE-SCHOLAR-URL",
+        "REPLACE-WITH-YOUR-GITHUB-URL"
+      ]
+    }
+    </script>
     <!-- MathJax config: on phone-width screens, break long display equations onto
          multiple lines instead of overflowing the page. Desktop and tablet keep the
          default rendering (empty config), so their layout is unchanged. Must run

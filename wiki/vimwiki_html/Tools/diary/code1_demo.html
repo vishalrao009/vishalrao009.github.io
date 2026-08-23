@@ -8,7 +8,175 @@
     <link id="hljs-theme-dark" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" disabled />
     <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
     <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
-    <title>code1_demo</title>
+    <!-- Page title carries the site owner's name on every page, so a wiki page
+         can surface for "<topic> Vishal Rao" and not just the bare topic.
+         Vimwiki substitutes code1_demo with this page's own heading. NOTE: if this
+         same template is ever used for the homepage, drop the suffix there —
+         "Vishal Rao — Vishal Rao" reads as spam to both people and crawlers. -->
+    <title>code1_demo — Vishal Rao</title>
+    <meta name="author" content="Vishal Rao">
+    <!-- Site-level fallback description. Search engines usually write their own
+         snippet from the matched passage and ignore this, so it is a floor, not
+         a lever — the real per-page description would have to be generated at
+         export time, which this template can't do (vimwiki only substitutes
+         code1_demo / 
+<div id="Code 1"><h1 id="Code 1" class="header"><a href="#Code 1">Code 1</a></h1></div>
+<pre cpp>
+
+//This program is intended to demonstrate simple serial programming where a vectors element gets modified serially. 
+//
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;cmath&gt;
+
+using std::cout;
+using std::endl;
+using std::vector;
+
+void increase_magnitude(float *starting_address,unsigned int size_vec, float mag_multiplyer)
+{
+  //the variable *starting_address is a pointer which will point to (or contain address of), the first element of the array.
+  for (int i=0;i&lt;size_vec;i++)
+  {
+    //let us multiply the whole vector by 2
+    //since we have address of first element of vector, we can take its value by use of *
+    *starting_address=*starting_address * 2;
+    //now we shall increase its address by 1.
+    starting_address+=1;
+
+  }
+
+  //in this way at the same memory location we will have modified the vector.
+
+}
+
+float magnitude_finder(float *starting_address_vec,unsigned int size)
+{
+  //This function will return the magnitude of the vector. 
+  float sum=0.0;
+  for (int i=0;i&lt;size;i++)
+  {
+    sum+=pow((*starting_address_vec),2);
+  }
+ return pow(sum,0.5); 
+}
+
+
+int main(int argc, char *argv[])
+{
+  unsigned int N=1&lt;&lt;31; //the number implies 31 zeroes in front of 1. So it is 2^31.
+  vector&lt;float&gt; vec(N); //whenever we declare an vector, it has undefined size(if we don't provide the size). Unless we declare it with some size. 
+  //declaring vector of finite size; vector&lt;int&gt; v(100);
+  /* vector&lt;int&gt;v1(100); */
+  //declaring vector without size; vector&lt;int&gt; vec;
+
+  //let us define a pointer to integer vector
+  //let us fill the vector with N natural numbers(1,2,.......N).
+  cout&lt;&lt;N&lt;&lt;endl;
+
+  for (int i=0;i&lt;N;i++)
+  {
+      vec[i]=i;
+  }
+
+  float *ptr_to_vec=&amp;vec[0]; //giving address of first element. Or we can just write: 
+
+  //we shall modify the vector by multiply it with some real number. 
+  //Real numbers are stored in float data types(require 4byte per real number) and double data types(8bytes).
+  float multiplier=4.0;
+
+  //Let us find the magnitude before changing the vector, 
+  float mag_before=magnitude_finder(ptr_to_vec,N);
+  increase_magnitude(ptr_to_vec,N,multiplier);
+  float mag_after=magnitude_finder(ptr_to_vec,N);
+  float ratio_of_magnitudes=mag_after/mag_before;
+  cout&lt;&lt;"the final vector has magnitude "&lt;&lt;ratio_of_magnitudes&lt;&lt;" times the earlier one"&lt;&lt;endl&lt;&lt;"which should be equal to "&lt;&lt;pow(multiplier,0.5)&lt;&lt;endl;
+  return 0;
+}
+
+</pre>
+
+<p>
+```<br />
+<span id="Code 1-Output"></span><strong id="Output">Output</strong>:<br />
+</p>
+
+<p>
+2147483648<br />
+the final vector has magnitude -nan times the earlier one<br />
+which should be equal to 2<br />
+</p>
+
+<p>
+```<br />
+</p>
+
+<p>
+<span id="Code 1-Remarks: The magnitude can't handle large numbers in float data type, one must use double or long double."></span><strong id="Remarks: The magnitude can't handle large numbers in float data type, one must use double or long double.">Remarks: The magnitude can't handle large numbers in float data type, one must use double or long double.</strong> <br />
+</p>
+ / ../ / utf-8 / rss.xml). -->
+    <meta name="description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:site_name" content="Vishal Rao">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="code1_demo — Vishal Rao">
+    <meta property="og:description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:image" content="https://vishalrao.in/pp.jpg">
+    <meta name="twitter:card" content="summary">
+    <!-- og:url and rel=canonical need this page's absolute address, which the
+         template doesn't know, so they're filled in at runtime below. Google
+         renders JS before indexing, so it does see these — but a build-time
+         canonical written straight into the HTML is strictly more reliable, and
+         is worth doing in the export script if you ever add one. -->
+    <link id="canonical-url" rel="canonical" href="">
+    <meta id="og-url" property="og:url" content="">
+    <script>
+        (function () {
+            // Strip ?query and #fragment: those are the same document, and
+            // letting them be indexed separately splits the page's ranking
+            // signals across near-duplicate URLs.
+            var url = location.origin + location.pathname;
+            var c = document.getElementById('canonical-url');
+            var o = document.getElementById('og-url');
+            if (c) c.href = url;
+            if (o) o.setAttribute('content', url);
+        })();
+    </script>
+    <!-- Person entity. This is the piece that actually matters for a name
+         search: it tells Google that the "Vishal Rao" of this site is the IISc
+         lattice-QCD one, distinct from the several well-known people who share
+         the name. sameAs is the disambiguator — FILL IN every profile you
+         actually have (inSPIRE-HEP, ORCID, Google Scholar, arXiv, GitHub,
+         LinkedIn, your CHEP people-page) and DELETE the lines you don't. Each
+         of those profiles should link back here; the two-way link is what ties
+         the identity together. An unfilled or wrong URL here is worse than no
+         markup at all, so don't leave the examples in place. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Vishal Rao",
+      "url": "https://vishalrao.in/",
+      "image": "https://vishalrao.in/pp.jpg",
+      "jobTitle": "PhD Researcher",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "Centre for High Energy Physics, Indian Institute of Science",
+        "url": "https://chep.iisc.ac.in/"
+      },
+      "knowsAbout": [
+        "Lattice Quantum Chromodynamics",
+        "Lattice Gauge Theory",
+        "Finite-Temperature Gauge Theories",
+        "High-Performance Computing"
+      ],
+      "sameAs": [
+        "REPLACE-WITH-YOUR-INSPIRE-HEP-AUTHOR-URL",
+        "REPLACE-WITH-YOUR-ORCID-URL",
+        "REPLACE-WITH-YOUR-GOOGLE-SCHOLAR-URL",
+        "REPLACE-WITH-YOUR-GITHUB-URL"
+      ]
+    }
+    </script>
     <!-- MathJax config: on phone-width screens, break long display equations onto
          multiple lines instead of overflowing the page. Desktop and tablet keep the
          default rendering (empty config), so their layout is unchanged. Must run

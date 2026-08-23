@@ -8,7 +8,135 @@
     <link id="hljs-theme-dark" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" disabled />
     <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
     <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
-    <title>beta_conversion_p4_to_hisq.py</title>
+    <!-- Page title carries the site owner's name on every page, so a wiki page
+         can surface for "<topic> Vishal Rao" and not just the bare topic.
+         Vimwiki substitutes beta_conversion_p4_to_hisq.py with this page's own heading. NOTE: if this
+         same template is ever used for the homepage, drop the suffix there —
+         "Vishal Rao — Vishal Rao" reads as spam to both people and crawlers. -->
+    <title>beta_conversion_p4_to_hisq.py — Vishal Rao</title>
+    <meta name="author" content="Vishal Rao">
+    <!-- Site-level fallback description. Search engines usually write their own
+         snippet from the matched passage and ignore this, so it is a floor, not
+         a lever — the real per-page description would have to be generated at
+         export time, which this template can't do (vimwiki only substitutes
+         beta_conversion_p4_to_hisq.py / 
+<pre python>
+def R_2(beta):
+    b0,b1=9/(16*np.pi*np.pi),1/(4*np.pi*np.pi)
+    return np.exp(-beta/(12*b0))*((6*b0/beta)**(-(b1/(2*b0*b0))))
+
+def a_cap(beta):
+    return R_2(beta)/3.4
+
+def r0_div_a_p4fat3(beta):
+    e_r,f_r,a_r,b_r,c_r,d_r=-1.682,0.823,13.250,-1.201,0.054,0.406
+    numerator=1+e_r*a_cap(beta)**2+f_r*a_cap(beta)**4
+    denominator=a_r*R_2(beta)*(1+b_r*a_cap(beta)**2+c_r*a_cap(beta)**4+d_r*a_cap(beta)**6)
+    r0_cap=numerator/denominator
+    return r0_cap
+
+beta_list=[3.53,3.57,3.585,3.76,3.82,3.92,4.00,4.08]
+# we will use a_div_r1_2014(beta) function to calculate the value of lattice spacing for each beta.
+lattice_spacing_fm_in=[]
+r0=0.469 #r0 in real world is beta independent and is 0.469fm
+for beta_in in beta_list:
+    lattice_spacing_fm_in.append(r0/r0_div_a_p4fat3(beta_in))
+temperature_MeV=[]
+N_t_in=8
+for a in lattice_spacing_fm_in:
+    temperature_MeV.append(197.7/(a*N_t_in))
+#from temperature we can find lattice spacing for any N_t
+N_t_out=8
+lattice_spacing_fm_out=[]
+for temp in temperature_MeV:
+    lattice_spacing_fm_out.append(197.7/(temp*N_t_out))
+
+print(lattice_spacing_fm_in)
+print(temperature_MeV)
+print(lattice_spacing_fm_out)
+
+#now for these lattice spacing we have to guess beta. 
+fKexpnew=156.1/np.sqrt(2)
+
+# we shall guess beta and increase by small amount to see if we are getting closer to lattice_spacing_fm_out for each beta_in
+# def find_beta(a):
+#     error=2
+#     while(error&gt;=0.005):
+#         a_out=a_times_fk_2014(beta_guess)/156.1
+#         error=a-a_out
+#         if error&lt;0:
+#             beta_guess+=0.5
+
+a_out=a_times_fk_2014(0.56)/fKexpnew
+print(a_out)
+
+
+
+
+</pre>
+ / ../ / utf-8 / rss.xml). -->
+    <meta name="description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:site_name" content="Vishal Rao">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="beta_conversion_p4_to_hisq.py — Vishal Rao">
+    <meta property="og:description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:image" content="https://vishalrao.in/pp.jpg">
+    <meta name="twitter:card" content="summary">
+    <!-- og:url and rel=canonical need this page's absolute address, which the
+         template doesn't know, so they're filled in at runtime below. Google
+         renders JS before indexing, so it does see these — but a build-time
+         canonical written straight into the HTML is strictly more reliable, and
+         is worth doing in the export script if you ever add one. -->
+    <link id="canonical-url" rel="canonical" href="">
+    <meta id="og-url" property="og:url" content="">
+    <script>
+        (function () {
+            // Strip ?query and #fragment: those are the same document, and
+            // letting them be indexed separately splits the page's ranking
+            // signals across near-duplicate URLs.
+            var url = location.origin + location.pathname;
+            var c = document.getElementById('canonical-url');
+            var o = document.getElementById('og-url');
+            if (c) c.href = url;
+            if (o) o.setAttribute('content', url);
+        })();
+    </script>
+    <!-- Person entity. This is the piece that actually matters for a name
+         search: it tells Google that the "Vishal Rao" of this site is the IISc
+         lattice-QCD one, distinct from the several well-known people who share
+         the name. sameAs is the disambiguator — FILL IN every profile you
+         actually have (inSPIRE-HEP, ORCID, Google Scholar, arXiv, GitHub,
+         LinkedIn, your CHEP people-page) and DELETE the lines you don't. Each
+         of those profiles should link back here; the two-way link is what ties
+         the identity together. An unfilled or wrong URL here is worse than no
+         markup at all, so don't leave the examples in place. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Vishal Rao",
+      "url": "https://vishalrao.in/",
+      "image": "https://vishalrao.in/pp.jpg",
+      "jobTitle": "PhD Researcher",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "Centre for High Energy Physics, Indian Institute of Science",
+        "url": "https://chep.iisc.ac.in/"
+      },
+      "knowsAbout": [
+        "Lattice Quantum Chromodynamics",
+        "Lattice Gauge Theory",
+        "Finite-Temperature Gauge Theories",
+        "High-Performance Computing"
+      ],
+      "sameAs": [
+        "REPLACE-WITH-YOUR-INSPIRE-HEP-AUTHOR-URL",
+        "REPLACE-WITH-YOUR-ORCID-URL",
+        "REPLACE-WITH-YOUR-GOOGLE-SCHOLAR-URL",
+        "REPLACE-WITH-YOUR-GITHUB-URL"
+      ]
+    }
+    </script>
     <!-- MathJax config: on phone-width screens, break long display equations onto
          multiple lines instead of overflowing the page. Desktop and tablet keep the
          default rendering (empty config), so their layout is unchanged. Must run

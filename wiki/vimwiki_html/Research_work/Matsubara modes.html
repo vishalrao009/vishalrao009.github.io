@@ -8,7 +8,137 @@
     <link id="hljs-theme-dark" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" disabled />
     <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
     <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
-    <title>Matsubara modes</title>
+    <!-- Page title carries the site owner's name on every page, so a wiki page
+         can surface for "<topic> Vishal Rao" and not just the bare topic.
+         Vimwiki substitutes Matsubara modes with this page's own heading. NOTE: if this
+         same template is ever used for the homepage, drop the suffix there —
+         "Vishal Rao — Vishal Rao" reads as spam to both people and crawlers. -->
+    <title>Matsubara modes — Vishal Rao</title>
+    <meta name="author" content="Vishal Rao">
+    <!-- Site-level fallback description. Search engines usually write their own
+         snippet from the matched passage and ignore this, so it is a floor, not
+         a lever — the real per-page description would have to be generated at
+         export time, which this template can't do (vimwiki only substitutes
+         Matsubara modes / 
+<div id="Matsubara modes (frequencies)"><h1 id="Matsubara modes (frequencies)" class="header"><a href="#Matsubara modes (frequencies)">Matsubara modes (frequencies)</a></h1></div>
+
+<p>
+At finite <a href="temperature.html">temperature</a> the <a href="euclidean.html">euclidean</a> time is compact, \(\tau\in[0,\beta]\) with \(\beta=1/T\), so every <a href="fields.html">field</a> is periodic (bosons) or anti-periodic (fermions) in \(\tau\) and can be Fourier-expanded in discrete <span id="Matsubara modes (frequencies)-Matsubara frequencies"></span><strong id="Matsubara frequencies">Matsubara frequencies</strong>. These discrete modes are the technical origin of <a href="dimensional reduction.html">dimensional reduction</a>.<br />
+</p>
+
+<div id="Matsubara modes (frequencies)-The mode expansion"><h2 id="The mode expansion" class="header"><a href="#Matsubara modes (frequencies)-The mode expansion">The mode expansion</a></h2></div>
+
+\[
+\phi(\vec x,\tau)=T\sum_{n=-\infty}^{\infty} e^{i\omega_n\tau}\,\tilde\phi_n(\vec x),
+\]
+
+<p>
+with the frequencies fixed by the (anti)periodic boundary conditions:<br />
+</p>
+
+\[
+\omega_n = 2\pi n T\quad(\text{[[boson|bosons]]}),\qquad
+\omega_n = (2n+1)\pi T\quad(\text{[[fermion|fermions]]}).
+\]
+
+<p>
+Bosons have a <span id="Matsubara modes (frequencies)-The mode expansion-static"></span><strong id="static">static</strong> \(n=0\) mode; fermions do not (their lowest frequency is \(\pi T\)).<br />
+</p>
+
+<div id="Matsubara modes (frequencies)-Why they drive dimensional reduction"><h2 id="Why they drive dimensional reduction" class="header"><a href="#Matsubara modes (frequencies)-Why they drive dimensional reduction">Why they drive dimensional reduction</a></h2></div>
+
+<p>
+In the 3D theory of the static modes, a Matsubara mode of frequency \(\omega_n\) appears as a field of mass \(|\omega_n|\). Thus every non-static mode carries a "thermal mass" \(\ge 2\pi T\):<br />
+</p>
+
+<ul>
+<li>
+as \(T\to\infty\) these modes become heavy and decouple;
+
+<li>
+only the static (\(n=0\)) <span id="Matsubara modes (frequencies)-Why they drive dimensional reduction-bosonic"></span><strong id="bosonic">bosonic</strong> modes remain light and dynamical.
+
+</ul>
+<p>
+Integrating out the heavy (\(n\neq0\)) modes is exactly the first matching step that produces <a href="EQCD.html">EQCD</a>. The surviving static gauge field then splits into the magnetic part \(A_i\) and the electric part \(A_0\), whose subsequent removal gives <a href="MQCD.html">MQCD</a>.<br />
+</p>
+
+<div id="Matsubara modes (frequencies)-Frequency sums"><h2 id="Frequency sums" class="header"><a href="#Matsubara modes (frequencies)-Frequency sums">Frequency sums</a></h2></div>
+
+<p>
+Thermodynamic quantities in the <a href="partition function.html">partition function</a> are computed as sums over Matsubara frequencies,<br />
+</p>
+
+\[
+T\sum_n \int\!\frac{d^3k}{(2\pi)^3}\ f(\omega_n,\vec k),
+\]
+
+<p>
+which reduce to the usual loop integrals at \(T=0\) and encode all thermal effects at \(T&gt;0\).<br />
+</p>
+ /  / utf-8 / rss.xml). -->
+    <meta name="description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:site_name" content="Vishal Rao">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Matsubara modes — Vishal Rao">
+    <meta property="og:description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:image" content="https://vishalrao.in/pp.jpg">
+    <meta name="twitter:card" content="summary">
+    <!-- og:url and rel=canonical need this page's absolute address, which the
+         template doesn't know, so they're filled in at runtime below. Google
+         renders JS before indexing, so it does see these — but a build-time
+         canonical written straight into the HTML is strictly more reliable, and
+         is worth doing in the export script if you ever add one. -->
+    <link id="canonical-url" rel="canonical" href="">
+    <meta id="og-url" property="og:url" content="">
+    <script>
+        (function () {
+            // Strip ?query and #fragment: those are the same document, and
+            // letting them be indexed separately splits the page's ranking
+            // signals across near-duplicate URLs.
+            var url = location.origin + location.pathname;
+            var c = document.getElementById('canonical-url');
+            var o = document.getElementById('og-url');
+            if (c) c.href = url;
+            if (o) o.setAttribute('content', url);
+        })();
+    </script>
+    <!-- Person entity. This is the piece that actually matters for a name
+         search: it tells Google that the "Vishal Rao" of this site is the IISc
+         lattice-QCD one, distinct from the several well-known people who share
+         the name. sameAs is the disambiguator — FILL IN every profile you
+         actually have (inSPIRE-HEP, ORCID, Google Scholar, arXiv, GitHub,
+         LinkedIn, your CHEP people-page) and DELETE the lines you don't. Each
+         of those profiles should link back here; the two-way link is what ties
+         the identity together. An unfilled or wrong URL here is worse than no
+         markup at all, so don't leave the examples in place. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Vishal Rao",
+      "url": "https://vishalrao.in/",
+      "image": "https://vishalrao.in/pp.jpg",
+      "jobTitle": "PhD Researcher",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "Centre for High Energy Physics, Indian Institute of Science",
+        "url": "https://chep.iisc.ac.in/"
+      },
+      "knowsAbout": [
+        "Lattice Quantum Chromodynamics",
+        "Lattice Gauge Theory",
+        "Finite-Temperature Gauge Theories",
+        "High-Performance Computing"
+      ],
+      "sameAs": [
+        "REPLACE-WITH-YOUR-INSPIRE-HEP-AUTHOR-URL",
+        "REPLACE-WITH-YOUR-ORCID-URL",
+        "REPLACE-WITH-YOUR-GOOGLE-SCHOLAR-URL",
+        "REPLACE-WITH-YOUR-GITHUB-URL"
+      ]
+    }
+    </script>
     <!-- MathJax config: on phone-width screens, break long display equations onto
          multiple lines instead of overflowing the page. Desktop and tablet keep the
          default rendering (empty config), so their layout is unchanged. Must run

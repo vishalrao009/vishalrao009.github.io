@@ -8,7 +8,1944 @@
     <link id="hljs-theme-dark" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" disabled />
     <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
     <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
-    <title>Classical Mechanics Lec 17-22 (V Balakrishnan)</title>
+    <!-- Page title carries the site owner's name on every page, so a wiki page
+         can surface for "<topic> Vishal Rao" and not just the bare topic.
+         Vimwiki substitutes Classical Mechanics Lec 17-22 (V Balakrishnan) with this page's own heading. NOTE: if this
+         same template is ever used for the homepage, drop the suffix there —
+         "Vishal Rao — Vishal Rao" reads as spam to both people and crawlers. -->
+    <title>Classical Mechanics Lec 17-22 (V Balakrishnan) — Vishal Rao</title>
+    <meta name="author" content="Vishal Rao">
+    <!-- Site-level fallback description. Search engines usually write their own
+         snippet from the matched passage and ignore this, so it is a floor, not
+         a lever — the real per-page description would have to be generated at
+         export time, which this template can't do (vimwiki only substitutes
+         Classical Mechanics Lec 17-22 (V Balakrishnan) / 
+<div id="Contents" class="toc"><h1 id="Contents" class="header"><a href="#Contents">Contents</a></h1></div>
+<ul>
+<li>
+<a href="Classical Mechanics Lec 17-22 (V Balakrishnan).html#Lecture 17">#Lecture 17</a>
+
+<ul>
+<li>
+<a href="Classical Mechanics Lec 17-22 (V Balakrishnan).html#Baker's map">#Baker's map</a>
+
+<li>
+<a href="Classical Mechanics Lec 17-22 (V Balakrishnan).html#Arnold's cat map">#Arnold's cat map</a>
+
+<li>
+<a href="Classical Mechanics Lec 17-22 (V Balakrishnan).html#Gauss (continued fraction) map">#Gauss (continued fraction) map</a>
+
+</ul>
+<li>
+<a href="Classical Mechanics Lec 17-22 (V Balakrishnan).html#Lecture 20: Classical Statistical Mechanics">#Lecture 20: Classical Statistical Mechanics</a>
+
+<ul>
+<li>
+<a href="Classical Mechanics Lec 17-22 (V Balakrishnan).html#Isolated system">#Isolated system</a>
+
+<li>
+<a href="Classical Mechanics Lec 17-22 (V Balakrishnan).html#Ergodicity">#Ergodicity</a>
+
+<li>
+<a href="Classical Mechanics Lec 17-22 (V Balakrishnan).html#Fundamental Assumption/postulate of equilibrium statistical mechanics">#Fundamental Assumption/postulate of equilibrium statistical mechanics</a>
+
+<li>
+<a href="Classical Mechanics Lec 17-22 (V Balakrishnan).html#Thermal equilibrium">#Thermal equilibrium</a>
+
+<li>
+<a href="Classical Mechanics Lec 17-22 (V Balakrishnan).html#Toy model">#Toy model</a>
+
+<li>
+<a href="Classical Mechanics Lec 17-22 (V Balakrishnan).html#Generating function for the binomial distribution">#Generating function for the binomial distribution</a>
+
+</ul>
+<li>
+<a href="Classical Mechanics Lec 17-22 (V Balakrishnan).html#Lecture 21">#Lecture 21</a>
+
+<ul>
+<li>
+[[#What is \(N!\) (for large \(N\)):-]]
+
+<li>
+<a href="Classical Mechanics Lec 17-22 (V Balakrishnan).html#Poisson Distribution">#Poisson Distribution</a>
+
+</ul>
+<li>
+<a href="Classical Mechanics Lec 17-22 (V Balakrishnan).html#Lecture 22">#Lecture 22</a>
+
+<li>
+<a href="Classical Mechanics Lec 17-22 (V Balakrishnan).html#Lecture 22">#Lecture 22</a>
+
+<ul>
+<li>
+<a href="Classical Mechanics Lec 17-22 (V Balakrishnan).html#Entropy">#Entropy</a>
+
+<li>
+<a href="Classical Mechanics Lec 17-22 (V Balakrishnan).html#Thermodynamics in Nutshell">#Thermodynamics in Nutshell</a>
+
+<ul>
+<li>
+<a href="Classical Mechanics Lec 17-22 (V Balakrishnan).html#1st law of thermodynamics">#1st law of thermodynamics</a>
+
+</ul>
+</ul>
+</ul>
+<p>
+<a href="Classical Mechanics Lec 13-16 (V Balakrishnan).html">&lt;&lt; previous</a>  |  <a href="Classical Mechanics and Dynamical Systems (V Balakrishnan).html">overview</a>  |  <a href="https://youtube.com/playlist?list=PLoRUNeJAicqYt-iU3qK77tXcu1YpT9htz">playlist</a>  |  <a href="Classical Mechanics Lec 23-26 (V Balakrishnan).html">next &gt;&gt;</a><br />
+</p>
+
+<div id="Lecture 17"><h1 id="Lecture 17" class="header"><a href="#Lecture 17">Lecture 17</a></h1></div>
+
+<p>
+(Q) Does the Liapunov exponent depend on the initial condition or<br />
+not?<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes}
+\begin{tikzpicture}[scale=1.1]
+\draw[thick] plot [smooth cycle, tension=1] coordinates {(0,2) (1.8,2.4) (3.2,1.6) (3,-0.2) (1,-0.8) (-0.8,0.4)};
+\draw[thick] plot [smooth cycle, tension=1] coordinates {(1.5,1.7) (2.2,1.6) (2.1,0.5) (1.4,0.7)};
+\draw[thick] plot [smooth cycle, tension=1] coordinates {(0.3,1.1) (0.7,1.3) (0.6,0.4) (0.1,0.5)};
+\node at (0.6,1.9) {$x_0$};
+\draw[-&gt;,thick] (0.6,1.75) -- (0.55,1.15);
+\node[right] at (2.6,1.9) {attractor$_1$};
+\node[left] at (-0.3,0.7) {attractor$_2$};
+\end{tikzpicture}
+</pre>
+
+<p>
+If the initial condition is such that the trajectory comes to an<br />
+arbitrary point in phase space, since the Liapunov exponent is<br />
+calculated by taking time steps to infinity, and the point has<br />
+explored the whole phase space, therefore in that sense the<br />
+Liapunov exponent should <span id="Lecture 17-not"></span><strong id="not">not</strong> depend on the initial<br />
+condition.<br />
+</p>
+
+<p>
+Though there could be multiple attractors, which suggests it<br />
+depends on \(x_0\), but generally, otherwise, wherever we start,<br />
+\(x_0\) is going to fill up the whole phase space. So the Liapunov<br />
+exponent <span id="Lecture 17-now"></span><strong id="now">now</strong> becomes the property of the trajectory<br />
+rather than of a point.<br />
+</p>
+
+<div id="Lecture 17-Baker's map"><h2 id="Baker's map" class="header"><a href="#Lecture 17-Baker's map">Baker's map</a></h2></div>
+
+<p>
+(measure (area, volume) is preserved; still the system is<br />
+chaotic), conservative system.<br />
+</p>
+
+<p>
+It is like the Bernoulli map where we have to cut the graph above<br />
+\(x_{n+1} = 1\) and put it back. We could have also folded the<br />
+piece back rather than cutting, to gain non-linearity. (analogy)<br />
+</p>
+
+\[
+x_{n+1} = 2x_n \bmod 1
+\]
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes}
+\begin{tikzpicture}[scale=2.6]
+\draw[-&gt;] (0,0) -- (1.2,0) node[right] {$x_n$};
+\draw[-&gt;] (0,0) -- (0,1.2) node[above] {$x_{n+1}$};
+\draw[thick] (0,0) -- (0.5,1) -- (1,0);
+\node[below] at (0,0) {$0$};
+\end{tikzpicture}
+</pre>
+
+<p>
+Tent map (non-linear, continuous)<br />
+</p>
+
+<p>
+\(\lambda(x_0) = \ln 2\), all rational numbers are periodic unstable<br />
+orbits.<br />
+</p>
+
+<p>
+So the idea is to stretch the interval, then put the second half<br />
+part on top of the first-half map.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes}
+\begin{tikzpicture}[scale=1]
+\draw[thick] (0,2) -- (4,2);
+\node at (0,2.3) {$0$};
+\node at (4,2.3) {$1$};
+\draw[-&gt;] (2,1.6) -- (2,1.1);
+\draw[thick] (0,0.5) -- (8,0.5);
+\node at (0,0.8) {$0$};
+\node at (4,0.8) {$1$};
+\node at (8,0.8) {$2$};
+\draw[-&gt;] (4,0.1) -- (2,-0.8);
+\draw[thick] (0,-1.3) -- (4,-1.3);
+\node at (0,-1) {$0$};
+\node at (4,-1) {$1$};
+\end{tikzpicture}
+</pre>
+
+<p>
+Baker's map takes one more dimension (increasing dimension by<br />
+one) in such a way that measure is preserved.<br />
+</p>
+\[
+x_{n+1} = 2x_n \bmod 1 \qquad (\forall)
+\]
+\[
+y_{n+1} = \begin{cases} \dfrac{1}{2} y_n &amp; (x_n &lt; 1/2) \\[2mm] \dfrac{1}{2} + \dfrac{1}{2} y_n &amp; (x_n &gt; 1/2) \end{cases}
+\]
+
+<p>
+Let's draw \(x_{n+1}\) vs \(y_{n+1}\), and \(x_n\) vs \(y_n\).<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes}
+\begin{tikzpicture}[scale=1.6]
+\draw[thick] (0,0) rectangle (1,1);
+\node[left] at (0,0.5) {$y$};
+\node[below] at (0.5,0) {$x$};
+\node[below] at (0,0) {$0$};
+\node[below] at (0.5,0) {$1/2$};
+\node[below] at (1,0) {$1$};
+\draw[dashed] (0.5,0) -- (0.5,1);
+\fill (0.2,0.2) circle (0.02);
+\fill (0.7,0.3) circle (0.02);
+\node at (0.9,1.1) {$A = 1{\times}1 = 1$};
+\draw[-&gt;] (1.2,0.5) -- (1.9,0.5) node[midway,above] {expanding $x$ by $2$} node[midway,below] {contracting $y$ by $1/2$};
+\draw[thick] (2.1,0.25) rectangle (4.1,0.75);
+\draw[dashed] (3.1,0.25) -- (3.1,0.75);
+\node[below] at (2.1,0.25) {$0$};
+\node[below] at (3.1,0.25) {$1$};
+\node[below] at (4.1,0.25) {$2$};
+\fill (2.4,0.35) circle (0.02);
+\fill (3.4,0.4) circle (0.02);
+\end{tikzpicture}
+</pre>
+
+<p>
+\((A = 1{\times}\tfrac12) = \tfrac12\), folded piece placed on top \(\Rightarrow\) total area<br />
+\((A_f) = 1\)<br />
+</p>
+
+<ul>
+<li>
+Map is invertible, still chaotic because (\(\lambda_1 = \ln 2\))
+
+<li>
+Area is preserved (\(A_i = 1\), \(A_f = 1\))
+
+<li>
+\(\Rightarrow\) Jacobian of transformation is \(1\)
+
+<li>
+Liapunov exponents are \(\ln 2,\ \ln\frac12\)
+\[
+\text{total Liapunov exponent} = \ln 2 + \ln \tfrac12 = 0
+\]
+
+</ul>
+<p>
+As long as measure is preserved, the sum of Liapunov exponents is<br />
+zero.<br />
+</p>
+
+<p>
+All Liapunov exponents are zero for integrable Hamiltonian<br />
+systems since it is integrable; none of \(\lambda(x_0)\) should be<br />
+\(+\)ve, \(-\)ve (expanding/contracting volume space), sum of these<br />
+also will be zero, (otherwise...).<br />
+</p>
+
+<p>
+For non-integrable Hamilton systems, Liapunov exponents occur in<br />
+pairs such that the total Liapunov exponent is zero. (\(-\)ve for<br />
+each \(+\)ve).<br />
+</p>
+
+<p>
+<span id="Lecture 17-Baker's map-Note:"></span><strong id="Note:">Note:</strong> unlike differential dynamics, in discrete time<br />
+dynamics we can write an explicit solution to a map, but it will<br />
+still be chaotic.<br />
+</p>
+
+\[
+x_{n+1} = 2x_n \bmod 1
+\]
+\[
+x_n = 2^n x_0 \bmod 1 \qquad \text{--- explicit function of time}
+\]
+<p>
+\(\hookrightarrow\) still chaotic.<br />
+</p>
+
+<p>
+We can see how we do not see loss of information in Baker's map,<br />
+if we represent \(x_n, y_n, x_{n+1}, y_{n+1}\) in binary:<br />
+</p>
+\[
+x_n = 0.a_0 a_1 a_2 a_3 \cdots
+\]
+\[
+y_n = 0.b_0 b_1 b_2 b_3 \cdots
+\]
+\[
+\Big\downarrow
+\]
+\[
+x_{n+1} = 0.a_1 a_2 a_3 \cdots
+\]
+\[
+y_{n+1} = 0.(a_0 b_0)\, b_1 b_2 b_3 \cdots \qquad \text{so we do not lose } a_0.
+\]
+
+<p>
+Chaotic <span id="Lecture 17-Baker's map-but"></span><strong id="but">but</strong> (measure preserving and invertible).<br />
+</p>
+
+<p>
+(wow!)<br />
+</p>
+
+<p>
+<span id="Lecture 17-Baker's map-Note:"></span><strong id="Note:">Note:</strong> The general rule to produce chaos in a 1-D map is<br />
+that it has to be non-invertible; for 2 and higher dimensions,<br />
+invertible maps can also produce chaos.<br />
+</p>
+
+<div id="Lecture 17-Arnold's cat map"><h2 id="Arnold's cat map" class="header"><a href="#Lecture 17-Arnold's cat map">Arnold's cat map</a></h2></div>
+
+\[
+x_{n+1} = (x_n + y_n) \bmod 1
+\]
+\[
+y_{n+1} = (x_n + 2y_n) \bmod 1
+\]
+\[
+\begin{pmatrix} x_{n+1} \\ y_{n+1} \end{pmatrix}
+= \begin{pmatrix} 1 &amp; 1 \\ 1 &amp; 2 \end{pmatrix}
+\begin{pmatrix} x_n \\ y_n \end{pmatrix}
+\]
+
+<p>
+determinant of transformation matrix \(= 1\) (orientation<br />
+preserving)<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes}
+\begin{tikzpicture}[scale=1.8]
+\draw[thick] (0,0) rectangle (1,1);
+\draw[thick,-&gt;] (0,0) -- (1,1);
+\node[below] at (0,0) {$0$};
+\node[below] at (1,0) {$1$};
+\node[left] at (0,1) {$1$};
+\node[left] at (0,0.5) {$y$};
+\node[below] at (0.5,0) {$x$};
+\node at (0.5,0.55) {\textit{[cat face sketch]}};
+\end{tikzpicture}
+</pre>
+
+<p>
+The reason it is named Arnold's cat map is because he put the<br />
+face of a cat in this graph, and after a few iterations we can't<br />
+recognize the face of the cat.<br />
+</p>
+
+<p>
+\(\to\) every point is having a stretching direction and a<br />
+contracting direction.<br />
+</p>
+
+<div id="Lecture 17-Gauss (continued fraction) map"><h2 id="Gauss (continued fraction) map" class="header"><a href="#Lecture 17-Gauss (continued fraction) map">Gauss (continued fraction) map</a></h2></div>
+
+\[
+x_0 = \cfrac{1}{a_0 + \cfrac{1}{a_1 + \cfrac{1}{a_2 + \cfrac{1}{a_3 + \cfrac{1}{a_4 + \cdots}}}}}
+\qquad \xrightarrow{\text{ease of writing}} \qquad
+\frac{1}{a_0} \dot{+} \frac{1}{a_1} + \frac{1}{a_2} + \frac{1}{a_3} + \cdots
+\]
+<p>
+\(\hookrightarrow\) notice the `\(+\)' sign is written down.<br />
+</p>
+
+<p>
+If the continued fraction terminates, \(x_0\) = rational; else<br />
+\(x_0\) is an irrational number.<br />
+</p>
+
+\[
+x_1 = \cfrac{1}{a_1 + \cfrac{1}{a_2 + \cfrac{1}{a_3 + \cfrac{1}{a_4 + \cdots}}}}
+\]
+
+<p>
+So to get \(x_1\): take the reciprocal of \(x_0\), throw away the<br />
+integer part \(a_0\). So,<br />
+</p>
+\[
+x_{n+1} = \frac{1}{x_n} - \left[\frac{1}{x_n}\right] \qquad \longrightarrow \text{integer part of } (1/x_n)
+\]
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes}
+\begin{tikzpicture}[scale=3.2]
+\draw[-&gt;] (0,0) -- (1.15,0) node[right] {$x_n$};
+\draw[-&gt;] (0,0) -- (0,1.15) node[above] {$x_{n+1}$};
+\draw[dashed] (0,0) -- (1,1);
+\foreach \a in {1,2,3,4}{
+  \draw[thick,domain={1/(\a+1)}:{1/\a},samples=30] plot (\x,{1/\x - \a});
+}
+\node[below] at (0,0) {$0$};
+\node[below] at (0.25,0) {$1/4$};
+\node[below] at (0.333,0) {$1/3$};
+\node[below] at (0.5,0) {$1/2$};
+\node[below] at (0.75,0) {$3/4$};
+\node[below] at (1,0) {$1$};
+\end{tikzpicture}
+</pre>
+
+<p>
+for \(\left(\dfrac12 &lt; x_n &lt; 1\right)\), \(\left(1 &lt; \dfrac{1}{x_n} &lt; 2\right)\)<br />
+</p>
+
+<p>
+for any given \(x_{n+1}\) there lie infinite pre-images.<br />
+</p>
+
+<p>
+slope at each point \(|{\cdot}| &gt; 1\)<br />
+\(\to\) unstable at each point.<br />
+</p>
+
+<p>
+8.1) Let's take any arbitrary number from \(0\) to \(1\). Take its<br />
+reciprocal, throw away the integer, and repeat the process for a<br />
+long time. What is the probability that the final number is less<br />
+than \(\alpha\), \((0,\alpha)\)?<br />
+</p>
+\[
+\left(\text{Ans: } \frac{\ln(1+\alpha)}{\ln 2}\right)
+\]
+
+<p>
+Before we calculate, let's find the fixed point of the Gauss map.<br />
+</p>
+
+<p>
+f.p\(_1\) \(\Rightarrow\) \(x = \dfrac{1}{x} - 1\)<br />
+</p>
+\[
+x^2 + x - 1 = 0 \qquad x = \frac{-1 \pm \sqrt{1+4}}{2} = \frac{-1\pm\sqrt5}{2}
+\]
+<p>
+So f.p\(_{1,2} = \dfrac{\sqrt5 - 1}{2}\) as \(0 &lt; x &lt; 1\)<br />
+</p>
+
+<p>
+\(\to x + 1 = \dfrac{1}{x} \;\Rightarrow\; x = \dfrac{1}{1+x}\)<br />
+</p>
+
+<p>
+Continued fraction can be written as<br />
+</p>
+\[
+x = \cfrac{1}{1 + \cfrac{1}{1 + \cfrac{1}{1 + \cdots}}}
+\]
+
+<p>
+For f.point 2, \(x = \dfrac{1}{x} - 2\)<br />
+</p>
+\[
+\Rightarrow x^2 + 2x - 1 = 0
+\]
+\[
+x = \frac{-2 \pm \sqrt{4+4}}{2} = \frac{-2 \pm 2\sqrt2}{2} \;\Rightarrow\; -1 \pm \sqrt2
+\]
+\[
+(x = \sqrt2 - 1)
+\]
+
+<p>
+continued fraction \(\Rightarrow\) \(\dfrac{1}{x} = x + 2\)<br />
+</p>
+\[
+\Rightarrow x = \frac{1}{x+2}
+\]
+\[
+\Rightarrow x = \cfrac{1}{2 + \cfrac{1}{2 + \cfrac{1}{2 + \cdots}}}
+\]
+
+<p>
+Q.) What sort of number is this?<br />
+</p>
+\[
+x = \cfrac{1}{1 + \cfrac{1}{2 + \cfrac{1}{1 + \cfrac{1}{2 + \cdots}}}}
+\]
+
+<p>
+Ans. It would be the fixed point of one iteration of the map, or<br />
+a period-2 cycle.<br />
+</p>
+
+<div id="Lecture 20: Classical Statistical Mechanics"><h1 id="Lecture 20: Classical Statistical Mechanics" class="header"><a href="#Lecture 20: Classical Statistical Mechanics">Lecture 20: Classical Statistical Mechanics</a></h1></div>
+
+<ul>
+<li>
+Statistical mechanics helps in understanding the behaviour
+
+</ul>
+<p>
+of systems which involve a large number of degrees of freedom<br />
+(which are interacting non-linearly with one another).<br />
+</p>
+
+<ul>
+<li>
+It is the science of averages. Also it is the study at the
+
+</ul>
+<p>
+largest/longest length scales and time scales.<br />
+</p>
+
+<ul>
+<li>
+Statistical mechanics is partitioned into two parts:
+
+<ul>
+<li>
+Equilibrium statistical mechanics.
+
+<li>
+Non-equilibrium statistical mechanics.
+
+</ul>
+<li>
+Equilibrium statistical mechanics arose from the question
+
+</ul>
+<p>
+that: are there any steady states (equilibrium states) which the<br />
+system will finally settle down to? If there is, how does it<br />
+behave, and so on?<br />
+</p>
+
+<ul>
+<li>
+Thermodynamics is the study of systems at their longest
+
+</ul>
+<p>
+length scales and time-scales.<br />
+</p>
+
+<ul>
+<li>
+So all fluctuations which happen at very small length
+
+</ul>
+<p>
+scales and time scales are neglected, and we look at things at<br />
+very long time scales and very long length scales.<br />
+</p>
+
+<p>
+Let us start with the Hamiltonian of a system. The system<br />
+contains many particles and is isolated from the rest of the<br />
+universe.<br />
+</p>
+
+<div id="Lecture 20: Classical Statistical Mechanics-Isolated system"><h2 id="Isolated system" class="header"><a href="#Lecture 20: Classical Statistical Mechanics-Isolated system">Isolated system</a></h2></div>
+
+<p>
+(exchange of matter &amp; energy are prohibited).<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes}
+\begin{tikzpicture}[scale=1.1]
+\draw[thick] plot [smooth cycle, tension=1] coordinates {(0,1.6) (1.6,2) (2.6,1) (2.2,-0.6) (0.6,-0.8) (-0.8,0.4)};
+\draw[thick,domain=0:540,samples=100,variable=\t]
+  plot ({0.9*cos(\t)/(1+0.02*\t)+0.7},{0.9*sin(\t)/(1+0.02*\t)+0.6});
+\end{tikzpicture}
+</pre>
+
+\[
+H(q,p)
+\]
+
+<p>
+If the rules are time-translation invariant, then we know that<br />
+the Hamiltonian is a constant of motion. \(\left(\dfrac{dH}{dt}=0\right)\)<br />
+</p>
+\[
+H(q,p) = E \quad \text{(total energy of system)}.
+\]
+<p>
+{with uncertainty \(\delta E\)}<br />
+</p>
+
+<p>
+Phase space becomes \(6N\)-dimensional for \(N\) particles. So we<br />
+need to know \(3N\) constants of motion which are in involution<br />
+with each other.<br />
+</p>
+
+<p>
+\(\{C_i, C_j\} = 0\) if \(i \neq j\) <span id="Lecture 20: Classical Statistical Mechanics-Isolated system-[?]"></span><strong id="[?]">[?]</strong><br />
+</p>
+
+<p>
+Constants of motion will be:<br />
+</p>
+
+<ol>
+<li>
+\(H\) \(1\)
+
+<li>
+total linear momentum (\(P\)) \(3\)
+
+<li>
+Total angular momentum (\(L\)) \(3\)
+
+<li>
+C.O.M position (\(\vec R\)) \(3\)
+
+</ol>
+<p>
+Total \(10\) c.o.m [constants of motion].<br />
+</p>
+
+<p>
+To specify the state of the system we need a point in phase space<br />
+\((q_1,q_2,\ldots,q_N,\,p_1,p_2,\ldots,p_N)\).<br />
+</p>
+
+<p>
+And that point will move on some \(6N\)-dimensional hypersurface.<br />
+</p>
+
+<ul>
+<li>
+Due to lack of a sufficient number of constants of motion
+
+</ul>
+<p>
+which are in involution with each other, we know that the<br />
+differential equation of motion is not integrable, and the system<br />
+of such kind is going to show chaotic behaviour with some<br />
+positive Liapunov exponents. It is likely to wander around<br />
+completely in a strange fashion, such that the system is ergodic<br />
+on the energy surface.<br />
+</p>
+
+<ul>
+<li>
+It does not have to be strictly ergodic; there can be a
+
+</ul>
+<p>
+great deal of mixing (exponential separation of the volume<br />
+element).<br />
+</p>
+
+<p>
+Any way, exponential separation \(\Rightarrow\) mixing \(\Downarrow\)<br />
+ergodicity (implies)<br />
+</p>
+
+<div id="Lecture 20: Classical Statistical Mechanics-Ergodicity"><h2 id="Ergodicity" class="header"><a href="#Lecture 20: Classical Statistical Mechanics-Ergodicity">Ergodicity</a></h2></div>
+
+<ul>
+<li>
+The volume element of phase space will come closer to
+
+</ul>
+<p>
+every point of phase space in a given sufficient time. {definition<br />
+of ergodicity}.<br />
+</p>
+
+<ul>
+<li>
+The whole phase space is not accessible to the system because we specified its total energy.
+
+<li>
+we become ignorant in knowing what happens to system at time \(t \neq t_0\), and assume that every point/volume element of phase space is as equally likely as other points of phase space. We can term this principle as <span id="Lecture 20: Classical Statistical Mechanics-Ergodicity-principle of maximum ignorance"></span><strong id="principle of maximum ignorance">principle of maximum ignorance</strong>.
+
+</ul>
+<div id="Lecture 20: Classical Statistical Mechanics-Fundamental Assumption/postulate of equilibrium statistical mechanics"><h2 id="Fundamental Assumption/postulate of equilibrium statistical mechanics" class="header"><a href="#Lecture 20: Classical Statistical Mechanics-Fundamental Assumption/postulate of equilibrium statistical mechanics">Fundamental Assumption/postulate of equilibrium statistical mechanics</a></h2></div>
+
+<ul>
+<li>
+\(\rangle\) _"In a state of thermal eq\(^m\), all accessible micro-states of the system are equally probable."_
+
+</ul>
+<p>
+_"This single statement is enough to derive all equations of stat. mech, whereas thermal eq\(^m\) turns out to be a special case of it."_<br />
+</p>
+
+<div id="Lecture 20: Classical Statistical Mechanics-Thermal equilibrium"><h2 id="Thermal equilibrium" class="header"><a href="#Lecture 20: Classical Statistical Mechanics-Thermal equilibrium">Thermal equilibrium</a></h2></div>
+
+<p>
+Two systems are said to be in thermal equilibrium if there is no heat flow between them when they are connected to each other.<br />
+</p>
+
+<p>
+A system is said to be in thermodynamic eq\(^m\) if it is in mechanical, physical and thermal equilibrium.<br />
+</p>
+
+<ul>
+<li>
+\(\rangle\) state of thermal eq\(^m\) also means that long time average of macroscopic variables reach a steady state and do not change with time. Such macroscopic quantities are Energy (internal), Total pressure, etc.
+
+</ul>
+<p>
+_"All physical macroscopic quantities are time independent in a system of thermal eq\(^m\) state."_<br />
+</p>
+
+<p>
+<span id="Lecture 20: Classical Statistical Mechanics-Thermal equilibrium-Note:-"></span><strong id="Note:-">Note:-</strong><br />
+</p>
+
+<ul>
+<li>
+\(\rangle\) Microscopic variables like velocity of a particle in certain d.o.f is <span id="Lecture 20: Classical Statistical Mechanics-Thermal equilibrium-not"></span><strong id="not">not</strong> time independent, whereas the average velocity of all/each particles is time independent, which is zero, i.e. system is not moving anywhere.
+
+<li>
+\(\rangle\) The average values can only be independent of time if the probability distribution (over which the average is defined) is itself independent of time.
+
+</ul>
+<p>
+<span id="Lecture 20: Classical Statistical Mechanics-Thermal equilibrium-micro state:-"></span><strong id="micro state:-">micro state:-</strong><br />
+ Specifying the state of every constituent of the system. The set \((q_1 \cdots q_n,\, p_1 \cdots p_n)\) is the microstate of the system, or we can say that position in phase space is microstate, whereas the total momentum (avg) of all particles is macrostate.<br />
+</p>
+
+<p>
+By accessible microstate we restrict the velocity a particle can have, i.e. \(H(q,p) = E_{\text{total}}\).<br />
+</p>
+
+<p>
+So a particle of such an isolated system can not have \(K.E &gt; E\). So some microstates are not accessible anymore.<br />
+</p>
+
+<p>
+<em>"All those micro-states which are compatible with all restrictions applied on the system are termed as accessible micro-state."</em><br />
+</p>
+
+<p>
+<em>"microstate tells what each and every particle is doing and macrostate is giving some gross/overall information."</em><br />
+</p>
+
+<p>
+If microstate energy is the only parameter of the microstate \(\to\) (in quantum stat. mech.)<br />
+</p>
+
+<p>
+_"If an isolated system has 10 J of total energy then we can have a single particle which has energy close to 10 J and rest of all are close to zero Energy. (microstate) This is equally probable as other states; followed from postulate of eq\(^m\) stat. mech."_<br />
+</p>
+
+<p>
+In phase-space, probability density obeys<br />
+</p>
+\[
+\frac{\partial f}{\partial t} = \{H, f\}
+\qquad
+\left(
+\begin{aligned}
+f &amp;= \text{const.\ of motion} \\
+\frac{df}{dt} &amp;= \{f,H\} + \frac{\partial f}{\partial t} = 0 \\
+\frac{\partial f_{eq}}{\partial t} &amp;= \{H, f_{eq}\}
+\end{aligned}
+\right)
+\]
+
+<p>
+if probability distribution is independent of time<br />
+</p>
+\[
+\frac{\partial f_{eq}}{\partial t} = 0 = \{H, f_{eq}\} \implies \text{implies } \underline{f_{eq} = f(H)}.
+\]
+
+<p>
+remember \(f_{eq}\) is not a physical observable.<br />
+</p>
+\[
+f_{eq} = f_{eq}(H) = \delta(H(q,p) - E)
+\]
+
+<p>
+Since such an isolated system uses microstates, such an ensemble is termed as the <span id="Lecture 20: Classical Statistical Mechanics-Thermal equilibrium-microcanonical ensemble"></span><strong id="microcanonical ensemble">microcanonical ensemble</strong>. A stat. ensemble with \(f_{eq} = \delta(H(q,p)-E)\), which corresponds to an isolated system in thermal eq\(^m\), is called the microcanonical ensemble (in phase space).<br />
+</p>
+
+<ul>
+<li>
+\(\rangle\) If we assume we can not have a point in phase space but a volume shell of finite resolution, then only can we define the probability of occupying a certain state (volume element in phase space/shell).
+\[
+\Delta q\, \Delta p \geq \frac{\hbar}{2}
+\]
+
+</ul>
+<p>
+for 1 particle, volume element<br />
+</p>
+\[
+(\Delta q_1 \Delta p_1)(\Delta q_2 \Delta p_2)(\Delta q_3 \Delta p_3) \sim h^3 \text{ or } \hbar^3
+\]
+
+<p>
+for \(N\) particles the volume element would be \(\sim h^{3N}\).<br />
+</p>
+
+<p>
+If volume of accessible phase space is \(M\),<br />
+</p>
+\[
+\#\text{ of microstates} = \frac{M}{h^{3N}} = \Omega(E) \quad \text{(finite \&amp; large)}
+\]
+
+<p>
+let probability of any microstate \(= P\), \(\sum_i P_i = 1\)<br />
+</p>
+
+\[
+P \cdot (\text{no.\ of microstates}) = 1
+\quad \implies \quad
+\left\{
+\begin{aligned}
+P &amp;= \frac{1}{\Omega} \\
+&amp;= \frac{h^{3N}}{M}
+\end{aligned}
+\right.
+\]
+
+<div id="Lecture 20: Classical Statistical Mechanics-Toy model"><h2 id="Toy model" class="header"><a href="#Lecture 20: Classical Statistical Mechanics-Toy model">Toy model</a></h2></div>
+
+<p>
+Set of \(N\) coins, where each coin (<span id="Lecture 20: Classical Statistical Mechanics-Toy model-distinguishable/identifiable"></span><strong id="distinguishable/identifiable">distinguishable/identifiable</strong>) has \(\{H,T\}\) two states.<br />
+</p>
+
+\[
+\{2^N \text{ microstates}\} \qquad \underbrace{h t t \cdots h h h \cdots t t h \cdots h h h}_{\text{`N' letters}} \;\to\; \text{microstate}
+\]
+<p>
+(still a state of the system as a whole, but describes what each object is doing.)<br />
+</p>
+
+<p>
+Let, Total no. of heads \(= H\)<br />
+</p>
+
+<p>
+ Total no. of tails \(= T\)<br />
+</p>
+
+\[
+H + T = N
+\]
+
+<p>
+Let, \(H - T = M\).<br />
+</p>
+
+<p>
+\((N,M)\) or \((N,H)\) or \((H,T)\) are macrostate of the system.<br />
+</p>
+
+<p>
+For given \(N\),<br />
+</p>
+\[
+\#\text{ of macrostates} = N+1.
+\]
+<p>
+<span id="Lecture 20: Classical Statistical Mechanics-Toy model-ex"></span><strong id="ex">ex</strong> for \(N=3\), let \((N,H)\) represent macrostate; we have \((3,0),(3,1),(3,2),(3,3)\) — 4 macrostates.<br />
+</p>
+
+<p>
+no. of microstates are much larger than no. of macrostates.<br />
+</p>
+\[
+2^N \geq N+1 \qquad N = \text{d.o.f.}
+\]
+
+<ul>
+<li>
+\(\rangle\) Probability of any possible/specific microstate would be \(\left(\dfrac{1}{2^N}\right)\).
+
+<li>
+\(\rangle\) Probability of attaining a given macrostate:- we have \(0 \leq H \leq N\)
+\[
+P(H) = {}^N C_H \cdot \left(\frac{1}{2}\right)^H \left(\frac{1}{2}\right)^{(N-H)}
+\]
+
+</ul>
+<p>
+Suppose the coin is biased, then<br />
+</p>
+\[
+P(h) = p, \qquad P(t) = 1-p = q
+\]
+
+<p>
+then,<br />
+</p>
+\[
+P(H) = {}^N C_H\, p^H q^{N-H}
+\]
+\[
+\sum_{H=0}^{N} P(H) = (p+q)^N = 1^N = 1 \qquad \text{binomial expansion.}
+\]
+
+<div id="Lecture 20: Classical Statistical Mechanics-Generating function for the binomial distribution"><h2 id="Generating function for the binomial distribution" class="header"><a href="#Lecture 20: Classical Statistical Mechanics-Generating function for the binomial distribution">Generating function for the binomial distribution</a></h2></div>
+
+\[
+f(x) = \sum_{H=0}^{N} P(H)\, x^H = (px+q)^N = \sum_{H=0}^{N} \left({}^N C_H\, p^H q^{N-H}\right) x^H.
+\]
+
+<p>
+\(P(H) = \) coefficient of \(x^H\) in the "expanded" generating function.<br />
+</p>
+
+<p>
+<span id="Lecture 20: Classical Statistical Mechanics-Generating function for the binomial distribution-Property of G.F.:-"></span><strong id="Property of G.F.:-">Property of G.F.:-</strong><br />
+</p>
+
+\[
+f(1) = 1 \; ; \quad (p+q)^N = 1
+\]
+
+\[
+\langle H \rangle = ? \quad \text{(avg.\ no.\ of Heads)}
+\]
+\[
+\langle H \rangle = \frac{\sum_{H=0}^{N} P(H) H}{\sum_{H=0}^{N} P(H)} = \sum_{H=0}^{N} P(H) H
+\]
+
+<p>
+to find \(\langle H \rangle = \sum_{H=0}^{N} P(H) H\) we differentiate the G.F.<br />
+</p>
+\[
+f'(x) = \sum_{H=0}^{N} P(H)\, H\, x^{H-1}
+\]
+\[
+f'(1) = \sum_{H=0}^{N} P(H) H = \Big(N (px+q)^{N-1} \cdot p\Big)_{x=1}
+\]
+
+<p>
+so,<br />
+</p>
+\[
+\langle H \rangle = \sum_{H=0}^{N} P(H) H = N (p+q)^{N-1} \cdot p = Np
+\]
+\[
+\boxed{\langle H \rangle = Np}
+\]
+
+\[
+\langle H^2 \rangle = ?
+\]
+<p>
+find<br />
+</p>
+\[
+f''(1) = \Big(N p^2 (N-1)(px+q)^{N-2}\Big)_{x=1} = p^2 N(N-1) \tag{1}
+\]
+\[
+f''(x) = \left(\sum_{H=0}^{N} P(H)\, H(H-1)\, x^{H-2}\right)_{x=1} = \langle H(H-1) \rangle = \langle H^2 - H \rangle = \langle H^2 \rangle - \langle H \rangle \tag{2}
+\]
+
+<p>
+equating (1) and (2)<br />
+</p>
+\[
+p^2 N(N-1) = \langle H^2 \rangle - \langle H \rangle
+\]
+\[
+\implies \langle H^2 \rangle = p^2 N^2 - p^2 N + \langle H \rangle
+\]
+\[
+\implies \langle H^2 \rangle = p^2 N^2 - p^2 N + Np
+\]
+
+<p>
+Also, now we can find variance,<br />
+</p>
+\[
+\text{variance} := \text{mean square} - \text{square of mean}
+\]
+\[
+\text{var}(H) = \langle H^2 \rangle - \langle H \rangle^2 \quad \left(= \langle (H - \langle H \rangle)^2 \rangle \right)
+\]
+\[
+= N^2 p^2 - p^2 N + Np - N^2 p^2
+\]
+\[
+\text{var}(H) = Np(1-p)
+\]
+\[
+\sigma^2 = \text{var}(H) = Npq, \qquad \text{as } (q = 1-p)
+\]
+
+<p>
+Therefore \(\Delta H = \) std. deviation \(=\) uncertainty \(= \sqrt{Npq}\)<br />
+</p>
+\[
+\boxed{\Delta H = \sigma = \sqrt{Npq}}
+\]
+
+<p>
+Therefore relative fluctuation will be:-<br />
+</p>
+\[
+\text{fluctuation about mean} = \frac{\Delta H}{\langle H \rangle} = \frac{\sqrt{Npq}}{Np} = \sqrt{\frac{q}{Np}}
+\]
+\[
+\text{Relative scatter (dispersion about mean)} = \frac{1}{\sqrt{N}}\sqrt{\frac{q}{p}}
+\]
+
+<ul>
+<li>
+\(\rangle\) It says relative fluctuation becomes smaller as no. of coin tosses increases / no. of coins increases.
+
+</ul>
+<p>
+In thermodynamics we deal with \(\sim 10^{23}\) d.o.f, so relative fluctuations become very small. This is the main reason "why thermodynamics works".<br />
+</p>
+
+<p>
+_"In statistical mechanics the generating function is called the partition function (\(\sim\) laplace transformation / green fn.)"_<br />
+</p>
+
+<p>
+<span id="Lecture 20: Classical Statistical Mechanics-Generating function for the binomial distribution-Note:-"></span><strong id="Note:-">Note:-</strong><br />
+</p>
+
+<p>
+out of 100 coin tosses, \(P(50H)\) or \(P(50T)\) is most probable, because \({}^{100}C_{50}\) is biggest for all \(H\) in \(\left({}^{100}C_H\right)\).<br />
+</p>
+
+<p>
+each microstate is equally probable, but \(P(1H \,\&amp;\, 99T)\) has contribution — but each macrostate is made up of many microstates. So attaining \(1H\) and \(99T\) has a lesser no. of microstates than that of \(50H, 50T\); so one example is that one molecule can have nearly all the total energy and rest of all are nearly at rest; indeed such microstates are equally probable, but the macrostate has contribution from very few microstates, so such a macrostate is less likely to exist than other possible macrostates.<br />
+</p>
+
+<div id="Lecture 21"><h1 id="Lecture 21" class="header"><a href="#Lecture 21">Lecture 21</a></h1></div>
+
+<p>
+\(N\) coins, \(H\) heads, \(T\) tails<br />
+</p>
+\[
+P(H) = {}^N C_H\, p^H q^{N-H} \qquad p = \text{prob of heads}, \quad q = \text{prob of tails}
+\]
+\[
+f(x) = (px+q)^N \qquad\qquad f(x) = \sum_{n=0}^{N} P(n)\, x^n = \sum {}^N C_n\, p^n q^{N-n} x^n = (px+q)^N
+\]
+\[
+\langle H \rangle = Np \qquad\qquad \Delta H = \sqrt{Npq}
+\]
+
+<p>
+What does this distribution look like?<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes}
+\begin{tikzpicture}[scale=0.9]
+\draw[-&gt;] (0,0) -- (9,0) node[right] {$H$};
+\draw[-&gt;] (0,0) -- (0,3) node[above] {$P(H)$};
+\foreach \x/\y in {0.5/0.2,1.5/0.5,2.5/1.0,3.5/1.7,4.5/2.4,5.5/1.7,6.5/1.0,7.5/0.5,8.5/0.2}
+  \draw (\x,0) -- (\x,\y);
+\draw[dashed] (4.5,0) -- (4.5,2.6);
+\node at (4.5,-0.4) {$N/2$};
+\node at (8.5,-0.4) {$N$};
+\end{tikzpicture}
+</pre>
+
+\[
+P(H) = {}^N C_H\, p^H q^{N-H}
+\]
+
+<p>
+we would like to find out what does \({}^N C_H\) do, at large no. of \(N\).<br />
+</p>
+
+<div id="Lecture 21-What is $N!$ (for large $N$):-"><h2 id="What is $N!$ (for large $N$):-" class="header"><a href="#Lecture 21-What is $N!$ (for large $N$):-">What is \(N!\) (for large \(N\)):-</a></h2></div>
+
+<p>
+<span id="Lecture 21-What is \(N!\) (for large \(N\)):--Sterling formula:-"></span><strong id="Sterling formula:-">Sterling formula:-</strong><br />
+</p>
+
+\[
+N! = N(N-1)(N-2) \cdots 3.2.1
+\]
+\[
+= N^N \left(1 - \frac{1}{N}\right)\left(1-\frac{2}{N}\right) \cdots
+\]
+\[
+= N^N e^{-N} \sqrt{2\pi N} \cdot \left\{1 + \frac{1}{12N} + \cdots \right\}
+\]
+
+\[
+1! = 1 \cdot e^{-1}\sqrt{2\pi} \qquad \text{so is } e \simeq \sqrt{2\pi}?
+\]
+
+<p>
+<span id="Lecture 21-What is \(N!\) (for large \(N\)):--def:-"></span><strong id="def:-">def:-</strong><br />
+</p>
+
+<p>
+\(n!\) is defined as \(\displaystyle\int_0^{\infty} dx\, e^{-x} x^n = \Gamma(n+1) \;\; \textbf{[?]} \quad (n = 1,2,3,\dots)\)<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes}
+\begin{tikzpicture}[scale=1]
+\draw[-&gt;] (-0.2,0) -- (5,0) node[right] {$x$};
+\draw[-&gt;] (0,-0.2) -- (0,3) node[above] {};
+\draw[blue, domain=0:5, samples=50] plot (\x, {2.5*exp(-\x)});
+\node[blue] at (3.6,0.5) {$e^{-x}$};
+\draw[blue, domain=0:2.3, samples=50] plot (\x, {0.35*\x*\x});
+\node[blue] at (2.1,2.0) {$x^n$};
+\draw[thick, domain=0.3:4.5, samples=80] plot (\x, {2.2*exp(-((\x-2)*(\x-2))/1.2)});
+\draw[dashed] (2,0) -- (2,2.2);
+\node at (2,-0.4) {$n$};
+\end{tikzpicture}
+</pre>
+
+\[
+g(x) = e^{-x} x^n = e^{-x} e^{\ln x^n} = e^{-x + n \log_e x} = e^{-(x - n \ln x)}
+\]
+\[
+g'(x) = e^{-(x-n\ln x)} \cdot (-1)\left(1 - \frac{n}{x}\right) = 0 \implies \boxed{g'(n) = 0}
+\]
+
+<p>
+let, \(f(x) = x - n\ln x\)<br />
+</p>
+\[
+f(n) = n - n \ln n
+\]
+\[
+g'(x) = 1 - \frac{n}{x}, \qquad g''(x) = 0 + \frac{n}{x^2}
+\]
+
+\[
+f(x) = f(n) + \frac{f'(n)(x-n)}{1!} + \frac{f''(n)(x-n)^2}{2!} + \cdots
+\]
+\[
+f(x) = (n - n\ln n) + 0 + \frac{(x-n)^2}{2n} + \cdots
+\]
+
+\[
+n! = \int_0^{\infty} e^{-x} x^n\, dx = \int_0^{\infty} e^{-(x-n\ln x)}\, dx
+\]
+\[
+\implies n! = \int_0^{\infty} e^{-\left((n-n\ln n) + \frac{(x-n)^2}{2n} + \cdots\right)} dx
+\]
+\[
+= \int_0^{\infty} \left(e^{-n} n^n\right) e^{-\frac{(x-n)^2}{2n}} \left\{1 + \cdots \right\} dx
+\]
+
+<p>
+for very large \(n\)<br />
+</p>
+\[
+n! = e^{-n} n^n \int_{-\infty}^{\infty} dx\, e^{-\frac{(x-n)^2}{2n}}
+\qquad \left(\int_{-\infty}^{\infty} e^{-t^2/A}\, dt = \sqrt{\pi A}\right)
+\]
+\[
+= e^{-n} n^n \sqrt{2\pi n} \cdot \left\{1 + O\!\left(\frac{1}{n}\right)\right\}
+\]
+
+<p>
+<span id="Lecture 21-What is \(N!\) (for large \(N\)):--Gaussian integral"></span><strong id="Gaussian integral">Gaussian integral</strong><br />
+</p>
+
+\[
+I = \int_{-\infty}^{\infty} e^{-ax^2}\, dx = \sqrt{\pi/a}
+\]
+<p>
+also<br />
+</p>
+\[
+I = \int_{-\infty}^{\infty} e^{-ay^2}\, dy
+\]
+\[
+I^2 = \int_{-\infty}^{\infty}\int_{-\infty}^{\infty} e^{-a(x^2+y^2)}\, dx\, dy
+\qquad
+\left\{
+\begin{aligned}
+x^2+y^2 &amp;= r^2 \\
+x &amp;= r\cos\theta \\
+y &amp;= r\sin\theta
+\end{aligned}
+\right.,
+\quad dA = (r\,d\theta)\,dr
+\]
+\[
+= \int_0^{\infty}\int_0^{2\pi} e^{-ar^2}\, r\, dr\, d\theta
+= \int_0^{\infty} e^{-ar^2}\, r\, dr \int_0^{2\pi} d\theta
+= \left(\sqrt{\pi/a}\right)^2
+\]
+\[
+\left(I = \sqrt{\pi/a}\right)
+\]
+
+<p>
+So for large \(N\):<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes}
+\begin{tikzpicture}[scale=0.9]
+\draw[-&gt;] (0,0) -- (7,0) node[right] {$H$};
+\draw[-&gt;] (0,0) -- (0,3) node[above] {$P(H)$};
+\draw[thick, domain=0.2:6.5, samples=100] plot (\x, {2.6*exp(-((\x-1.8)*(\x-1.8))/0.6)*(1/(1+exp(-3*(\x-0.6))))});
+\end{tikzpicture}
+</pre>
+
+<p>
+Take an ideal gas contained in volume \(V\). \(N = \) total no. of particles.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes}
+\begin{tikzpicture}
+\draw (0,0) ellipse (2.3 and 1.6);
+\node at (-1.1,0.9) {$N,V$};
+\draw (0.2,-0.3) rectangle (0.9,0.3);
+\node at (0.55,0.7) {$n,v$};
+\end{tikzpicture}
+</pre>
+
+<p>
+What is the probability that \(v\) contains \(n\) particles?<br />
+</p>
+
+<p>
+\(P(n) = \) Probability that \(v\) contains \(n\) particles.<br />
+</p>
+
+<p>
+Probability that a given particle is in volume \(v\) \(= v/V\).<br />
+</p>
+
+<p>
+Assume that all the particles are moving independent of each other; therefore the probability that there are \(n\) of them inside \(v\) is<br />
+</p>
+\[
+= {}^N C_n \left(\frac{v}{V}\right)^n \left(1-\frac{v}{V}\right)^{N-n}
+\]
+
+<p>
+Here \(n\) is a random variable whose value can vary from \((0 \leq n \leq N)\).<br />
+</p>
+
+<p>
+here \(p = v/V\), \(q = 1 - v/V\).<br />
+</p>
+
+<p>
+this is the binomial distribution.<br />
+</p>
+
+<p>
+let's put \(\rho = N/V\)<br />
+</p>
+\[
+\implies \frac{1}{V} = \frac{\rho}{N}
+\]
+
+<p>
+so,<br />
+</p>
+\[
+P(n) = {}^N C_n \left(\frac{v\rho}{N}\right)^n \left(1-\frac{v\rho}{N}\right)^{N-n} \qquad \text{(binomial distribution)}
+\]
+
+<p>
+What happens to \(P(n)\), when \(N \to \infty\) and \(V \to \infty\) but keeping \(\rho\) fixed.<br />
+</p>
+\[
+P(n) \xrightarrow{N \to \infty} \frac{N!}{n!(N-n)!} \left(\frac{v\rho}{N}\right)^n \left(1-\frac{v\rho}{N}\right)^{N-n}
+\]
+\[
+= \frac{N^N e^{-N}\sqrt{2\pi N}}{\left(n^n e^{-n}\sqrt{2\pi n}\right)\left((N-n)^{N-n} e^{-(N-n)}\sqrt{2\pi(N-n)}\right)} \left(\frac{v\rho}{N}\right)^n \left(1-\frac{v\rho}{N}\right)^{N-n}
+\]
+
+<p>
+_(we can't use \(n! = e^{-n}n^n\sqrt{2\pi n}\) as \(n\) can take \(0\) too)_<br />
+</p>
+
+\[
+P(n) \longrightarrow \frac{e^{-\bar n}(\bar n)^n}{n!} \qquad \text{where } n = 0,1,2,3,\dots \infty
+\]
+\[
+\boxed{v\rho = \bar n}
+\]
+
+<p>
+and \(\bar n = \rho v\), \(=\) avg. no. of particles in sub-volume \(v\).<br />
+</p>
+\[
+(\bar n = Np = (N \cdot v/V)) = (\bar n = \rho v)
+\]
+
+<p>
+We have assumed that particles behave like Newtonian mech. particles and are distinguishable from one another.<br />
+</p>
+
+<p>
+In \(\left(P(n) = \dfrac{e^{-\rho v}(\rho v)^n}{n!}\right)\) formula, \((N,V)\) don't appear anymore, as \((N,V \to \infty)\) such that their ratio \(\rho = N/V\) is finite (this is called the <span id="Lecture 21-What is \(N!\) (for large \(N\)):--thermodynamic limit"></span><strong id="thermodynamic limit">thermodynamic limit</strong> of the system, when \(N \to \infty, V \to \infty\) such that \(\rho = N/V\) is finite). Statistical mech. reduces to thermodynamics in the thermodynamic limit.<br />
+</p>
+
+<div id="Lecture 21-Poisson Distribution"><h2 id="Poisson Distribution" class="header"><a href="#Lecture 21-Poisson Distribution">Poisson Distribution</a></h2></div>
+
+<p>
+for random variable \(n = 0,1,2,\dots \infty\)<br />
+</p>
+\[
+P(n) = \frac{e^{-\lambda}\lambda^n}{n!} \qquad (\lambda = \langle n \rangle) \quad \lambda \text{ is avg.\ value of random variable}
+\]
+
+<p>
+Generating function<br />
+</p>
+\[
+f(x) = \sum_{n \geq 0} P(n) x^n = e^{\lambda(x-1)} \qquad \text{(How?)}
+\]
+\[
+f(1) = 1 \qquad \text{for} \qquad \sum_{n\geq 0} P(n) = 1
+\]
+
+\[
+\text{variance} = \langle (n - \langle n \rangle)^2 \rangle = \lambda = \langle n \rangle = \langle n^2 \rangle - \langle n \rangle^2
+\]
+
+<p>
+In poisson distribution, <span id="Lecture 21-Poisson Distribution-variance = mean"></span><strong id="variance = mean">variance = mean</strong>.<br />
+</p>
+
+\[
+\text{Relative fluctuation} = \frac{\sigma}{\langle n \rangle} = \frac{\Delta n}{\langle n \rangle} = \frac{\sqrt{\langle n \rangle}}{\langle n \rangle} = \frac{1}{\sqrt{\langle n \rangle}}
+\]
+
+<p>
+for poisson's distribution, \(\langle n \rangle = \lambda\), \((\Delta n)^2 = \lambda\), &amp; all higher moments \(=\lambda\), so it's a single-parameter distribution;<br />
+</p>
+
+<p>
+In gaussian distribution, except for \(\langle n \rangle\) &amp; \((\Delta n)^2\), all higher moments vanish.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes}
+\begin{tikzpicture}[scale=0.9]
+\draw[-&gt;] (0,0) -- (8,0) node[right] {$n$};
+\draw[-&gt;] (0,0) -- (0,3) node[above] {$P(n)$};
+\draw[dashed, domain=0.2:7.5, samples=100] plot (\x, {2.5*exp(-((\x-3.8)*(\x-3.8))/2.2)});
+\foreach \x/\y in {0.5/0.15,1.3/0.4,2.1/0.9,2.9/1.6,3.7/2.3,4.5/2.4,5.3/1.9,6.1/1.2,6.9/0.6,7.5/0.25}
+  \draw (\x,0) -- (\x,\y);
+\draw[dashed] (3.8,0) -- (3.8,2.5);
+\node at (3.8,-0.4) {$\bar n$};
+\end{tikzpicture}
+</pre>
+
+<p>
+\(\bar n = \) avg. no. of particles in subvolume \(v\).<br />
+</p>
+
+<p>
+If \(\bar n\) itself becomes very large, then the deviation from mean \((n - \bar n)\) takes a gaussian curve, and we call that a continuous variable if \(\bar n\) is very large.<br />
+</p>
+
+<p>
+from \(\displaystyle P(n) = \frac{e^{-\bar n}(\bar n)^n}{n!}\)<br />
+</p>
+
+<p>
+using Sterling's formula again, and replacing the variable to \(x = n - \bar n\)<br />
+</p>
+\[
+P(x) \propto \frac{e^{-x^2/2\sigma^2}}{\sqrt{2\pi}\,\sigma} \qquad \text{(Gaussian distribution)}
+\]
+
+<p>
+_"The whole point of the above discussion is that if we start with a binomial distribution of Bernoulli trials, and then from that we take the no. of particles (trials) to be very large such that \(p(H) \to 0\) (probability of success in a trial is vanishingly small), then the Binomial distribution goes over into the Poisson distribution. Then if the mean value of the Poisson distribution is very large compared to unity, the deviation from the mean \((n-\bar n)\) is approximately a continuous variable that has a Gaussian shape."_<br />
+</p>
+
+<p>
+So a probability distribution can shift over to another probability distribution.<br />
+</p>
+
+<p>
+<span id="Lecture 21-Poisson Distribution-Generating function:-"></span><strong id="Generating function:-">Generating function:-</strong><br />
+</p>
+
+\[
+f(x) = \sum_{n\geq0} P(n) x^n = P(0)x^0 + P(1)x^1 + P(2)x^2 + \cdots + P(n)x^n
+\]
+\[
+f(x) = \sum_{n\geq0} P(n) x^n = \sum_{n\geq0} \frac{e^{-\lambda}\lambda^n}{n!} x^n \implies e^{-\lambda}\sum \frac{(\lambda x)^n}{n!} = e^{-\lambda}e^{\lambda x}
+\]
+\[
+\boxed{f(x) = e^{\lambda(x-1)}}
+\]
+
+<p>
+let's go back to our problem of an isolated system in thermal equilibrium.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes}
+\begin{tikzpicture}
+\draw (0,0) circle (2);
+\draw[dashed] (-0.3,1.98) to[out=-85,in=95] (0.3,-1.98);
+\node at (-1,0.6) {$\tilde A$};
+\node at (1,0.6) {$\tilde B$};
+\node at (-1,-0.7) {$N,V,E$};
+\node at (1,-0.7) {$N',V',E'$};
+\node at (0,2.3) {$N_{\text{tot}},\, V_{\text{tot}},\, E_{\text{tot}},\, \Omega_{\text{tot}}$};
+\node[align=center] at (0,-2.6) {no.\ of accessible microstate.};
+\end{tikzpicture}
+</pre>
+
+<p>
+Imagine the system is made of two sub-systems, in eq. thermal eq\(^m\) with each other, such that<br />
+</p>
+\[
+N + N' = N_{\text{tot}}, \qquad V+V' = V_{\text{tot}}, \qquad E+E' \cong E_{\text{tot}} \qquad \text{(Isolated, in thermal eq}^m\text{)}
+\]
+
+<p>
+(<em>not necessarily</em>: \(E+E' \neq E_{\text{tot}}\) always if pot. energy plays a role.)<br />
+</p>
+
+<p>
+\(E+E' \cong E_{\text{tot}}\) to a very good approximation.<br />
+</p>
+
+<p>
+_"as no. of d.o.f which are interacting near the partition is \(\left(\dfrac{1}{10^8}\right)\)th of the total d.o.f"_ (assuming short range forces).<br />
+</p>
+
+<p>
+Then at any instant of time, what is the probability that Energy of \(A\) is \(E\); \(P(E)\)<br />
+</p>
+
+<p>
+\(P(E) = \) no. of microstates of this entire system such that \(A\) has energy \(E\). \((\Omega(E))\) (also \(B\) has energy \(E'\).)<br />
+</p>
+\[
+= \frac{\Omega(E)\,\Omega'(E')}{\Omega_{\text{tot}}(E_{\text{tot}})} \qquad \text{(normalization)}
+\]
+
+<p>
+\(\Omega(E)\) &amp; \(\Omega'(E')\) can have totally different functions <span id="Lecture 21-Poisson Distribution-[?]"></span><strong id="[?]">[?]</strong>.<br />
+</p>
+
+<p>
+As \(A\) can be a jar of a large container of oil and \(B\) can be our atmosphere. So \(A,B\) have different d.o.f.<br />
+</p>
+
+<div id="Lecture 22"><h1 id="Lecture 22" class="header"><a href="#Lecture 22">Lecture 22</a></h1></div>
+
+<p>
+Note that Energy of \(A\) and \(B\) are not fixed. Because there are fluctuations.<br />
+</p>
+
+<p>
+\(E, V, N, N', V', E'\) are variable quantities.<br />
+</p>
+
+<p>
+What we were trying to do is to find, is<br />
+</p>
+
+<p>
+_"Given the postulate of equal a priori probabilities of all the accessible microstates of the total system, what can we say about the probability distribution of (for instance say) Energy in system \(A\)."_<br />
+</p>
+
+\[
+P(E) = \frac{\#\text{ of microstates of tot.\ system such that } A \text{ has energy } E \; (\&amp;\ B \text{ has } E')}{\text{Total no.\ of microstates of total system such that } T.E = E_{\text{tot}}.}
+\]
+
+<p>
+If \(A\) &amp; \(B\) are assumed as independent systems (they actually are not) then \(\Omega_{\text{tot}}(E) = \Omega(E)\cdot\Omega'(E')\)<br />
+</p>
+
+\[
+= \frac{\Omega(E)\cdot\Omega'(E')}{\Omega_{\text{tot}}(E_{\text{tot}})}.
+\]
+
+\[
+P(A \,\&amp;\, B) = P(A)\cdot P(B) \quad \text{only iff } A,B \text{ are independent events.}
+\]
+
+<p>
+In the above discussion we have assumed that the interaction Energy is fairly negligible.<br />
+</p>
+
+<p>
+\(\Omega(E)\) is actually a function of \(V,N\) also.<br />
+</p>
+
+<p>
+<span id="Lecture 22-Remember always:"></span><strong id="Remember always:">Remember always:</strong><br />
+</p>
+\[
+\begin{cases}
+\Omega(E) = \Omega(E,V,N) \\[2pt]
+\Omega'(E') = \Omega'(E',V',N')
+\end{cases}
+\]
+
+<p>
+Let's see how big these numbers are:<br />
+</p>
+
+<p>
+Suppose we take a single particle and put it into volume \(V\), and the particle is moving around with some energy \(\leq E\). Let's calculate how many microstates it has.<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes}
+\begin{tikzpicture}
+\draw (0,0) rectangle (2,1.4);
+\draw (1,0.7) node {$\bullet$};
+\node at (1,-0.4) {$V$};
+\node at (0.4,1.1) {$\varepsilon$};
+\end{tikzpicture}
+</pre>
+
+<p>
+<span id="Lecture 22-No. of microstates"></span><strong id="No. of microstates">No. of microstates</strong> is <span id="Lecture 22-the"></span><strong id="the">the</strong> no. of shells in phase-space <span id="Lecture 22-(true in any dimensions)"></span><strong id="(true in any dimensions)">(true in any dimensions)</strong><br />
+</p>
+
+\[
+\underbrace{E = \frac{p^2}{2m}}_{} \qquad |p| \leq \sqrt{2mE}
+\]
+
+<p>
+Let no. of such microstates be<br />
+</p>
+\[
+\phi(E) = \frac{1}{h^3}\int d^3q \int_{|p|\le \sqrt{2mE}} d^3p
+\]
+<p>
+where \(d^3p = 4\pi p^2\,dp\) is the volume element, and \(\dfrac{\text{phase space volume}}{\text{min. volume }(h^3)}\) gives the number of microstates.<br />
+</p>
+
+\[
+\begin{aligned}
+\phi(E) &amp;= \frac{V}{h^3}\, 4\pi \int_0^{\sqrt{2mE}} p^2\,dp \ \propto\ \frac{V}{h^3} \qquad \{\text{no. of dimensions}\} \notag\\
+&amp;= \frac{V}{h^3}\,\frac{4\pi}{3}\, p^3\Big|_0^{\sqrt{2mE}} \notag\\
+&amp;= \frac{V}{h^3}\,\frac{4\pi}{3}\, \varepsilon^{3/2}\, 2m^{3/2} \qquad (p\propto E^{1/2})
+\end{aligned}
+\]
+
+<p>
+Relation between \(E\) and \(p\) for a free particle is<br />
+</p>
+\[
+E^2 = c^2p^2 + m^2c^4
+\]
+<p>
+\(m = \) rest mass always.<br />
+</p>
+
+<p>
+Mass does not increase with speed, it's just \(p = \gamma m v\) instead of \(mv\). \(\left(\gamma = \dfrac{1}{\sqrt{1-v^2/c^2}}\right)\)<br />
+</p>
+
+\[
+\varepsilon = (c^2p^2+m^2c^4)^{1/2} = c(p^2+m^2c^2)^{1/2}
+\]
+<p>
+If \(p \ll mc\) \(\{mc = \text{Compton momentum}\}\)<br />
+</p>
+\[
+\varepsilon = mc^2\left(1+\frac{p^2}{m^2c^2}\right)^{1/2}
+\]
+
+<p>
+In \(n\) dimensions, \((n-1)\) angles vary for \((0-\pi \text{ or } 0-2\pi)\).<br />
+</p>
+
+<p>
+In \(n\)-spatial dimensions,<br />
+</p>
+\[
+\phi(\varepsilon) \propto \int_0^{\sqrt{2m\varepsilon}} p^{n-1}\,dp \ \propto\ \varepsilon^{n/2}
+\]
+
+\[
+\begin{aligned}
+\varepsilon &amp;= mc^2\left(1+\frac{p^2}{2m^2c^2}-\frac{1}{8}\frac{p^4}{m^4c^4}+\cdots\right) \notag\\
+&amp;= mc^2 + \frac{p^2}{2m}+\cdots = \text{rest mass energy} + \frac{p^2}{2m}
+\end{aligned}
+\]
+
+<p>
+No. of microstates with energy in \((\varepsilon,\varepsilon+d\varepsilon) \sim \varepsilon^{1/2}d\varepsilon = d\phi(\varepsilon)\)<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes}
+\begin{tikzpicture}[scale=1]
+\draw[dashed] (0,0) circle (1.5);
+\draw (0,0) circle (1.3);
+\draw[-&gt;] (0,0) -- (1.1,0.9) node[midway,above] {$p=\sqrt{2m\varepsilon}$};
+\node at (2.3,1) {$d\varepsilon$};
+\node at (0,-2) {(given energy shell)};
+\end{tikzpicture}
+</pre>
+
+\[
+d\Omega = 4\pi p^2\,dp \qquad d\nu \simeq 8\pi\, m^{3/2}\varepsilon^{1/2}\,d\varepsilon
+\]
+
+\[
+\omega(\varepsilon) \sim \varepsilon^{1/2}d\varepsilon = f(\varepsilon)\,d\varepsilon
+\]
+
+<p>
+Density of states \(f(\varepsilon) = \varepsilon^{1/2} = g_i\) (degeneracy at energy \(\varepsilon\)) {no. of microstates per unit energy interval at energy \(\varepsilon\)}<br />
+</p>
+
+<p>
+For \(n\)-D: \(\ \Omega \propto \displaystyle\int p^{n-1}dp\ \ (\Omega\propto \varepsilon^{n/2})\) for \((n\geq 2)\).<br />
+</p>
+
+<p>
+<span id="Lecture 22-Case"></span><strong id="Case">Case</strong> for 2-D container<br />
+</p>
+\[
+d\nu = 2\pi p\,dp = 2\pi\sqrt{2m\varepsilon}\,\frac{2m}{2\sqrt{\varepsilon}} = \text{constant}
+\]
+<p>
+density of states becomes constant \(\propto\) <span id="Lecture 22-2-D"></span><strong id="2-D">2-D</strong>.<br />
+</p>
+
+<p>
+<span id="Lecture 22-Case"></span><strong id="Case">Case</strong> for 1-D<br />
+</p>
+\[
+\phi(\varepsilon) = \frac{d}{d\varepsilon}\left(\frac{V}{h^3}\varepsilon^{1/2}\right) = \frac{1}{2}\varepsilon^{-1/2}\frac{V}{h^3}
+\]
+<p>
+Density of states \(\uparrow\) as \(\varepsilon\downarrow\)<br />
+</p>
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes}
+\begin{tikzpicture}[scale=0.9]
+\draw[-&gt;] (0,0) -- (5,0) node[right] {$\varepsilon$};
+\draw[-&gt;] (0,0) -- (0,3) node[above] {$\phi(\varepsilon)$ (No. of microstates)};
+\draw[thick] (0.4,0.1) .. controls (2,0.3) and (3,1.5) .. (4.5,2.7) node[right] {classical};
+\draw[thick] (0.6,0.1) -- (1,0.1) -- (1,0.3) -- (1.6,0.3) -- (1.6,0.6) -- (2.3,0.6) -- (2.3,1.1) -- (3,1.1) -- (3,1.8) -- (3.8,1.8);
+\node at (3.6,1.2) {quantum mech. states};
+\node at (4,0.9) {$\varepsilon^{3/2}$};
+\node at (0.6,-0.3) {$\varepsilon_{gm}$};
+\node at (1,-0.4) {1st excited state};
+\end{tikzpicture}
+</pre>
+
+<p>
+As \(\varepsilon\uparrow\) no. of states increases [3-D case] (microscopic)<br />
+</p>
+
+<p>
+Now, we want to find \(\Omega(E)\), so we will like to assume again that particles are free<br />
+and<br />
+</p>
+\[
+E_{\text{tot}} = \varepsilon_1+\varepsilon_2+\varepsilon_3+\cdots+\varepsilon_N
+\]
+<p>
+Sum of energy of individual particles (with index \(i\)) = total energy.<br />
+</p>
+
+<p>
+For any two particles having \(z\) states, together they occupy \(z^2 = q\) states.<br />
+</p>
+
+\[
+\Omega(E) \propto \varepsilon \propto E^{\alpha N}
+\]
+
+<p>
+If one particle can take \(\phi(\varepsilon)\) states with energy \(\varepsilon\) to \(\varepsilon+d\varepsilon\): \(= k\varepsilon^{3/2}\);<br />
+independent \(N\) particles will take \(\ -\ k\varepsilon^{(3/2)N}\).<br />
+</p>
+
+<p>
+If all \(\varepsilon_i\) are of same order of magnitude \(\varepsilon\) {approximation}<br />
+</p>
+\[
+E = N\varepsilon
+\]
+<p>
+So,<br />
+</p>
+\[
+\Omega(E) \propto \varepsilon^{\alpha N} \propto \left(\frac{E}{N}\right)^{\alpha N}
+\]
+
+<p>
+For very large \(N\), \(\Omega(E)\) is astronomically large number.<br />
+</p>
+
+<p>
+\(\alpha = \tfrac{3}{2}\, n\, \tfrac{1}{2}\, n\, \tfrac{5}{2}\cdots\)<br />
+</p>
+
+<p>
+lecture 22 (time <span id="Lecture 22-30:15"></span><strong id="30:15">30:15</strong>)<br />
+</p>
+
+<div id="Lecture 22"><h1 id="Lecture 22" class="header"><a href="#Lecture 22">Lecture 22</a></h1></div>
+
+<p>
+<span id="Lecture 22-Note:"></span><strong id="Note:">Note:</strong> For <span id="Lecture 22-Most probable &quot;macro&quot; state"></span><strong id="Most probable &quot;macro&quot; state">Most probable "macro" state</strong> i.e. \(P(E)\) is maximum \(\equiv \{\text{eqm state}\}\)<br />
+</p>
+
+<p>
+So the system which has largest no. of microstates, that macrostate is the most probable state.<br />
+</p>
+
+<p>
+For <span id="Lecture 22-Most probable macrostate"></span><strong id="Most probable macrostate">Most probable macrostate</strong> it implies:<br />
+</p>
+\[
+\frac{\partial P(E)}{\partial E} = 0 \qquad \left\{P(E)=\frac{\Omega(E)\,\Omega'(E')}{\Omega_{\text{tot}}(E_{\text{tot}})}\right\}
+\]
+
+<p>
+As \(P(E)\) is very large, let's take \(\log P(E)\) and differentiate.<br />
+</p>
+\[
+\frac{\partial}{\partial E}\big(\ln P(E)\big) = 0
+\]
+
+\[
+dP = \frac{\partial P}{\partial E}dE+\frac{\partial P}{\partial V}dV+\frac{\partial P}{\partial N}dN
+\qquad
+\left.\begin{aligned}
+\frac{\partial(\ln \Omega(E))}{\partial E}+\frac{\partial(\ln \Omega'(E'))}{\partial E}&amp;=0
+\end{aligned}\right\}
+\]
+
+<p>
+for eqm \(\left(\dfrac{\partial P(E)}{\partial E}=\dfrac{\partial P}{\partial V}=\dfrac{\partial P}{\partial N}=0\right)\)<br />
+</p>
+
+\[
+E+E' = E_{\text{tot}} \qquad E' = E_{\text{tot}}-E \ \Rightarrow\ dE' = -dE
+\]
+
+<p>
+therefore<br />
+</p>
+\[
+\boxed{\dfrac{\partial \ln(\Omega(E))}{\partial E} = \dfrac{\partial \ln \Omega'(E')}{\partial E'}}
+\]
+<p>
+cond. for thermal eqm./most probable macrostate.<br />
+</p>
+
+<p>
+\(A\,|\,B\) possible, among two different kinds of matter, fluid, (gas \(\to\) liquid)...<br />
+</p>
+
+\[
+\frac{\partial}{\partial E}\big(\ln\Omega(E)\big) = \frac{\partial}{\partial E'}\big(\ln\Omega'(E')\big) = [E^{-1}] \quad \text{(dimensions)}
+\]
+<p>
+or,<br />
+</p>
+\[
+\text{some property of A} = \text{some property of B} = \frac{1}{k_B\,\text{Temp}} \qquad \{\text{Imp.}\}
+\]
+
+<p>
+<span id="Lecture 22-defn of temperature:"></span><strong id="defn of temperature:">defn of temperature:</strong><br />
+</p>
+\[
+\left(dE=TdS-PdV+\mu dN\right)\qquad T=\left.\frac{\partial E}{\partial S}\right|_{V,N}\ ,\quad S=k_B\ln\Omega
+\]
+
+<p>
+Let's define temp so for this property, a function \(\beta(E)\), of \(A/B\).<br />
+</p>
+\[
+\boxed{\ \beta(E)=\left.\dfrac{\partial \ln \Omega(E)}{\partial E}\right. = \dfrac{1}{k_B\,T(E)}\ }
+\]
+
+<p>
+By defn, in equilibrium<br />
+</p>
+\[
+\boxed{T_A = T_B}
+\]
+
+<p>
+"Any two parts have same temp in large isolated system under thermal equilibrium." (large d.o.f)<br />
+</p>
+
+<p>
+"Of course each part must be large enough to talk about temp, as temp. is not defined for a single particle."<br />
+</p>
+
+<p>
+If \(\Omega(E)\) is not strictly increasing function, and if so<br />
+</p>
+\[
+\frac{\partial \ln(\Omega(E))}{\partial E} &lt; 0 \ \Rightarrow\ \text{negative temperature.}
+\]
+
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes}
+\begin{tikzpicture}[scale=0.9]
+\draw[-&gt;] (0,0) -- (4,0) node[right] {$E$};
+\draw[-&gt;] (0,0) -- (0,2.2);
+\draw[thick] (0.3,0.2) .. controls (1.2,2) and (2,2) .. (2.6,1.2) .. controls (3.1,0.5) and (3.4,0.3) .. (3.7,0.1);
+\node at (1,-0.3) {$(T&gt;0)$};
+\node at (3.2,-0.3) {$(T&lt;0)$};
+\end{tikzpicture}
+</pre>
+
+<p>
+(+ve slope implies positive temp; -ve slope implies negative temp.) So possibility of \((-\text{ve})\) temp is built in our defn. of temp.<br />
+</p>
+
+<p>
+Since \(\Omega = \Omega(N,V,E)\), from \(\left(\dfrac{\partial \ln\Omega}{\partial V}=0,\ \dfrac{\partial \ln\Omega}{\partial N}=0\right)\)<br />
+</p>
+
+\[
+\frac{\partial \ln\Omega}{\partial V} = \frac{\partial \ln\Omega'}{\partial V'} \equiv \left\{\left(\frac{P_A}{T_A}=\frac{P_B}{T_B}\right)\Rightarrow (P_A=P_B)\right\}
+\]
+
+\[
+\frac{\partial \ln\Omega}{\partial N} = \frac{\partial \ln\Omega'}{\partial N'} \equiv \left\{\left(\frac{\mu_A}{T_A}=\frac{\mu_B}{T_B}\right)\Rightarrow (\mu_A=\mu_B)\right\}
+\]
+
+<p>
+(in thermodynamic terms)<br />
+</p>
+\[
+E = TS-PV+\mu N \qquad S = \frac{E+PV-\mu N}{T}
+\]
+\[
+\left(\frac{\partial S}{\partial N}=-\frac{\mu}{T}\right)\ ;\ \left(\frac{\partial S}{\partial V}=\frac{P}{T}\right)
+\]
+
+<div id="Lecture 22-Entropy"><h2 id="Entropy" class="header"><a href="#Lecture 22-Entropy">Entropy</a></h2></div>
+
+\[
+S(E,V,N) = k_B \ln\big(\Omega(E,V,N)\big)
+\]
+
+<div id="Lecture 22-Thermodynamics in Nutshell"><h2 id="Thermodynamics in Nutshell" class="header"><a href="#Lecture 22-Thermodynamics in Nutshell">Thermodynamics in Nutshell</a></h2></div>
+
+<div id="Lecture 22-Thermodynamics in Nutshell-1st law of thermodynamics"><h3 id="1st law of thermodynamics" class="header"><a href="#Lecture 22-Thermodynamics in Nutshell-1st law of thermodynamics">1st law of thermodynamics</a></h3></div>
+
+\[
+dQ = dU + dW \qquad \{dQ = \text{not a perfect differential}\}
+\]
+\[
+dU = dQ - dW
+\]
+\[
+= dU + PdV - \mu\,dN \qquad \text{(generalized fluxes)}
+\]
+\[
+dQ = dU - \sum F_i\,dx_i \qquad \text{(generalized forces)}
+\]
+
+<p>
+(Entropy representation)<br />
+</p>
+\[
+dS = \frac{dE+PdV-\mu dN}{T} \qquad S=S(E,V,N)
+\]
+
+<p>
+(Energy representation)<br />
+</p>
+\[
+dE = TdS - PdV+\mu dN \ \Rightarrow\ E = E(S,V,N)
+\]
+ /  / utf-8 / rss.xml). -->
+    <meta name="description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:site_name" content="Vishal Rao">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Classical Mechanics Lec 17-22 (V Balakrishnan) — Vishal Rao">
+    <meta property="og:description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:image" content="https://vishalrao.in/pp.jpg">
+    <meta name="twitter:card" content="summary">
+    <!-- og:url and rel=canonical need this page's absolute address, which the
+         template doesn't know, so they're filled in at runtime below. Google
+         renders JS before indexing, so it does see these — but a build-time
+         canonical written straight into the HTML is strictly more reliable, and
+         is worth doing in the export script if you ever add one. -->
+    <link id="canonical-url" rel="canonical" href="">
+    <meta id="og-url" property="og:url" content="">
+    <script>
+        (function () {
+            // Strip ?query and #fragment: those are the same document, and
+            // letting them be indexed separately splits the page's ranking
+            // signals across near-duplicate URLs.
+            var url = location.origin + location.pathname;
+            var c = document.getElementById('canonical-url');
+            var o = document.getElementById('og-url');
+            if (c) c.href = url;
+            if (o) o.setAttribute('content', url);
+        })();
+    </script>
+    <!-- Person entity. This is the piece that actually matters for a name
+         search: it tells Google that the "Vishal Rao" of this site is the IISc
+         lattice-QCD one, distinct from the several well-known people who share
+         the name. sameAs is the disambiguator — FILL IN every profile you
+         actually have (inSPIRE-HEP, ORCID, Google Scholar, arXiv, GitHub,
+         LinkedIn, your CHEP people-page) and DELETE the lines you don't. Each
+         of those profiles should link back here; the two-way link is what ties
+         the identity together. An unfilled or wrong URL here is worse than no
+         markup at all, so don't leave the examples in place. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Vishal Rao",
+      "url": "https://vishalrao.in/",
+      "image": "https://vishalrao.in/pp.jpg",
+      "jobTitle": "PhD Researcher",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "Centre for High Energy Physics, Indian Institute of Science",
+        "url": "https://chep.iisc.ac.in/"
+      },
+      "knowsAbout": [
+        "Lattice Quantum Chromodynamics",
+        "Lattice Gauge Theory",
+        "Finite-Temperature Gauge Theories",
+        "High-Performance Computing"
+      ],
+      "sameAs": [
+        "REPLACE-WITH-YOUR-INSPIRE-HEP-AUTHOR-URL",
+        "REPLACE-WITH-YOUR-ORCID-URL",
+        "REPLACE-WITH-YOUR-GOOGLE-SCHOLAR-URL",
+        "REPLACE-WITH-YOUR-GITHUB-URL"
+      ]
+    }
+    </script>
     <!-- MathJax config: on phone-width screens, break long display equations onto
          multiple lines instead of overflowing the page. Desktop and tablet keep the
          default rendering (empty config), so their layout is unchanged. Must run

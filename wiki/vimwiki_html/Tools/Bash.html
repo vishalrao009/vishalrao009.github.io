@@ -8,7 +8,284 @@
     <link id="hljs-theme-dark" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" disabled />
     <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
     <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
-    <title>Bash</title>
+    <!-- Page title carries the site owner's name on every page, so a wiki page
+         can surface for "<topic> Vishal Rao" and not just the bare topic.
+         Vimwiki substitutes Bash with this page's own heading. NOTE: if this
+         same template is ever used for the homepage, drop the suffix there —
+         "Vishal Rao — Vishal Rao" reads as spam to both people and crawlers. -->
+    <title>Bash — Vishal Rao</title>
+    <meta name="author" content="Vishal Rao">
+    <!-- Site-level fallback description. Search engines usually write their own
+         snippet from the matched passage and ignore this, so it is a floor, not
+         a lever — the real per-page description would have to be generated at
+         export time, which this template can't do (vimwiki only substitutes
+         Bash / 
+<div id="Contents" class="toc"><h1 id="Contents" class="header"><a href="#Contents">Contents</a></h1></div>
+<ul>
+<li>
+<a href="Bash.html#Bash">#Bash</a>
+
+<ul>
+<li>
+<a href="Bash.html#Killing processes">#Killing processes</a>
+
+<li>
+<a href="Bash.html#Basics of bash">#Basics of bash</a>
+
+<ul>
+<li>
+<a href="Bash.html#Notes">#Notes</a>
+
+</ul>
+<li>
+<a href="Bash.html#Variables in bash">#Variables in bash</a>
+
+<ul>
+<li>
+<a href="Bash.html#Example 1">#Example 1</a>
+
+<li>
+<a href="Bash.html#Example 2">#Example 2</a>
+
+<li>
+<a href="Bash.html#Example 3 (Capturing output of a command)">#Example 3 (Capturing output of a command)</a>
+
+</ul>
+<li>
+<a href="Bash.html#Math functions">#Math functions</a>
+
+<ul>
+<li>
+<a href="Bash.html#Example 1">#Example 1</a>
+
+<li>
+<a href="Bash.html#Using the expr command.">#Using the expr command.</a>
+
+<li>
+<a href="Bash.html#Using the bc command.">#Using the bc command.</a>
+
+</ul>
+</ul>
+</ul>
+<div id="Bash"><h1 id="Bash" class="header"><a href="#Bash">Bash</a></h1></div>
+<div id="Bash-Killing processes"><h2 id="Killing processes" class="header"><a href="#Bash-Killing processes">Killing processes</a></h2></div>
+
+<p>
+<a href="kill process in bash.html">kill process in bash</a><br />
+</p>
+
+<div id="Bash-Basics of bash"><h2 id="Basics of bash" class="header"><a href="#Bash-Basics of bash">Basics of bash</a></h2></div>
+
+<div id="Bash-Basics of bash-Notes"><h3 id="Notes" class="header"><a href="#Bash-Basics of bash-Notes">Notes</a></h3></div>
+<ul>
+<li>
+Echo statements always require double quotes in bash script.
+
+<li>
+use ${variable} to reference the variable.
+
+</ul>
+<p>
+Sample script 1:<br />
+</p>
+<pre bash>
+#!/bin/bash
+
+echo "hi there"
+echo "my current directory is "
+pwd
+
+echo "contents of the directory is"
+ls
+
+</pre>
+
+<div id="Bash-Variables in bash"><h2 id="Variables in bash" class="header"><a href="#Bash-Variables in bash">Variables in bash</a></h2></div>
+<div id="Bash-Variables in bash-Example 1"><h3 id="Example 1" class="header"><a href="#Bash-Variables in bash-Example 1">Example 1</a></h3></div>
+<pre bash>
+#!/bin/bash
+
+a=3
+b=4 
+c= $a + $b 
+echo "$c"
+
+</pre>
+
+<p>
+output: <br />
+3+4<br />
+</p>
+
+<div id="Bash-Variables in bash-Example 2"><h3 id="Example 2" class="header"><a href="#Bash-Variables in bash-Example 2">Example 2</a></h3></div>
+
+<pre bash>
+#!/bin/bash
+
+word="fun"
+
+echo "linux is $word"
+echo "bash is $word"
+echo "Test cricket is $word"
+</pre>
+
+<p>
+Output: <br />
+</p>
+
+<p>
+linux is fun<br />
+bash is fun<br />
+Test cricket is fun<br />
+</p>
+
+<div id="Bash-Variables in bash-Example 3 (Capturing output of a command)"><h3 id="Example 3 (Capturing output of a command)" class="header"><a href="#Bash-Variables in bash-Example 3 (Capturing output of a command)">Example 3 (Capturing output of a command)</a></h3></div>
+
+<pre bash>
+#!/bin/bash
+echo "file contents are $(ls)"
+echo "present directory is $(pwd)}"
+
+now=$(date) 
+echo "system date and time is $now"
+
+name=$(whoami) # or use $(USER)
+echo "my name is $name and using this machine on $now"
+
+
+</pre>
+
+<div id="Bash-Math functions"><h2 id="Math functions" class="header"><a href="#Bash-Math functions">Math functions</a></h2></div>
+
+<div id="Bash-Math functions-Example 1"><h3 id="Example 1" class="header"><a href="#Bash-Math functions-Example 1">Example 1</a></h3></div>
+
+<ul>
+<li>
+multiplication is calculated by <code>expr 100 /* 4</code>, addition is calculated by <code>expr 2 + 3</code>, division is calculated by <code>expr 2 / 3</code>. 
+
+</ul>
+ 
+<pre bash>
+#!/bin/bash
+
+var=33
+total= expr $var + 4
+echo "total is $total"
+
+
+</pre>
+<p>
+Here are some ways to add two numbers and store the result in a variable in Bash:<br />
+Using the let command.<br />
+Code<br />
+</p>
+<pre bash>
+num1=10
+num2=20
+let sum=$num1+$num2
+echo "The sum is $sum"
+
+</pre>
+
+<p>
+This will print the following output:<br />
+Code<br />
+The sum is 30<br />
+</p>
+
+<div id="Bash-Math functions-Using the expr command."><h3 id="Using the expr command." class="header"><a href="#Bash-Math functions-Using the expr command.">Using the expr command.</a></h3></div>
+<pre bash>
+num1=10
+num2=20
+sum=$(expr $num1 + $num2)
+echo "The sum is $sum"
+
+</pre>
+<p>
+This will also print the following output:<br />
+</p>
+
+<p>
+Code<br />
+The sum is 30<br />
+</p>
+
+<div id="Bash-Math functions-Using the bc command."><h3 id="Using the bc command." class="header"><a href="#Bash-Math functions-Using the bc command.">Using the bc command.</a></h3></div>
+
+<pre bash>
+num1=10
+num2=20
+sum=$(echo $num1 + $num2 | bc)
+echo "The sum is $sum"
+
+</pre>
+<p>
+This will also print the following output:<br />
+The sum is 30<br />
+</p>
+ /  / utf-8 / rss.xml). -->
+    <meta name="description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:site_name" content="Vishal Rao">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Bash — Vishal Rao">
+    <meta property="og:description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:image" content="https://vishalrao.in/pp.jpg">
+    <meta name="twitter:card" content="summary">
+    <!-- og:url and rel=canonical need this page's absolute address, which the
+         template doesn't know, so they're filled in at runtime below. Google
+         renders JS before indexing, so it does see these — but a build-time
+         canonical written straight into the HTML is strictly more reliable, and
+         is worth doing in the export script if you ever add one. -->
+    <link id="canonical-url" rel="canonical" href="">
+    <meta id="og-url" property="og:url" content="">
+    <script>
+        (function () {
+            // Strip ?query and #fragment: those are the same document, and
+            // letting them be indexed separately splits the page's ranking
+            // signals across near-duplicate URLs.
+            var url = location.origin + location.pathname;
+            var c = document.getElementById('canonical-url');
+            var o = document.getElementById('og-url');
+            if (c) c.href = url;
+            if (o) o.setAttribute('content', url);
+        })();
+    </script>
+    <!-- Person entity. This is the piece that actually matters for a name
+         search: it tells Google that the "Vishal Rao" of this site is the IISc
+         lattice-QCD one, distinct from the several well-known people who share
+         the name. sameAs is the disambiguator — FILL IN every profile you
+         actually have (inSPIRE-HEP, ORCID, Google Scholar, arXiv, GitHub,
+         LinkedIn, your CHEP people-page) and DELETE the lines you don't. Each
+         of those profiles should link back here; the two-way link is what ties
+         the identity together. An unfilled or wrong URL here is worse than no
+         markup at all, so don't leave the examples in place. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Vishal Rao",
+      "url": "https://vishalrao.in/",
+      "image": "https://vishalrao.in/pp.jpg",
+      "jobTitle": "PhD Researcher",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "Centre for High Energy Physics, Indian Institute of Science",
+        "url": "https://chep.iisc.ac.in/"
+      },
+      "knowsAbout": [
+        "Lattice Quantum Chromodynamics",
+        "Lattice Gauge Theory",
+        "Finite-Temperature Gauge Theories",
+        "High-Performance Computing"
+      ],
+      "sameAs": [
+        "REPLACE-WITH-YOUR-INSPIRE-HEP-AUTHOR-URL",
+        "REPLACE-WITH-YOUR-ORCID-URL",
+        "REPLACE-WITH-YOUR-GOOGLE-SCHOLAR-URL",
+        "REPLACE-WITH-YOUR-GITHUB-URL"
+      ]
+    }
+    </script>
     <!-- MathJax config: on phone-width screens, break long display equations onto
          multiple lines instead of overflowing the page. Desktop and tablet keep the
          default rendering (empty config), so their layout is unchanged. Must run

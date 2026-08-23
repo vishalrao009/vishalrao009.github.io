@@ -8,7 +8,330 @@
     <link id="hljs-theme-dark" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" disabled />
     <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
     <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
-    <title>bresenham_n_paths.cpp</title>
+    <!-- Page title carries the site owner's name on every page, so a wiki page
+         can surface for "<topic> Vishal Rao" and not just the bare topic.
+         Vimwiki substitutes bresenham_n_paths.cpp with this page's own heading. NOTE: if this
+         same template is ever used for the homepage, drop the suffix there —
+         "Vishal Rao — Vishal Rao" reads as spam to both people and crawlers. -->
+    <title>bresenham_n_paths.cpp — Vishal Rao</title>
+    <meta name="author" content="Vishal Rao">
+    <!-- Site-level fallback description. Search engines usually write their own
+         snippet from the matched passage and ignore this, so it is a floor, not
+         a lever — the real per-page description would have to be generated at
+         export time, which this template can't do (vimwiki only substitutes
+         bresenham_n_paths.cpp / 
+<pre cpp>
+
+#include &lt;cstdint&gt;
+#include &lt;cmath&gt;
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;stdio.h&gt;
+using std::vector;
+using std::cout;
+using std::endl;
+
+std::vector&lt;std::vector&lt;int&gt;&gt; bresenham(int x0,int y0,int x1,int y1)
+{
+    std::vector&lt;std::vector&lt;int&gt;&gt; v;
+    std::vector&lt;int&gt; x_values;
+    std::vector&lt;int&gt; y_values;
+    int dx=x1-x0;
+    int dy=y1-y0;
+    int swap_flag=0;
+    if (dy&gt;dx){
+        int c=x1;
+        x1=y1;
+        y1=c;
+
+        int d=x0;
+        x0=y0;
+        y0=d;
+    dx=x1-x0;
+    dy=y1-y0;
+    swap_flag=1;
+    }
+    int p=2*dy-dx;
+    int x=x0;
+    int y=y0;
+    x_values.push_back(x);
+    y_values.push_back(y);
+    int i=0;
+    do {
+        if (p&lt;0) {
+            x+=1;
+            p+=2*dy;
+        }
+        else{
+            x+=1;
+            y+=1;
+            p+=2*(dy-dx);
+        }
+        x_values.push_back(x);
+        y_values.push_back(y);
+        /* cout&lt;&lt;x&lt;&lt;" "&lt;&lt;y&lt;&lt;std::endl; */
+        i+=1;
+    } while (i&lt;dx);
+    if(swap_flag==1){
+    v.push_back(y_values);
+    v.push_back(x_values);
+    }
+    else{
+    v.push_back(x_values);
+    v.push_back(y_values);
+    }
+    return v;
+}
+
+std::vector&lt;std::vector&lt;int&gt;&gt; path_index(std::vector&lt;std::vector&lt;int&gt;&gt; xy_bresenham_vec)
+{
+    std::vector&lt;std::vector&lt;int&gt;&gt; path_vec;
+    std::vector&lt;int&gt; path_temp;
+    std::vector&lt;int&gt; index; //index where dx=dy
+    // 0 means step in x, 1 means step in y, 2 means step in z
+    //first we shall find the number of points where delta_x=delta_y, and the number of path shall be 2^number(where delta_x=delta_y) 
+    for (int j=0;j&lt;xy_bresenham_vec[0].size()-1;j++)
+    {
+        int delta_x=xy_bresenham_vec[0][j+1]-xy_bresenham_vec[0][j];
+        int delta_y=xy_bresenham_vec[1][j+1]-xy_bresenham_vec[1][j];
+        if(delta_x==1 and delta_y==0)
+        {
+            path_temp.push_back(0);
+        }
+        else if(delta_x==0 and delta_y==1)
+        {
+            path_temp.push_back(1);
+        }
+        else if(delta_x==1 and delta_y==1)
+        {
+            path_temp.push_back(0);
+            path_temp.push_back(1);
+            index.push_back(j);
+        }
+    }
+    path_vec.push_back(path_temp);
+    path_vec.push_back(index);
+return path_vec;
+}
+
+int invert(int num)
+{
+    int result;
+    if(num==0)
+    {
+        result=1;
+    }
+    else if(num==1)
+    {
+        result=0;
+    }
+    return result;
+}
+
+std::vector&lt;int&gt; int_to_binary(int num,int size)
+{
+    //we size=size binary vector
+    std::vector&lt;int&gt; binary_vec;
+    std::vector&lt;int&gt; binary_vec_rev;
+    int result=num;
+    while(result!=1 &amp;&amp; result!=0)
+    {
+        binary_vec.push_back(result%2);
+        result/=2;
+    }
+    if(result==1 or result==0) binary_vec.push_back(result);
+    int present_size=binary_vec.size();
+    if (present_size&lt;size) 
+    {
+        for(int i=0;i&lt;size-present_size;i++)
+        {
+            binary_vec.push_back(0);
+        }
+    }
+    int correct_size=binary_vec.size();
+    for(int i=0;i&lt;size;i++)
+    {
+        binary_vec_rev.push_back(binary_vec[size-1-i]);
+    }
+    return binary_vec_rev;
+}
+
+/* __global__ void print2DVec(int *d_path,int rows,int columns) */
+/* { */
+/*     for(int i=0;i&lt;rows;i++) */
+/*    { */
+/*        printf("printing on gpu: path %d: ",i+1); */
+/*         for(int j=0;j&lt;columns;j++) */
+/*        { */
+/*          //printf("%d ",*(d_path+(i*columns)+j)); */
+/*            printf("%d ",d_path[i*columns+j]); */
+/*        } */
+/*         printf("\n"); */
+
+/*     } */
+   //    int index=threadIdx.x+blockIdx.x*blockDim.x;
+   //    if(index&lt;rows*columns)
+   //    {
+   //     printf("%d ",d_path[index]);
+   //    }
+
+
+/* } */
+
+
+int main()
+{
+    uint64_t total_paths=0;
+    for(int ix=1;ix&lt;32;ix++)
+    {
+        for(int iy=1;iy&lt;32;iy++)
+        {
+            std::vector&lt;std::vector&lt;int&gt;&gt; xy_bresenham_vec=bresenham(0,0,ix,iy);
+            std::vector&lt;int&gt; path_xy= path_index(xy_bresenham_vec)[0];
+            std::vector&lt;std::vector&lt;int&gt;&gt; final_paths_vec;
+            std::vector&lt;int&gt; index_xy = path_index(xy_bresenham_vec)[1];
+            int size_dx_eq_dy= index_xy.size();
+            uint64_t n_paths=pow(2,size_dx_eq_dy);
+            total_paths+=n_paths;
+        }
+
+    }
+    cout&lt;&lt;"total paths "&lt;&lt;total_paths&lt;&lt;endl;
+    /* std::vector&lt;int&gt; x_vec=xy_bresenham_vec[0]; */
+    /* std::vector&lt;int&gt; y_vec=xy_bresenham_vec[1]; */
+    /* cout&lt;&lt;"number of rows are"&lt;&lt;xy_bresenham_vec.size()&lt;&lt;endl; */
+    /* cout&lt;&lt;"numbers of column are"&lt;&lt;xy_bresenham_vec[1].size()&lt;&lt;endl; */
+    /* for(int i=0;i&lt;xy_bresenham_vec.size();i++) */
+    /* { */
+    /*     for(int j=0;j&lt;xy_bresenham_vec[i].size();j++) */
+    /*     { */
+    /*         std::cout&lt;&lt;xy_bresenham_vec[i][j]&lt;&lt;" "; */
+    /*     } */
+    /*     std::cout&lt;&lt;std::endl; */
+    /* } */
+    /* cout&lt;&lt;"trying different way\n"; */
+    /* cout&lt;&lt;"x values: "; */
+    /* for(int i=0;i&lt;x_vec.size();i++) */
+    /* { */
+    /*     cout&lt;&lt;x_vec[i]&lt;&lt;" "; */
+    /* } */
+    /* cout&lt;&lt;endl; */
+    /* cout&lt;&lt;"y values: "; */
+    /* for(int i=0;i&lt;y_vec.size();i++) */
+    /* { */
+    /*     cout&lt;&lt;y_vec[i]&lt;&lt;" "; */
+    /* } */
+    /* cout&lt;&lt;endl; */
+    /* for (int num:path_xy) cout&lt;&lt;num&lt;&lt;" "&lt;&lt;endl; */
+        /* cout&lt;&lt;"number of paths shall be : "&lt;&lt;n_paths&lt;&lt;endl; */
+    //we shall find the binary eqvivalent of the 2^size_dx_eq_dy and replace the corresponding value by the binary equivalent value at that index
+    //construct a function which returns the binary equivalent array of any integer
+    /* for (int ip=0;ip&lt;n_paths;ip++) */
+    /* { */
+    /*     std::vector&lt;int&gt; binary_rep = int_to_binary(ip,size_dx_eq_dy); */
+    /*     std::vector&lt;int&gt; path_xy_duplicate=path_xy; */
+    /*     for(int iindex=0;iindex&lt;size_dx_eq_dy;iindex++) */
+    /*     { */
+    /*         int index=iindex+index_xy[iindex]; */
+    /*         path_xy_duplicate[index]=binary_rep[iindex]; */
+    /*         path_xy_duplicate[index+1]=invert(binary_rep[iindex]); */
+    /*     } */
+    /*     final_paths_vec.push_back(path_xy_duplicate); */
+    /*     cout&lt;&lt;"Path "&lt;&lt;ip+1&lt;&lt;" : "; */
+    /*     for(int i=0;i&lt;path_xy_duplicate.size();i++) */
+    /*     { */
+    /*         cout&lt;&lt;" "&lt;&lt;path_xy_duplicate[i]&lt;&lt;" "; */
+    /*     } */
+    /*     cout&lt;&lt;endl; */
+    /* } */
+
+/* //let us convert this 2d array to 1d, */ 
+    /* int rows=n_paths; */
+    /* int columns=final_paths_vec[0].size(); */
+    /* int *host_final_paths=new int[rows*columns]; */
+    /* for(int i=0;i&lt;rows;i++) */
+    /* { */
+    /*     for(int j=0;j&lt;columns;j++) */
+    /*     { */
+    /*         host_final_paths[j+i*columns]=final_paths_vec[i][j]; */
+    /*     } */
+    /* } */
+    /* //allocating memory for paths on gpu */
+    /* int* d_path; //declaring pointer to pointer */
+    /* cudaMalloc((void**)&amp;d_path,rows*columns*sizeof(int)); */
+    /* cudaMemcpy(d_path,host_final_paths,columns*rows*sizeof(int),cudaMemcpyHostToDevice); */
+    /* print2DVec&lt;&lt;&lt;1,1&gt;&gt;&gt;(d_path, rows, columns); */
+    /* cudaDeviceSynchronize(); */
+    /* cudaFree(d_path); */
+
+return 0;
+}
+
+
+</pre>
+ /  / utf-8 / rss.xml). -->
+    <meta name="description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:site_name" content="Vishal Rao">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="bresenham_n_paths.cpp — Vishal Rao">
+    <meta property="og:description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:image" content="https://vishalrao.in/pp.jpg">
+    <meta name="twitter:card" content="summary">
+    <!-- og:url and rel=canonical need this page's absolute address, which the
+         template doesn't know, so they're filled in at runtime below. Google
+         renders JS before indexing, so it does see these — but a build-time
+         canonical written straight into the HTML is strictly more reliable, and
+         is worth doing in the export script if you ever add one. -->
+    <link id="canonical-url" rel="canonical" href="">
+    <meta id="og-url" property="og:url" content="">
+    <script>
+        (function () {
+            // Strip ?query and #fragment: those are the same document, and
+            // letting them be indexed separately splits the page's ranking
+            // signals across near-duplicate URLs.
+            var url = location.origin + location.pathname;
+            var c = document.getElementById('canonical-url');
+            var o = document.getElementById('og-url');
+            if (c) c.href = url;
+            if (o) o.setAttribute('content', url);
+        })();
+    </script>
+    <!-- Person entity. This is the piece that actually matters for a name
+         search: it tells Google that the "Vishal Rao" of this site is the IISc
+         lattice-QCD one, distinct from the several well-known people who share
+         the name. sameAs is the disambiguator — FILL IN every profile you
+         actually have (inSPIRE-HEP, ORCID, Google Scholar, arXiv, GitHub,
+         LinkedIn, your CHEP people-page) and DELETE the lines you don't. Each
+         of those profiles should link back here; the two-way link is what ties
+         the identity together. An unfilled or wrong URL here is worse than no
+         markup at all, so don't leave the examples in place. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Vishal Rao",
+      "url": "https://vishalrao.in/",
+      "image": "https://vishalrao.in/pp.jpg",
+      "jobTitle": "PhD Researcher",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "Centre for High Energy Physics, Indian Institute of Science",
+        "url": "https://chep.iisc.ac.in/"
+      },
+      "knowsAbout": [
+        "Lattice Quantum Chromodynamics",
+        "Lattice Gauge Theory",
+        "Finite-Temperature Gauge Theories",
+        "High-Performance Computing"
+      ],
+      "sameAs": [
+        "REPLACE-WITH-YOUR-INSPIRE-HEP-AUTHOR-URL",
+        "REPLACE-WITH-YOUR-ORCID-URL",
+        "REPLACE-WITH-YOUR-GOOGLE-SCHOLAR-URL",
+        "REPLACE-WITH-YOUR-GITHUB-URL"
+      ]
+    }
+    </script>
     <!-- MathJax config: on phone-width screens, break long display equations onto
          multiple lines instead of overflowing the page. Desktop and tablet keep the
          default rendering (empty config), so their layout is unchanged. Must run
