@@ -8,7 +8,206 @@
     <link id="hljs-theme-dark" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" disabled />
     <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
     <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
-    <title>p8_literals.cpp</title>
+    <!-- Page title carries the site owner's name on every page, so a wiki page
+         can surface for "<topic> Vishal Rao" and not just the bare topic.
+         Vimwiki substitutes p8_literals.cpp with this page's own heading. NOTE: if this
+         same template is ever used for the homepage, drop the suffix there —
+         "Vishal Rao — Vishal Rao" reads as spam to both people and crawlers. -->
+    <title>p8_literals.cpp — Vishal Rao</title>
+    <meta name="author" content="Vishal Rao">
+    <!-- Site-level fallback description. Search engines usually write their own
+         snippet from the matched passage and ignore this, so it is a floor, not
+         a lever — the real per-page description would have to be generated at
+         export time, which this template can't do (vimwiki only substitutes
+         p8_literals.cpp / 
+<pre cpp>
+
+/*
+we will be talking about literal constants. 
+we know that there are literal constants, symbolic constants and macro constants.
+
+we will only talk about literal constants which are literally the values.
+
+there are const for hexa , octal numbers too, i.e for different bases.
+
+first type is quotated constants:
+	"c", 'c',
+
+	there other exist(used for unicode-for other languages), char16_t, char32_t,
+
+
+auto x=5U; means 5 is integer, U means Unsigned integer.
+
+but this is c++11 features, so call it via: 
+g++ program.cpp -std=c++11
+
+the way this auto works is that it looks at constant value, and makes that
+the data type of x, i.e in auto x=5U, auto looks at value which is an int, 
+and will make data type of x to be an int. 
+once the data type is fixed, so we can't update x="some string in double quotes";
+
+auto x=5UL; unsigned long,
+auto x=5ULL; unsigned long long.
+auto x=5.0F; to specify auto that it is float; 
+auto x=5.0; means double;
+auto x=5.0L; means x is long double.
+
+: hexadecimal and octal bases:
+http://www.cs.ucf.edu/courses/cop3502h/spr2007/binaryOctal.pdf
+
+1.decimal
+
+int main()
+{
+	int number=30;
+	std::cout&lt;&lt;number&lt;&lt;std::endl;
+
+}
+
+The above code will print number : 30
+
+2. hexadecimal:
+
+int main()
+{
+	int number=0x30;
+	std::cout&lt;&lt;number&lt;&lt;std::endl;
+
+}
+
+The above code will print number : 48 
+
+3. octal:
+int main()
+{
+	int number=030;
+	std::cout&lt;&lt;number&lt;&lt;std::endl;
+
+}
+
+The above code will print number : 24
+
+If we want to print a number form decimal to octal and hexadecimal we can do that:
+int main()
+{
+	int number=30;
+	std::cout&lt;&lt;std::hex&lt;&lt;number&lt;&lt;std::endl;
+	std::cout&lt;&lt;std::oct&lt;&lt;number&lt;&lt;std::endl;
+}
+
+above will generate: 
+1e
+36
+
+We will now study operators,expressions, operator precedence and associativity.
+
+what is an operator: addition operator, substraction operator, and so on. 
+
+5+5, 5*5, 5/5,5-5, assignment operator which is just "=".
+
+Operator precedence and associativity:
+int main()
+{
+	int x=5+5;
+	int y=5*5;
+	int z=5-5;
+	int m=6/5; it will do integer division. out put is 1. 
+	double n=6/5; will also output 1, so to get correct result
+	double n=6.0/5; will work fine.
+
+	double rem=10%4; will find remainder. which is 2.
+
+	multiplication and division happens first and then we do addition and substraction.
+
+	double x=10+4/3 will result in output 11.
+
+	Associativity provides direction in which expression is calculated.
+
+airthmetic operators (https://en.cppreference.com/w/cpp/language/operator_precedence)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
+</pre>
+ /  / utf-8 / rss.xml). -->
+    <meta name="description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:site_name" content="Vishal Rao">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="p8_literals.cpp — Vishal Rao">
+    <meta property="og:description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:image" content="https://vishalrao.in/pp.jpg">
+    <meta name="twitter:card" content="summary">
+    <!-- og:url and rel=canonical need this page's absolute address, which the
+         template doesn't know, so they're filled in at runtime below. Google
+         renders JS before indexing, so it does see these — but a build-time
+         canonical written straight into the HTML is strictly more reliable, and
+         is worth doing in the export script if you ever add one. -->
+    <link id="canonical-url" rel="canonical" href="">
+    <meta id="og-url" property="og:url" content="">
+    <script>
+        (function () {
+            // Strip ?query and #fragment: those are the same document, and
+            // letting them be indexed separately splits the page's ranking
+            // signals across near-duplicate URLs.
+            var url = location.origin + location.pathname;
+            var c = document.getElementById('canonical-url');
+            var o = document.getElementById('og-url');
+            if (c) c.href = url;
+            if (o) o.setAttribute('content', url);
+        })();
+    </script>
+    <!-- Person entity. This is the piece that actually matters for a name
+         search: it tells Google that the "Vishal Rao" of this site is the IISc
+         lattice-QCD one, distinct from the several well-known people who share
+         the name. sameAs is the disambiguator — FILL IN every profile you
+         actually have (inSPIRE-HEP, ORCID, Google Scholar, arXiv, GitHub,
+         LinkedIn, your CHEP people-page) and DELETE the lines you don't. Each
+         of those profiles should link back here; the two-way link is what ties
+         the identity together. An unfilled or wrong URL here is worse than no
+         markup at all, so don't leave the examples in place. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Vishal Rao",
+      "url": "https://vishalrao.in/",
+      "image": "https://vishalrao.in/pp.jpg",
+      "jobTitle": "PhD Researcher",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "Centre for High Energy Physics, Indian Institute of Science",
+        "url": "https://chep.iisc.ac.in/"
+      },
+      "knowsAbout": [
+        "Lattice Quantum Chromodynamics",
+        "Lattice Gauge Theory",
+        "Finite-Temperature Gauge Theories",
+        "High-Performance Computing"
+      ],
+      "sameAs": [
+        "REPLACE-WITH-YOUR-INSPIRE-HEP-AUTHOR-URL",
+        "REPLACE-WITH-YOUR-ORCID-URL",
+        "REPLACE-WITH-YOUR-GOOGLE-SCHOLAR-URL",
+        "REPLACE-WITH-YOUR-GITHUB-URL"
+      ]
+    }
+    </script>
     <!-- MathJax config: on phone-width screens, break long display equations onto
          multiple lines instead of overflowing the page. Desktop and tablet keep the
          default rendering (empty config), so their layout is unchanged. Must run

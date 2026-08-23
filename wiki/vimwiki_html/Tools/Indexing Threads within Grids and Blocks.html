@@ -8,7 +8,493 @@
     <link id="hljs-theme-dark" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" disabled />
     <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
     <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
-    <title>Indexing Threads within Grids and Blocks</title>
+    <!-- Page title carries the site owner's name on every page, so a wiki page
+         can surface for "<topic> Vishal Rao" and not just the bare topic.
+         Vimwiki substitutes Indexing Threads within Grids and Blocks with this page's own heading. NOTE: if this
+         same template is ever used for the homepage, drop the suffix there —
+         "Vishal Rao — Vishal Rao" reads as spam to both people and crawlers. -->
+    <title>Indexing Threads within Grids and Blocks — Vishal Rao</title>
+    <meta name="author" content="Vishal Rao">
+    <!-- Site-level fallback description. Search engines usually write their own
+         snippet from the matched passage and ignore this, so it is a floor, not
+         a lever — the real per-page description would have to be generated at
+         export time, which this template can't do (vimwiki only substitutes
+         Indexing Threads within Grids and Blocks / 
+<div id="Contents" class="toc"><h1 id="Contents" class="header"><a href="#Contents">Contents</a></h1></div>
+<ul>
+<li>
+<a href="Indexing Threads within Grids and Blocks.html#Indexing Threads withing Grid and blocks">#Indexing Threads withing Grid and blocks</a>
+
+<ul>
+<li>
+<a href="Indexing Threads within Grids and Blocks.html#Example 1">#Example 1</a>
+
+<li>
+<a href="Indexing Threads within Grids and Blocks.html#Code">#Code</a>
+
+<ul>
+<li>
+<a href="Indexing Threads within Grids and Blocks.html#Output">#Output</a>
+
+</ul>
+<li>
+<a href="Indexing Threads within Grids and Blocks.html#Remarks">#Remarks</a>
+
+</ul>
+</ul>
+<div id="Indexing Threads withing Grid and blocks"><h1 id="Indexing Threads withing Grid and blocks" class="header"><a href="#Indexing Threads withing Grid and blocks">Indexing Threads withing Grid and blocks</a></h1></div>
+
+<p>
+We have seen how to get the thread ID for threads in a single block; just by using <code>index=threadIdx.x;</code> which is sufficient for single block.<br />
+</p>
+
+<p>
+But that index is not unique withing the grid if grid has multiple blocks. <br />
+</p>
+
+<p>
+For example: <br />
+</p>
+<pre><code>blockIdx.x=0
+<table>
+<tr>
+<td>
+threadIdx.x=0
+</td>
+<td>
+threadIdx.x=1
+</td>
+<td>
+threadIdx.x=2
+</td>
+<td>
+threadIdx.x=3
+</td>
+</tr>
+</table>
+blockIdx.x=1
+<table>
+<tr>
+<td>
+threadIdx.x=0
+</td>
+<td>
+threadIdx.x=1
+</td>
+<td>
+threadIdx.x=2
+</td>
+<td>
+threadIdx.x=3
+</td>
+</tr>
+</table>
+blockIdx.x=2
+<table>
+<tr>
+<td>
+threadIdx.x=0
+</td>
+<td>
+threadIdx.x=1
+</td>
+<td>
+threadIdx.x=2
+</td>
+<td>
+threadIdx.x=3
+</td>
+</tr>
+</table>
+blockIdx.x=3
+<table>
+<tr>
+<td>
+threadIdx.x=0
+</td>
+<td>
+threadIdx.x=1
+</td>
+<td>
+threadIdx.x=2
+</td>
+<td>
+threadIdx.x=3
+</td>
+</tr>
+</table>
+</code></pre>
+
+
+<p>
+To get the unique index of threads, we have to make use of blockIdx.x variables.<br />
+Just like the indices of threads can be accessed within a block, <br />
+</p>
+<ol>
+<li>
+threadIdx.x
+
+<li>
+threadIDx.y
+
+<li>
+threadIDx.z
+
+</ol>
+	
+<p>
+we have, indices for blocks within a grid give by these variables.<br />
+</p>
+<ol>
+<li>
+blockIdx.x
+
+<li>
+blockIDx.y
+
+<li>
+blockIDx.z
+
+</ol>
+<p>
+To summarise: we have these following variables(size for grid and blocks are given by variables named as <code>gridDim</code> and <code>blockDim</code>, and index of blocks and threads within grind and blocks are given by <code>blockIdx.x</code> and <code>threadIdx.x</code>).<br />
+</p>
+
+<ol>
+<li>
+<code>dim3 gridDim;</code>
+
+<ul>
+<li>
+<code>int gridDim.x;</code>= number of blocks in x
+
+<li>
+<code>int gridDim.y;</code>= number of blocks in y
+
+<li>
+<code>int gridDim.z;</code>= number of blocks in z
+
+</ul>
+<li>
+<code>dim3 blockDim;</code>
+
+<ul>
+<li>
+<code>int blockDim.x;</code> : number of threads in x
+
+<li>
+<code>int blockDim.y;</code>: number of threads in y
+
+<li>
+<code>int blockDim.z;</code>: number of threads in z
+
+</ul>
+<li>
+<code>dim3 blockIDx;</code> (for index of blocks within a grid)
+
+<ul>
+<li>
+<code>int blockIdx.x;</code>: index of block in x direction
+
+<li>
+<code>int blockIDx.y;</code>: index of block in y direction
+
+<li>
+<code>int blockIDx.z;</code>: index of block in z direction
+
+</ul>
+<li>
+<code>dim3 threadIDx;</code> (for index of threads within a block)
+
+<ul>
+<li>
+<code>int threadIdx.x;</code> : index of threads in x direction 
+
+<li>
+<code>int threadIDx.y;</code> : index of threads in y direction 
+
+<li>
+<code>int threadIDx.z;</code> : index of threads in z direction 
+
+</ul>
+</ol>
+<p>
+These values are set as configuration parameter before the launch of the kernel.<br />
+</p>
+
+<div id="Indexing Threads withing Grid and blocks-Example 1"><h2 id="Example 1" class="header"><a href="#Indexing Threads withing Grid and blocks-Example 1">Example 1</a></h2></div>
+
+<p>
+Let us say, we have two blocks with 4 threads each. To get the unique index of all threads we should use :<br />
+	<code>index = threadIdx.x + blockIdx.x * blokDim.x;</code><br />
+	where <code>blockDim.x</code> tells the size of the blocks.<br />
+</p>
+	
+
+<table>
+<thead>
+<tr>
+<th>
+threadIdx.x
+</th>
+<th>
+blockIdx.x . blockDim.x
+</th>
+<th>
+index
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+0
+</td>
+<td>
+0.4
+</td>
+<td>
+0
+</td>
+</tr>
+<tr>
+<td>
+1
+</td>
+<td>
+0.4
+</td>
+<td>
+1
+</td>
+</tr>
+<tr>
+<td>
+2
+</td>
+<td>
+0.4
+</td>
+<td>
+2
+</td>
+</tr>
+<tr>
+<td>
+3
+</td>
+<td>
+0.4
+</td>
+<td>
+3
+</td>
+</tr>
+<tr>
+<td>
+0
+</td>
+<td>
+1.4
+</td>
+<td>
+4
+</td>
+</tr>
+<tr>
+<td>
+1
+</td>
+<td>
+1.4
+</td>
+<td>
+5
+</td>
+</tr>
+<tr>
+<td>
+2
+</td>
+<td>
+1.4
+</td>
+<td>
+6
+</td>
+</tr>
+<tr>
+<td>
+3
+</td>
+<td>
+1.4
+</td>
+<td>
+7
+</td>
+</tr>
+</tbody>
+</table>
+
+
+<div id="Indexing Threads withing Grid and blocks-Code"><h2 id="Code" class="header"><a href="#Indexing Threads withing Grid and blocks-Code">Code</a></h2></div>
+<pre cuda>
+
+
+#include&lt;iostream&gt;
+#include &lt;stdio.h&gt;
+__global__ void threadID()
+{
+	int threadindex = threadIdx.x;
+	printf("Executing thread with index =%d withing the block \n", threadindex);
+}
+__global__ void blockID()
+{
+	int	blockindex = blockIdx.x;
+	printf("Executing thread within the block ID %d \n",blockindex );
+}
+
+__global__ void unique_index()
+{
+	int index = threadIdx.x+blockIdx.x*blockDim.x;
+	printf("Executing thread with index  %d \n", index);
+}
+
+int main()
+{
+	threadID&lt;&lt;&lt;3,4&gt;&gt;&gt;();
+	cudaDeviceSynchronize();
+	std::cout&lt;&lt;std::endl;
+
+
+	blockID&lt;&lt;&lt;3,4&gt;&gt;&gt;();
+	cudaDeviceSynchronize();
+	std::cout&lt;&lt;std::endl;
+
+
+	unique_index&lt;&lt;&lt;3,4&gt;&gt;&gt;();
+	cudaDeviceSynchronize();
+	return 0;
+}
+
+
+</pre>
+
+<div id="Indexing Threads withing Grid and blocks-Code-Output"><h3 id="Output" class="header"><a href="#Indexing Threads withing Grid and blocks-Code-Output">Output</a></h3></div>
+
+<p>
+Executing thread with index =0 withing the block <br />
+Executing thread with index =1 withing the block <br />
+Executing thread with index =2 withing the block <br />
+Executing thread with index =3 withing the block <br />
+Executing thread with index =0 withing the block <br />
+Executing thread with index =1 withing the block <br />
+Executing thread with index =2 withing the block <br />
+Executing thread with index =3 withing the block <br />
+Executing thread with index =0 withing the block <br />
+Executing thread with index =1 withing the block <br />
+Executing thread with index =2 withing the block <br />
+Executing thread with index =3 withing the block <br />
+</p>
+
+<p>
+Executing thread within the block ID 0 <br />
+Executing thread within the block ID 0 <br />
+Executing thread within the block ID 0 <br />
+Executing thread within the block ID 0 <br />
+Executing thread within the block ID 1 <br />
+Executing thread within the block ID 1 <br />
+Executing thread within the block ID 1 <br />
+Executing thread within the block ID 1 <br />
+Executing thread within the block ID 2 <br />
+Executing thread within the block ID 2 <br />
+Executing thread within the block ID 2 <br />
+Executing thread within the block ID 2 <br />
+</p>
+
+<p>
+Executing thread with index  4 <br />
+Executing thread with index  5 <br />
+Executing thread with index  6 <br />
+Executing thread with index  7 <br />
+Executing thread with index  0 <br />
+Executing thread with index  1 <br />
+Executing thread with index  2 <br />
+Executing thread with index  3 <br />
+Executing thread with index  8 <br />
+Executing thread with index  9 <br />
+Executing thread with index  10 <br />
+Executing thread with index  11 <br />
+</p>
+
+<div id="Indexing Threads withing Grid and blocks-Remarks"><h2 id="Remarks" class="header"><a href="#Indexing Threads withing Grid and blocks-Remarks">Remarks</a></h2></div>
+<p>
+You might wonder why is that the threads are not executing simultaneously?<br />
+</p>
+ /  / utf-8 / rss.xml). -->
+    <meta name="description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:site_name" content="Vishal Rao">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Indexing Threads within Grids and Blocks — Vishal Rao">
+    <meta property="og:description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:image" content="https://vishalrao.in/pp.jpg">
+    <meta name="twitter:card" content="summary">
+    <!-- og:url and rel=canonical need this page's absolute address, which the
+         template doesn't know, so they're filled in at runtime below. Google
+         renders JS before indexing, so it does see these — but a build-time
+         canonical written straight into the HTML is strictly more reliable, and
+         is worth doing in the export script if you ever add one. -->
+    <link id="canonical-url" rel="canonical" href="">
+    <meta id="og-url" property="og:url" content="">
+    <script>
+        (function () {
+            // Strip ?query and #fragment: those are the same document, and
+            // letting them be indexed separately splits the page's ranking
+            // signals across near-duplicate URLs.
+            var url = location.origin + location.pathname;
+            var c = document.getElementById('canonical-url');
+            var o = document.getElementById('og-url');
+            if (c) c.href = url;
+            if (o) o.setAttribute('content', url);
+        })();
+    </script>
+    <!-- Person entity. This is the piece that actually matters for a name
+         search: it tells Google that the "Vishal Rao" of this site is the IISc
+         lattice-QCD one, distinct from the several well-known people who share
+         the name. sameAs is the disambiguator — FILL IN every profile you
+         actually have (inSPIRE-HEP, ORCID, Google Scholar, arXiv, GitHub,
+         LinkedIn, your CHEP people-page) and DELETE the lines you don't. Each
+         of those profiles should link back here; the two-way link is what ties
+         the identity together. An unfilled or wrong URL here is worse than no
+         markup at all, so don't leave the examples in place. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Vishal Rao",
+      "url": "https://vishalrao.in/",
+      "image": "https://vishalrao.in/pp.jpg",
+      "jobTitle": "PhD Researcher",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "Centre for High Energy Physics, Indian Institute of Science",
+        "url": "https://chep.iisc.ac.in/"
+      },
+      "knowsAbout": [
+        "Lattice Quantum Chromodynamics",
+        "Lattice Gauge Theory",
+        "Finite-Temperature Gauge Theories",
+        "High-Performance Computing"
+      ],
+      "sameAs": [
+        "REPLACE-WITH-YOUR-INSPIRE-HEP-AUTHOR-URL",
+        "REPLACE-WITH-YOUR-ORCID-URL",
+        "REPLACE-WITH-YOUR-GOOGLE-SCHOLAR-URL",
+        "REPLACE-WITH-YOUR-GITHUB-URL"
+      ]
+    }
+    </script>
     <!-- MathJax config: on phone-width screens, break long display equations onto
          multiple lines instead of overflowing the page. Desktop and tablet keep the
          default rendering (empty config), so their layout is unchanged. Must run

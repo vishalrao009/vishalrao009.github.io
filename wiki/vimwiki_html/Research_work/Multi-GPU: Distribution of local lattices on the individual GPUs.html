@@ -8,7 +8,140 @@
     <link id="hljs-theme-dark" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" disabled />
     <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
     <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
-    <title>Multi-GPU: Distribution of local lattices on the individual GPUs</title>
+    <!-- Page title carries the site owner's name on every page, so a wiki page
+         can surface for "<topic> Vishal Rao" and not just the bare topic.
+         Vimwiki substitutes Multi-GPU: Distribution of local lattices on the individual GPUs with this page's own heading. NOTE: if this
+         same template is ever used for the homepage, drop the suffix there —
+         "Vishal Rao — Vishal Rao" reads as spam to both people and crawlers. -->
+    <title>Multi-GPU: Distribution of local lattices on the individual GPUs — Vishal Rao</title>
+    <meta name="author" content="Vishal Rao">
+    <!-- Site-level fallback description. Search engines usually write their own
+         snippet from the matched passage and ignore this, so it is a floor, not
+         a lever — the real per-page description would have to be generated at
+         export time, which this template can't do (vimwiki only substitutes
+         Multi-GPU: Distribution of local lattices on the individual GPUs / 
+<div id="Multi-GPU: Distribution of local lattices on the individual GPUs"><h1 id="Multi-GPU: Distribution of local lattices on the individual GPUs" class="header"><a href="#Multi-GPU: Distribution of local lattices on the individual GPUs">Multi-GPU: Distribution of local lattices on the individual GPUs</a></h1></div>
+
+<ul>
+<li>
+Multi-GPU: Distribution of local lattices on the individual GPUs
+
+</ul>
+<p>
+To work with multiple devices, SIMULATeQCD splits a lattice into multiple<br />
+sublattices, with partitioning possible along any of the four Euclidean<br />
+space-time directions. Each sublattice is given to a single GPU. In addition to<br />
+holding a field restricted to that sublattice, which we call the bulk,<br />
+the GPU holds a copy of that field from the borders of the neighboring<br />
+sublattices--we call these copies the halo. A schematic drawing<br />
+of the exchange of halos between different GPUs is shown below.<br />
+</p>
+
+<p>
+<img src="../../../../phd_work/notes/vimwiki/images/haloStructure.png" /><br />
+</p>
+
+<p>
+If we consider a lattice of size <code>Nx*Ny*Nz*Nt</code>, each GPU has a local Lattice of size<br />
+</p>
+
+<pre cpp>
+(Nx_sub+2*Halo_depth) *(Ny_sub+2*Halo_depth) * (Nz_sub+2*Halo_depth) * (Nt_sub+2*Halo_depth),
+</pre>
+
+<p>
+where <code>N_sub = N/Cores_i</code> with <code>i=x,y,z,t</code>.<br />
+For example if we have a lattice of size \(32^3\times 8\) and we split the lattice in x direction with<br />
+<code>halo_depth=1</code>, both GPU's will have a local lattice size of \(18\times 34\times 34\times 10\).<br />
+This can be accomplished with:<br />
+</p>
+
+<pre cpp>
+const int LatDim[] = {32, 32, 32, 8};
+const int NodeDim[] = {2, 1, 1, 1};
+</pre>
+
+<p>
+When using P2P, for a lattice with size e.g. \(120^3 \times 30\), it is best (=lowest overall memory consumption) to split the lattice like this:<br />
+</p>
+
+<ol>
+<li>
+GPU: 1 1 1 1, Size per GPU:  28476.5625 MiB
+
+<li>
+GPUs: 2 1 1 1 or 1 2 1 1 or 1 1 2 1, Size per GPU: 18509.765625 MiB
+
+<li>
+GPUs: 4 1 1 1 or 1 4 1 1 or 1 1 4 1, Size per GPU:  11390.625 MiB
+
+<li>
+GPUs: 1 2 4 1 or 1 4 2 1 or 2 1 4 1 or 2 4 1 1 or 4 1 2 1 or 4 2 1 1, Size per GPU: 6976.7578125 MiB
+
+</ol>
+ /  / utf-8 / rss.xml). -->
+    <meta name="description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:site_name" content="Vishal Rao">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Multi-GPU: Distribution of local lattices on the individual GPUs — Vishal Rao">
+    <meta property="og:description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:image" content="https://vishalrao.in/pp.jpg">
+    <meta name="twitter:card" content="summary">
+    <!-- og:url and rel=canonical need this page's absolute address, which the
+         template doesn't know, so they're filled in at runtime below. Google
+         renders JS before indexing, so it does see these — but a build-time
+         canonical written straight into the HTML is strictly more reliable, and
+         is worth doing in the export script if you ever add one. -->
+    <link id="canonical-url" rel="canonical" href="">
+    <meta id="og-url" property="og:url" content="">
+    <script>
+        (function () {
+            // Strip ?query and #fragment: those are the same document, and
+            // letting them be indexed separately splits the page's ranking
+            // signals across near-duplicate URLs.
+            var url = location.origin + location.pathname;
+            var c = document.getElementById('canonical-url');
+            var o = document.getElementById('og-url');
+            if (c) c.href = url;
+            if (o) o.setAttribute('content', url);
+        })();
+    </script>
+    <!-- Person entity. This is the piece that actually matters for a name
+         search: it tells Google that the "Vishal Rao" of this site is the IISc
+         lattice-QCD one, distinct from the several well-known people who share
+         the name. sameAs is the disambiguator — FILL IN every profile you
+         actually have (inSPIRE-HEP, ORCID, Google Scholar, arXiv, GitHub,
+         LinkedIn, your CHEP people-page) and DELETE the lines you don't. Each
+         of those profiles should link back here; the two-way link is what ties
+         the identity together. An unfilled or wrong URL here is worse than no
+         markup at all, so don't leave the examples in place. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Vishal Rao",
+      "url": "https://vishalrao.in/",
+      "image": "https://vishalrao.in/pp.jpg",
+      "jobTitle": "PhD Researcher",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "Centre for High Energy Physics, Indian Institute of Science",
+        "url": "https://chep.iisc.ac.in/"
+      },
+      "knowsAbout": [
+        "Lattice Quantum Chromodynamics",
+        "Lattice Gauge Theory",
+        "Finite-Temperature Gauge Theories",
+        "High-Performance Computing"
+      ],
+      "sameAs": [
+        "REPLACE-WITH-YOUR-INSPIRE-HEP-AUTHOR-URL",
+        "REPLACE-WITH-YOUR-ORCID-URL",
+        "REPLACE-WITH-YOUR-GOOGLE-SCHOLAR-URL",
+        "REPLACE-WITH-YOUR-GITHUB-URL"
+      ]
+    }
+    </script>
     <!-- MathJax config: on phone-width screens, break long display equations onto
          multiple lines instead of overflowing the page. Desktop and tablet keep the
          default rendering (empty config), so their layout is unchanged. Must run

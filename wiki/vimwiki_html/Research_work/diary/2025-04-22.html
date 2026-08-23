@@ -8,7 +8,272 @@
     <link id="hljs-theme-dark" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" disabled />
     <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
     <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
-    <title>2025-04-22</title>
+    <!-- Page title carries the site owner's name on every page, so a wiki page
+         can surface for "<topic> Vishal Rao" and not just the bare topic.
+         Vimwiki substitutes 2025-04-22 with this page's own heading. NOTE: if this
+         same template is ever used for the homepage, drop the suffix there —
+         "Vishal Rao — Vishal Rao" reads as spam to both people and crawlers. -->
+    <title>2025-04-22 — Vishal Rao</title>
+    <meta name="author" content="Vishal Rao">
+    <!-- Site-level fallback description. Search engines usually write their own
+         snippet from the matched passage and ignore this, so it is a floor, not
+         a lever — the real per-page description would have to be generated at
+         export time, which this template can't do (vimwiki only substitutes
+         2025-04-22 / 
+<div id="2d bresenham"><h2 id="2d bresenham" class="header"><a href="#2d bresenham">2d bresenham</a></h2></div>
+
+<p>
+cmax2 := 2*cmax<br />
+cmin2 := 2*cmin<br />
+chi := cmin2 -cmax<br />
+FOR i := 1 TO cmax DO<br />
+step in max-direction<br />
+IF chi ≥ 0 THEN<br />
+chi := chi - cmax2<br />
+step in min-direction<br />
+ENDIF<br />
+chi := chi + cmin2<br />
+ENDDO<br />
+The generalisation to three dimensions is achieved by<br />
+combining two of these 2d-algorithms with different χ’s<br />
+for max-mid and max-min in just one loop over the maxdirection<br />
+</p>
+
+
+<div id="3d bresenham from 2d case:"><h2 id="3d bresenham from 2d case:" class="header"><a href="#3d bresenham from 2d case:">3d bresenham from 2d case:</a></h2></div>
+
+
+<p>
+// Initialize variables<br />
+cmax := maximum of (dx, dy, dz)<br />
+cmed := median of (dx, dy, dz)<br />
+cmin := minimum of (dx, dy, dz)<br />
+</p>
+
+<p>
+cmax2 := 2 * cmax<br />
+cmed2 := 2 * cmed<br />
+cmin2 := 2 * cmin<br />
+</p>
+
+<p>
+chi_mid := cmed2 - cmax       // Decision variable for mid-direction<br />
+chi_min := cmin2 - cmax       // Decision variable for min-direction<br />
+</p>
+
+<p>
+FOR i := 1 TO cmax DO<br />
+</p>
+<pre><code>step in max-direction
+
+// Handle mid-direction step
+IF chi_mid ≥ 0 THEN
+chi_mid := chi_mid - cmax2
+step in mid-direction
+ENDIF
+chi_mid := chi_mid + cmed2
+
+// Handle min-direction step
+IF chi_min ≥ 0 THEN
+chi_min := chi_min - cmax2
+step in min-direction
+ENDIF
+chi_min := chi_min + cmin2
+</code></pre>
+<p>
+ENDDO<br />
+</p>
+
+
+
+<p>
+2d bresenham:<br />
+ _<em>device</em>_  _<em>host</em>_  SU3&lt;floatT&gt; BresenhamLoopXYL(int &amp;x,int &amp;y, int &amp;z, int &amp;t, gSite site, int &amp;mu, int &amp;nu, int &amp;rho)<br />
+</p>
+<pre><code>{
+SU3&lt;floatT&gt; temp;
+temp=SU3&lt;floatT&gt;(1, 0, 0, 0, 1, 0, 0, 0, 1); //initialize to identity matrix
+int cmax,cmin,cmax_dir,cmin_dir;
+if (x&gt;=y) {cmax=x; cmin=y; cmax_dir=mu; cmin_dir=nu;}
+else {cmax=y; cmin=x; cmax_dir=nu; cmin_dir=mu;}
+typedef GIndexer&lt;All, HaloDepth&gt; GInd;
+int cmax2=2*cmax;
+int cmin2=2*cmin;
+int chi=cmin2-cmax; 
+for (int ix=0;ix&lt;cmax;ix++)
+{
+temp*=SU3Accessor.getLink(GInd::getSiteMu(site,cmax_dir));//step in cmax
+site=GInd::site_up(site,cmax_dir);
+if(chi&gt;=0)
+{
+chi-=cmax2;
+temp*=SU3Accessor.getLink(GInd::getSiteMu(site,cmin_dir)); //step in cmin
+site=GInd::site_up(site,cmin_dir);
+}
+chi+=cmin2;
+}
+for(int iz=0;iz&lt;z;iz++)
+{
+temp*=SU3Accessor.getLink(GInd::getSiteMu(site,3-mu-nu)); //step in cmin
+site=GInd::site_up(site,3-mu-nu);
+}
+return temp; 
+}
+</code></pre>
+
+<p>
+  _<em>device</em>_  _<em>host</em>_  SU3&lt;floatT&gt; BresenhamLoopXYU(int &amp;x,int &amp;y, int &amp;z, gSite site, int &amp;mu, int &amp;nu)<br />
+</p>
+<pre><code>{
+SU3&lt;floatT&gt; temp;
+temp=SU3&lt;floatT&gt;(1, 0, 0, 0, 1, 0, 0, 0, 1); //initialize to identity matrix
+int cmax,cmin,cmax_dir,cmin_dir;
+if (x&gt;=y) {cmax=x; cmin=y; cmax_dir=mu; cmin_dir=nu;}
+else {cmax=y; cmin=x; cmax_dir=nu; cmin_dir=mu;}
+typedef GIndexer&lt;All, HaloDepth&gt; GInd;
+int cmax2=2*cmax;
+int cmin2=2*cmin;
+int chi=cmin2-cmax; 
+for(int iz=0;iz&lt;z;iz++)
+{
+temp*=SU3Accessor.getLink(GInd::getSiteMu(site,3-mu-nu)); //step in cmin
+site=GInd::site_up(site,3-mu-nu);
+}
+for (int ix=0;ix&lt;cmax;ix++)
+{
+temp*=SU3Accessor.getLink(GInd::getSiteMu(site,cmax_dir));//step in cmax
+site=GInd::site_up(site,cmax_dir);
+if(chi&gt;=0)
+{
+chi-=cmax2;
+temp*=SU3Accessor.getLink(GInd::getSiteMu(site,cmin_dir)); //step in cmin
+site=GInd::site_up(site,cmin_dir);
+}
+chi+=cmin2;
+}
+return temp; 
+}
+_<em>device</em>_ _<em>host</em>_ floatT operator()(gSite site) {
+</code></pre>
+<pre><code>typedef GIndexer&lt;All, HaloDepth&gt; GInd;
+/// Define a SU(3) matrix
+floatT result = 0;
+SU3&lt;floatT&gt; temp1,temp2;
+int mu,nu;
+switch (_ex_dir) {
+case 0: mu=1;nu=2;break;
+case 1: mu=0;nu=2;break;
+case 2: mu=0;nu=1;break;
+case 3: for(nu=1;nu&lt;3;nu++)
+{
+for(mu=0;mu&lt;nu;mu++)
+{
+temp1=BresenhamLoopXYL(_x,_y,_z,site,mu,nu);
+temp2=BresenhamLoopXYU(_x,_y,_z,site,mu,nu);
+result+=tr_d(temp1*dagger(temp2));
+//replacing x&lt;-&gt;y
+temp1=BresenhamLoopXYL(_y,_x,_z,site,mu,nu);
+temp2=BresenhamLoopXYU(_y,_x,_z,site,mu,nu);
+result+=tr_d(temp1*dagger(temp2));
+}
+}
+return result/6.0;
+break;
+default: for (nu=1;nu&lt;3;nu++)
+{
+for(mu=0;mu&lt;nu;mu++)
+{
+temp1=BresenhamLoopXYL(_x,_y,_z,site,mu,nu);
+temp2=BresenhamLoopXYU(_x,_y,_z,site,mu,nu);
+result+=tr_d(temp1*dagger(temp2));
+//replacing x&lt;-&gt;y
+temp1=BresenhamLoopXYL(_y,_x,_z,site,mu,nu);
+temp2=BresenhamLoopXYU(_y,_x,_z,site,mu,nu);
+result+=tr_d(temp1*dagger(temp2));
+}
+}
+return result/6.0;
+break;
+}        
+temp1=BresenhamLoopXYL(_x,_y,_z,site,mu,nu);
+temp2=BresenhamLoopXYU(_x,_y,_z,site,mu,nu);
+result+=tr_d(temp1*dagger(temp2));
+</code></pre>
+<p>
+//replacing x&lt;-&gt;y<br />
+</p>
+<pre><code>temp1=BresenhamLoopXYL(_y,_x,_z,site,mu,nu);
+temp2=BresenhamLoopXYU(_y,_x,_z,site,mu,nu);
+result+=tr_d(temp1*dagger(temp2));
+return result/2.0;
+}
+</code></pre>
+<p>
+};<br />
+</p>
+ / ../ / utf-8 / rss.xml). -->
+    <meta name="description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:site_name" content="Vishal Rao">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="2025-04-22 — Vishal Rao">
+    <meta property="og:description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:image" content="https://vishalrao.in/pp.jpg">
+    <meta name="twitter:card" content="summary">
+    <!-- og:url and rel=canonical need this page's absolute address, which the
+         template doesn't know, so they're filled in at runtime below. Google
+         renders JS before indexing, so it does see these — but a build-time
+         canonical written straight into the HTML is strictly more reliable, and
+         is worth doing in the export script if you ever add one. -->
+    <link id="canonical-url" rel="canonical" href="">
+    <meta id="og-url" property="og:url" content="">
+    <script>
+        (function () {
+            // Strip ?query and #fragment: those are the same document, and
+            // letting them be indexed separately splits the page's ranking
+            // signals across near-duplicate URLs.
+            var url = location.origin + location.pathname;
+            var c = document.getElementById('canonical-url');
+            var o = document.getElementById('og-url');
+            if (c) c.href = url;
+            if (o) o.setAttribute('content', url);
+        })();
+    </script>
+    <!-- Person entity. This is the piece that actually matters for a name
+         search: it tells Google that the "Vishal Rao" of this site is the IISc
+         lattice-QCD one, distinct from the several well-known people who share
+         the name. sameAs is the disambiguator — FILL IN every profile you
+         actually have (inSPIRE-HEP, ORCID, Google Scholar, arXiv, GitHub,
+         LinkedIn, your CHEP people-page) and DELETE the lines you don't. Each
+         of those profiles should link back here; the two-way link is what ties
+         the identity together. An unfilled or wrong URL here is worse than no
+         markup at all, so don't leave the examples in place. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Vishal Rao",
+      "url": "https://vishalrao.in/",
+      "image": "https://vishalrao.in/pp.jpg",
+      "jobTitle": "PhD Researcher",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "Centre for High Energy Physics, Indian Institute of Science",
+        "url": "https://chep.iisc.ac.in/"
+      },
+      "knowsAbout": [
+        "Lattice Quantum Chromodynamics",
+        "Lattice Gauge Theory",
+        "Finite-Temperature Gauge Theories",
+        "High-Performance Computing"
+      ],
+      "sameAs": [
+        "REPLACE-WITH-YOUR-INSPIRE-HEP-AUTHOR-URL",
+        "REPLACE-WITH-YOUR-ORCID-URL",
+        "REPLACE-WITH-YOUR-GOOGLE-SCHOLAR-URL",
+        "REPLACE-WITH-YOUR-GITHUB-URL"
+      ]
+    }
+    </script>
     <!-- MathJax config: on phone-width screens, break long display equations onto
          multiple lines instead of overflowing the page. Desktop and tablet keep the
          default rendering (empty config), so their layout is unchanged. Must run

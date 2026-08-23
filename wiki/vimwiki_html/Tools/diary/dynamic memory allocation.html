@@ -8,7 +8,348 @@
     <link id="hljs-theme-dark" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" disabled />
     <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
     <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
-    <title>dynamic memory allocation</title>
+    <!-- Page title carries the site owner's name on every page, so a wiki page
+         can surface for "<topic> Vishal Rao" and not just the bare topic.
+         Vimwiki substitutes dynamic memory allocation with this page's own heading. NOTE: if this
+         same template is ever used for the homepage, drop the suffix there —
+         "Vishal Rao — Vishal Rao" reads as spam to both people and crawlers. -->
+    <title>dynamic memory allocation — Vishal Rao</title>
+    <meta name="author" content="Vishal Rao">
+    <!-- Site-level fallback description. Search engines usually write their own
+         snippet from the matched passage and ignore this, so it is a floor, not
+         a lever — the real per-page description would have to be generated at
+         export time, which this template can't do (vimwiki only substitutes
+         dynamic memory allocation / 
+<div id="Contents" class="toc"><h1 id="Contents" class="header"><a href="#Contents">Contents</a></h1></div>
+<ul>
+<li>
+<a href="dynamic memory allocation.html#Introduction">#Introduction</a>
+
+<ul>
+<li>
+<a href="dynamic memory allocation.html#Here's a brief overview of each function:">#Here's a brief overview of each function:</a>
+
+<li>
+<a href="dynamic memory allocation.html#Typecasting">#Typecasting</a>
+
+<ul>
+<li>
+<a href="dynamic memory allocation.html#1. malloc Function:">#1. malloc Function:</a>
+
+<li>
+<a href="dynamic memory allocation.html#2. Typecast (int*):">#2. Typecast (int*):</a>
+
+</ul>
+<li>
+<a href="dynamic memory allocation.html#Dynamic memory allocation in C++">#Dynamic memory allocation in C++</a>
+
+<ul>
+<li>
+<a href="dynamic memory allocation.html#Allocation with 'new':">#Allocation with 'new':</a>
+
+<li>
+<a href="dynamic memory allocation.html#Array Allocation with 'new':">#Array Allocation with 'new':</a>
+
+<li>
+<a href="dynamic memory allocation.html#Allocation with 'malloc' and 'free':">#Allocation with 'malloc' and 'free':</a>
+
+<li>
+<a href="dynamic memory allocation.html#Array Allocation with 'malloc' and 'free':">#Array Allocation with 'malloc' and 'free':</a>
+
+</ul>
+</ul>
+</ul>
+<div id="Introduction"><h1 id="Introduction" class="header"><a href="#Introduction">Introduction</a></h1></div>
+<p>
+In C and C++, dynamic memory allocation is done using the <code>malloc</code>, <code>calloc</code>, <code>realloc</code>, and <code>free</code> functions. These functions are part of the standard library and are used to allocate and deallocate memory on the heap.<br />
+</p>
+
+<div id="Introduction-Here's a brief overview of each function:"><h2 id="Here's a brief overview of each function:" class="header"><a href="#Introduction-Here's a brief overview of each function:">Here's a brief overview of each function:</a></h2></div>
+
+<ol>
+<li>
+malloc: Allocates a specified number of bytes of memory. It takes one argument, the number of bytes to allocate.
+<pre c>
+    int* dynamicArray = (int*)malloc(5 * sizeof(int));
+</pre>
+
+<li>
+calloc: Allocates a specified number of blocks of memory, each of a specified size. It takes two arguments, the number of blocks and the size of each block.
+<pre c>
+    int* dynamicArray = (int*)calloc(5, sizeof(int));
+</pre>
+
+<li>
+realloc: Changes the size of the memory block previously allocated using <code>malloc</code> or <code>calloc</code>. It takes two arguments, a pointer to the previously allocated memory block and the new size.
+<pre c>
+    int* resizedArray = (int*)realloc(dynamicArray, 10 * sizeof(int));
+</pre>
+
+<li>
+Free: Deallocates the memory block previously allocated using <code>malloc</code>, <code>calloc</code>, or <code>realloc</code>.
+<pre c>
+    free(dynamicArray);
+</pre>
+
+</ol>
+<p>
+Here's an example of dynamic memory allocation for an integer array in C:<br />
+</p>
+
+<pre c>
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+int main() {
+    // Allocate memory for an integer array of size 5
+    int* dynamicArray = (int*)malloc(5 * sizeof(int));
+
+    if (dynamicArray == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        return 1;
+    }
+
+    // Access and manipulate the dynamically allocated array
+    for (int i = 0; i &lt; 5; ++i) {
+        dynamicArray[i] = i * 2;
+    }
+
+    // Print the contents of the array
+    for (int i = 0; i &lt; 5; ++i) {
+        printf("Element %d: %d\n", i, dynamicArray[i]);
+    }
+
+    // Deallocate the memory when done
+    free(dynamicArray);
+
+    return 0;
+}
+</pre>
+
+<p>
+It's important to check whether the memory allocation was successful (i.e., if the returned pointer is not <code>NULL</code>). Also, remember to free the allocated memory using <code>free</code> when it's no longer needed to avoid memory leaks.<br />
+</p>
+
+
+<div id="Introduction-Typecasting"><h2 id="Typecasting" class="header"><a href="#Introduction-Typecasting">Typecasting</a></h2></div>
+<p>
+The <code>(int*)</code> in the example <code>(int*)malloc(5 * sizeof(int));</code> is a typecast, also known as a "cast." It is used to explicitly convert the result of the <code>malloc</code> function to the desired pointer type, which in this case is a pointer to an <code>int</code>. Let me break it down:<br />
+</p>
+
+<div id="Introduction-Typecasting-1. malloc Function:"><h3 id="1. malloc Function:" class="header"><a href="#Introduction-Typecasting-1. malloc Function:">1. malloc Function:</a></h3></div>
+<ul>
+<li>
+The <code>malloc</code> function allocates a block of memory of a specified size and returns a pointer to the beginning of that memory block.
+
+<li>
+The argument <code>5 * sizeof(int)</code> indicates the total number of bytes to allocate, which is equivalent to space for 5 integers.
+
+</ul>
+<div id="Introduction-Typecasting-2. Typecast (int*):"><h3 id="2. Typecast (int*):" class="header"><a href="#Introduction-Typecasting-2. Typecast (int*):">2. Typecast (int*):</a></h3></div>
+<ul>
+<li>
+The <code>(int*)</code> is a typecast that explicitly tells the compiler to treat the result of <code>malloc</code> as a pointer to an integer (<code>int*</code>).
+
+<li>
+It is necessary because <code>malloc</code> returns a generic pointer of type <code>void*</code>, and it's common practice to cast it to the appropriate type to avoid compiler warnings.
+
+</ul>
+<p>
+So, the complete line <code>int* dynamicArray = (int*)malloc(5 * sizeof(int));</code> can be understood as follows:<br />
+</p>
+<ul>
+<li>
+Allocate memory for an array of 5 integers.
+
+<li>
+The <code>malloc</code> function returns a pointer of type <code>void*</code>.
+
+<li>
+Typecast the result to a pointer to an integer (<code>int*</code>).
+
+<li>
+Assign the resulting pointer to the variable <code>dynamicArray</code>, which is declared as a pointer to an integer (<code>int*</code>).
+
+</ul>
+<div id="Introduction-Dynamic memory allocation in C++"><h2 id="Dynamic memory allocation in C++" class="header"><a href="#Introduction-Dynamic memory allocation in C++">Dynamic memory allocation in C++</a></h2></div>
+<p>
+In C++, dynamic memory allocation is done using operators <code>new</code> and <code>delete</code> (or <code>malloc</code> and <code>free</code>, but the former is more commonly used). Dynamic memory allocation allows you to allocate memory at runtime, and it is especially useful when you don't know the size of the data you need until your program is running. Here's a basic overview:<br />
+</p>
+
+<div id="Introduction-Dynamic memory allocation in C++-Allocation with 'new':"><h3 id="Allocation with 'new':" class="header"><a href="#Introduction-Dynamic memory allocation in C++-Allocation with 'new':">Allocation with 'new':</a></h3></div>
+
+<pre cpp>
+#include &lt;iostream&gt;
+
+int main() {
+    // Allocate memory for an integer
+    int* dynamicInt = new int;
+
+    // Assign a value to the allocated memory
+    *dynamicInt = 42;
+
+    // Use the allocated memory
+    std::cout &lt;&lt; "Dynamic Integer: " &lt;&lt; *dynamicInt &lt;&lt; std::endl;
+
+    // Don't forget to free the allocated memory when done
+    delete dynamicInt;
+
+    return 0;
+}
+</pre>
+
+<div id="Introduction-Dynamic memory allocation in C++-Array Allocation with 'new':"><h3 id="Array Allocation with 'new':" class="header"><a href="#Introduction-Dynamic memory allocation in C++-Array Allocation with 'new':">Array Allocation with 'new':</a></h3></div>
+
+<pre cppcpp>
+#include &lt;iostream&gt;
+
+int main() {
+    // Allocate memory for an array of integers
+    int* dynamicArray = new int[5];
+
+    // Assign values to the allocated array
+    for (int i = 0; i &lt; 5; ++i) {
+        dynamicArray[i] = i * 10;
+    }
+
+    // Use the allocated array
+    for (int i = 0; i &lt; 5; ++i) {
+        std::cout &lt;&lt; "Element " &lt;&lt; i &lt;&lt; ": " &lt;&lt; dynamicArray[i] &lt;&lt; std::endl;
+    }
+
+    // Don't forget to free the allocated array when done
+    delete[] dynamicArray;
+
+    return 0;
+}
+</pre>
+
+<div id="Introduction-Dynamic memory allocation in C++-Allocation with 'malloc' and 'free':"><h3 id="Allocation with 'malloc' and 'free':" class="header"><a href="#Introduction-Dynamic memory allocation in C++-Allocation with 'malloc' and 'free':">Allocation with 'malloc' and 'free':</a></h3></div>
+
+<pre cpp>
+#include &lt;iostream&gt;
+#include &lt;cstdlib&gt;
+
+int main() {
+    // Allocate memory for an integer
+    int* dynamicInt = static_cast&lt;int*&gt;(malloc(sizeof(int)));
+
+    // Assign a value to the allocated memory
+    *dynamicInt = 42;
+
+    // Use the allocated memory
+    std::cout &lt;&lt; "Dynamic Integer: " &lt;&lt; *dynamicInt &lt;&lt; std::endl;
+
+    // Don't forget to free the allocated memory when done
+    free(dynamicInt);
+
+    return 0;
+}
+</pre>
+
+<div id="Introduction-Dynamic memory allocation in C++-Array Allocation with 'malloc' and 'free':"><h3 id="Array Allocation with 'malloc' and 'free':" class="header"><a href="#Introduction-Dynamic memory allocation in C++-Array Allocation with 'malloc' and 'free':">Array Allocation with 'malloc' and 'free':</a></h3></div>
+
+<pre cpp>
+#include &lt;iostream&gt;
+#include &lt;cstdlib&gt;
+
+int main() {
+    // Allocate memory for an array of integers
+    int* dynamicArray = static_cast&lt;int*&gt;(malloc(5 * sizeof(int)));
+
+    // Assign values to the allocated array
+    for (int i = 0; i &lt; 5; ++i) {
+        dynamicArray[i] = i * 10;
+    }
+
+    // Use the allocated array
+    for (int i = 0; i &lt; 5; ++i) {
+        std::cout &lt;&lt; "Element " &lt;&lt; i &lt;&lt; ": " &lt;&lt; dynamicArray[i] &lt;&lt; std::endl;
+    }
+
+    // Don't forget to free the allocated array when done
+    free(dynamicArray);
+
+    return 0;
+}
+</pre>
+
+<p>
+In both cases (<code>new</code>/<code>delete</code> and <code>malloc</code>/<code>free</code>), it's important to free the memory when you're done using it to avoid memory leaks. Using <code>new</code> and <code>delete</code> is generally preferred in C++ due to better type safety and constructors/destructors invocation. If you're using <code>new</code>, you should use <code>delete</code>, and if you're using <code>new[]</code>, you should use <code>delete[]</code>. Similarly, if you're using <code>malloc</code>, you should use <code>free</code>. Mixing them can lead to undefined behavior.<br />
+</p>
+
+<p>
+Note: C++11 introduced <code>std::unique_ptr</code> and <code>std::shared_ptr</code> as safer alternatives to manage dynamic memory. Consider using smart pointers when possible to automate memory management.<br />
+</p>
+
+
+<div id="Introduction-Dynamic memory allocation in C++-Resource:"><h3 id="Resource:" class="header"><a href="#Introduction-Dynamic memory allocation in C++-Resource:">Resource:</a></h3></div>
+<p>
+gpt3.5<br />
+</p>
+ / ../ / utf-8 / rss.xml). -->
+    <meta name="description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:site_name" content="Vishal Rao">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="dynamic memory allocation — Vishal Rao">
+    <meta property="og:description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:image" content="https://vishalrao.in/pp.jpg">
+    <meta name="twitter:card" content="summary">
+    <!-- og:url and rel=canonical need this page's absolute address, which the
+         template doesn't know, so they're filled in at runtime below. Google
+         renders JS before indexing, so it does see these — but a build-time
+         canonical written straight into the HTML is strictly more reliable, and
+         is worth doing in the export script if you ever add one. -->
+    <link id="canonical-url" rel="canonical" href="">
+    <meta id="og-url" property="og:url" content="">
+    <script>
+        (function () {
+            // Strip ?query and #fragment: those are the same document, and
+            // letting them be indexed separately splits the page's ranking
+            // signals across near-duplicate URLs.
+            var url = location.origin + location.pathname;
+            var c = document.getElementById('canonical-url');
+            var o = document.getElementById('og-url');
+            if (c) c.href = url;
+            if (o) o.setAttribute('content', url);
+        })();
+    </script>
+    <!-- Person entity. This is the piece that actually matters for a name
+         search: it tells Google that the "Vishal Rao" of this site is the IISc
+         lattice-QCD one, distinct from the several well-known people who share
+         the name. sameAs is the disambiguator — FILL IN every profile you
+         actually have (inSPIRE-HEP, ORCID, Google Scholar, arXiv, GitHub,
+         LinkedIn, your CHEP people-page) and DELETE the lines you don't. Each
+         of those profiles should link back here; the two-way link is what ties
+         the identity together. An unfilled or wrong URL here is worse than no
+         markup at all, so don't leave the examples in place. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Vishal Rao",
+      "url": "https://vishalrao.in/",
+      "image": "https://vishalrao.in/pp.jpg",
+      "jobTitle": "PhD Researcher",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "Centre for High Energy Physics, Indian Institute of Science",
+        "url": "https://chep.iisc.ac.in/"
+      },
+      "knowsAbout": [
+        "Lattice Quantum Chromodynamics",
+        "Lattice Gauge Theory",
+        "Finite-Temperature Gauge Theories",
+        "High-Performance Computing"
+      ],
+      "sameAs": [
+        "REPLACE-WITH-YOUR-INSPIRE-HEP-AUTHOR-URL",
+        "REPLACE-WITH-YOUR-ORCID-URL",
+        "REPLACE-WITH-YOUR-GOOGLE-SCHOLAR-URL",
+        "REPLACE-WITH-YOUR-GITHUB-URL"
+      ]
+    }
+    </script>
     <!-- MathJax config: on phone-width screens, break long display equations onto
          multiple lines instead of overflowing the page. Desktop and tablet keep the
          default rendering (empty config), so their layout is unchanged. Must run
