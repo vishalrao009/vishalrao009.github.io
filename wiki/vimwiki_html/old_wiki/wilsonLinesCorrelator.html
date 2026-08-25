@@ -8,7 +8,583 @@
     <link id="hljs-theme-dark" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" disabled />
     <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
     <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
-    <title>wilsonLinesCorrelator</title>
+    <!-- Page title carries the site owner's name on every page, so a wiki page
+         can surface for "<topic> Vishal Rao" and not just the bare topic.
+         Vimwiki substitutes wilsonLinesCorrelator with this page's own heading. NOTE: if this
+         same template is ever used for the homepage, drop the suffix there —
+         "Vishal Rao — Vishal Rao" reads as spam to both people and crawlers. -->
+    <title>wilsonLinesCorrelator — Vishal Rao</title>
+    <meta name="author" content="Vishal Rao">
+    <!-- Site-level fallback description. Search engines usually write their own
+         snippet from the matched passage and ignore this, so it is a floor, not
+         a lever — the real per-page description would have to be generated at
+         export time, which this template can't do (vimwiki only substitutes
+         wilsonLinesCorrelator / 
+<div id="wilsonLinesCorrelatorMultiGPUStacked"><h1 id="wilsonLinesCorrelatorMultiGPUStacked" class="header"><a href="#wilsonLinesCorrelatorMultiGPUStacked">wilsonLinesCorrelatorMultiGPUStacked</a></h1></div>
+
+<p>
+Measure the trace of the product of two <a href="wilson lines.html">wilson lines</a> going in opposite time directins separated by distance r (here 'r' is the physical sepration between two temporal transporters(wilson lines in time directions).). <br />
+</p>
+
+
+
+<pre cpp>
+
+/*
+ * main_wilson_lines_correlator_stacked.cu
+ *
+ * Rasmus Larsen, 25 Feb 2021
+ *
+ */
+
+#include "../simulateqcd.h" /* This is the principle header file which is stored in ../ directory relative to this source code. This header file is primary header file for the applications, profiling, and test source codes. This header file contains the inclusion of many header files from base, gauge, spinnor folders.For more look at [[Header_files]]. The header files basically contains veriable declaration, function declaration, or function defination. Here #include is preprocessor which tells compiler to load the header file at given address or relative address */
+#include "../modules/observables/wilsonLineCorrelatorMultiGPU.h"
+
+#define PREC double //this is called macro, for more look at [[scalar_cpp_macro]], this is an object like macro, here we have defined the precision as double which is widely used in scientific calculations. 
+#define STACKS 96 // this is object like macro
+
+
+
+
+
+
+
+template&lt;class floatT&gt; //this is an function template used for generic programming(i.e. for writing a single function for different data types, here then compiler creates code accordingly as one calls these functions based on different data types(which is also known as instantiation)), for more look at [[Generics in c++ (Template Introduction)]]
+struct WLParam : LatticeParameters {          /* This is structures in c++, here we have defined a structure named WLParam which is inherited from another structure (LatticeParameters), for more look at [[https://www.programiz.com/cpp-programming/structure|c++ structures_programizz]] */
+    Parameter&lt;floatT&gt;      gtolerance;  // these are member template variables of the structure WLParam, with typename Parameter which is defined elsewhere which can be found in simulateqcd.h header file. The definition of this Parameter class can be found at SIMULATeQCD/src/base/IO/parameterManagement.h. 
+    Parameter&lt;int,1&gt;       maxgfsteps;     /* In short all these variables of structure are named as structure members */
+    Parameter&lt;int,1&gt;       numunit;
+    Parameter&lt;int&gt; load_conf;
+    Parameter &lt;std::string&gt; gauge_file;   
+    Parameter &lt;std::string&gt; directory;
+    Parameter &lt;std::string&gt; file_type;
+
+    WLParam() {   /* This is Constructor of the structure named WLParam also known as Member function, here the default values are provided*/
+        addDefault (gtolerance,"gtolerance",1e-6);
+        addDefault (maxgfsteps,"maxgfsteps",9000);
+        addDefault (numunit   ,"numunit"   ,20);
+        addDefault(load_conf, "load_conf", 0);
+        addOptional(gauge_file, "gauge_file");
+        add(directory, "directory");
+        add(file_type, "file_type");
+    }
+};                                         
+
+template&lt;class floatT&gt;           /* Here is again some structure inherited from class ParameterList, just below are structure members and member functions/constructor (milcInfo) defined. */
+struct milcInfo : ParameterList {
+    Parameter&lt;floatT&gt;  ssplaq;
+    Parameter&lt;floatT&gt;  stplaq;
+    Parameter&lt;floatT&gt;  linktr;
+
+    milcInfo() {
+        add(ssplaq, "gauge.ssplaq");
+        add(stplaq, "gauge.stplaq");
+        add(linktr, "gauge.nersc_linktr");
+    }
+};
+
+/* Below is the start of main() function which will contain the most part of the program. Here it main takes two arguments of type integer and char which are variable(named argc) and character pointer named argv[](), In C and C++ programming, the `int main(int argc, char *argv[])` is the signature of the `main` function, which serves as the entry point for the program. Let's break down the components of this signature:
+
+- **`int main`:** Indicates that the `main` function returns an integer value. The returned integer is often used as an exit status, where 0 typically signifies successful execution, and nonzero values indicate errors.
+
+- **`int argc`:** Stands for "argument count" and represents the number of command-line arguments passed to the program, including the name of the program itself.
+
+- **`char *argv[]`:** Stands for "argument vector" and is an array of strings (`char *`). It holds the actual command-line arguments. `argv[0]` is the name of the program, and subsequent elements (`argv[1]`, `argv[2]`, etc.) contain the additional arguments.
+The `argv` parameter in the `main` function is declared as a pointer to an array of strings. The declaration `char *argv[]` indicates an array of pointers to characters, and in the context of the `main` function, it is often used to represent an array of strings.
+
+In C and C++, arrays are often represented as pointers to their first elements, and strings are represented as arrays of characters. So, `char *argv[]` indicates an array of pointers to strings.
+
+Each element of the `argv` array is a pointer to the first character of a null-terminated string. The first element (`argv[0]`) is typically the name of the program itself, and subsequent elements (`argv[1]`, `argv[2]`, and so on) are the command-line arguments passed to the program.
+
+It's important to note that `argv` is a pointer to an array, and you can use array indexing (`argv[i]`) or pointer arithmetic to access individual elements of the array. The `argc` parameter provides the count of elements in the `argv` array.
+
+
+
+
+
+Here's a brief explanation of how this works:
+
+- `argc` is the count of command-line arguments, so it tells you how many items are in the `argv` array.
+- `argv` is an array of strings where each element is a command-line argument. The first element (`argv[0]`) is the name of the program itself.
+
+A simple example of using command-line arguments might look like this:
+
+```cpp
+#include &lt;iostream&gt;
+
+int main(int argc, char *argv[]) {
+    // Print the program name
+    std::cout &lt;&lt; "Program name: " &lt;&lt; argv[0] &lt;&lt; std::endl;
+
+    // Print command-line arguments
+    for (int i = 1; i &lt; argc; ++i) {
+        std::cout &lt;&lt; "Argument " &lt;&lt; i &lt;&lt; ": " &lt;&lt; argv[i] &lt;&lt; std::endl;
+    }
+
+    return 0;
+}
+
+
+If you run this program with command-line arguments like `./program arg1 arg2`, it will output:
+
+
+Program name: ./program
+Argument 1: arg1
+Argument 2: arg2
+
+
+This mechanism allows programs to accept inputs from the command line, making them more flexible and configurable.*/
+int main(int argc, char *argv[]) {
+
+    /// Controls whether DEBUG statements are shown as it runs; could also set to INFO, which is less verbose.
+    stdLogger.setVerbosity(INFO); /* This line suggests that there is a logger or logging system in use, and it's setting the verbosity level to INFO. Logging is a way to output information about the program's behavior to aid in debugging or monitoring. The verbosity level determines the amount of detail in the log messages, and INFO is a standard level indicating informational messages. For more refer to [[https://latticeqcd.github.io/SIMULATeQCD/02_contributions/terminalIO.html|SIMULATeQCD documentation]]*/
+
+    /// Initialize parameter class.
+    WLParam&lt;PREC&gt; param;/* It declares an instance of the WLParam template structure with the template parameter PREC */
+
+    /// Initialize the CommunicationBase.
+    CommunicationBase commBase(&amp;argc, &amp;argv);/* This line initializes an instance of the CommunicationBase class (i.e. creating an object named commBase), passing the addresses of argc and argv to its constructor. This suggests that CommunicationBase might be involved in handling communication-related tasks and could be designed to work with command-line arguments. */
+
+    param.readfile(commBase, "../parameter/test.param", argc, argv); /* This line calls a readfile method on the param object, passing several arguments including the commBase object, a file path ("../parameter/test.param"), and the command-line arguments argc and argv. This implies that the readfile method is responsible for reading configuration or parameter information from a file, and the commBase object might be used in this process. */
+
+
+    commBase.init(param.nodeDim()); /* This line initializes the commBase object by calling its init method and passing the result of param.nodeDim() as an argument. This implies that the nodeDim method of the param object(which is instantiation of WLParam&lt;template&gt;class) returns some value related to the dimensions of nodes, and this information is used to initialize the communication base. */
+
+//    cout &lt;&lt; param.nodeDim[0] &lt;&lt; " param 0 " &lt;&lt;  param.nodeDim[1] &lt;&lt; " param 1 " &lt;&lt; param.nodeDim[2] &lt;&lt; " param 2 " &lt;&lt; param.nodeDim[3] &lt;&lt; " param 3 " &lt;&lt;endl;
+
+    // Set the HaloDepth.
+    const size_t HaloDepth = 2;
+
+    rootLogger.info("Initialize Lattice"); /* For more click here, [[Terminal output and terminating the program]] */
+
+
+
+    /// Initialize the Lattice class.
+    initIndexer(HaloDepth,param,commBase); /* this function is defined in SIMULATeQCD/src/base/indexer/initCPUIndexer.cpp , 
+The line `initIndexer(HaloDepth, param, commBase);` appears to be a function call to a function named `initIndexer`. Let's break down the components:
+
+1. **`initIndexer`**:
+   - This is the name of the function being called. The function likely performs some initialization related to an indexer. The exact behavior and purpose of this function depend on its definition elsewhere in your codebase.
+
+2. **`(HaloDepth, param, commBase)`**:
+   - This is the list of arguments being passed to the `initIndexer` function. It appears to be passing three arguments:
+     - `HaloDepth`: This is likely a variable or constant that indicates the depth of a halo region. The purpose of this parameter depends on the context and the design of your program.
+     - `param`: This is an instance of the `WLParam` template class, which presumably holds parameters relevant to the initialization process.
+     - `commBase`: This is an instance of the `CommunicationBase` class, suggesting that communication-related functionality may be involved in the initialization.
+
+The purpose of the `initIndexer` function would be defined in the codebase, possibly performing tasks such as setting up indices or configurations related to indexing, and using the provided parameters for the initialization process. Without the definition of the `initIndexer` function and additional context from the surrounding code, it's not possible to provide more specific details about its behavior.	*/
+
+
+    /// Initialize the Gaugefield.
+    rootLogger.info("Initialize Gaugefield");
+    Gaugefield&lt;PREC,true,HaloDepth&gt; gauge(commBase); /* concept of halo: [[Multi-GPU: Distribution of local lattices on the individual GPUs]]  */
+
+    /// Initialize gaugefield with unit-matrices.
+    gauge.one();
+
+    std::string gauge_file;
+
+    // load gauge file, 0 start from 1, 1 and 2 load file, 2 will also gauge fix
+	/* i.e. If we don't have any configuration availalbe, it will use the unit matrices at each links. If we have configuration availalbe then it will load the configuration. */
+    if (param.load_conf() == 0)
+    {
+        rootLogger.info("Starting from unit configuration");
+        gauge.one();
+    }
+    else if(param.load_conf() == 2 || param.load_conf() == 1)
+    {
+        std::string file_path = param.directory();
+        file_path.append(param.gauge_file());               //adding full path to gague_file configuration.
+        rootLogger.info("Starting from configuration: " ,  file_path);
+//	rootLogger.info(param.gauge_file() ,  endl);
+        if(param.file_type() == "nersc"){
+            gauge.readconf_nersc(file_path);
+        }
+        else if(param.file_type() == "milc"){
+            gauge.readconf_milc(file_path);
+
+            //Exchange Halos
+            gauge.updateAll();   /* This line likely invokes a method updateAll on the object gauge. The comment //Exchange Halos suggests that this method may be involved in updating or exchanging information related to halo regions in the gauge field. Halo regions often represent additional boundary layers beyond the core computational domain and are commonly used in parallel computing to facilitate communication between neighboring processes */
+            GaugeAction&lt;PREC,true,HaloDepth&gt; enDensity(gauge); /* This line declares and initializes an object enDensity of the GaugeAction class template. It appears to be associated with actions or computations related to the gauge field. The template parameters include the precision (PREC), a boolean value (true), and a depth parameter for halo regions (HaloDepth). The gauge object is passed to the constructor, suggesting that the GaugeAction class is designed to operate on gauge fields.*/
+            PREC SpatialPlaq  = enDensity.plaquetteSS();/* This line calculates the spatial plaquette (plaquette on spatial links) using the plaquetteSS method of the enDensity object. The result is stored in a variable SpatialPlaq. */
+            PREC TemporalPlaq = enDensity.plaquette()*2.0-SpatialPlaq;/* This line calculates the temporal plaquette (plaquette on temporal links) using the plaquette method of the enDensity object. It then subtracts twice the spatial plaquette (SpatialPlaq). The result is stored in a variable TemporalPlaq. */
+            rootLogger.info("plaquetteST: "   ,  TemporalPlaq);/* This line logs an informational message using the info method of the rootLogger. The message includes the label "plaquetteST: " and the value of TemporalPlaq. */
+            rootLogger.info("plaquetteSS: " ,  SpatialPlaq);/* Similarly, this line logs another informational message including the label "plaquetteSS: " and the value of SpatialPlaq. */
+
+
+
+            std::string info_path = file_path;
+            info_path.append(".info");
+            milcInfo&lt;PREC&gt; paramMilc; /*  This declares an instance of the milcInfo template class with the template parameter PREC and names the instance paramMilc. */
+            paramMilc.readfile(commBase,info_path);
+            rootLogger.info("plaquette SS info file: " ,   (paramMilc.ssplaq())/3.0);
+            rootLogger.info("plaquette ST info file: " ,   (paramMilc.stplaq())/3.0);
+            rootLogger.info("linktr info file: " ,  paramMilc.linktr());
+            if(abs((paramMilc.ssplaq())/3.0-SpatialPlaq) &gt; 1e-5){
+                throw std::runtime_error(stdLogger.fatal("Error ssplaq!"));
+            }
+            if(abs((paramMilc.stplaq())/3.0-TemporalPlaq) &gt; 1e-5){
+                throw std::runtime_error(stdLogger.fatal("Error stplaq!"));
+            }
+
+        }
+    }
+
+    // Exchange Halos
+    gauge.updateAll();
+
+
+
+    // Initialize ReductionBase.
+    LatticeContainer&lt;true,PREC&gt; redBase(commBase);
+
+    // We need to tell the Reductionbase how large our array will be. Again it runs on the spacelike volume only,
+    /// so make sure you adjust this parameter accordingly, so that you don't waste memory.
+    typedef GIndexer&lt;All,HaloDepth&gt; GInd; /* The line `typedef GIndexer&lt;All,HaloDepth&gt; GInd;` is creating a typedef in C++. Let's break down the components:
+
+- `GIndexer&lt;All, HaloDepth&gt;`: This part is a template instantiation. It creates a type using the `GIndexer` template, where `All` and `HaloDepth` are template parameters.
+
+- `typedef GIndexer&lt;All, HaloDepth&gt; GInd;`: This line declares a new type named `GInd` using the `typedef` keyword. It essentially creates an alias for the type `GIndexer&lt;All, HaloDepth&gt;`. After this line, you can use `GInd` as a shorthand for `GIndexer&lt;All, HaloDepth&gt;`.
+
+In this specific case, it seems like `GIndexer` is a template class, and `GInd` is an alias for a specific instantiation of that template with `All` and `HaloDepth` as template arguments.
+
+This typedef might be used to simplify the code and improve readability, especially if the `GIndexer&lt;All, HaloDepth&gt;` type is used frequently in the program. Instead of writing the full template instantiation each time, developers can use the shorter and more convenient `GInd`. */
+    redBase.adjustSize(GInd::getLatData().vol4)
+    rootLogger.info("volume size " ,  GInd::getLatData().globvol4);
+
+
+///////////// gauge fixing
+
+    if(param.load_conf() ==2){
+        GaugeFixing&lt;PREC,true,HaloDepth&gt;    GFixing(gauge);
+        int ngfstep=0;
+        PREC gftheta=1e10;
+        const PREC gtol = param.gtolerance();        //1e-6;          /// When theta falls below this number, stop...
+        const int ngfstepMAX = param.maxgfsteps() ;  //9000;     /// ...or stop after a fixed number of steps; this way the program doesn't get stuck.
+        const int nunit= param.numunit();            //20;            /// Re-unitarize every 20 steps.
+        while ( (ngfstep&lt;ngfstepMAX) &amp;&amp; (gftheta&gt;gtol) ) {
+            /// Compute starting GF functional and update the lattice.
+            GFixing.gaugefixOR();
+            /// Due to the nature of the update, we have to re-unitarize every so often.
+            if ( (ngfstep%nunit) == 0 ) {
+                 gauge.su3latunitarize();
+            }
+            /// Re-calculate theta to determine whether we are sufficiently fixed.
+            gftheta=GFixing.getTheta();
+            ngfstep+=1;
+        }
+        gauge.su3latunitarize(); /// One final re-unitarization.
+
+        rootLogger.info("Gauge fixing finished in " ,  ngfstep ,  " steps, with gftheta = " ,  gftheta);
+    }
+	
+
+	//end of gauge fixing snippet
+
+
+
+    std::string Name = "WLine_";
+    std::string Name_r2 = "WLine_r2_";
+    if(param.load_conf() == 2 || param.load_conf() == 1){
+        Name.append(param.gauge_file());
+        Name_r2.append(param.gauge_file());
+    }
+    else{
+        Name.append("one");
+        Name_r2.append("one");
+    }
+    FileWriter file(gauge.getComm(), param, Name);
+    FileWriter file_r2(gauge.getComm(), param, Name_r2);
+/* Initialization of Name and Name_r2:
+
+1. Two std::string variables, Name and Name_r2, are initialized with base names ("WLine_" and "WLine_r2_" respectively).
+Condition Based on param.load_conf():
+
+2. Checks if the load_conf parameter in the param object is equal to 2 or 1.
+If true, it appends the value of param.gauge_file() to both Name and Name_r2. This suggests that the file names are being constructed based on the value of gauge_file.
+If false, it appends the string "one" to both Name and Name_r2.
+FileWriter Initialization:
+
+3. Two instances of the FileWriter class are initialized:
+file: Initialized with the communication object (gauge.getComm()), the param object, and the constructed Name.
+file_r2: Similar to file, but initialized with the constructed Name_r2. */
+         StopWatch&lt;true&gt; timer;
+
+    /// Start timer.
+    timer.start();
+
+    /// Exchange Halos
+    gauge.updateAll();
+
+    PREC dot;
+
+     WilsonLineCorrelatorMultiGPU&lt;PREC,HaloDepth,STACKS&gt; WilsonClass;
+
+    std::vector&lt;PREC&gt; dotVector;
+    PREC * results;
+    results = new PREC[(GInd::getLatData().globvol3/2+GInd::getLatData().globLX*GInd::getLatData().globLY)*GInd::getLatData().globLT];
+    ///
+    timer.start();
+    //// loop over length of wilson lines
+    for(int length = 1; length&lt;GInd::getLatData().globLT+1;length++){
+
+        /// calculate the wilson line starting from any spacetime point save in mu=0 direction
+        WilsonClass.gWilson(gauge, length);
+
+        /// copy from mu=0 to mu=1
+        gauge.template iterateOverBulkAtMu&lt;1,256&gt;(CopyFromMu&lt;PREC,HaloDepth,All,0&gt;(gauge));
+        gauge.updateAll();
+
+        // initial position x0=-1 due to adding dx in first line
+        int x0 = -STACKS;
+        int y0 = 0;
+        int z0 = 0;
+
+        int dx = STACKS;
+        int dy = 1;
+        int dz = 1;
+
+        int points = (GInd::getLatData().globvol3/2+GInd::getLatData().globLX*GInd::getLatData().globLY);
+        for(size_t i = 0; i&lt;GInd::getLatData().globvol3/2+GInd::getLatData().globLX*GInd::getLatData().globLY;i+=STACKS){
+            x0 += dx;
+
+            if(x0 &gt;= (int)GInd::getLatData().globLX || x0 &lt;0){
+                dx *= -1;
+                x0 += dx;
+                y0 += dy;
+                if(y0 &gt;= (int)GInd::getLatData().globLY|| y0 &lt;0){
+                    dy *= -1;
+                    y0 += dy;
+                    z0 += dz;
+                    /// move mu=1 direction by dz
+                    WilsonClass.gMoveOne(gauge,2,dz);
+                    gauge.updateAll();
+                }
+                else if(param.nodeDim[1]&gt;1){
+                    /// move mu=1 direction by dy
+                    WilsonClass.gMoveOne(gauge,1,dy);
+                    gauge.updateAll();
+                }
+            }
+
+    // A(x).A(x+r)^dag along direction x and also y if not split on different GPU's
+            if(param.nodeDim[1] == 1){
+                 dotVector = WilsonClass.gDotAlongXYStackedShared(gauge,y0,redBase);
+            }
+            else{
+                 dotVector = WilsonClass.gDotAlongXYStackedShared(gauge,0,redBase);
+            }
+
+            if(dx&gt;0){
+                 for(int j = 0;j &lt; STACKS ; j++){
+                    results[i+j+points*(length-1)] = dotVector[j];
+                }
+            }
+            else{
+                for(int j = 0;j &lt; STACKS ; j++){
+                    results[i+STACKS-1-j+points*(length-1)] = dotVector[j];
+                }
+            }
+
+
+
+            for(int j = 0;j &lt; STACKS ; j++){
+//                rootLogger.info(x0+j ,  " " ,  y0 ,  " ",  z0 ,  " " ,  length ,  " " ,  dotVector[j]);
+                file &lt;&lt; x0+j &lt;&lt; " " &lt;&lt; y0 &lt;&lt; " "&lt;&lt; z0 &lt;&lt; " " &lt;&lt; length &lt;&lt; " " &lt;&lt; dotVector[j] &lt;&lt; "\n";
+            }
+        }
+    }
+
+
+/////////////// Save into radius squared file
+
+    int r2max = 0;
+    r2max += GInd::getLatData().globLX*GInd::getLatData().globLX;
+    r2max += GInd::getLatData().globLY*GInd::getLatData().globLY;
+    r2max += GInd::getLatData().globLZ*GInd::getLatData().globLZ;
+
+
+    PREC * results_r2 = new PREC[r2max+1];
+    PREC * norm_r2 = new PREC[r2max+1];
+
+
+    for(int length = 1; length&lt;GInd::getLatData().globLT+1;length++){
+
+        for(int ir2=0; ir2&lt;r2max+1; ir2++) {
+            results_r2[ir2] = 0.0;
+            norm_r2[ir2] = 0.0;
+        }
+
+
+
+        int x0 = -1;
+        int y0 = 0;
+        int z0 = 0;
+
+        int dx = 1;
+        int dy = 1;
+        int dz = 1;
+
+        size_t entries = GInd::getLatData().globvol3/2+GInd::getLatData().globLX*GInd::getLatData().globLY;
+        for(size_t i = 0; i&lt;entries;i++){
+            x0 += dx;
+
+            if(x0 &gt;= (int)GInd::getLatData().globLX || x0 &lt;0){
+                dx *= -1;
+                x0 += dx;
+                y0 += dy;
+                if(y0 &gt;= (int)GInd::getLatData().globLY|| y0 &lt;0){
+                    dy *= -1;
+                    y0 += dy;
+                    z0 += dz;
+                }
+            }
+
+            dot = results[i+entries*(length-1)];
+
+            // save results
+
+
+                int ir2 = 0;
+                if(x0 &gt; (int)GInd::getLatData().globLX/2){
+                    ir2 += (x0-(int)GInd::getLatData().globLX)*(x0-(int)GInd::getLatData().globLX);
+                }
+                else{
+                    ir2 += x0*x0;
+                }
+
+                if(y0 &gt; (int)GInd::getLatData().globLY/2){
+                    ir2 += (y0-(int)GInd::getLatData().globLY)*(y0-(int)GInd::getLatData().globLY);
+                }
+                else{
+                    ir2 += y0*y0;
+                }
+
+                if(z0 &gt; (int)GInd::getLatData().globLZ/2){
+                    ir2 += (z0-(int)GInd::getLatData().globLZ)*(z0-(int)GInd::getLatData().globLZ);
+                }
+                else{
+                    ir2 += z0*z0;
+                }
+
+                // factor for counting contributions
+                // Initial factor 2 for symmetry between z and -z
+                // double the factor if x or y = l/2 due to periodicity
+                double factor = 1.0;
+
+                if(z0 == (int)GInd::getLatData().globLZ/2 || z0 == 0){
+                    factor = 0.5*factor;
+                    if((y0 == (int)GInd::getLatData().globLY/2 || y0 == 0) &amp;&amp; (x0 == (int)GInd::getLatData().globLX/2 || x0==0) ){
+                        factor = 2.0*factor;
+                    }
+                }
+
+                if( (z0 == (int)GInd::getLatData().globLZ/2 || z0==0) &amp;&amp; (y0 == (int)GInd::getLatData().globLY/2 || y0 == 0) &amp;&amp; (x0 == (int)GInd::getLatData().globLX/2 || x0==0) ){
+                    factor = 0.5*factor;
+                }
+
+                results_r2[ir2] += factor*dot;
+                norm_r2[ir2] += factor;
+
+
+        }
+/////// write to file
+
+
+        for(int ir2=0; ir2&lt;r2max+1; ir2++) {
+            if(norm_r2[ir2] &gt; 0.1){
+                file_r2 &lt;&lt; length &lt;&lt; " " &lt;&lt; ir2 &lt;&lt; " " &lt;&lt; results_r2[ir2]/norm_r2[ir2] &lt;&lt; "\n";
+            }
+        }
+    }
+
+/////////////// final check
+
+
+
+    PREC sum = 0.0;
+    for(size_t i = 0; i&lt;(GInd::getLatData().globvol3/2+GInd::getLatData().globLX*GInd::getLatData().globLY)*GInd::getLatData().globLT;i+=1){
+	sum += abs(results[i]);
+    }
+
+    timer.stop();
+    rootLogger.info("Time for operators: " ,  timer);
+
+    rootLogger.info("abs(sum) = " ,  sum);
+
+    delete [] results;
+    delete [] results_r2;
+    delete [] norm_r2;
+
+
+    return 0;
+}
+
+
+</pre>
+ /  / utf-8 / rss.xml). -->
+    <meta name="description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:site_name" content="Vishal Rao">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="wilsonLinesCorrelator — Vishal Rao">
+    <meta property="og:description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:image" content="https://vishalrao.in/pp.jpg">
+    <meta name="twitter:card" content="summary">
+    <!-- og:url and rel=canonical need this page's absolute address, which the
+         template doesn't know, so they're filled in at runtime below. Google
+         renders JS before indexing, so it does see these — but a build-time
+         canonical written straight into the HTML is strictly more reliable, and
+         is worth doing in the export script if you ever add one. -->
+    <link id="canonical-url" rel="canonical" href="">
+    <meta id="og-url" property="og:url" content="">
+    <script>
+        (function () {
+            // Strip ?query and #fragment: those are the same document, and
+            // letting them be indexed separately splits the page's ranking
+            // signals across near-duplicate URLs.
+            var url = location.origin + location.pathname;
+            var c = document.getElementById('canonical-url');
+            var o = document.getElementById('og-url');
+            if (c) c.href = url;
+            if (o) o.setAttribute('content', url);
+        })();
+    </script>
+    <!-- Person entity. This is the piece that actually matters for a name
+         search: it tells Google that the "Vishal Rao" of this site is the IISc
+         lattice-QCD one, distinct from the several well-known people who share
+         the name. sameAs is the disambiguator — FILL IN every profile you
+         actually have (inSPIRE-HEP, ORCID, Google Scholar, arXiv, GitHub,
+         LinkedIn, your CHEP people-page) and DELETE the lines you don't. Each
+         of those profiles should link back here; the two-way link is what ties
+         the identity together. An unfilled or wrong URL here is worse than no
+         markup at all, so don't leave the examples in place. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Vishal Rao",
+      "url": "https://vishalrao.in/",
+      "image": "https://vishalrao.in/pp.jpg",
+      "jobTitle": "PhD Researcher",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "Centre for High Energy Physics, Indian Institute of Science",
+        "url": "https://chep.iisc.ac.in/"
+      },
+      "knowsAbout": [
+        "Lattice Quantum Chromodynamics",
+        "Lattice Gauge Theory",
+        "Finite-Temperature Gauge Theories",
+        "High-Performance Computing"
+      ],
+      "sameAs": [
+        "REPLACE-WITH-YOUR-INSPIRE-HEP-AUTHOR-URL",
+        "REPLACE-WITH-YOUR-ORCID-URL",
+        "REPLACE-WITH-YOUR-GOOGLE-SCHOLAR-URL",
+        "REPLACE-WITH-YOUR-GITHUB-URL"
+      ]
+    }
+    </script>
     <!-- MathJax config: on phone-width screens, break long display equations onto
          multiple lines instead of overflowing the page. Desktop and tablet keep the
          default rendering (empty config), so their layout is unchanged. Must run
@@ -380,14 +956,18 @@
            cursor/no-select behavior holds even if the pointer strays off the
            thin handle mid-drag. */
         body.toc-resizing { cursor: col-resize; user-select: none; }
-        /* Read mode: hides every floating button/icon except the read-mode
-           toggle itself (so there's always a way back out), on every screen
-           size. Deliberately untouched here: #content, #toc-sidebar, and
-           its resizers — read mode only hides chrome, the article layout
-           itself stays exactly as it was.
-           Hiding now happens in two phases so the chrome fades instead of
-           blinking out mid-scroll: .focus-fading makes it transparent while
-           it's still laid out, then .read-mode removes it for real once the
+        /* Read mode: hides the site-wide tool icons in the top-right stack —
+           everything except the read-mode toggle itself, so there's always a
+           way back out — on every screen size.
+           NOT hidden: the bottom-right .floating-btns stack (back / back-to-top
+           / ask-this-page). Those are per-page reading aids rather than chrome;
+           losing them mid-article is exactly when they're most wanted.
+           Also deliberately untouched: #content, #toc-sidebar, and its
+           resizers — read mode only hides chrome, the article layout itself
+           stays exactly as it was.
+           Hiding happens in two phases so the icons fade instead of blinking
+           out mid-scroll: .focus-fading makes them transparent while they're
+           still laid out, then .read-mode removes them for real once the
            transition has finished. The script below swaps the classes; its
            FADE_MS must match the 0.22s duration used here.
            #toc-toggle is the phone-only Contents button — it sits outside
@@ -401,20 +981,17 @@
            than adds to, the one on .top-right-btns button. */
         body .top-right-btns > button,
         body .top-right-btns > a,
-        body .floating-btns,
         body #toc-toggle {
             transition: opacity 0.22s ease, transform 0.22s ease,
                         color 0.15s ease, background-color 0.15s ease;
         }
         body.focus-fading .top-right-btns > *:not(#btn-read-mode),
-        body.focus-fading .floating-btns,
         body.focus-fading #toc-toggle {
             opacity: 0;
             transform: scale(0.9);
             pointer-events: none;
         }
         body.read-mode .top-right-btns > *:not(#btn-read-mode),
-        body.read-mode .floating-btns,
         body.read-mode #toc-toggle {
             display: none;
         }
@@ -475,7 +1052,6 @@
         @media (prefers-reduced-motion: reduce) {
             body .top-right-btns > button,
             body .top-right-btns > a,
-            body .floating-btns,
             body #toc-toggle,
             #focus-toast { transition: none; }
             #btn-read-mode.focus-pulse { animation: none; }
@@ -677,7 +1253,13 @@
         }
         /* Mobile Styles */
         @media only screen and (max-width: 600px) {
-            body { padding: 12px; }
+            /* Top padding clears the icon row rather than matching the sides.
+               The row sits at top:12px and its buttons are 44px tall here (see
+               the 600px rule on .top-right-btns above), so it ends at 56px;
+               68px leaves the same kind of breathing space under it that the
+               3cm desktop margin does. Without this the icons float on top of
+               the article card instead of above it. */
+            body { padding: 68px 12px 12px 12px; }
             #content {
                 padding: 8px 10px;
                 max-width: 100%;
@@ -1671,12 +2253,9 @@ file_r2: Similar to file, but initialized with the constructed Name_r2. */
         if (!btn) return;
 
         var FADE_MS  = 220;   // must match the .focus-fading transition in the <style> block
-        var ENTER_AT = 320;   // px down the page before focus mode may engage on its own
-        var EXIT_AT  = 80;    // px: getting back this close to the top releases it again
-        var MIN_DOWN = 120;   // px of uninterrupted DOWNWARD scrolling required first, so a
-                              // stray flick doesn't trigger it
-        var MAX_JUMP = 400;   // a single scroll event bigger than this is a jump (TOC link,
-                              // back-navigation restore), not reading — doesn't count
+        var HYSTERESIS = 24;  // focus mode releases this far ABOVE the point it engages, so a
+                              // scroll resting exactly on the boundary can't flip it back and
+                              // forth on every stray pixel
 
         var readOn = false;          // authoritative state; the body classes are mid-transition sometimes
         var autoEngaged = false;     // on because of scrolling, not because of a click
@@ -1756,12 +2335,6 @@ file_r2: Similar to file, but initialized with the constructed Name_r2. */
             btn.title = label;
             btn.setAttribute('aria-label', label);
             btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-            // Only deliberate choices are remembered across pages. Auto-engaging
-            // passes persist:false, so a reader who never touched the button never
-            // lands on a page with its controls already hidden.
-            if (opts.persist !== false) {
-                try { localStorage.setItem(READ_MODE_KEY, on ? '1' : '0'); } catch (e) {}
-            }
             if (on && opts.announce) {
                 pulse();
                 if (!toastShown) { toastShown = true; showToast(); }
@@ -1769,40 +2342,65 @@ file_r2: Similar to file, but initialized with the constructed Name_r2. */
             if (!on) hideToast();
         }
 
-        var savedReadMode = false;
-        try { savedReadMode = localStorage.getItem(READ_MODE_KEY) === '1'; } catch (e) {}
-        applyReadMode(savedReadMode, { animate: false, persist: false });
+        // Focus mode is per-page-load: every page starts with its chrome
+        // visible, and gets hidden either by the scroll watcher below or by a
+        // click. Nothing is restored from storage, so a page can never open
+        // already hidden — which is what a stale saved 'on' used to cause
+        // (the pre-scroll version of this script persisted the state on every
+        // call, including page load, so one click stuck forever). The old key
+        // is cleared on sight so existing visitors self-heal on first load.
+        try { localStorage.removeItem(READ_MODE_KEY); } catch (e) {}
+        applyReadMode(false, { animate: false });
 
         btn.addEventListener('click', function () {
             var turningOn = !readOn;
             suppressed = !turningOn;   // turned it off by hand -> stay off until back at the top
             autoEngaged = false;       // from here on it's the reader's, not the scroll watcher's
             applyReadMode(turningOn, { announce: turningOn });
-            if (turningOn) window.scrollTo({ top: 0, behavior: 'smooth' });
+            // Deliberately does NOT scroll anywhere. The original handler jumped
+            // to the top on switching read mode on, which was harmless when the
+            // button was the only way in; now that focus mode engages mid-scroll
+            // on its own, toggling it must never move the reader off the line
+            // they're on. The "back to top" arrow is still there for that.
         });
 
-        // ---- Scroll watcher: engage focus mode once the reader is clearly
-        // reading, release it once they're clearly done. Runs on every viewport,
-        // phones included. It only ever turns OFF what it itself turned on, so a
-        // saved read-mode preference (or a click) is never undone by scrolling.
-        var lastY = window.pageYOffset, downRun = 0;
+        // ---- Scroll watcher: focus mode engages the moment the article card
+        // reaches the top of the viewport — the reader has scrolled the header
+        // margin away, so the white box now fills the screen and the icons that
+        // sat above it are off-screen anyway. The threshold is the card's own
+        // offset rather than a fixed pixel count, so it comes out right on both
+        // desktop (3cm body padding) and phones (68px, set in the mobile media
+        // query above) with no second number to keep in sync. Runs on every
+        // viewport. It only ever turns OFF what it itself turned on, so a saved
+        // read-mode preference (or a click) is never undone by scrolling.
+        var cardTop = null;   // computed on first scroll, by which point layout has settled
+        function engageAt() {
+            if (cardTop === null) {
+                var card = document.getElementById('content');
+                // getBoundingClientRect is viewport-relative; adding the current
+                // scroll offset turns it into a position within the document.
+                cardTop = card ? card.getBoundingClientRect().top + window.pageYOffset : 0;
+            }
+            return cardTop;
+        }
+        // Rotating a phone or resizing a window can cross the mobile breakpoint
+        // and change the body padding, so the cached offset has to be dropped.
+        window.addEventListener('resize', function () { cardTop = null; });
+
         window.addEventListener('scroll', function () {
             var y = window.pageYOffset;
-            var dy = y - lastY;
-            lastY = y;
-            if (dy > MAX_JUMP) downRun = 0;                        // jumped, didn't read — start over
-            else if (dy > 0) downRun += dy;
-            else if (dy < 0) downRun = 0;                          // any upward move restarts the run
+            var enter = engageAt();
+            var exit = Math.max(0, enter - HYSTERESIS);
 
-            if (y <= EXIT_AT) {
-                suppressed = false;                                // back at the top: re-arm
+            if (y <= exit) {
+                suppressed = false;                                // back above the card: re-arm
                 if (autoEngaged && readOn) {
                     autoEngaged = false;
                     applyReadMode(false, { persist: false });
                 }
                 return;
             }
-            if (!readOn && !suppressed && y >= ENTER_AT && downRun >= MIN_DOWN) {
+            if (!readOn && !suppressed && y >= enter) {
                 autoEngaged = true;
                 applyReadMode(true, { persist: false, announce: true });
             }

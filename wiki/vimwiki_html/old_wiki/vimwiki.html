@@ -8,7 +8,298 @@
     <link id="hljs-theme-dark" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" disabled />
     <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
     <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
-    <title>vimwiki</title>
+    <!-- Page title carries the site owner's name on every page, so a wiki page
+         can surface for "<topic> Vishal Rao" and not just the bare topic.
+         Vimwiki substitutes vimwiki with this page's own heading. NOTE: if this
+         same template is ever used for the homepage, drop the suffix there —
+         "Vishal Rao — Vishal Rao" reads as spam to both people and crawlers. -->
+    <title>vimwiki — Vishal Rao</title>
+    <meta name="author" content="Vishal Rao">
+    <!-- Site-level fallback description. Search engines usually write their own
+         snippet from the matched passage and ignore this, so it is a floor, not
+         a lever — the real per-page description would have to be generated at
+         export time, which this template can't do (vimwiki only substitutes
+         vimwiki / 
+<div id="vimwiki"><h1 id="vimwiki" class="header"><a href="#vimwiki">vimwiki</a></h1></div>
+
+
+<div id="vimwiki-Reference"><h2 id="Reference" class="header"><a href="#vimwiki-Reference">Reference</a></h2></div>
+<ol>
+<li>
+<a href="https://vimawesome.com/plugin/vimwiki-the-lucky-one">https://vimawesome.com/plugin/vimwiki-the-lucky-one</a>
+
+<li>
+<a href="vimwiki_cheat_sheet.html">vimwiki_cheat_sheet</a>
+
+</ol>
+<p>
+To open the index file stored in /home/vishal/vimwiki/ just use the keybinding &lt;leader&gt;ww, for us the leader is just a comma (declared in init.vim)<br />
+</p>
+
+<p>
+use the following editor commands to get help with vimwiki packages<br />
+</p>
+<ul>
+<li>
+:h vimwiki
+
+<li>
+:h vimwiki-todo
+
+<li>
+:h vimwiki-local-mappings
+
+</ul>
+<p>
+The last two editor commands are redundent, they can be found in :h vimwiki editor command. <br />
+</p>
+
+
+<hr />
+
+<p>
+To create a link, type a word, go to that word in normal mode and hit enter. Use tab and shift+tab to navitgate through the links forward and backwards respectively. Once hiting enter into links, you can type what I wrote here, no need to save it using :w or &lt;leader&gt;w (which I mapped in my init.vim file), hit backspace to go back to links(backspace automatically quits and saves the wiki files). <br />
+</p>
+ 
+<p>
+To enter into link: simply use tab/shift-tab, to navigate and hit enter key. Don't double click the links to open them.<br />
+</p>
+
+<p>
+before you use &lt;leader&gt;whh, use ":VimwikiAll2HTML" to convert all links to html and display the html using &lt;leader&gt;whh or :Vimwiki2HTML.<br />
+</p>
+
+<p>
+To have local file links use: <br />
+<a href="/home/vishal/path/to/file.pdf">file:/home/vishal/path/to/file.pdf</a><br />
+</p>
+
+<p>
+To rename the links, use &lt;leader&gt;wr <br />
+</p>
+
+<p>
+To make a heading write any word, go to normal mode and press '=', again and again to get the required headings or subheadings, you may press '-' to get rid of more number of '=' signs. <br />
+</p>
+
+<div id="vimwiki-html_wiki"><h2 id="html_wiki" class="header"><a href="#vimwiki-html_wiki">html_wiki</a></h2></div>
+<p>
+<span id="vimwiki-html_wiki-To set the browser use :  xdg-settings set default-url-scheme-handler file google-chrome.desktop"></span><strong id="To set the browser use :  xdg-settings set default-url-scheme-handler file google-chrome.desktop">To set the browser use :  xdg-settings set default-url-scheme-handler file google-chrome.desktop</strong> command in terminal. <br />
+</p>
+
+<ul>
+<li>
+To generate correponding html page of present wiki page use '&lt;leader&gt;oh', and to go to that html page use '&lt;leader&gt;ht', to get back to same wiki page use '&lt;leader&gt;wk'
+
+<li>
+To convert all wiki pages to html use '&lt;leader&gt;ah'
+
+<li>
+To have math function working, make sure you place that mathjax code below &lt;head&gt; of html page. use snippet 'latex' and press enter to do that.
+
+</ul>
+<div id="vimwiki-vimwiki-math"><h2 id="vimwiki-math" class="header"><a href="#vimwiki-vimwiki-math">vimwiki-math</a></h2></div>
+<p>
+5.8. Mathematical formulae                              <span id="vimwiki-vimwiki-math-vimwiki-syntax-math"></span><strong id="vimwiki-syntax-math">vimwiki-syntax-math</strong><br />
+</p>
+
+<p>
+Mathematical formulae are highlighted, and can be rendered in HTML using the<br />
+powerful open source display engine MathJax (<a href="https://www.mathjax.org/).">https://www.mathjax.org/).</a><br />
+</p>
+
+<p>
+There are three supported syntaxes, which are inline, block display and<br />
+block environment.<br />
+</p>
+
+<p>
+Inline math is for short formulae within text. It is enclosed by single<br />
+dollar signs, e.g.:<br />
+ \( \sum_i a_i^2 = 1 \)<br />
+</p>
+
+<p>
+Block display creates a centered formula with some spacing before and after<br />
+it. It must start with a line including only {{$, then an arbitrary number<br />
+of mathematical text are allowed, and it must end with a line including only<br />
+}}$.<br />
+E.g.:<br />
+</p>
+\[
+\sum_i a_i^2
+=
+1
+\]
+<p>
+*you can use \[ ..]\ without spaces from left, it works, look at <a href="HISQ.html">HISQ</a>*<br />
+Note: no matter how many lines are used in the text file, the HTML will<br />
+compress it to one line only.<br />
+</p>
+
+<p>
+Block environment is similar to block display, but is able to use specific<br />
+LaTeX environments, such as 'align'. The syntax is the same as for block<br />
+display, except for the first line which is {{$%environment%.<br />
+E.g.:<br />
+</p>
+\begin{align}
+\sum_i a_i^2 &amp;= 1 + 1 \\
+&amp;= 2.
+\end{align}
+
+<p>
+Similar compression rules for the HTML page hold (as MathJax interprets the<br />
+LaTeX code).<br />
+</p>
+
+<p>
+Note: the highlighting in Vim is automatic. For the rendering in HTML, you<br />
+have two alternative options:<br />
+</p>
+
+<ol>
+<li>
+installing MathJax locally (Recommended: faster, no internet required).
+
+</ol>
+<p>
+Choose a folder on your hard drive and save MathJax in it. Then add to your<br />
+HTML template the following line:<br />
+</p>
+
+<p>
+&lt;script type="text/javascript" src="&lt;mathjax_folder&gt;/es5/tex-chtml.js?config=TeX-AMS-MML_HTMLorMML"&gt;&lt;/script&gt;<br />
+</p>
+
+<p>
+where &lt;mathjax_folder&gt; is the folder on your HD, as a relative path to the<br />
+template folder. For instance, a sensible folder structure could be:<br />
+</p>
+
+<ul>
+<li>
+wiki
+
+<ul>
+<li>
+text
+
+<li>
+html
+
+<li>
+templates
+
+<li>
+mathjax
+
+</ul>
+</ul>
+<p>
+In this case, &lt;mathjax_folder&gt; would be "../mathjax" (without quotes).<br />
+</p>
+
+<ol>
+<li>
+Loading MathJax from a CDN-server (needs internet connection).
+
+</ol>
+<p>
+Add to your HTML template the following lines:<br />
+</p>
+
+<p>
+&lt;script src="<a href="https://polyfill.io/v3/polyfill.min.js?features=es6&quot;&gt;&lt;/script&gt;">https://polyfill.io/v3/polyfill.min.js?features=es6"&gt;&lt;/script&gt;</a><br />
+&lt;script id="MathJax-script" async src="<a href="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js&quot;&gt;&lt;/script&gt;">https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"&gt;&lt;/script&gt;</a><br />
+</p>
+
+
+<div id="vimwiki-Multiple_wiki"><h2 id="Multiple_wiki" class="header"><a href="#vimwiki-Multiple_wiki">Multiple_wiki</a></h2></div>
+<p>
+use &lt;leader&gt;ws to select from multiple wikis, or<br />
+</p>
+<ol>
+<li>
+use &lt;leader&gt; ww : <em>for default wiki 1</em>
+
+<li>
+use &lt;leader&gt; w1 : for <em>wiki 1</em>
+
+<li>
+use &lt;leader&gt; w2 : for <em>wiki 2</em>
+
+</ol>
+<div id="vimwiki-TODO"><h2 id="TODO" class="header"><a href="#vimwiki-TODO"><span class="todo">TODO</span></a></h2></div>
+
+<ul>
+<li>
+<a href="todo.html">todo</a>
+
+</ul>
+ /  / utf-8 / rss.xml). -->
+    <meta name="description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:site_name" content="Vishal Rao">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="vimwiki — Vishal Rao">
+    <meta property="og:description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:image" content="https://vishalrao.in/pp.jpg">
+    <meta name="twitter:card" content="summary">
+    <!-- og:url and rel=canonical need this page's absolute address, which the
+         template doesn't know, so they're filled in at runtime below. Google
+         renders JS before indexing, so it does see these — but a build-time
+         canonical written straight into the HTML is strictly more reliable, and
+         is worth doing in the export script if you ever add one. -->
+    <link id="canonical-url" rel="canonical" href="">
+    <meta id="og-url" property="og:url" content="">
+    <script>
+        (function () {
+            // Strip ?query and #fragment: those are the same document, and
+            // letting them be indexed separately splits the page's ranking
+            // signals across near-duplicate URLs.
+            var url = location.origin + location.pathname;
+            var c = document.getElementById('canonical-url');
+            var o = document.getElementById('og-url');
+            if (c) c.href = url;
+            if (o) o.setAttribute('content', url);
+        })();
+    </script>
+    <!-- Person entity. This is the piece that actually matters for a name
+         search: it tells Google that the "Vishal Rao" of this site is the IISc
+         lattice-QCD one, distinct from the several well-known people who share
+         the name. sameAs is the disambiguator — FILL IN every profile you
+         actually have (inSPIRE-HEP, ORCID, Google Scholar, arXiv, GitHub,
+         LinkedIn, your CHEP people-page) and DELETE the lines you don't. Each
+         of those profiles should link back here; the two-way link is what ties
+         the identity together. An unfilled or wrong URL here is worse than no
+         markup at all, so don't leave the examples in place. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Vishal Rao",
+      "url": "https://vishalrao.in/",
+      "image": "https://vishalrao.in/pp.jpg",
+      "jobTitle": "PhD Researcher",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "Centre for High Energy Physics, Indian Institute of Science",
+        "url": "https://chep.iisc.ac.in/"
+      },
+      "knowsAbout": [
+        "Lattice Quantum Chromodynamics",
+        "Lattice Gauge Theory",
+        "Finite-Temperature Gauge Theories",
+        "High-Performance Computing"
+      ],
+      "sameAs": [
+        "REPLACE-WITH-YOUR-INSPIRE-HEP-AUTHOR-URL",
+        "REPLACE-WITH-YOUR-ORCID-URL",
+        "REPLACE-WITH-YOUR-GOOGLE-SCHOLAR-URL",
+        "REPLACE-WITH-YOUR-GITHUB-URL"
+      ]
+    }
+    </script>
     <!-- MathJax config: on phone-width screens, break long display equations onto
          multiple lines instead of overflowing the page. Desktop and tablet keep the
          default rendering (empty config), so their layout is unchanged. Must run
@@ -380,14 +671,18 @@
            cursor/no-select behavior holds even if the pointer strays off the
            thin handle mid-drag. */
         body.toc-resizing { cursor: col-resize; user-select: none; }
-        /* Read mode: hides every floating button/icon except the read-mode
-           toggle itself (so there's always a way back out), on every screen
-           size. Deliberately untouched here: #content, #toc-sidebar, and
-           its resizers — read mode only hides chrome, the article layout
-           itself stays exactly as it was.
-           Hiding now happens in two phases so the chrome fades instead of
-           blinking out mid-scroll: .focus-fading makes it transparent while
-           it's still laid out, then .read-mode removes it for real once the
+        /* Read mode: hides the site-wide tool icons in the top-right stack —
+           everything except the read-mode toggle itself, so there's always a
+           way back out — on every screen size.
+           NOT hidden: the bottom-right .floating-btns stack (back / back-to-top
+           / ask-this-page). Those are per-page reading aids rather than chrome;
+           losing them mid-article is exactly when they're most wanted.
+           Also deliberately untouched: #content, #toc-sidebar, and its
+           resizers — read mode only hides chrome, the article layout itself
+           stays exactly as it was.
+           Hiding happens in two phases so the icons fade instead of blinking
+           out mid-scroll: .focus-fading makes them transparent while they're
+           still laid out, then .read-mode removes them for real once the
            transition has finished. The script below swaps the classes; its
            FADE_MS must match the 0.22s duration used here.
            #toc-toggle is the phone-only Contents button — it sits outside
@@ -401,20 +696,17 @@
            than adds to, the one on .top-right-btns button. */
         body .top-right-btns > button,
         body .top-right-btns > a,
-        body .floating-btns,
         body #toc-toggle {
             transition: opacity 0.22s ease, transform 0.22s ease,
                         color 0.15s ease, background-color 0.15s ease;
         }
         body.focus-fading .top-right-btns > *:not(#btn-read-mode),
-        body.focus-fading .floating-btns,
         body.focus-fading #toc-toggle {
             opacity: 0;
             transform: scale(0.9);
             pointer-events: none;
         }
         body.read-mode .top-right-btns > *:not(#btn-read-mode),
-        body.read-mode .floating-btns,
         body.read-mode #toc-toggle {
             display: none;
         }
@@ -475,7 +767,6 @@
         @media (prefers-reduced-motion: reduce) {
             body .top-right-btns > button,
             body .top-right-btns > a,
-            body .floating-btns,
             body #toc-toggle,
             #focus-toast { transition: none; }
             #btn-read-mode.focus-pulse { animation: none; }
@@ -677,7 +968,13 @@
         }
         /* Mobile Styles */
         @media only screen and (max-width: 600px) {
-            body { padding: 12px; }
+            /* Top padding clears the icon row rather than matching the sides.
+               The row sits at top:12px and its buttons are 44px tall here (see
+               the 600px rule on .top-right-btns above), so it ends at 56px;
+               68px leaves the same kind of breathing space under it that the
+               3cm desktop margin does. Without this the icons float on top of
+               the article card instead of above it. */
+            body { padding: 68px 12px 12px 12px; }
             #content {
                 padding: 8px 10px;
                 max-width: 100%;
@@ -1386,12 +1683,9 @@ use &lt;leader&gt; w2 : for <em>wiki 2</em>
         if (!btn) return;
 
         var FADE_MS  = 220;   // must match the .focus-fading transition in the <style> block
-        var ENTER_AT = 320;   // px down the page before focus mode may engage on its own
-        var EXIT_AT  = 80;    // px: getting back this close to the top releases it again
-        var MIN_DOWN = 120;   // px of uninterrupted DOWNWARD scrolling required first, so a
-                              // stray flick doesn't trigger it
-        var MAX_JUMP = 400;   // a single scroll event bigger than this is a jump (TOC link,
-                              // back-navigation restore), not reading — doesn't count
+        var HYSTERESIS = 24;  // focus mode releases this far ABOVE the point it engages, so a
+                              // scroll resting exactly on the boundary can't flip it back and
+                              // forth on every stray pixel
 
         var readOn = false;          // authoritative state; the body classes are mid-transition sometimes
         var autoEngaged = false;     // on because of scrolling, not because of a click
@@ -1471,12 +1765,6 @@ use &lt;leader&gt; w2 : for <em>wiki 2</em>
             btn.title = label;
             btn.setAttribute('aria-label', label);
             btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-            // Only deliberate choices are remembered across pages. Auto-engaging
-            // passes persist:false, so a reader who never touched the button never
-            // lands on a page with its controls already hidden.
-            if (opts.persist !== false) {
-                try { localStorage.setItem(READ_MODE_KEY, on ? '1' : '0'); } catch (e) {}
-            }
             if (on && opts.announce) {
                 pulse();
                 if (!toastShown) { toastShown = true; showToast(); }
@@ -1484,40 +1772,65 @@ use &lt;leader&gt; w2 : for <em>wiki 2</em>
             if (!on) hideToast();
         }
 
-        var savedReadMode = false;
-        try { savedReadMode = localStorage.getItem(READ_MODE_KEY) === '1'; } catch (e) {}
-        applyReadMode(savedReadMode, { animate: false, persist: false });
+        // Focus mode is per-page-load: every page starts with its chrome
+        // visible, and gets hidden either by the scroll watcher below or by a
+        // click. Nothing is restored from storage, so a page can never open
+        // already hidden — which is what a stale saved 'on' used to cause
+        // (the pre-scroll version of this script persisted the state on every
+        // call, including page load, so one click stuck forever). The old key
+        // is cleared on sight so existing visitors self-heal on first load.
+        try { localStorage.removeItem(READ_MODE_KEY); } catch (e) {}
+        applyReadMode(false, { animate: false });
 
         btn.addEventListener('click', function () {
             var turningOn = !readOn;
             suppressed = !turningOn;   // turned it off by hand -> stay off until back at the top
             autoEngaged = false;       // from here on it's the reader's, not the scroll watcher's
             applyReadMode(turningOn, { announce: turningOn });
-            if (turningOn) window.scrollTo({ top: 0, behavior: 'smooth' });
+            // Deliberately does NOT scroll anywhere. The original handler jumped
+            // to the top on switching read mode on, which was harmless when the
+            // button was the only way in; now that focus mode engages mid-scroll
+            // on its own, toggling it must never move the reader off the line
+            // they're on. The "back to top" arrow is still there for that.
         });
 
-        // ---- Scroll watcher: engage focus mode once the reader is clearly
-        // reading, release it once they're clearly done. Runs on every viewport,
-        // phones included. It only ever turns OFF what it itself turned on, so a
-        // saved read-mode preference (or a click) is never undone by scrolling.
-        var lastY = window.pageYOffset, downRun = 0;
+        // ---- Scroll watcher: focus mode engages the moment the article card
+        // reaches the top of the viewport — the reader has scrolled the header
+        // margin away, so the white box now fills the screen and the icons that
+        // sat above it are off-screen anyway. The threshold is the card's own
+        // offset rather than a fixed pixel count, so it comes out right on both
+        // desktop (3cm body padding) and phones (68px, set in the mobile media
+        // query above) with no second number to keep in sync. Runs on every
+        // viewport. It only ever turns OFF what it itself turned on, so a saved
+        // read-mode preference (or a click) is never undone by scrolling.
+        var cardTop = null;   // computed on first scroll, by which point layout has settled
+        function engageAt() {
+            if (cardTop === null) {
+                var card = document.getElementById('content');
+                // getBoundingClientRect is viewport-relative; adding the current
+                // scroll offset turns it into a position within the document.
+                cardTop = card ? card.getBoundingClientRect().top + window.pageYOffset : 0;
+            }
+            return cardTop;
+        }
+        // Rotating a phone or resizing a window can cross the mobile breakpoint
+        // and change the body padding, so the cached offset has to be dropped.
+        window.addEventListener('resize', function () { cardTop = null; });
+
         window.addEventListener('scroll', function () {
             var y = window.pageYOffset;
-            var dy = y - lastY;
-            lastY = y;
-            if (dy > MAX_JUMP) downRun = 0;                        // jumped, didn't read — start over
-            else if (dy > 0) downRun += dy;
-            else if (dy < 0) downRun = 0;                          // any upward move restarts the run
+            var enter = engageAt();
+            var exit = Math.max(0, enter - HYSTERESIS);
 
-            if (y <= EXIT_AT) {
-                suppressed = false;                                // back at the top: re-arm
+            if (y <= exit) {
+                suppressed = false;                                // back above the card: re-arm
                 if (autoEngaged && readOn) {
                     autoEngaged = false;
                     applyReadMode(false, { persist: false });
                 }
                 return;
             }
-            if (!readOn && !suppressed && y >= ENTER_AT && downRun >= MIN_DOWN) {
+            if (!readOn && !suppressed && y >= enter) {
                 autoEngaged = true;
                 applyReadMode(true, { persist: false, announce: true });
             }

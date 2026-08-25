@@ -8,7 +8,344 @@
     <link id="hljs-theme-dark" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" disabled />
     <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
     <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
-    <title>podman</title>
+    <!-- Page title carries the site owner's name on every page, so a wiki page
+         can surface for "<topic> Vishal Rao" and not just the bare topic.
+         Vimwiki substitutes podman with this page's own heading. NOTE: if this
+         same template is ever used for the homepage, drop the suffix there —
+         "Vishal Rao — Vishal Rao" reads as spam to both people and crawlers. -->
+    <title>podman — Vishal Rao</title>
+    <meta name="author" content="Vishal Rao">
+    <!-- Site-level fallback description. Search engines usually write their own
+         snippet from the matched passage and ignore this, so it is a floor, not
+         a lever — the real per-page description would have to be generated at
+         export time, which this template can't do (vimwiki only substitutes
+         podman / 
+
+<div id="Containers"><h1 id="Containers" class="header"><a href="#Containers">Containers</a></h1></div>
+
+<p>
+There are two major Containers used, docker and podman. Docker however require root access, but podman does not. We can install any Operating system image using the command:<br />
+</p>
+<pre><code><code>docker/podman pull Os_image_name</code>
+</code></pre>
+
+<p>
+once it is installed, we will start the image by following command:<br />
+Running a container without mounting any directory:<br />
+</p>
+<pre><code><code>podman run -d -t --name rocky9.2 rockylinux/rockylinux:9.2</code>
+</code></pre>
+
+<p>
+here rocky9.2 can be any name you assign to image rockylinux:9.2<br />
+once it runs, we can see the processes using the command<br />
+</p>
+<pre><code><code>podman ps</code>
+</code></pre>
+<p>
+and run the command<br />
+<code>                                podman exec -it rocky9.2 bash </code><br />
+</p>
+
+<div id="Containers-Try the following commands"><h2 id="Try the following commands" class="header"><a href="#Containers-Try the following commands">Try the following commands</a></h2></div>
+<p>
+```<br />
+</p>
+
+<ol>
+<li>
+podman images (to see list of all pulled images)
+
+<li>
+podman stop rocky9.2  ( to stop the container from running )
+
+<li>
+podman start rocky9.2 ( to start it once again_)
+
+</ol>
+<p>
+```<br />
+</p>
+<div id="Containers-Mounting and unmounting"><h2 id="Mounting and unmounting" class="header justcenter"><a href="#Containers-Mounting and unmounting">Mounting and unmounting</a></h2></div>
+
+<p>
+To run a container with mounted host directories using Podman, you can use the <code>-v</code> or <code>--volume</code> option to create bind mounts. Bind mounts allow you to link directories on your host system to directories inside the container. Here's how you can do it:<br />
+</p>
+
+<p>
+```bash<br />
+podman run -it --name my-container -v /path/to/host/directory:/path/in/container IMAGE_NAME<br />
+```<br />
+</p>
+
+<ul>
+<li>
+<code>-it</code>: This runs the container in interactive mode with a terminal.
+
+<li>
+<code>--name my-container</code>: You can give the container a name of your choice.
+
+<li>
+<code>-v /path/to/host/directory:/path/in/container</code>: This is where the bind mount is defined. Replace <code>/path/to/host/directory</code> with the absolute path to the directory on your host system that you want to mount and <code>/path/in/container</code> with the path within the container where you want to mount it.
+
+<li>
+<code>IMAGE_NAME</code>: This is the name of the container image you want to run.
+
+</ul>
+<p>
+For example, if you want to mount a directory named <code>my_data</code> located in your home directory on the host to the <code>/data</code> directory in the container, you can run:<br />
+</p>
+
+<p>
+```bash<br />
+podman run -it --name my-container -v ~/my_data:/data my-image<br />
+```<br />
+</p>
+
+<p>
+Once the container is running with the bind mount, any changes made to the <code>/data</code> directory inside the container will be reflected in the <code>~/my_data</code> directory on your host system, and vice versa. This allows for easy sharing of files and data between the host and the container.<br />
+</p>
+
+
+
+
+
+
+<div id="Containers-:Tried:"><h2 id=":Tried:" class="header"><a href="#Containers-:Tried:"><span id="Containers-:Tried:-Tried"></span><span class="tag" id="Tried">Tried</span></a></h2></div>
+
+<p>
+Here I have installed rockylinux 9.2 image and made an container named as virat, I have mounted the /home/vishal of host to /home/vishal of container. <br />
+</p>
+
+<p>
+To exit form container, simply type "exit" and hit enter. <br />
+</p>
+
+<p>
+To enter again the intereactive bash shell to the container, simply use the alias created , just type "virat" and hit enter in command prompt. You can check it. <br />
+</p>
+
+<p>
+To unmount the directories, use : <code>podman stop rockybalboa</code><br />
+</p>
+
+<p>
+to restart, use : <code>podman start virat &amp;&amp; virat </code><br />
+</p>
+
+
+<p>
+To list all containers, use "podman ps -a", use <br />
+</p>
+<pre><code>
+<code>podman rm container_name.</code>
+</code></pre>
+
+<p>
+To remove the images: first we have to stop container <code>podman stop container_name</code> and then remove the container by <code>podman rm container_name</code>, and then only we can remove the images by <code>podman rmi image_name</code>. <br />
+</p>
+
+
+<ul>
+<li>
+Backup the container
+
+</ul>
+<p>
+<a href="https://medium.com/analytics-vidhya/backup-export-docker-image-easily-4f6970d225a6#:~:text=Backup%20the%20Container%20and%20Restore,used%20to%20launch%20another%20container.">https://medium.com/analytics-vidhya/backup-export-docker-image-easily-4f6970d225a6#:~:text=Backup%20the%20Container%20and%20Restore,used%20to%20launch%20another%20container.</a><br />
+</p>
+
+
+<div id="Containers-Making images from commited containers"><h2 id="Making images from commited containers" class="header justcenter"><a href="#Containers-Making images from commited containers">Making images from commited containers</a></h2></div>
+<p>
+the below command will create an updated image:<br />
+</p>
+
+<p>
+<code>    podman commit container_name image_name</code><br />
+</p>
+ 
+<p>
+To save to .tar file and download it to local system or transfer to some ssd drive, we can :<br />
+</p>
+<pre><code>
+</code></pre>
+<p>
+<code>    podman save -o output.tar image1 image2 ...</code><br />
+</p>
+
+ 
+<p>
+To load the image from the .tar file on another system, you can use the podman load command:<br />
+</p>
+
+<p>
+<code>    podman load -i image_name.tar </code><br />
+</p>
+
+<div id="Containers-To add gpu to runtime:"><h2 id="To add gpu to runtime:" class="header justcenter"><a href="#Containers-To add gpu to runtime:">To add gpu to runtime:</a></h2></div>
+<p>
+<a href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/cdi-support.html">https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/cdi-support.html</a><br />
+</p>
+
+<p>
+follow above or simply execute the below command:<br />
+</p>
+
+<p>
+<code>    podman run -d -t --device nvidia.com/gpu=all  --security-opt=label=disable --name sachin cuda_virat:latest </code><br />
+</p>
+
+<p>
+In above command, -d means run in background, -t means tty support, --name is nickname for container and cuda_virat:latest is name of image we commited by:<br />
+</p>
+<pre><code>
+</code></pre>
+<p>
+<code>    podman commit cuda_vira virat</code><br />
+</p>
+
+
+<div id="Containers-To add gpu to runtime:-To add all gpu and have graphic access"><h3 id="To add all gpu and have graphic access" class="header justcenter"><a href="#Containers-To add gpu to runtime:-To add all gpu and have graphic access">To add all gpu and have graphic access</a></h3></div>
+<pre><code><code>podman run -d -t --device nvidia.com/gpu=all --security-opt=label=disable -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix --net=host --name virat cuda_vim:latest</code>
+</code></pre>
+
+<ul>
+<li>
+To add all gpu(--device nvidia.com/gpu=all --security-opt=label=disable)
+
+<li>
+To have graphic access (--net=host -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix) + (use podman cp ~/.Xauthority CONTAINER_name:/root/.Xauthority)
+
+<li>
+
+ == After restarting cluster , containers are gone, == 
+
+<li>
+to get back them, use 
+
+<ol>
+<li>
+nvidia-smi 
+
+<li>
+podman start container_name
+
+<li>
+use "loginctl enable-linger username" or "loginctl enable-linger" to keep the gpu/background jobs running. 
+
+</ol>
+</ul>
+<div id="Containers-To add gpu to runtime:-Below is from chatgpt(have not yet tried by me):"><h3 id="Below is from chatgpt(have not yet tried by me):" class="header"><a href="#Containers-To add gpu to runtime:-Below is from chatgpt(have not yet tried by me):">Below is from chatgpt(have not yet tried by me):</a></h3></div>
+<p>
+In the context of Podman containers on a server, the concept of user sessions and lingering is typically associated with the host system rather than individual containers. Containers are isolated environments that run on the host, and their lifecycle is managed by the container runtime (such as Podman or Docker).<br />
+</p>
+
+<p>
+If you want certain processes or services to continue running even when the user logs out of the host system, you generally need to manage that at the host level, not within the container. The container itself doesn't have direct control over the host's user sessions.<br />
+</p>
+
+<p>
+If you have specific processes or services within a Podman container that you want to keep running persistently, you may want to consider approaches such as:<br />
+</p>
+
+<ol>
+<li>
+*<span id="Containers-To add gpu to runtime:-Below is from chatgpt(have not yet tried by me):-Run the Container in the Background:"></span><strong id="Run the Container in the Background:">Run the Container in the Background:</strong>*
+   When you start a container with Podman, you can use the <code>-d</code> option to run it in the background. This allows the container to continue running even after the terminal session is closed.
+   ```bash
+   podman run -d your_image
+   ```
+
+<li>
+*<span id="Containers-To add gpu to runtime:-Below is from chatgpt(have not yet tried by me):-Use Systemd Service:"></span><strong id="Use Systemd Service:">Use Systemd Service:</strong>*
+   You can create a systemd service on the host system that manages the lifecycle of your container. This allows you to start, stop, and manage the container as a system service.
+   Create a systemd service file, for example, <code>mycontainer.service</code>:
+   ```ini
+   [Unit]
+   Description=My Container
+   [Service]
+   ExecStart=/usr/bin/podman run your_image
+   Restart=always
+   User=your_username
+   Group=your_groupname
+   [Install]
+   WantedBy=default.target
+   ```
+   Adjust the <code>ExecStart</code>, <code>User</code>, and <code>Group</code> parameters according to your setup. Then, enable and start the service:
+   ```bash
+   sudo cp mycontainer.service /etc/systemd/system/
+   sudo systemctl enable mycontainer.service
+   sudo systemctl start mycontainer.service
+   ```
+
+</ol>
+<p>
+Remember that these approaches are host-centric. If you need more fine-grained control within the container itself, you may need to manage the processes or services directly within the container using tools appropriate for your containerized application.<br />
+</p>
+ /  / utf-8 / rss.xml). -->
+    <meta name="description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:site_name" content="Vishal Rao">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="podman — Vishal Rao">
+    <meta property="og:description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:image" content="https://vishalrao.in/pp.jpg">
+    <meta name="twitter:card" content="summary">
+    <!-- og:url and rel=canonical need this page's absolute address, which the
+         template doesn't know, so they're filled in at runtime below. Google
+         renders JS before indexing, so it does see these — but a build-time
+         canonical written straight into the HTML is strictly more reliable, and
+         is worth doing in the export script if you ever add one. -->
+    <link id="canonical-url" rel="canonical" href="">
+    <meta id="og-url" property="og:url" content="">
+    <script>
+        (function () {
+            // Strip ?query and #fragment: those are the same document, and
+            // letting them be indexed separately splits the page's ranking
+            // signals across near-duplicate URLs.
+            var url = location.origin + location.pathname;
+            var c = document.getElementById('canonical-url');
+            var o = document.getElementById('og-url');
+            if (c) c.href = url;
+            if (o) o.setAttribute('content', url);
+        })();
+    </script>
+    <!-- Person entity. This is the piece that actually matters for a name
+         search: it tells Google that the "Vishal Rao" of this site is the IISc
+         lattice-QCD one, distinct from the several well-known people who share
+         the name. sameAs is the disambiguator — FILL IN every profile you
+         actually have (inSPIRE-HEP, ORCID, Google Scholar, arXiv, GitHub,
+         LinkedIn, your CHEP people-page) and DELETE the lines you don't. Each
+         of those profiles should link back here; the two-way link is what ties
+         the identity together. An unfilled or wrong URL here is worse than no
+         markup at all, so don't leave the examples in place. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Vishal Rao",
+      "url": "https://vishalrao.in/",
+      "image": "https://vishalrao.in/pp.jpg",
+      "jobTitle": "PhD Researcher",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "Centre for High Energy Physics, Indian Institute of Science",
+        "url": "https://chep.iisc.ac.in/"
+      },
+      "knowsAbout": [
+        "Lattice Quantum Chromodynamics",
+        "Lattice Gauge Theory",
+        "Finite-Temperature Gauge Theories",
+        "High-Performance Computing"
+      ],
+      "sameAs": [
+        "REPLACE-WITH-YOUR-INSPIRE-HEP-AUTHOR-URL",
+        "REPLACE-WITH-YOUR-ORCID-URL",
+        "REPLACE-WITH-YOUR-GOOGLE-SCHOLAR-URL",
+        "REPLACE-WITH-YOUR-GITHUB-URL"
+      ]
+    }
+    </script>
     <!-- MathJax config: on phone-width screens, break long display equations onto
          multiple lines instead of overflowing the page. Desktop and tablet keep the
          default rendering (empty config), so their layout is unchanged. Must run
@@ -380,14 +717,18 @@
            cursor/no-select behavior holds even if the pointer strays off the
            thin handle mid-drag. */
         body.toc-resizing { cursor: col-resize; user-select: none; }
-        /* Read mode: hides every floating button/icon except the read-mode
-           toggle itself (so there's always a way back out), on every screen
-           size. Deliberately untouched here: #content, #toc-sidebar, and
-           its resizers — read mode only hides chrome, the article layout
-           itself stays exactly as it was.
-           Hiding now happens in two phases so the chrome fades instead of
-           blinking out mid-scroll: .focus-fading makes it transparent while
-           it's still laid out, then .read-mode removes it for real once the
+        /* Read mode: hides the site-wide tool icons in the top-right stack —
+           everything except the read-mode toggle itself, so there's always a
+           way back out — on every screen size.
+           NOT hidden: the bottom-right .floating-btns stack (back / back-to-top
+           / ask-this-page). Those are per-page reading aids rather than chrome;
+           losing them mid-article is exactly when they're most wanted.
+           Also deliberately untouched: #content, #toc-sidebar, and its
+           resizers — read mode only hides chrome, the article layout itself
+           stays exactly as it was.
+           Hiding happens in two phases so the icons fade instead of blinking
+           out mid-scroll: .focus-fading makes them transparent while they're
+           still laid out, then .read-mode removes them for real once the
            transition has finished. The script below swaps the classes; its
            FADE_MS must match the 0.22s duration used here.
            #toc-toggle is the phone-only Contents button — it sits outside
@@ -401,20 +742,17 @@
            than adds to, the one on .top-right-btns button. */
         body .top-right-btns > button,
         body .top-right-btns > a,
-        body .floating-btns,
         body #toc-toggle {
             transition: opacity 0.22s ease, transform 0.22s ease,
                         color 0.15s ease, background-color 0.15s ease;
         }
         body.focus-fading .top-right-btns > *:not(#btn-read-mode),
-        body.focus-fading .floating-btns,
         body.focus-fading #toc-toggle {
             opacity: 0;
             transform: scale(0.9);
             pointer-events: none;
         }
         body.read-mode .top-right-btns > *:not(#btn-read-mode),
-        body.read-mode .floating-btns,
         body.read-mode #toc-toggle {
             display: none;
         }
@@ -475,7 +813,6 @@
         @media (prefers-reduced-motion: reduce) {
             body .top-right-btns > button,
             body .top-right-btns > a,
-            body .floating-btns,
             body #toc-toggle,
             #focus-toast { transition: none; }
             #btn-read-mode.focus-pulse { animation: none; }
@@ -677,7 +1014,13 @@
         }
         /* Mobile Styles */
         @media only screen and (max-width: 600px) {
-            body { padding: 12px; }
+            /* Top padding clears the icon row rather than matching the sides.
+               The row sits at top:12px and its buttons are 44px tall here (see
+               the 600px rule on .top-right-btns above), so it ends at 56px;
+               68px leaves the same kind of breathing space under it that the
+               3cm desktop margin does. Without this the icons float on top of
+               the article card instead of above it. */
+            body { padding: 68px 12px 12px 12px; }
             #content {
                 padding: 8px 10px;
                 max-width: 100%;
@@ -1432,12 +1775,9 @@ Remember that these approaches are host-centric. If you need more fine-grained c
         if (!btn) return;
 
         var FADE_MS  = 220;   // must match the .focus-fading transition in the <style> block
-        var ENTER_AT = 320;   // px down the page before focus mode may engage on its own
-        var EXIT_AT  = 80;    // px: getting back this close to the top releases it again
-        var MIN_DOWN = 120;   // px of uninterrupted DOWNWARD scrolling required first, so a
-                              // stray flick doesn't trigger it
-        var MAX_JUMP = 400;   // a single scroll event bigger than this is a jump (TOC link,
-                              // back-navigation restore), not reading — doesn't count
+        var HYSTERESIS = 24;  // focus mode releases this far ABOVE the point it engages, so a
+                              // scroll resting exactly on the boundary can't flip it back and
+                              // forth on every stray pixel
 
         var readOn = false;          // authoritative state; the body classes are mid-transition sometimes
         var autoEngaged = false;     // on because of scrolling, not because of a click
@@ -1517,12 +1857,6 @@ Remember that these approaches are host-centric. If you need more fine-grained c
             btn.title = label;
             btn.setAttribute('aria-label', label);
             btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-            // Only deliberate choices are remembered across pages. Auto-engaging
-            // passes persist:false, so a reader who never touched the button never
-            // lands on a page with its controls already hidden.
-            if (opts.persist !== false) {
-                try { localStorage.setItem(READ_MODE_KEY, on ? '1' : '0'); } catch (e) {}
-            }
             if (on && opts.announce) {
                 pulse();
                 if (!toastShown) { toastShown = true; showToast(); }
@@ -1530,40 +1864,65 @@ Remember that these approaches are host-centric. If you need more fine-grained c
             if (!on) hideToast();
         }
 
-        var savedReadMode = false;
-        try { savedReadMode = localStorage.getItem(READ_MODE_KEY) === '1'; } catch (e) {}
-        applyReadMode(savedReadMode, { animate: false, persist: false });
+        // Focus mode is per-page-load: every page starts with its chrome
+        // visible, and gets hidden either by the scroll watcher below or by a
+        // click. Nothing is restored from storage, so a page can never open
+        // already hidden — which is what a stale saved 'on' used to cause
+        // (the pre-scroll version of this script persisted the state on every
+        // call, including page load, so one click stuck forever). The old key
+        // is cleared on sight so existing visitors self-heal on first load.
+        try { localStorage.removeItem(READ_MODE_KEY); } catch (e) {}
+        applyReadMode(false, { animate: false });
 
         btn.addEventListener('click', function () {
             var turningOn = !readOn;
             suppressed = !turningOn;   // turned it off by hand -> stay off until back at the top
             autoEngaged = false;       // from here on it's the reader's, not the scroll watcher's
             applyReadMode(turningOn, { announce: turningOn });
-            if (turningOn) window.scrollTo({ top: 0, behavior: 'smooth' });
+            // Deliberately does NOT scroll anywhere. The original handler jumped
+            // to the top on switching read mode on, which was harmless when the
+            // button was the only way in; now that focus mode engages mid-scroll
+            // on its own, toggling it must never move the reader off the line
+            // they're on. The "back to top" arrow is still there for that.
         });
 
-        // ---- Scroll watcher: engage focus mode once the reader is clearly
-        // reading, release it once they're clearly done. Runs on every viewport,
-        // phones included. It only ever turns OFF what it itself turned on, so a
-        // saved read-mode preference (or a click) is never undone by scrolling.
-        var lastY = window.pageYOffset, downRun = 0;
+        // ---- Scroll watcher: focus mode engages the moment the article card
+        // reaches the top of the viewport — the reader has scrolled the header
+        // margin away, so the white box now fills the screen and the icons that
+        // sat above it are off-screen anyway. The threshold is the card's own
+        // offset rather than a fixed pixel count, so it comes out right on both
+        // desktop (3cm body padding) and phones (68px, set in the mobile media
+        // query above) with no second number to keep in sync. Runs on every
+        // viewport. It only ever turns OFF what it itself turned on, so a saved
+        // read-mode preference (or a click) is never undone by scrolling.
+        var cardTop = null;   // computed on first scroll, by which point layout has settled
+        function engageAt() {
+            if (cardTop === null) {
+                var card = document.getElementById('content');
+                // getBoundingClientRect is viewport-relative; adding the current
+                // scroll offset turns it into a position within the document.
+                cardTop = card ? card.getBoundingClientRect().top + window.pageYOffset : 0;
+            }
+            return cardTop;
+        }
+        // Rotating a phone or resizing a window can cross the mobile breakpoint
+        // and change the body padding, so the cached offset has to be dropped.
+        window.addEventListener('resize', function () { cardTop = null; });
+
         window.addEventListener('scroll', function () {
             var y = window.pageYOffset;
-            var dy = y - lastY;
-            lastY = y;
-            if (dy > MAX_JUMP) downRun = 0;                        // jumped, didn't read — start over
-            else if (dy > 0) downRun += dy;
-            else if (dy < 0) downRun = 0;                          // any upward move restarts the run
+            var enter = engageAt();
+            var exit = Math.max(0, enter - HYSTERESIS);
 
-            if (y <= EXIT_AT) {
-                suppressed = false;                                // back at the top: re-arm
+            if (y <= exit) {
+                suppressed = false;                                // back above the card: re-arm
                 if (autoEngaged && readOn) {
                     autoEngaged = false;
                     applyReadMode(false, { persist: false });
                 }
                 return;
             }
-            if (!readOn && !suppressed && y >= ENTER_AT && downRun >= MIN_DOWN) {
+            if (!readOn && !suppressed && y >= enter) {
                 autoEngaged = true;
                 applyReadMode(true, { persist: false, announce: true });
             }
