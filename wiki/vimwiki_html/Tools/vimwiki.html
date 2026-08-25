@@ -968,7 +968,13 @@ use &lt;leader&gt; w2 : for <em>wiki 2</em>
         }
         /* Mobile Styles */
         @media only screen and (max-width: 600px) {
-            body { padding: 12px; }
+            /* Top padding clears the icon row rather than matching the sides.
+               The row sits at top:12px and its buttons are 44px tall here (see
+               the 600px rule on .top-right-btns above), so it ends at 56px;
+               68px leaves the same kind of breathing space under it that the
+               3cm desktop margin does. Without this the icons float on top of
+               the article card instead of above it. */
+            body { padding: 68px 12px 12px 12px; }
             #content {
                 padding: 8px 10px;
                 max-width: 100%;
@@ -1677,12 +1683,9 @@ use &lt;leader&gt; w2 : for <em>wiki 2</em>
         if (!btn) return;
 
         var FADE_MS  = 220;   // must match the .focus-fading transition in the <style> block
-        var ENTER_AT = 320;   // px down the page before focus mode may engage on its own
-        var EXIT_AT  = 80;    // px: getting back this close to the top releases it again
-        var MIN_DOWN = 120;   // px of uninterrupted DOWNWARD scrolling required first, so a
-                              // stray flick doesn't trigger it
-        var MAX_JUMP = 400;   // a single scroll event bigger than this is a jump (TOC link,
-                              // back-navigation restore), not reading — doesn't count
+        var HYSTERESIS = 24;  // focus mode releases this far ABOVE the point it engages, so a
+                              // scroll resting exactly on the boundary can't flip it back and
+                              // forth on every stray pixel
 
         var readOn = false;          // authoritative state; the body classes are mid-transition sometimes
         var autoEngaged = false;     // on because of scrolling, not because of a click
@@ -1791,30 +1794,45 @@ use &lt;leader&gt; w2 : for <em>wiki 2</em>
             // they're on. The "back to top" arrow is still there for that.
         });
 
-        // ---- Scroll watcher: engage focus mode once the reader is clearly
-        // reading, release it once they're clearly done. Runs on every viewport,
-        // phones included. It only ever turns OFF what it itself turned on, so a
-        // saved read-mode preference (or a click) is never undone by scrolling.
-        var lastY = window.pageYOffset, downRun = 0;
+        // ---- Scroll watcher: focus mode engages the moment the article card
+        // reaches the top of the viewport — the reader has scrolled the header
+        // margin away, so the white box now fills the screen and the icons that
+        // sat above it are off-screen anyway. The threshold is the card's own
+        // offset rather than a fixed pixel count, so it comes out right on both
+        // desktop (3cm body padding) and phones (68px, set in the mobile media
+        // query above) with no second number to keep in sync. Runs on every
+        // viewport. It only ever turns OFF what it itself turned on, so a saved
+        // read-mode preference (or a click) is never undone by scrolling.
+        var cardTop = null;   // computed on first scroll, by which point layout has settled
+        function engageAt() {
+            if (cardTop === null) {
+                var card = document.getElementById('content');
+                // getBoundingClientRect is viewport-relative; adding the current
+                // scroll offset turns it into a position within the document.
+                cardTop = card ? card.getBoundingClientRect().top + window.pageYOffset : 0;
+            }
+            return cardTop;
+        }
+        // Rotating a phone or resizing a window can cross the mobile breakpoint
+        // and change the body padding, so the cached offset has to be dropped.
+        window.addEventListener('resize', function () { cardTop = null; });
+
         window.addEventListener('scroll', function () {
             var y = window.pageYOffset;
-            var dy = y - lastY;
-            lastY = y;
-            if (dy > MAX_JUMP) downRun = 0;                        // jumped, didn't read — start over
-            else if (dy > 0) downRun += dy;
-            else if (dy < 0) downRun = 0;                          // any upward move restarts the run
+            var enter = engageAt();
+            var exit = Math.max(0, enter - HYSTERESIS);
 
-            if (y <= EXIT_AT) {
-                suppressed = false;                                // back at the top: re-arm
+            if (y <= exit) {
+                suppressed = false;                                // back above the card: re-arm
                 if (autoEngaged && readOn) {
                     autoEngaged = false;
-                    applyReadMode(false);
+                    applyReadMode(false, { persist: false });
                 }
                 return;
             }
-            if (!readOn && !suppressed && y >= ENTER_AT && downRun >= MIN_DOWN) {
+            if (!readOn && !suppressed && y >= enter) {
                 autoEngaged = true;
-                applyReadMode(true, { announce: true });
+                applyReadMode(true, { persist: false, announce: true });
             }
         }, { passive: true });
     })();

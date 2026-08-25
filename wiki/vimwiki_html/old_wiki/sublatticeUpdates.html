@@ -8,7 +8,544 @@
     <link id="hljs-theme-dark" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" disabled />
     <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
     <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
-    <title>sublatticeUpdates</title>
+    <!-- Page title carries the site owner's name on every page, so a wiki page
+         can surface for "<topic> Vishal Rao" and not just the bare topic.
+         Vimwiki substitutes sublatticeUpdates with this page's own heading. NOTE: if this
+         same template is ever used for the homepage, drop the suffix there —
+         "Vishal Rao — Vishal Rao" reads as spam to both people and crawlers. -->
+    <title>sublatticeUpdates — Vishal Rao</title>
+    <meta name="author" content="Vishal Rao">
+    <!-- Site-level fallback description. Search engines usually write their own
+         snippet from the matched passage and ignore this, so it is a floor, not
+         a lever — the real per-page description would have to be generated at
+         export time, which this template can't do (vimwiki only substitutes
+         sublatticeUpdates / 
+<div id="sublatticeUpdates"><h1 id="sublatticeUpdates" class="header"><a href="#sublatticeUpdates">sublatticeUpdates</a></h1></div>
+
+<p>
+Measure color electric correlators and energy momentum tensor correlators using multilevel algorithm.<br />
+</p>
+
+<pre cpp>
+/*
+ * main_sublatticeUpdates.cpp
+ *
+ * Hai-Tao Shu, 6 May 2019
+ *
+ */
+
+/***********************************************
+
+the rountine performs local updates for the sub lattices and the contraction
+to get color-electric correlators ( one square lies in sub lattice 1 and the other in sub lattice 2 )
+and energy-momentum tensor correlators in bulk &amp; shear channel at finite momentum
+
+     |_|_|_I_|_|_|_I_|_|_|_|_|_|_I_|_|_|_I_|_|_
+s    |_|_|_I_|_|_|_I_|_|_|_|_|_|_I_|_|_|_I_|_|_
+^    |_|_|_I_|_|_|_I_|_|_|_|_|_|_I_|_|_|_I_|_|_
+|    |_|_|_I_|_|_|_I_|_|_|_|_|_|_I_|_|_|_I_|_|_
+|    |_|_|_I_|_|_|_I_|_|_|_|_|_|_I_|_|_|_I_|_|_
+|    |_|_|_I_|_|_|_I_|_|_|_|_|_|_I_|_|_|_I_|_|_
+|    |_|_|_I_|_|_|_I_|_|_|_|_|_|_I_|_|_|_I_|_|_
+|          |--\/---|             |--\/---|
+|        sub lattice1           sub lattice 2
+|
+---------------------------&gt; t
+
+The spatial links on the border won't be updated.
+
+***********************************************/
+
+
+#include "../simulateqcd.h"
+#include "../modules/gauge_updates/luscherweisz.h"
+#include "../modules/gauge_updates/subLatMeas.h"
+
+#define PREC double
+#define USE_GPU true
+
+
+template&lt;class floatT&gt;
+struct SubLatParam : LatticeParameters {
+
+    //the temporal extent of the sublattice
+    Parameter&lt;int&gt; sublattice_lt;
+
+    //measure how many times
+    Parameter&lt;int&gt; num_meas;
+
+    //how many sweeps(=4*OR+1*HB) performed after each measuring
+    Parameter&lt;int&gt; num_update;
+
+    //the smallest distance of two squares
+    Parameter&lt;int&gt; min_dist;
+
+    //the finite mometum for EMT, directing only in z
+    Parameter&lt;int&gt; PzMax;
+
+    //a magic value used to subtract the first a few useless digits appearing in the traceanomaly at zero momentum
+    //does not contribute the bulk correlators. It helps to avoid the numerical problem and can be obtained by running
+    //another programm "getMagicTraceAnomaly" on any of the configurations of the same lattice size and beta
+    Parameter&lt;PREC&gt; VacuumSubtractionHelper;
+
+    // path of output files
+    Parameter&lt;std::string&gt; out_dir;
+
+    Parameter&lt;bool&gt; EnergyMomentumTensorCorr;
+    Parameter&lt;bool&gt; ColorElectricCorr;
+
+    // constructor
+    SubLatParam() {
+
+        addDefault(sublattice_lt, "sublattice_lt", 6);
+        addDefault(num_meas, "num_meas", 100);
+        addDefault(num_update, "num_update", 10);
+        addDefault(min_dist, "min_dist", 0);
+        addDefault(PzMax, "PzMax", 0);
+        add(VacuumSubtractionHelper, "VacuumSubtractionHelper");
+        add(out_dir, "out_dir");
+        addDefault(EnergyMomentumTensorCorr, "EnergyMomentumTensorCorr", false);
+        addDefault(ColorElectricCorr, "ColorElectricCorr", false);
+    }
+};
+
+
+int main(int argc, char *argv[]) {
+
+    stdLogger.setVerbosity(INFO);
+
+    // initialize the communication base
+    CommunicationBase commBase(&amp;argc, &amp;argv);
+
+    // initialize the Sublattice Updates method parameter class
+    SubLatParam&lt;PREC&gt; lp;
+
+    // read the parameter file On Root(specified by commBase_tmp) and send it to All
+    lp.readfile(commBase, "../parameter/applications/sublatticeUpdates.param", argc, argv);
+
+    // write node dimensions to the communication base
+    commBase.init(lp.nodeDim());
+
+    if ( lp.EnergyMomentumTensorCorr() &amp;&amp; lp.sublattice_lt() &lt; 4 ) {
+        throw std::runtime_error(stdLogger.fatal("Temporal extent of sub lattices can NOT be smaller than 4 when measure energy-"
+                       "momentum tensor correlators!!!"));
+    }
+
+    if ( lp.ColorElectricCorr() &amp;&amp; lp.sublattice_lt() &lt; 3 ) {
+        throw std::runtime_error(stdLogger.fatal("Temporal extent of sub lattices can NOT be smaller than 3 when measure "
+                       "color-electric correlators!!!"));
+    }
+
+    if ( lp.nodeDim()[3] != 1) {
+        throw std::runtime_error(stdLogger.fatal("Can NOT split node in temporal direction !!"));
+    }
+
+    if ( lp.latDim()[3]%lp.sublattice_lt() != 0) {
+        throw std::runtime_error(stdLogger.fatal("Temporal extent of sub lattices must be divisible full temporal extention !!!"));
+    }
+
+
+    const size_t HaloDepth = 1;
+
+    size_t AvailDevice;
+    size_t TotalDevice;
+    size_t UsedDevice;
+
+    initIndexer(HaloDepth, lp, commBase);
+
+    //this part is for memory check. exit if not enough memory. needed because this algorithm needs a lot of memory
+    size_t global_spatial_vol = lp.latDim()[0]*lp.latDim()[1]*lp.latDim()[2]; //global spatial vol
+    size_t node_multiplication = lp.nodeDim()[0]*lp.nodeDim()[1]*lp.nodeDim()[2]; //the multiplication of spatial node dim
+    size_t elem1 = global_spatial_vol/node_multiplication;//local spatial vol on each gpu(the size of sub ced1)
+    size_t elem2 = elem1-(lp.latDim()[0]/lp.nodeDim()[0]-2)*(lp.latDim()[1]/lp.nodeDim()[1]-2)*(lp.latDim()[2]/lp.nodeDim()[2]-2);//the size of sub cec2
+    size_t elem3 = 1;
+    for (size_t mu=0; mu&lt;4; mu++) {
+        if (lp.nodeDim()[mu] &gt; 1) {
+            elem3 *= (lp.latDim()[mu]/lp.nodeDim()[mu]+2*HaloDepth);
+        } else {
+            elem3 *= lp.latDim()[mu];
+        }
+    }
+    size_t elem4 = elem1*lp.latDim()[3];
+    size_t P2P = elem3 + 2*(elem3-elem4);
+
+    gpuError_t gpuErr = gpuMemGetInfo( &amp;AvailDevice, &amp;TotalDevice );
+    if (gpuErr) {
+      GpuError("main_subLatticeUpdates.cpp: gpuMemGetInfo" , gpuErr);
+    }
+
+    UsedDevice = TotalDevice - AvailDevice;
+    double StarterUsedInMB = UsedDevice/1024./1024.;
+    rootLogger.info("Memory for the starter[MB]: " ,  StarterUsedInMB);
+    double Ratio = (double)(elem2)/elem1;
+    double MemLatNoHalo = sizeof(PREC)*18.*elem1*lp.latDim()[3]*4/1024./1024.;
+    double MemLatWithHalo = sizeof(PREC)*18.*P2P*4/1024./1024.;
+
+    double MemAll = StarterUsedInMB + MemLatWithHalo + 16.*elem4/1024./1024.;//last term for seed
+    if (lp.ColorElectricCorr()) {
+        double TotalEstimation_CEC = MemLatNoHalo*((1+6.*(lp.sublattice_lt()-2)*(1+Ratio))/4.);
+        rootLogger.info("Memory to be used for CEC[MB]: " ,  TotalEstimation_CEC);
+        MemAll += TotalEstimation_CEC;
+    }
+
+    rootLogger.info("Device Memory[MB]: " ,  TotalDevice/1024./1024.);
+    if ( MemAll + 20 &gt; TotalDevice/1024./1024. ) { //20 is an estimation for miscellaneous memory comsumption
+        throw std::runtime_error(stdLogger.fatal("Device Memory[MB]:  ", TotalDevice / 1024. / 1024., "    Required Memory[MB]:  ", MemAll + 20,
+                       ". Memory needed exceeds the device's memory ! exit the program."));
+    }
+
+    //field on the host, can not be changed.
+    Gaugefield&lt;PREC, false, HaloDepth&gt; gauge_host(commBase);
+
+    rootLogger.info("Read configuration");
+    gauge_host.readconf_nersc(lp.GaugefileName());
+    gauge_host.updateAll();
+
+    grnd_state&lt;false&gt; host_state;
+    grnd_state&lt;true&gt; dev_state;
+
+    StopWatch&lt;true&gt; timer;
+    timer.start();
+
+    std::stringstream datNameCE_ImprovePoly, datNameCE_ImproveColEleCorr;
+    std::stringstream datNameCE_NonimprovePoly, datNameCE_NonimproveCorr;
+    std::stringstream datNameEMT_ImproveBulk, datNameEMT_NonimproveBulk;
+    std::stringstream datNameEMT_ImproveShear, datNameEMT_NonimproveShear;
+    std::stringstream datNameEMT_ImproveTraceAnomaly, datNameEMT_NonimproveTraceAnomaly;
+    std::stringstream datName_normEMT;
+
+    //gpu memmory to store the polyakov loop within the sublattice and half of the numerator of the color-electric correlator.
+    typedef gMemoryPtr&lt;true&gt; MemTypeGPU;
+    MemTypeGPU mem50 = MemoryManagement::getMemAt&lt;true&gt;("subpoly_Nt_gpu");
+    MemTypeGPU mem51 = MemoryManagement::getMemAt&lt;true&gt;("sub1_cec_Nt_gpu");
+    MemTypeGPU mem52 = MemoryManagement::getMemAt&lt;true&gt;("sub2_cec_Nt_gpu");
+
+    if (lp.ColorElectricCorr()) {
+        mem50-&gt;template adjustSize&lt;SU3&lt;PREC&gt;&gt;(elem1*lp.latDim()[3]);
+        mem50-&gt;memset(0);
+        mem51-&gt;template adjustSize&lt;SU3&lt;PREC&gt;&gt;(elem1*6*(lp.sublattice_lt()-2)*lp.latDim()[3]);
+        mem51-&gt;memset(0);
+        mem52-&gt;template adjustSize&lt;SU3&lt;PREC&gt;&gt;(elem2*6*(lp.sublattice_lt()-2)*lp.latDim()[3]);
+        mem52-&gt;memset(0);
+    }
+    MemoryAccessor sub_poly_Nt (mem50-&gt;getPointer());
+    MemoryAccessor sub1_cec_Nt (mem51-&gt;getPointer());
+    //same as sub1_cec_Nt but only the part on the boundary of each gpu
+    MemoryAccessor sub2_cec_Nt (mem52-&gt;getPointer());
+
+    std::vector&lt;PREC&gt; SubBulk_Nt_real((lp.PzMax()+1)*lp.latDim()[3]*(lp.sublattice_lt()-3), 0);
+    std::vector&lt;PREC&gt; SubBulk_Nt_imag((lp.PzMax()+1)*lp.latDim()[3]*(lp.sublattice_lt()-3), 0);
+    std::vector&lt;Matrix4x4Sym&lt;PREC&gt;&gt; SubShear_Nt_real((lp.PzMax()+1)*lp.latDim()[3]*(lp.sublattice_lt()-3), 0);
+    std::vector&lt;Matrix4x4Sym&lt;PREC&gt;&gt; SubShear_Nt_imag((lp.PzMax()+1)*lp.latDim()[3]*(lp.sublattice_lt()-3), 0);
+
+
+    std::vector&lt;PREC&gt; SubTbarbp00(lp.latDim()[3]*(lp.sublattice_lt()-3), 0);
+    std::vector&lt;PREC&gt; SubSbp(lp.latDim()[3]*(lp.sublattice_lt()-3), 0);
+    //save SubTbarbc00 and SubSbc as the real and imag part of a complex number.
+    std::vector&lt;COMPLEX(PREC)&gt; SubTbarbc00_SubSbc(lp.latDim()[3]*(lp.sublattice_lt()-3), 0);
+
+    //only for the zero momentum, where the summation over different lp.num_meas() needs to be specially taken care of.
+    std::vector&lt;PREC&gt; SubBulk_Nt_p0(lp.num_meas()*lp.latDim()[3]*(lp.sublattice_lt()-3), 0);
+    std::vector&lt;Matrix4x4Sym&lt;PREC&gt;&gt; SubShear_Nt_p0(lp.num_meas()*lp.latDim()[3]*(lp.sublattice_lt()-3), 0);
+
+    MemTypeGPU mem53 = MemoryManagement::getMemAt&lt;true&gt;("sub_E_gpu");
+    MemTypeGPU mem54 = MemoryManagement::getMemAt&lt;true&gt;("sub_U_gpu");
+    if (lp.EnergyMomentumTensorCorr()) {
+        mem53-&gt;template adjustSize&lt;PREC&gt;(elem1);
+        mem53-&gt;memset(0);
+        mem54-&gt;template adjustSize&lt;Matrix4x4Sym&lt;PREC&gt;&gt;(elem1);
+        mem54-&gt;memset(0);
+    }
+    MemoryAccessor sub_E_gpu (mem53-&gt;getPointer());
+    MemoryAccessor sub_U_gpu (mem54-&gt;getPointer());
+
+
+    for (int local_pos_t=0;local_pos_t&lt;lp.sublattice_lt();local_pos_t++) {
+
+        rootLogger.info("measure. update the sub-lattice at shift position: " ,  local_pos_t ,  "/" ,  lp.sublattice_lt());
+        // copy field to device
+        Gaugefield&lt;PREC, USE_GPU, HaloDepth&gt; gauge_device(gauge_host.getComm());
+        gauge_device = gauge_host;
+        gauge_device.updateAll();
+
+        // initialize sub-lattice updates
+        LuscherWeisz&lt;PREC, USE_GPU, HaloDepth&gt; luscherweisz(gauge_device);
+
+        // initialize for caculating sub poly and sub cec
+        SubLatMeas&lt;PREC, USE_GPU, HaloDepth&gt; sublatmeas(gauge_device,lp.sublattice_lt());
+
+        //generate random seed
+        auto seed = std::chrono::duration_cast&lt; std::chrono::milliseconds &gt;(std::chrono::system_clock::now().time_since_epoch()).count();
+        host_state.make_rng_state(seed);
+        dev_state = host_state;
+
+        //need include the measure below
+        for (int i = 0; i &lt; lp.num_meas(); ++i) {
+            for (int j = 0; j &lt; lp.num_update(); ++j) {
+                luscherweisz.subUpdateHB(dev_state.state, lp.beta(), lp.sublattice_lt(), local_pos_t, false);
+                for (int k = 0; k &lt; 4; k++) {
+                    luscherweisz.subUpdateOR(lp.sublattice_lt(), local_pos_t);
+                }
+            }
+
+            for (int sub_i=0;sub_i&lt;lp.latDim()[3]/lp.sublattice_lt();sub_i++) {
+                //measure the energy-momentum tensor at each possible time slice within each sub lattice
+                if (lp.EnergyMomentumTensorCorr()) {
+                    sublatmeas.updateSubNorm(local_pos_t+sub_i*lp.sublattice_lt(), SubTbarbp00, SubSbp, SubTbarbc00_SubSbc);
+                    for ( int dist=0; dist&lt;lp.sublattice_lt()-3; dist++ ) { //minus 3 because T is from F, clover boundary can NOT hit sublattice boudndary
+                        for ( int pz=0;pz&lt;=lp.PzMax();pz++ ) {
+                            sublatmeas.updateSubEMT(local_pos_t+sub_i*lp.sublattice_lt(), lp.num_meas(), sub_E_gpu, sub_U_gpu, SubBulk_Nt_p0, SubShear_Nt_p0, SubBulk_Nt_real,
+                                                    SubShear_Nt_real, dist, pz, i, lp.VacuumSubtractionHelper(), 0);
+                            sublatmeas.updateSubEMT(local_pos_t+sub_i*lp.sublattice_lt(), lp.num_meas(), sub_E_gpu, sub_U_gpu, SubBulk_Nt_p0, SubShear_Nt_p0, SubBulk_Nt_imag,
+                                                    SubShear_Nt_imag, dist, pz, i, lp.VacuumSubtractionHelper(), 1);
+                        }
+                    }
+                }
+
+                //measure sub polyakov loop and sub color electric correlator from the locally updated confs
+                if (lp.ColorElectricCorr()) {
+                    sublatmeas.updateSubPolyCorr(local_pos_t+sub_i*lp.sublattice_lt(), lp.num_meas(), sub_poly_Nt, sub1_cec_Nt, sub2_cec_Nt);
+                }
+            }
+        }
+    }
+
+    if (lp.EnergyMomentumTensorCorr()) {
+
+        datName_normEMT &lt;&lt; lp.out_dir() &lt;&lt; "MultiLevel" &lt;&lt; "_NormEMT" &lt;&lt; lp.fileExt();
+        FileWriter file_normEMT(gauge_host.getComm(), lp);
+        file_normEMT.createFile(datName_normEMT.str());
+        LineFormatter newTag_normEMT = file_normEMT.header(15);
+        newTag_normEMT &lt;&lt; "#Tbarbp00 #Sbp #Tbarbc00 #Sbc" &lt;&lt; "\n";
+
+        PREC Tbarbp00 = 0.;
+        PREC Sbp = 0.;
+        PREC Tbarbc00 = 0.;
+        PREC Sbc = 0.;
+
+        for ( int tau=0; tau&lt;lp.latDim()[3]; tau++ ) {
+            for ( int dist=0; dist&lt;lp.sublattice_lt()-3; dist++ ) {
+                Tbarbp00 += SubTbarbp00[tau*(lp.sublattice_lt()-3)+dist];
+                Sbp += SubSbp[tau*(lp.sublattice_lt()-3)+dist];
+                Tbarbc00 += imag(SubTbarbc00_SubSbc[tau*(lp.sublattice_lt()-3)+dist]);
+                Sbc += real(SubTbarbc00_SubSbc[tau*(lp.sublattice_lt()-3)+dist]);
+            }
+        }
+        Tbarbp00 /= ((lp.sublattice_lt()-3.)*lp.latDim()[3]*lp.num_meas());
+        Sbp /= ((lp.sublattice_lt()-3.)*lp.latDim()[3]*lp.num_meas());
+        Tbarbc00 /= ((lp.sublattice_lt()-3.)*lp.latDim()[3]*lp.num_meas());
+        Sbc /= ((lp.sublattice_lt()-3.)*lp.latDim()[3]*lp.num_meas());
+
+        newTag_normEMT &lt;&lt; std::scientific &lt;&lt; std::setprecision(15) &lt;&lt; Tbarbp00*2. &lt;&lt; 2.*(18.-Sbp) &lt;&lt; Tbarbc00 &lt;&lt; Sbc &lt;&lt;"\n";
+
+
+        Contraction_cpu&lt;PREC&gt; contraction(lp.sublattice_lt(), lp.latDim()[3]);
+        //normalize the zero p traceanomaly by summing over and deviding lp.num_meas(). aim to reduing the numerical error
+        contraction.ImproveNormalizeBulk(SubBulk_Nt_real, SubBulk_Nt_p0, lp.num_meas());
+
+        //contraction for the improve emt correlators in bulk channel
+        rootLogger.info("contration to obtain the multi-level improved energy-momentum correlator in bulk channel");
+        std::vector&lt;PREC&gt; ImproveBulk_Correlator((lp.PzMax()+1)*lp.latDim()[3], 0) ;
+        for(int pz=0; pz&lt;=lp.PzMax();pz++) {
+            contraction.ImproveContractionBulk(SubBulk_Nt_real, SubBulk_Nt_imag, lp.min_dist(), global_spatial_vol, pz, ImproveBulk_Correlator);
+        }
+
+        //write improve emt correlators in bulk channel
+        datNameEMT_ImproveBulk &lt;&lt; lp.out_dir() &lt;&lt; "MultiLevel_Bulk" &lt;&lt; "_PzMax" &lt;&lt; lp.PzMax() &lt;&lt; lp.fileExt();
+        FileWriter file_ImproveBulk(gauge_host.getComm(), lp);
+        file_ImproveBulk.createFile(datNameEMT_ImproveBulk.str());
+        LineFormatter newTagImproveBulk = file_ImproveBulk.header(15);
+        newTagImproveBulk &lt;&lt; "pz " &lt;&lt; "tau " &lt;&lt; "emte_corr " &lt;&lt; "\n";
+        for(int pz=0; pz&lt;=lp.PzMax();pz++) {
+            for ( int tau=0; tau&lt;lp.latDim()[3]/2+1; tau++ ) {
+                newTagImproveBulk &lt;&lt; pz &lt;&lt; tau &lt;&lt; std::scientific &lt;&lt; std::setprecision(15)
+                                     &lt;&lt; ImproveBulk_Correlator[pz*lp.latDim()[3]+tau] &lt;&lt; "\n";
+            }
+        }
+
+        PREC ImproveTraceAnomaly_real = 0.;
+        for ( int tau=0; tau&lt;lp.latDim()[3]; tau++ ) {
+            for ( int dist=0; dist&lt;lp.sublattice_lt()-3; dist++ ) {
+                ImproveTraceAnomaly_real += SubBulk_Nt_real[tau*(lp.sublattice_lt()-3)+dist];
+            }
+        }
+        ImproveTraceAnomaly_real /= ((lp.sublattice_lt()-3.)*lp.latDim()[3]);
+
+        //write improve trace anomaly
+        datNameEMT_ImproveTraceAnomaly &lt;&lt; lp.out_dir() &lt;&lt; "MultiLevel_TraceAnomaly" &lt;&lt; "_PzMax" &lt;&lt; lp.PzMax() &lt;&lt; lp.fileExt();
+        FileWriter file_ImproveTraceAnomaly(gauge_host.getComm(), lp);
+        file_ImproveTraceAnomaly.createFile(datNameEMT_ImproveTraceAnomaly.str());
+        LineFormatter newTagImproveTraceAnomaly = file_ImproveTraceAnomaly.header(15);
+        newTagImproveTraceAnomaly &lt;&lt; "only need zero momentum value, thus only real part" &lt;&lt; "\n";
+        newTagImproveTraceAnomaly &lt;&lt; std::scientific &lt;&lt; std::setprecision(15) &lt;&lt; ImproveTraceAnomaly_real &lt;&lt; "\n";
+
+        /******************************** shear part below **************************************************/
+
+        //normalize the shear channel element
+        contraction.ImproveNormalizeShear(SubShear_Nt_real, SubShear_Nt_p0, lp.num_meas());
+        //contraction for the improve emt correlators in bulk channel
+        rootLogger.info("contration to obtain the multi-level improved energy-momentum correlator in shear channel");
+        std::vector&lt;PREC&gt; ImproveShear_Correlator((lp.PzMax()+1)*lp.latDim()[3], 0) ;
+        for(int pz=0; pz&lt;=lp.PzMax();pz++) {
+            contraction.ImproveContractionShear(SubShear_Nt_real, SubShear_Nt_imag, lp.min_dist(), global_spatial_vol, pz, ImproveShear_Correlator);
+        }
+
+        //write improve emt correlators in bulk channel and the improve traceless parts of this conf
+        datNameEMT_ImproveShear &lt;&lt; lp.out_dir() &lt;&lt; "MultiLevel_Shear" &lt;&lt; "_PzMax" &lt;&lt; lp.PzMax() &lt;&lt; lp.fileExt();
+        FileWriter file_ImproveShear(gauge_host.getComm(), lp);
+        file_ImproveShear.createFile(datNameEMT_ImproveShear.str());
+        LineFormatter newTagImproveShear = file_ImproveShear.header(15);
+
+        newTagImproveShear &lt;&lt; "pz " &lt;&lt; "tau " &lt;&lt; "emtu_corr " &lt;&lt; "\n";
+        for(int pz=0; pz&lt;=lp.PzMax();pz++) {
+            for ( int tau=0; tau&lt;lp.latDim()[3]/2+1; tau++ ) {
+                newTagImproveShear &lt;&lt; pz &lt;&lt; tau &lt;&lt; std::scientific &lt;&lt; std::setprecision(15)
+                                     &lt;&lt; ImproveShear_Correlator[pz*lp.latDim()[3]+tau] &lt;&lt; "\n";
+            }
+        }
+    }
+
+    if (lp.ColorElectricCorr()) {
+        //copy the original lattice to device again for the final contraction
+        Gaugefield&lt;PREC, USE_GPU, HaloDepth&gt; gauge_device(gauge_host.getComm());
+        gauge_device = gauge_host;
+        SubLatMeas&lt;PREC, USE_GPU, HaloDepth&gt; sublatmeas(gauge_device,lp.sublattice_lt());
+
+
+        //calculate standard polyakovloop
+        //PolyakovLoop&lt;PREC, USE_GPU, HaloDepth&gt; StandardPolyloop(gauge_device);
+        //COMPLEX(PREC) NonimprovePolyakovLoop = StandardPolyloop.getPolyakovLoop();
+
+        ////calculate standard  color electric correlator
+        //std::vector&lt;COMPLEX(PREC)&gt; NonimproveColorElectricCorrelator;
+        //ColorElectricCorr&lt;PREC, USE_GPU, HaloDepth&gt; StandardCEC(gauge_device);
+        //NonimproveColorElectricCorrelator = StandardCEC.getColorElectricCorr();
+
+        ////write nonimprove polyakovloop
+        //rootLogger.info("calculate the nonimprove polyakovloop ");
+        //datNameCE_NonimprovePoly &lt;&lt; lp.out_dir() &lt;&lt; "Standard_polyakovloop" &lt;&lt; lp.fileExt();
+        //FileWriter file_NonimprovePoly(gauge_host.getComm(), lp);
+        //file_NonimprovePoly.createFile(datNameCE_NonimprovePoly.str());
+        //LineFormatter newTagNonimprovePoly = file_NonimprovePoly.header();
+        //newTagNonimprovePoly &lt;&lt; "Re(PolyLoop) " &lt;&lt; "Im(PolyLoop) " &lt;&lt; "\n";
+        //newTagNonimprovePoly &lt;&lt; std::scientific &lt;&lt; std::setprecision(15) &lt;&lt; real(NonimprovePolyakovLoop) &lt;&lt; " " &lt;&lt; imag(NonimprovePolyakovLoop) &lt;&lt; "\n";
+
+        ////write nonimprove color electric correlator
+        //rootLogger.info("calculate the nonimprove colorelectric correlator");
+        //datNameCE_NonimproveCorr &lt;&lt; lp.out_dir() &lt;&lt; "Standard_colorelectriccorr" &lt;&lt; lp.fileExt();
+        //FileWriter file_NonimproveCorr(gauge_host.getComm(), lp);
+        //file_NonimproveCorr.createFile(datNameCE_NonimproveCorr.str());
+        //LineFormatter newTagNonimproveCorr = file_NonimproveCorr.header();
+        //newTagNonimproveCorr &lt;&lt; "tau " &lt;&lt; "Re(ColorElectricCorrelator) " &lt;&lt; "Im(ColorElectricCorrelator) " &lt;&lt; "\n";
+        //for (int i = 1; i &lt; lp.latDim()[3]/2+1; i++ ) {
+        //    newTagNonimproveCorr &lt;&lt; i &lt;&lt; " " &lt;&lt; std::scientific &lt;&lt; std::setprecision(15) &lt;&lt; real(NonimproveColorElectricCorrelator[i-1]) &lt;&lt; " " &lt;&lt; imag(NonimproveColorElectricCorrelator[i-1]) &lt;&lt; "\n";
+        //}
+
+
+        //contraction for the improve polyakovloop
+        COMPLEX(PREC) ImprovePolyakovLoop ;
+        ImprovePolyakovLoop = sublatmeas.contraction_poly(sub_poly_Nt, lp.min_dist());
+
+        //contraction for the improve color electric correlator
+        std::vector&lt;COMPLEX(PREC)&gt; ImproveColorElectricCorrelator(lp.latDim()[3]/2+1, 0) ;
+        ImproveColorElectricCorrelator = sublatmeas.contraction_cec(sub1_cec_Nt, sub2_cec_Nt, lp.min_dist());
+
+        //write improve polyakovloop
+        rootLogger.info("contract to obtain improve polyakovloop ");
+        datNameCE_ImprovePoly &lt;&lt; lp.out_dir() &lt;&lt; "MultiLevel_polyakovloop" &lt;&lt; lp.fileExt();
+        FileWriter file_ImprovePoly(gauge_host.getComm(), lp);
+        file_ImprovePoly.createFile(datNameCE_ImprovePoly.str());
+        LineFormatter newTagImprovePoly = file_ImprovePoly.header();
+        newTagImprovePoly &lt;&lt; "Re(PolyLoop) " &lt;&lt; "Im(PolyLoop) " &lt;&lt; "\n";
+        newTagImprovePoly &lt;&lt; std::scientific &lt;&lt; std::setprecision(15) &lt;&lt; real(ImprovePolyakovLoop) &lt;&lt; " " &lt;&lt; imag(ImprovePolyakovLoop) &lt;&lt; "\n";
+
+        //write improve color electric correlator
+        rootLogger.info("contract to obtain improve colorelectric correlator");
+        datNameCE_ImproveColEleCorr &lt;&lt; lp.out_dir() &lt;&lt; "MultiLevel_colorelectriccorr" &lt;&lt; lp.fileExt();
+        FileWriter file_ImproveColEleCorr(gauge_host.getComm(), lp);
+        file_ImproveColEleCorr.createFile(datNameCE_ImproveColEleCorr.str());
+        LineFormatter newTagImproveColEleCorr = file_ImproveColEleCorr.header();
+        newTagImproveColEleCorr &lt;&lt; "tau " &lt;&lt; "Re(ColorElectricCorrelator) " &lt;&lt; "Im(ColorElectricCorrelator) " &lt;&lt; "\n";
+        //for (int i = 1; i &lt; lp.min_dist()+3; i++ ) { //the uncalculated values will be filled by the nonimproved values.
+        //    newTagImproveColEleCorr &lt;&lt; i &lt;&lt; " " &lt;&lt; std::scientific &lt;&lt; std::setprecision(15) &lt;&lt; real(NonimproveColorElectricCorrelator[i-1]) &lt;&lt; " " &lt;&lt; imag(NonimproveColorElectricCorrelator[i-1]) &lt;&lt; "\n";
+        //}
+        for (int i = lp.min_dist()+3; i &lt; lp.latDim()[3]/2+1; i++ ) {
+            newTagImproveColEleCorr &lt;&lt; i &lt;&lt; " " &lt;&lt; std::scientific &lt;&lt; std::setprecision(15) &lt;&lt; real(ImproveColorElectricCorrelator[i]) &lt;&lt; " " &lt;&lt; imag(ImproveColorElectricCorrelator[i]) &lt;&lt; "\n";
+        }
+    }
+
+    timer.stop();
+    rootLogger.info("complete time = " ,  timer);
+
+    return 0;
+}
+
+
+
+</pre>
+ /  / utf-8 / rss.xml). -->
+    <meta name="description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:site_name" content="Vishal Rao">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="sublatticeUpdates — Vishal Rao">
+    <meta property="og:description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:image" content="https://vishalrao.in/pp.jpg">
+    <meta name="twitter:card" content="summary">
+    <!-- og:url and rel=canonical need this page's absolute address, which the
+         template doesn't know, so they're filled in at runtime below. Google
+         renders JS before indexing, so it does see these — but a build-time
+         canonical written straight into the HTML is strictly more reliable, and
+         is worth doing in the export script if you ever add one. -->
+    <link id="canonical-url" rel="canonical" href="">
+    <meta id="og-url" property="og:url" content="">
+    <script>
+        (function () {
+            // Strip ?query and #fragment: those are the same document, and
+            // letting them be indexed separately splits the page's ranking
+            // signals across near-duplicate URLs.
+            var url = location.origin + location.pathname;
+            var c = document.getElementById('canonical-url');
+            var o = document.getElementById('og-url');
+            if (c) c.href = url;
+            if (o) o.setAttribute('content', url);
+        })();
+    </script>
+    <!-- Person entity. This is the piece that actually matters for a name
+         search: it tells Google that the "Vishal Rao" of this site is the IISc
+         lattice-QCD one, distinct from the several well-known people who share
+         the name. sameAs is the disambiguator — FILL IN every profile you
+         actually have (inSPIRE-HEP, ORCID, Google Scholar, arXiv, GitHub,
+         LinkedIn, your CHEP people-page) and DELETE the lines you don't. Each
+         of those profiles should link back here; the two-way link is what ties
+         the identity together. An unfilled or wrong URL here is worse than no
+         markup at all, so don't leave the examples in place. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Vishal Rao",
+      "url": "https://vishalrao.in/",
+      "image": "https://vishalrao.in/pp.jpg",
+      "jobTitle": "PhD Researcher",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "Centre for High Energy Physics, Indian Institute of Science",
+        "url": "https://chep.iisc.ac.in/"
+      },
+      "knowsAbout": [
+        "Lattice Quantum Chromodynamics",
+        "Lattice Gauge Theory",
+        "Finite-Temperature Gauge Theories",
+        "High-Performance Computing"
+      ],
+      "sameAs": [
+        "REPLACE-WITH-YOUR-INSPIRE-HEP-AUTHOR-URL",
+        "REPLACE-WITH-YOUR-ORCID-URL",
+        "REPLACE-WITH-YOUR-GOOGLE-SCHOLAR-URL",
+        "REPLACE-WITH-YOUR-GITHUB-URL"
+      ]
+    }
+    </script>
     <!-- MathJax config: on phone-width screens, break long display equations onto
          multiple lines instead of overflowing the page. Desktop and tablet keep the
          default rendering (empty config), so their layout is unchanged. Must run
@@ -380,14 +917,18 @@
            cursor/no-select behavior holds even if the pointer strays off the
            thin handle mid-drag. */
         body.toc-resizing { cursor: col-resize; user-select: none; }
-        /* Read mode: hides every floating button/icon except the read-mode
-           toggle itself (so there's always a way back out), on every screen
-           size. Deliberately untouched here: #content, #toc-sidebar, and
-           its resizers — read mode only hides chrome, the article layout
-           itself stays exactly as it was.
-           Hiding now happens in two phases so the chrome fades instead of
-           blinking out mid-scroll: .focus-fading makes it transparent while
-           it's still laid out, then .read-mode removes it for real once the
+        /* Read mode: hides the site-wide tool icons in the top-right stack —
+           everything except the read-mode toggle itself, so there's always a
+           way back out — on every screen size.
+           NOT hidden: the bottom-right .floating-btns stack (back / back-to-top
+           / ask-this-page). Those are per-page reading aids rather than chrome;
+           losing them mid-article is exactly when they're most wanted.
+           Also deliberately untouched: #content, #toc-sidebar, and its
+           resizers — read mode only hides chrome, the article layout itself
+           stays exactly as it was.
+           Hiding happens in two phases so the icons fade instead of blinking
+           out mid-scroll: .focus-fading makes them transparent while they're
+           still laid out, then .read-mode removes them for real once the
            transition has finished. The script below swaps the classes; its
            FADE_MS must match the 0.22s duration used here.
            #toc-toggle is the phone-only Contents button — it sits outside
@@ -401,20 +942,17 @@
            than adds to, the one on .top-right-btns button. */
         body .top-right-btns > button,
         body .top-right-btns > a,
-        body .floating-btns,
         body #toc-toggle {
             transition: opacity 0.22s ease, transform 0.22s ease,
                         color 0.15s ease, background-color 0.15s ease;
         }
         body.focus-fading .top-right-btns > *:not(#btn-read-mode),
-        body.focus-fading .floating-btns,
         body.focus-fading #toc-toggle {
             opacity: 0;
             transform: scale(0.9);
             pointer-events: none;
         }
         body.read-mode .top-right-btns > *:not(#btn-read-mode),
-        body.read-mode .floating-btns,
         body.read-mode #toc-toggle {
             display: none;
         }
@@ -475,7 +1013,6 @@
         @media (prefers-reduced-motion: reduce) {
             body .top-right-btns > button,
             body .top-right-btns > a,
-            body .floating-btns,
             body #toc-toggle,
             #focus-toast { transition: none; }
             #btn-read-mode.focus-pulse { animation: none; }
@@ -677,7 +1214,13 @@
         }
         /* Mobile Styles */
         @media only screen and (max-width: 600px) {
-            body { padding: 12px; }
+            /* Top padding clears the icon row rather than matching the sides.
+               The row sits at top:12px and its buttons are 44px tall here (see
+               the 600px rule on .top-right-btns above), so it ends at 56px;
+               68px leaves the same kind of breathing space under it that the
+               3cm desktop margin does. Without this the icons float on top of
+               the article card instead of above it. */
+            body { padding: 68px 12px 12px 12px; }
             #content {
                 padding: 8px 10px;
                 max-width: 100%;
@@ -1632,12 +2175,9 @@ int main(int argc, char *argv[]) {
         if (!btn) return;
 
         var FADE_MS  = 220;   // must match the .focus-fading transition in the <style> block
-        var ENTER_AT = 320;   // px down the page before focus mode may engage on its own
-        var EXIT_AT  = 80;    // px: getting back this close to the top releases it again
-        var MIN_DOWN = 120;   // px of uninterrupted DOWNWARD scrolling required first, so a
-                              // stray flick doesn't trigger it
-        var MAX_JUMP = 400;   // a single scroll event bigger than this is a jump (TOC link,
-                              // back-navigation restore), not reading — doesn't count
+        var HYSTERESIS = 24;  // focus mode releases this far ABOVE the point it engages, so a
+                              // scroll resting exactly on the boundary can't flip it back and
+                              // forth on every stray pixel
 
         var readOn = false;          // authoritative state; the body classes are mid-transition sometimes
         var autoEngaged = false;     // on because of scrolling, not because of a click
@@ -1717,12 +2257,6 @@ int main(int argc, char *argv[]) {
             btn.title = label;
             btn.setAttribute('aria-label', label);
             btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-            // Only deliberate choices are remembered across pages. Auto-engaging
-            // passes persist:false, so a reader who never touched the button never
-            // lands on a page with its controls already hidden.
-            if (opts.persist !== false) {
-                try { localStorage.setItem(READ_MODE_KEY, on ? '1' : '0'); } catch (e) {}
-            }
             if (on && opts.announce) {
                 pulse();
                 if (!toastShown) { toastShown = true; showToast(); }
@@ -1730,40 +2264,65 @@ int main(int argc, char *argv[]) {
             if (!on) hideToast();
         }
 
-        var savedReadMode = false;
-        try { savedReadMode = localStorage.getItem(READ_MODE_KEY) === '1'; } catch (e) {}
-        applyReadMode(savedReadMode, { animate: false, persist: false });
+        // Focus mode is per-page-load: every page starts with its chrome
+        // visible, and gets hidden either by the scroll watcher below or by a
+        // click. Nothing is restored from storage, so a page can never open
+        // already hidden — which is what a stale saved 'on' used to cause
+        // (the pre-scroll version of this script persisted the state on every
+        // call, including page load, so one click stuck forever). The old key
+        // is cleared on sight so existing visitors self-heal on first load.
+        try { localStorage.removeItem(READ_MODE_KEY); } catch (e) {}
+        applyReadMode(false, { animate: false });
 
         btn.addEventListener('click', function () {
             var turningOn = !readOn;
             suppressed = !turningOn;   // turned it off by hand -> stay off until back at the top
             autoEngaged = false;       // from here on it's the reader's, not the scroll watcher's
             applyReadMode(turningOn, { announce: turningOn });
-            if (turningOn) window.scrollTo({ top: 0, behavior: 'smooth' });
+            // Deliberately does NOT scroll anywhere. The original handler jumped
+            // to the top on switching read mode on, which was harmless when the
+            // button was the only way in; now that focus mode engages mid-scroll
+            // on its own, toggling it must never move the reader off the line
+            // they're on. The "back to top" arrow is still there for that.
         });
 
-        // ---- Scroll watcher: engage focus mode once the reader is clearly
-        // reading, release it once they're clearly done. Runs on every viewport,
-        // phones included. It only ever turns OFF what it itself turned on, so a
-        // saved read-mode preference (or a click) is never undone by scrolling.
-        var lastY = window.pageYOffset, downRun = 0;
+        // ---- Scroll watcher: focus mode engages the moment the article card
+        // reaches the top of the viewport — the reader has scrolled the header
+        // margin away, so the white box now fills the screen and the icons that
+        // sat above it are off-screen anyway. The threshold is the card's own
+        // offset rather than a fixed pixel count, so it comes out right on both
+        // desktop (3cm body padding) and phones (68px, set in the mobile media
+        // query above) with no second number to keep in sync. Runs on every
+        // viewport. It only ever turns OFF what it itself turned on, so a saved
+        // read-mode preference (or a click) is never undone by scrolling.
+        var cardTop = null;   // computed on first scroll, by which point layout has settled
+        function engageAt() {
+            if (cardTop === null) {
+                var card = document.getElementById('content');
+                // getBoundingClientRect is viewport-relative; adding the current
+                // scroll offset turns it into a position within the document.
+                cardTop = card ? card.getBoundingClientRect().top + window.pageYOffset : 0;
+            }
+            return cardTop;
+        }
+        // Rotating a phone or resizing a window can cross the mobile breakpoint
+        // and change the body padding, so the cached offset has to be dropped.
+        window.addEventListener('resize', function () { cardTop = null; });
+
         window.addEventListener('scroll', function () {
             var y = window.pageYOffset;
-            var dy = y - lastY;
-            lastY = y;
-            if (dy > MAX_JUMP) downRun = 0;                        // jumped, didn't read — start over
-            else if (dy > 0) downRun += dy;
-            else if (dy < 0) downRun = 0;                          // any upward move restarts the run
+            var enter = engageAt();
+            var exit = Math.max(0, enter - HYSTERESIS);
 
-            if (y <= EXIT_AT) {
-                suppressed = false;                                // back at the top: re-arm
+            if (y <= exit) {
+                suppressed = false;                                // back above the card: re-arm
                 if (autoEngaged && readOn) {
                     autoEngaged = false;
                     applyReadMode(false, { persist: false });
                 }
                 return;
             }
-            if (!readOn && !suppressed && y >= ENTER_AT && downRun >= MIN_DOWN) {
+            if (!readOn && !suppressed && y >= enter) {
                 autoEngaged = true;
                 applyReadMode(true, { persist: false, announce: true });
             }

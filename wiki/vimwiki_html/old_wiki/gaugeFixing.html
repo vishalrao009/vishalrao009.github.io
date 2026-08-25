@@ -8,7 +8,341 @@
     <link id="hljs-theme-dark" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" disabled />
     <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
     <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
-    <title>gaugeFixing</title>
+    <!-- Page title carries the site owner's name on every page, so a wiki page
+         can surface for "<topic> Vishal Rao" and not just the bare topic.
+         Vimwiki substitutes gaugeFixing with this page's own heading. NOTE: if this
+         same template is ever used for the homepage, drop the suffix there —
+         "Vishal Rao — Vishal Rao" reads as spam to both people and crawlers. -->
+    <title>gaugeFixing — Vishal Rao</title>
+    <meta name="author" content="Vishal Rao">
+    <!-- Site-level fallback description. Search engines usually write their own
+         snippet from the matched passage and ignore this, so it is a floor, not
+         a lever — the real per-page description would have to be generated at
+         export time, which this template can't do (vimwiki only substitutes
+         gaugeFixing / 
+<div id="gaugeFixing"><h1 id="gaugeFixing" class="header"><a href="#gaugeFixing">gaugeFixing</a></h1></div>
+
+<p>
+Fix the gauge of a configuration to the Coulomb or Landau gauge. Can optionally measure various gauge construcs at the end. <br />
+</p>
+
+<pre cpp>
+/*
+ * main_gaugeFixing.cpp
+ *
+ * D. Clarke
+ *
+ * GPU code to fix a configuration to the Coulomb gauge. Computes average, singlet, and octet Polyakov loop correlations
+ * as well as Wilson line correlators. This does not work for multiGPU, because it is hard to find a way to calculate
+ * correlations on multiGPU.
+ *
+ * For the Polyakov loop correlations, this program uses functions defined in the header file. There are more general
+ * functions to measure such correlators in ../math/correlators.h, but these functions are slower because they call a
+ * kernel for each type of correlation, rather than one kernel to compute three.
+ *
+ */
+
+#include "../modules/gaugeFixing/gfix.h"
+#include "../modules/observables/polyakovLoop.h"
+#include "../modules/gaugeFixing/polyakovLoopCorrelator.h"
+#include "../modules/observables/wilsonLineCorrelator.h"
+
+#define PREC double
+
+template&lt;class floatT&gt;
+struct gfixParam : LatticeParameters {
+    Parameter&lt;floatT&gt;      gtolerance;
+    Parameter&lt;int,1&gt;       maxgfsteps;
+    Parameter&lt;int,1&gt;       numunit;
+    Parameter&lt;std::string&gt; cml;
+    Parameter&lt;std::string&gt; cms;
+    Parameter&lt;std::string&gt; measurements_dir;
+    Parameter&lt;std::string&gt; SavedConfName;
+    Parameter&lt;bool&gt;        PolyakovLoopCorr;
+    Parameter&lt;bool&gt;        WilsonLineCorr;
+    Parameter&lt;bool&gt;        SaveConfig;
+
+    gfixParam() {
+        addDefault (gtolerance,"gtolerance",1e-6);
+        addDefault (maxgfsteps,"maxgfsteps",1000);
+        addDefault (numunit   ,"numunit"   ,20);
+        addOptional(cml       ,"mlight");
+        addOptional(cms       ,"mstrange");
+        addDefault(PolyakovLoopCorr, "PolyakovLoopCorr", false);
+        addDefault(WilsonLineCorr  , "WilsonLineCorr"  , false);
+        addDefault(SaveConfig      , "SaveConfig"      , false);
+        add(measurements_dir, "measurements_dir");
+        add(SavedConfName   , "SavedConfName");
+    }
+};
+
+
+int main(int argc, char *argv[]) {
+
+    stdLogger.setVerbosity(INFO);
+    const size_t HaloDepth  = 0;
+
+    /// Read in parameters and initialize communication base.
+    rootLogger.info("Initialization");
+    CommunicationBase commBase(&amp;argc, &amp;argv);
+    gfixParam&lt;PREC&gt; param;
+    param.readfile(commBase, "../parameter/applications/gaugeFixing.param", argc, argv);
+    commBase.init(param.nodeDim());
+    initIndexer(HaloDepth,param,commBase);
+    typedef GIndexer&lt;All,HaloDepth&gt; GInd;
+    const int  ngfstepMAX = param.maxgfsteps();
+    const int  nunit      = param.numunit();
+    const PREC gtol       = param.gtolerance();
+
+    StopWatch&lt;true&gt; timer;
+    int        ngfstep = 0;          /// # of gauge fixing steps
+    PREC       gftheta = 1e10;       /// gauge fixing theta
+    PREC       act1    = 1.0;        /// gauge fix action before OR update
+    PREC       act2    = 1.0;        /// gauge fix action after OR update
+    Gaugefield&lt;PREC,true,HaloDepth&gt; gauge(commBase);        /// gauge field
+    GaugeFixing&lt;PREC,true,HaloDepth&gt; GFixing(gauge);        /// gauge fixing class
+    CorrelatorTools&lt;PREC,true,HaloDepth&gt; Corrs;             /// general correlator class
+    PolyakovLoopCorrelator&lt;PREC,true,HaloDepth&gt; PLC(gauge); /// class for Polyakov loop correlators
+    PolyakovLoop&lt;PREC,true,HaloDepth&gt; ploopClass(gauge);    /// class for measuring Polyakov loops
+    WilsonLineCorrelator&lt;PREC,true,HaloDepth&gt; WLC(gauge);   /// class for Polyakov loop correlators
+
+    ///prepare output file
+    std::stringstream plcfilename,wlcfilename,cbeta,cstream;
+    plcfilename &lt;&lt; param.measurements_dir() &lt;&lt; "plc_l" &lt;&lt; param.latDim[0] &lt;&lt; param.latDim[3] &lt;&lt; "f21";
+    wlcfilename &lt;&lt; param.measurements_dir() &lt;&lt; "wlc_l" &lt;&lt; param.latDim[0] &lt;&lt; param.latDim[3] &lt;&lt; "f21";
+
+    if (param.beta.isSet()) {
+        cbeta&lt;&lt;std::setw(4)&lt;&lt;(int)(1000*param.beta());
+        plcfilename&lt;&lt;"b"&lt;&lt;cbeta.str();
+        wlcfilename&lt;&lt;"b"&lt;&lt;cbeta.str();
+    }
+    if (param.cml.isSet()) {
+        plcfilename &lt;&lt; "m" &lt;&lt; param.cml();
+        wlcfilename &lt;&lt; "m" &lt;&lt; param.cml();
+    }
+    if (param.cms.isSet()) {
+        plcfilename &lt;&lt; "m" &lt;&lt; param.cms();
+        wlcfilename &lt;&lt; "m" &lt;&lt; param.cms();
+    }
+    if (param.streamName.isSet()) {
+        cstream.fill('0');
+        cstream &lt;&lt; std::setw(3) &lt;&lt; param.streamName();
+        plcfilename &lt;&lt; "a_" &lt;&lt; cstream.str();
+        wlcfilename &lt;&lt; "a_" &lt;&lt; cstream.str();
+    }
+    if (param.confnumber.isSet()) {
+        plcfilename &lt;&lt; "." &lt;&lt; param.confnumber();
+        wlcfilename &lt;&lt; "." &lt;&lt; param.confnumber();
+    }
+    plcfilename &lt;&lt; ".d";
+    wlcfilename &lt;&lt; ".d";
+
+    std::ofstream plcresultfile;
+    if ( param.PolyakovLoopCorr() ) {
+        plcresultfile.open(plcfilename.str());
+        rootLogger.info("PolyakovLoopCorr OUTPUT TO FILE: " ,  plcfilename.str());
+    }
+
+    std::ofstream wlcresultfile;
+    if ( param.WilsonLineCorr() ) {
+        wlcresultfile.open(wlcfilename.str());
+        rootLogger.info("WilsonLineCorr OUTPUT TO FILE: " ,  wlcfilename.str());
+    }
+
+    /// Read the configuration. Remember a halo exchange is needed every time the gauge field changes.
+    rootLogger.info("Read configuration");
+    gauge.readconf_nersc(param.GaugefileName());
+    gauge.updateAll();
+
+    /// Measure the Polyakov loop and report to user.
+    COMPLEX(PREC) ploop = ploopClass.getPolyakovLoop();
+    rootLogger.info("# POLYAKOV LOOP :: " ,  ploop);
+
+    /// ----------------------------------------------------------------------------------------------------GAUGE FIXING
+    rootLogger.info("GAUGE FIXING...");
+    if (commBase.MyRank()==0) std::cout &lt;&lt; "\nngfstep\t  act\t         act diff\ttheta\n";
+    timer.start();
+
+    while ( (ngfstep&lt;ngfstepMAX) &amp;&amp; (gftheta&gt;gtol) ) {
+        /// Compute starting GF functional and update the lattice.
+        act1=GFixing.getAction();
+        GFixing.gaugefixOR();
+        /// Due to the nature of the update, we have to re-unitarize every so often.
+        if ( (ngfstep%nunit) == 0 ) {
+            gauge.su3latunitarize();
+        }
+        /// Compute GF functional difference, compute theta, and report to user.
+        act2   =GFixing.getAction();
+        gftheta=GFixing.getTheta();
+        if (commBase.MyRank()==0) {
+            std::cout &lt;&lt; std::setw(7) &lt;&lt; ngfstep &lt;&lt; "  " &lt;&lt; std::setw(13) &lt;&lt; std::scientific &lt;&lt; act2
+                                                 &lt;&lt; "  " &lt;&lt; std::setw(13) &lt;&lt; std::scientific &lt;&lt; fabs(act2-act1)
+                                                 &lt;&lt; "  " &lt;&lt; std::setw(13) &lt;&lt; std::scientific &lt;&lt; gftheta &lt;&lt; std::endl;
+        }
+        ngfstep+=1;
+    }
+
+    /// Final reunitarization.
+    gauge.su3latunitarize();
+
+    /// Report time to user.
+    timer.stop();
+    if (commBase.MyRank()==0) std::cout &lt;&lt; "\n";
+    rootLogger.info("Time to gauge fix: " ,  timer);
+
+    /// Optionally save configuration.
+    if ( param.SaveConfig() ) gauge.writeconf_nersc(param.SavedConfName(), 2, 2);
+
+    /// ---------------------------------------------------------------------------------------POLYAKOV LOOP CORRELATORS
+    if ( param.PolyakovLoopCorr() ) {
+        rootLogger.info("CALCULATING POLYAKOVLOOP CORRELATORS...");
+        timer.start();
+        std::ofstream plcresultfile;
+        plcresultfile.open(plcfilename.str());
+        const int distmax=Corrs.distmax;
+        const int pvol3=Corrs.pvol3;
+        std::vector&lt;PREC&gt; vec_plca(distmax);
+        std::vector&lt;PREC&gt; vec_plc1(distmax);
+        std::vector&lt;PREC&gt; vec_plc8(distmax);
+        std::vector&lt;int&gt;  vec_factor(distmax);
+        std::vector&lt;int&gt;  vec_weight(pvol3);
+        Corrs.getFactorArray(vec_factor,vec_weight);
+
+        if (commBase.MyRank()==0) plcresultfile &lt;&lt; "#  r**2\t  plca\t         plc1\t        plc8\n";
+
+        rootLogger.info("the rank is:" ,  commBase.MyRank());
+
+        /// Calculation of Polyakov loop correlators.
+        PLC.PLCtoArrays(vec_plca, vec_plc1, vec_plc8, vec_factor, vec_weight, true);
+
+        /// Write final results to output file.
+        for (int dx=0 ; dx&lt;distmax ; dx++) {
+            if (vec_factor[dx]&gt;0) {
+                if (commBase.MyRank()==0) {
+                    plcresultfile &lt;&lt; std::setw(7) &lt;&lt; dx
+                                  &lt;&lt; "  " &lt;&lt; std::setw(13) &lt;&lt; std::scientific &lt;&lt; vec_plca[dx]
+                                  &lt;&lt; "  " &lt;&lt; std::setw(13) &lt;&lt; std::scientific &lt;&lt; vec_plc1[dx]
+                                  &lt;&lt; "  " &lt;&lt; std::setw(13) &lt;&lt; std::scientific &lt;&lt; vec_plc8[dx] &lt;&lt; std::endl;
+                }
+            }
+        }
+        plcresultfile.close();
+        rootLogger.info("POLYAKOVLOOP CORRELATORS MEASURED");
+        timer.stop();
+        rootLogger.info("Time to measure polyakovloop correlations: " ,  timer);
+    }
+
+    /// -----------------------------------------------------------------------------------------WILSON LINE CORRELATORS
+    if ( param.WilsonLineCorr() ) {
+        rootLogger.info("CALCULATING WILSONLINE CORRELATORS...");
+        timer.start();
+        std::ofstream wlcresultfile;
+        wlcresultfile.open(wlcfilename.str());
+        const int distmax=Corrs.distmax;
+        const int pvol3=Corrs.pvol3;
+        std::vector&lt;PREC&gt; vec_wlca_full(distmax*param.latDim[3]);
+        std::vector&lt;PREC&gt; vec_wlc1_full(distmax*param.latDim[3]);
+        std::vector&lt;PREC&gt; vec_wlc8_full(distmax*param.latDim[3]);
+        std::vector&lt;int&gt;  vec_factor(distmax);
+        std::vector&lt;int&gt;  vec_weight(pvol3);
+        Corrs.getFactorArray(vec_factor,vec_weight);
+
+        if (commBase.MyRank()==0) wlcresultfile &lt;&lt; "#  r**2\t   dtau\t  wlca\t         wlc1\t        wlc8\n";
+
+        rootLogger.info("the rank is:" ,  commBase.MyRank());
+
+        /// Calculation of wilsonline correlators.
+        WLC.WLCtoArrays(vec_wlca_full, vec_wlc1_full, vec_wlc8_full, vec_factor, vec_weight, true);
+
+        /// Write final results to output file.
+        for (int dtau=1; dtau&lt;=param.latDim[3];dtau++) {
+            for (int dx=0 ; dx&lt;distmax ; dx++) {
+                if (vec_factor[dx]&gt;0) {
+                    if (commBase.MyRank()==0) {
+                        wlcresultfile &lt;&lt; std::setw(7) &lt;&lt; dx &lt;&lt; "\t    " &lt;&lt; dtau
+                                      &lt;&lt; "  " &lt;&lt; std::setw(13) &lt;&lt; std::scientific &lt;&lt; vec_wlca_full[(dtau-1)*distmax+dx]
+                                      &lt;&lt; "  " &lt;&lt; std::setw(13) &lt;&lt; std::scientific &lt;&lt; vec_wlc1_full[(dtau-1)*distmax+dx]
+                                      &lt;&lt; "  " &lt;&lt; std::setw(13) &lt;&lt; std::scientific &lt;&lt; vec_wlc8_full[(dtau-1)*distmax+dx] &lt;&lt; std::endl;
+                    }
+                }
+            }
+        }
+        wlcresultfile.close();
+        rootLogger.info("WILSONLINE CORRELATORS MEASURED");
+        timer.stop();
+        rootLogger.info("Time to measure wilsonline correlations: " ,  timer);
+    }
+
+    return 0;
+}
+
+
+
+
+</pre>
+ /  / utf-8 / rss.xml). -->
+    <meta name="description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:site_name" content="Vishal Rao">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="gaugeFixing — Vishal Rao">
+    <meta property="og:description" content="Notes and material by Vishal Rao, PhD researcher in lattice QCD at the Centre for High Energy Physics, IISc Bangalore.">
+    <meta property="og:image" content="https://vishalrao.in/pp.jpg">
+    <meta name="twitter:card" content="summary">
+    <!-- og:url and rel=canonical need this page's absolute address, which the
+         template doesn't know, so they're filled in at runtime below. Google
+         renders JS before indexing, so it does see these — but a build-time
+         canonical written straight into the HTML is strictly more reliable, and
+         is worth doing in the export script if you ever add one. -->
+    <link id="canonical-url" rel="canonical" href="">
+    <meta id="og-url" property="og:url" content="">
+    <script>
+        (function () {
+            // Strip ?query and #fragment: those are the same document, and
+            // letting them be indexed separately splits the page's ranking
+            // signals across near-duplicate URLs.
+            var url = location.origin + location.pathname;
+            var c = document.getElementById('canonical-url');
+            var o = document.getElementById('og-url');
+            if (c) c.href = url;
+            if (o) o.setAttribute('content', url);
+        })();
+    </script>
+    <!-- Person entity. This is the piece that actually matters for a name
+         search: it tells Google that the "Vishal Rao" of this site is the IISc
+         lattice-QCD one, distinct from the several well-known people who share
+         the name. sameAs is the disambiguator — FILL IN every profile you
+         actually have (inSPIRE-HEP, ORCID, Google Scholar, arXiv, GitHub,
+         LinkedIn, your CHEP people-page) and DELETE the lines you don't. Each
+         of those profiles should link back here; the two-way link is what ties
+         the identity together. An unfilled or wrong URL here is worse than no
+         markup at all, so don't leave the examples in place. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Vishal Rao",
+      "url": "https://vishalrao.in/",
+      "image": "https://vishalrao.in/pp.jpg",
+      "jobTitle": "PhD Researcher",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "Centre for High Energy Physics, Indian Institute of Science",
+        "url": "https://chep.iisc.ac.in/"
+      },
+      "knowsAbout": [
+        "Lattice Quantum Chromodynamics",
+        "Lattice Gauge Theory",
+        "Finite-Temperature Gauge Theories",
+        "High-Performance Computing"
+      ],
+      "sameAs": [
+        "REPLACE-WITH-YOUR-INSPIRE-HEP-AUTHOR-URL",
+        "REPLACE-WITH-YOUR-ORCID-URL",
+        "REPLACE-WITH-YOUR-GOOGLE-SCHOLAR-URL",
+        "REPLACE-WITH-YOUR-GITHUB-URL"
+      ]
+    }
+    </script>
     <!-- MathJax config: on phone-width screens, break long display equations onto
          multiple lines instead of overflowing the page. Desktop and tablet keep the
          default rendering (empty config), so their layout is unchanged. Must run
@@ -380,14 +714,18 @@
            cursor/no-select behavior holds even if the pointer strays off the
            thin handle mid-drag. */
         body.toc-resizing { cursor: col-resize; user-select: none; }
-        /* Read mode: hides every floating button/icon except the read-mode
-           toggle itself (so there's always a way back out), on every screen
-           size. Deliberately untouched here: #content, #toc-sidebar, and
-           its resizers — read mode only hides chrome, the article layout
-           itself stays exactly as it was.
-           Hiding now happens in two phases so the chrome fades instead of
-           blinking out mid-scroll: .focus-fading makes it transparent while
-           it's still laid out, then .read-mode removes it for real once the
+        /* Read mode: hides the site-wide tool icons in the top-right stack —
+           everything except the read-mode toggle itself, so there's always a
+           way back out — on every screen size.
+           NOT hidden: the bottom-right .floating-btns stack (back / back-to-top
+           / ask-this-page). Those are per-page reading aids rather than chrome;
+           losing them mid-article is exactly when they're most wanted.
+           Also deliberately untouched: #content, #toc-sidebar, and its
+           resizers — read mode only hides chrome, the article layout itself
+           stays exactly as it was.
+           Hiding happens in two phases so the icons fade instead of blinking
+           out mid-scroll: .focus-fading makes them transparent while they're
+           still laid out, then .read-mode removes them for real once the
            transition has finished. The script below swaps the classes; its
            FADE_MS must match the 0.22s duration used here.
            #toc-toggle is the phone-only Contents button — it sits outside
@@ -401,20 +739,17 @@
            than adds to, the one on .top-right-btns button. */
         body .top-right-btns > button,
         body .top-right-btns > a,
-        body .floating-btns,
         body #toc-toggle {
             transition: opacity 0.22s ease, transform 0.22s ease,
                         color 0.15s ease, background-color 0.15s ease;
         }
         body.focus-fading .top-right-btns > *:not(#btn-read-mode),
-        body.focus-fading .floating-btns,
         body.focus-fading #toc-toggle {
             opacity: 0;
             transform: scale(0.9);
             pointer-events: none;
         }
         body.read-mode .top-right-btns > *:not(#btn-read-mode),
-        body.read-mode .floating-btns,
         body.read-mode #toc-toggle {
             display: none;
         }
@@ -475,7 +810,6 @@
         @media (prefers-reduced-motion: reduce) {
             body .top-right-btns > button,
             body .top-right-btns > a,
-            body .floating-btns,
             body #toc-toggle,
             #focus-toast { transition: none; }
             #btn-read-mode.focus-pulse { animation: none; }
@@ -677,7 +1011,13 @@
         }
         /* Mobile Styles */
         @media only screen and (max-width: 600px) {
-            body { padding: 12px; }
+            /* Top padding clears the icon row rather than matching the sides.
+               The row sits at top:12px and its buttons are 44px tall here (see
+               the 600px rule on .top-right-btns above), so it ends at 56px;
+               68px leaves the same kind of breathing space under it that the
+               3cm desktop margin does. Without this the icons float on top of
+               the article card instead of above it. */
+            body { padding: 68px 12px 12px 12px; }
             #content {
                 padding: 8px 10px;
                 max-width: 100%;
@@ -1429,12 +1769,9 @@ int main(int argc, char *argv[]) {
         if (!btn) return;
 
         var FADE_MS  = 220;   // must match the .focus-fading transition in the <style> block
-        var ENTER_AT = 320;   // px down the page before focus mode may engage on its own
-        var EXIT_AT  = 80;    // px: getting back this close to the top releases it again
-        var MIN_DOWN = 120;   // px of uninterrupted DOWNWARD scrolling required first, so a
-                              // stray flick doesn't trigger it
-        var MAX_JUMP = 400;   // a single scroll event bigger than this is a jump (TOC link,
-                              // back-navigation restore), not reading — doesn't count
+        var HYSTERESIS = 24;  // focus mode releases this far ABOVE the point it engages, so a
+                              // scroll resting exactly on the boundary can't flip it back and
+                              // forth on every stray pixel
 
         var readOn = false;          // authoritative state; the body classes are mid-transition sometimes
         var autoEngaged = false;     // on because of scrolling, not because of a click
@@ -1514,12 +1851,6 @@ int main(int argc, char *argv[]) {
             btn.title = label;
             btn.setAttribute('aria-label', label);
             btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-            // Only deliberate choices are remembered across pages. Auto-engaging
-            // passes persist:false, so a reader who never touched the button never
-            // lands on a page with its controls already hidden.
-            if (opts.persist !== false) {
-                try { localStorage.setItem(READ_MODE_KEY, on ? '1' : '0'); } catch (e) {}
-            }
             if (on && opts.announce) {
                 pulse();
                 if (!toastShown) { toastShown = true; showToast(); }
@@ -1527,40 +1858,65 @@ int main(int argc, char *argv[]) {
             if (!on) hideToast();
         }
 
-        var savedReadMode = false;
-        try { savedReadMode = localStorage.getItem(READ_MODE_KEY) === '1'; } catch (e) {}
-        applyReadMode(savedReadMode, { animate: false, persist: false });
+        // Focus mode is per-page-load: every page starts with its chrome
+        // visible, and gets hidden either by the scroll watcher below or by a
+        // click. Nothing is restored from storage, so a page can never open
+        // already hidden — which is what a stale saved 'on' used to cause
+        // (the pre-scroll version of this script persisted the state on every
+        // call, including page load, so one click stuck forever). The old key
+        // is cleared on sight so existing visitors self-heal on first load.
+        try { localStorage.removeItem(READ_MODE_KEY); } catch (e) {}
+        applyReadMode(false, { animate: false });
 
         btn.addEventListener('click', function () {
             var turningOn = !readOn;
             suppressed = !turningOn;   // turned it off by hand -> stay off until back at the top
             autoEngaged = false;       // from here on it's the reader's, not the scroll watcher's
             applyReadMode(turningOn, { announce: turningOn });
-            if (turningOn) window.scrollTo({ top: 0, behavior: 'smooth' });
+            // Deliberately does NOT scroll anywhere. The original handler jumped
+            // to the top on switching read mode on, which was harmless when the
+            // button was the only way in; now that focus mode engages mid-scroll
+            // on its own, toggling it must never move the reader off the line
+            // they're on. The "back to top" arrow is still there for that.
         });
 
-        // ---- Scroll watcher: engage focus mode once the reader is clearly
-        // reading, release it once they're clearly done. Runs on every viewport,
-        // phones included. It only ever turns OFF what it itself turned on, so a
-        // saved read-mode preference (or a click) is never undone by scrolling.
-        var lastY = window.pageYOffset, downRun = 0;
+        // ---- Scroll watcher: focus mode engages the moment the article card
+        // reaches the top of the viewport — the reader has scrolled the header
+        // margin away, so the white box now fills the screen and the icons that
+        // sat above it are off-screen anyway. The threshold is the card's own
+        // offset rather than a fixed pixel count, so it comes out right on both
+        // desktop (3cm body padding) and phones (68px, set in the mobile media
+        // query above) with no second number to keep in sync. Runs on every
+        // viewport. It only ever turns OFF what it itself turned on, so a saved
+        // read-mode preference (or a click) is never undone by scrolling.
+        var cardTop = null;   // computed on first scroll, by which point layout has settled
+        function engageAt() {
+            if (cardTop === null) {
+                var card = document.getElementById('content');
+                // getBoundingClientRect is viewport-relative; adding the current
+                // scroll offset turns it into a position within the document.
+                cardTop = card ? card.getBoundingClientRect().top + window.pageYOffset : 0;
+            }
+            return cardTop;
+        }
+        // Rotating a phone or resizing a window can cross the mobile breakpoint
+        // and change the body padding, so the cached offset has to be dropped.
+        window.addEventListener('resize', function () { cardTop = null; });
+
         window.addEventListener('scroll', function () {
             var y = window.pageYOffset;
-            var dy = y - lastY;
-            lastY = y;
-            if (dy > MAX_JUMP) downRun = 0;                        // jumped, didn't read — start over
-            else if (dy > 0) downRun += dy;
-            else if (dy < 0) downRun = 0;                          // any upward move restarts the run
+            var enter = engageAt();
+            var exit = Math.max(0, enter - HYSTERESIS);
 
-            if (y <= EXIT_AT) {
-                suppressed = false;                                // back at the top: re-arm
+            if (y <= exit) {
+                suppressed = false;                                // back above the card: re-arm
                 if (autoEngaged && readOn) {
                     autoEngaged = false;
                     applyReadMode(false, { persist: false });
                 }
                 return;
             }
-            if (!readOn && !suppressed && y >= ENTER_AT && downRun >= MIN_DOWN) {
+            if (!readOn && !suppressed && y >= enter) {
                 autoEngaged = true;
                 applyReadMode(true, { persist: false, announce: true });
             }
