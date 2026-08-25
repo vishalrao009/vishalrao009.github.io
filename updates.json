@@ -1,1797 +1,1797 @@
 {
   "wiki/vimwiki_html/All_wiki/diary/2024-01-31.html": {
     "date": "2024-02-03",
-    "title": "2024-01-31 — Vishal Rao",
+    "title": ". --> (function () { var nav = document.getElementById('breadcrumb'); if (!nav) return; var KEY = 'wikiBreadcrumbTrail'; var path = window.location.pathname; function pageLabel() { var h1 = document.querySelector('#content h1'); var t = h1 ? h1.textContent.replace(/\\s+/g, ' ').trim() : ''; if (t) return t; t = (document.title || '').replace(/_+/g, ' ').trim(); if (t && t.toLowerCase() !== 'index') return t; var segs = path.split('/').filter(Boolean).map(function (s) { try { return decodeURIComponent(s); } catch (e) { return s; } }); var last = segs.pop() || ''; if (/^index\\.html?$/i.test(last)) last = segs.pop() || 'index'; return last.replace(/\\.html?$/i, '').replace(/_+/g, ' ').trim() || 'Page'; } var current = { href: path, label: pageLabel() }; // Load the existing chain for this tab. var trail = []; try { trail = JSON.parse(sessionStorage.getItem(KEY)) || []; } catch (e) { trail = []; } if (!Array.isArray(trail)) trail = []; // If this page is already in the chain (visitor clicked an earlier crumb // or hit back), cut the chain back to it. Otherwise extend the chain. var found = -1; for (var i = 0; i (function () { var back = document.getElementById('btn-back'); var top = document.getElementById('btn-top'); if (back) { back.addEventListener('click', function () { window.history.back(); }); if (window.history.length 200) ? 'block' : 'none'; }; window.addEventListener('scroll', onScroll, { passive: true }); onScroll(); } })(); (function () { var LANGS = [ ['af', 'Afrikaans'], ['sq', 'Albanian'], ['am', 'Amharic'], ['ar', 'Arabic'], ['hy', 'Armenian'], ['as', 'Assamese'], ['ay', 'Aymara'], ['az', 'Azerbaijani'], ['bm', 'Bambara'], ['eu', 'Basque'], ['be', 'Belarusian'], ['bn', 'Bengali'], ['bho', 'Bhojpuri'], ['bs', 'Bosnian'], ['bg', 'Bulgarian'], ['ca', 'Catalan'], ['ceb', 'Cebuano'], ['ny', 'Chichewa'], ['zh-CN', 'Chinese (Simplified)'], ['zh-TW', 'Chinese (Traditional)'], ['co', 'Corsican'], ['hr', 'Croatian'], ['cs', 'Czech'], ['da', 'Danish'], ['dv', 'Dhivehi'], ['doi', 'Dogri'], ['nl', 'Dutch'], ['en', 'English'], ['eo', 'Esperanto'], ['et', 'Estonian'], ['ee', 'Ewe'], ['fil', 'Filipino'], ['fi', 'Finnish'], ['fr', 'French'], ['fy', 'Frisian'], ['gl', 'Galician'], ['ka', 'Georgian'], ['de', 'German'], ['el', 'Greek'], ['gn', 'Guarani'], ['gu', 'Gujarati'], ['ht', 'Haitian Creole'], ['ha', 'Hausa'], ['haw', 'Hawaiian'], ['he', 'Hebrew'], ['hi', 'Hindi'], ['hmn', 'Hmong'], ['hu', 'Hungarian'], ['is', 'Icelandic'], ['ig', 'Igbo'], ['ilo', 'Ilocano'], ['id', 'Indonesian'], ['ga', 'Irish'], ['it', 'Italian'], ['ja', 'Japanese'], ['jv', 'Javanese'], ['kn', 'Kannada'], ['kk', 'Kazakh'], ['km', 'Khmer'], ['rw', 'Kinyarwanda'], ['gom', 'Konkani'], ['ko', 'Korean'], ['kri', 'Krio'], ['ku', 'Kurdish'], ['ckb', 'Kurdish (Sorani)'], ['ky', 'Kyrgyz'], ['lo', 'Lao'], ['la', 'Latin'], ['lv', 'Latvian'], ['ln', 'Lingala'], ['lt', 'Lithuanian'], ['lg', 'Luganda'], ['lb', 'Luxembourgish'], ['mk', 'Macedonian'], ['mai', 'Maithili'], ['mg', 'Malagasy'], ['ms', 'Malay'], ['ml', 'Malayalam'], ['mt', 'Maltese'], ['mi', 'Maori'], ['mr', 'Marathi'], ['mni-Mtei', 'Meiteilon (Manipuri)'], ['lus', 'Mizo'], ['mn', 'Mongolian'], ['my', 'Myanmar (Burmese)'], ['ne', 'Nepali'], ['no', 'Norwegian'], ['or', 'Odia (Oriya)'], ['om', 'Oromo'], ['ps', 'Pashto'], ['fa', 'Persian'], ['pl', 'Polish'], ['pt', 'Portuguese'], ['pa', 'Punjabi'], ['qu', 'Quechua'], ['ro', 'Romanian'], ['ru', 'Russian'], ['sm', 'Samoan'], ['sa', 'Sanskrit'], ['gd', 'Scots Gaelic'], ['nso', 'Sepedi'], ['sr', 'Serbian'], ['st', 'Sesotho'], ['sn', 'Shona'], ['sd', 'Sindhi'], ['si', 'Sinhala'], ['sk', 'Slovak'], ['sl', 'Slovenian'], ['so', 'Somali'], ['es', 'Spanish'], ['su', 'Sundanese'], ['sw', 'Swahili'], ['sv', 'Swedish'], ['tg', 'Tajik'], ['ta', 'Tamil'], ['tt', 'Tatar'], ['te', 'Telugu'], ['th', 'Thai'], ['ti', 'Tigrinya'], ['ts', 'Tsonga'], ['tr', 'Turkish'], ['tk', 'Turkmen'], ['ak', 'Twi'], ['uk', 'Ukrainian'], ['ur', 'Urdu'], ['ug', 'Uyghur'], ['uz', 'Uzbek'], ['vi', 'Vietnamese'], ['cy', 'Welsh'], ['xh', 'Xhosa'], ['yi', 'Yiddish'], ['yo', 'Yoruba'], ['zu', 'Zulu'] ]; var STORAGE_KEY = 'wikiTranslateLang'; var btn = document.getElementById('btn-globe'); var panel = document.getElementById('translate-panel'); var search = document.getElementById('tp-search'); var list = document.getElementById('tp-list'); if (!btn || !panel || !list || !search) return; function currentLang() { try { return localStorage.getItem(STORAGE_KEY) || 'en'; } catch (e) { return 'en'; } } function renderList(filter) { var f = (filter || '').trim().toLowerCase(); var active = currentLang(); list.innerHTML = ''; LANGS.forEach(function (pair) { var code = pair[0], name = pair[1]; if (f && name.toLowerCase().indexOf(f) === -1) return; var b = document.createElement('button'); b.type = 'button'; b.className = 'tp-lang' + (code === active ? ' active' : ''); b.textContent = name; b.addEventListener('click', function () { setLanguage(code); }); list.appendChild(b); }); } function setLanguage(code) { try { localStorage.setItem(STORAGE_KEY, code); } catch (e) {} panel.classList.remove('open'); applyLanguage(code); } function applyLanguage(code) { if (code === 'en') { // Reset to the original English text. document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'; document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + location.hostname + ';'; if (document.querySelector('select.goog-te-combo')) location.reload(); return; } // The Google widget loads its asynchronously, so poll // briefly until it exists (covers both the click case and the // \"re-apply on new page load\" case below). var tries = 0; (function tryApply() { var combo = document.querySelector('select.goog-te-combo'); if (combo) { if (combo.value !== code) { combo.value = code; combo.dispatchEvent(new Event('change')); } } else if (tries block). Theme toggles html[data-theme=\"dark\"] and swaps in the dark highlight.js stylesheet to match. Both choices persist in localStorage, same pattern as the language picker above. --> (function () { var FONT_KEY = 'wikiFontScale'; var FONT_MIN = 0.75, FONT_MAX = 1.6, FONT_STEP = 0.1; var btnDec = document.getElementById('btn-font-dec'); var btnInc = document.getElementById('btn-font-inc'); var scale = 1; try { var savedScale = parseFloat(localStorage.getItem(FONT_KEY)); if (!isNaN(savedScale)) scale = savedScale; } catch (e) {} function applyScale(s) { scale = Math.max(FONT_MIN, Math.min(FONT_MAX, s)); document.documentElement.style.setProperty('--content-font-scale', scale.toFixed(2)); try { localStorage.setItem(FONT_KEY, scale.toFixed(2)); } catch (e) {} } applyScale(scale); if (btnDec) btnDec.addEventListener('click', function () { applyScale(scale - FONT_STEP); }); if (btnInc) btnInc.addEventListener('click', function () { applyScale(scale + FONT_STEP); }); })(); (function () { var THEME_KEY = 'wikiTheme'; var SUN_SVG = ''; var MOON_SVG = ''; var btnTheme = document.getElementById('btn-theme'); var hljsDark = document.getElementById('hljs-theme-dark'); function applyTheme(theme) { document.documentElement.setAttribute('data-theme', theme); if (btnTheme) { btnTheme.innerHTML = theme === 'dark' ? SUN_SVG : MOON_SVG; var label = theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'; btnTheme.title = label; btnTheme.setAttribute('aria-label', label); } if (hljsDark) hljsDark.disabled = (theme !== 'dark'); try { localStorage.setItem(THEME_KEY, theme); } catch (e) {} } var savedTheme = 'light'; try { savedTheme = localStorage.getItem(THEME_KEY) || 'light'; } catch (e) {} applyTheme(savedTheme); if (btnTheme) { btnTheme.addEventListener('click', function () { applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); }); } })(); (function () { var READ_MODE_KEY = 'wikiReadMode'; var btn = document.getElementById('btn-read-mode'); if (!btn) return; var FADE_MS = 220; // must match the .focus-fading transition in the block var HYSTERESIS = 24; // focus mode releases this far ABOVE the point it engages, so a // scroll resting exactly on the boundary can't flip it back and // forth on every stray pixel var readOn = false; // authoritative state; the body classes are mid-transition sometimes var autoEngaged = false; // on because of scrolling, not because of a click var suppressed = false; // reader switched it off by hand — don't fight them until // they're back at the top of the page var toastShown = false; // the explanation is shown once per page load, not every re-engage var fadeTimer = null, toastTimer = null, toast = null; function pulse() { btn.classList.remove('focus-pulse'); void btn.offsetWidth; // forces a reflow so re-adding actually restarts the animation btn.classList.add('focus-pulse'); } function ensureToast() { if (toast) return toast; toast = document.createElement('div'); toast.id = 'focus-toast'; toast.setAttribute('role', 'status'); toast.setAttribute('aria-live', 'polite'); var msg = document.createElement('span'); msg.textContent = 'Reading mode — page buttons hidden'; var show = document.createElement('button'); show.type = 'button'; show.className = 'focus-toast-btn'; show.textContent = 'Show'; show.addEventListener('click', function () { suppressed = true; // an explicit \"no\" — same weight as clicking the eye autoEngaged = false; applyReadMode(false); }); toast.appendChild(msg); toast.appendChild(show); document.body.appendChild(toast); return toast; } function showToast() { var t = ensureToast(); clearTimeout(toastTimer); requestAnimationFrame(function () { t.classList.add('visible'); }); toastTimer = setTimeout(hideToast, 2800); } function hideToast() { clearTimeout(toastTimer); if (toast) toast.classList.remove('visible'); } function setChrome(on, animate) { clearTimeout(fadeTimer); if (!animate) { // page load: no fade, just the end state document.body.classList.remove('focus-fading'); document.body.classList.toggle('read-mode', on); return; } if (on) { document.body.classList.add('focus-fading'); // fade out, still laid out fadeTimer = setTimeout(function () { document.body.classList.add('read-mode'); // now actually gone document.body.classList.remove('focus-fading'); }, FADE_MS); } else { document.body.classList.remove('read-mode'); // back in the layout... document.body.classList.add('focus-fading'); // ...but still transparent requestAnimationFrame(function () { // two frames: guarantees the requestAnimationFrame(function () { // browser has painted the document.body.classList.remove('focus-fading'); // transparent state first }); }); } } function applyReadMode(on, opts) { opts = opts || {}; readOn = on; setChrome(on, opts.animate !== false); var label = on ? 'Exit read mode' : 'Read mode'; btn.title = label; btn.setAttribute('aria-label', label); btn.setAttribute('aria-pressed', on ? 'true' : 'false'); if (on && opts.announce) { pulse(); if (!toastShown) { toastShown = true; showToast(); } } if (!on) hideToast(); } // Focus mode is per-page-load: every page starts with its chrome // visible, and gets hidden either by the scroll watcher below or by a // click. Nothing is restored from storage, so a page can never open // already hidden — which is what a stale saved 'on' used to cause // (the pre-scroll version of this script persisted the state on every // call, including page load, so one click stuck forever). The old key // is cleared on sight so existing visitors self-heal on first load. try { localStorage.removeItem(READ_MODE_KEY); } catch (e) {} applyReadMode(false, { animate: false }); btn.addEventListener('click', function () { var turningOn = !readOn; suppressed = !turningOn; // turned it off by hand -> stay off until back at the top autoEngaged = false; // from here on it's the reader's, not the scroll watcher's applyReadMode(turningOn, { announce: turningOn }); // Deliberately does NOT scroll anywhere. The original handler jumped // to the top on switching read mode on, which was harmless when the // button was the only way in; now that focus mode engages mid-scroll // on its own, toggling it must never move the reader off the line // they're on. The \"back to top\" arrow is still there for that. }); // ---- Scroll watcher: focus mode engages the moment the article card // reaches the top of the viewport — the reader has scrolled the header // margin away, so the white box now fills the screen and the icons that // sat above it are off-screen anyway. The threshold is the card's own // offset rather than a fixed pixel count, so it comes out right on both // desktop (3cm body padding) and phones (68px, set in the mobile media // query above) with no second number to keep in sync. Runs on every // viewport. It only ever turns OFF what it itself turned on, so a saved // read-mode preference (or a click) is never undone by scrolling. var cardTop = null; // computed on first scroll, by which point layout has settled function engageAt() { if (cardTop === null) { var card = document.getElementById('content'); // getBoundingClientRect is viewport-relative; adding the current // scroll offset turns it into a position within the document. cardTop = card ? card.getBoundingClientRect().top + window.pageYOffset : 0; } return cardTop; } // Rotating a phone or resizing a window can cross the mobile breakpoint // and change the body padding, so the cached offset has to be dropped. window.addEventListener('resize', function () { cardTop = null; }); window.addEventListener('scroll', function () { var y = window.pageYOffset; var enter = engageAt(); var exit = Math.max(0, enter - HYSTERESIS); if (y = enter) { autoEngaged = true; applyReadMode(true, { persist: false, announce: true }); } }, { passive: true }); })(); https://, (3) add a caption under each image using its alt text. Images with no alt are left uncaptioned. NOTE: the image FILES must exist on the server at the mapped location (e.g. /wiki/vimwiki_html/Blogs/cric/) — upload that folder. --> (function () { var LOCAL_ANCHOR = '/vimwiki/'; var WEB_ROOT = '/wiki/vimwiki_html/'; document.querySelectorAll('#content img').forEach(function (img) { // 1) normalise the src var raw = img.getAttribute('src'); if (raw) { var s = raw.trim(); var i = s.indexOf(LOCAL_ANCHOR); if (i !== -1) s = WEB_ROOT + s.slice(i + LOCAL_ANCHOR.length); if (/^http:\\/\\//i.test(s)) s = s.replace(/^http:\\/\\//i, 'https://'); if (s !== raw) img.setAttribute('src', s); } // 2) defer offscreen images: on a long photo post the browser // would otherwise start fetching every image at once. if (!img.hasAttribute('loading')) img.setAttribute('loading', 'lazy'); img.setAttribute('decoding', 'async'); // 3) caption from alt text var alt = (img.getAttribute('alt') || '').trim(); if (!alt) return; var parent = img.parentNode; if (!parent || parent.tagName === 'FIGURE') return; var fig = document.createElement('figure'); fig.className = 'img-figure'; var cap = document.createElement('figcaption'); cap.textContent = alt; parent.insertBefore(fig, img); fig.appendChild(img); fig.appendChild(cap); // tidy a left immediately after the image var nx = fig.nextSibling; if (nx && nx.nodeType === 1 && nx.tagName === 'BR') nx.parentNode.removeChild(nx); }); })(); (function () { var content = document.getElementById('content'); if (!content) return; var LOCAL_ANCHOR = '/vimwiki/'; var WEB_ROOT = '/wiki/vimwiki_html/'; function fixImgSrc(src) { if (!src) return src; var s = src.trim(); var i = s.indexOf(LOCAL_ANCHOR); if (i !== -1) s = WEB_ROOT + s.slice(i + LOCAL_ANCHOR.length); if (/^http:\\/\\//i.test(s)) s = s.replace(/^http:\\/\\//i, 'https://'); return s; } var card = document.createElement('div'); card.className = 'link-preview-card'; document.body.appendChild(card); var cache = {}; // resolved URL -> {title, snippet, thumb} | 'missing' var showTimer = null; var hideTimer = null; var activeKey = null; function stripHash(href) { var i = href.indexOf('#'); return i === -1 ? href : href.slice(0, i); } function extract(html) { var doc = new DOMParser().parseFromString(html, 'text/html'); var target = doc.getElementById('content'); if (!target) return null; var h1 = target.querySelector('h1'); var title = h1 ? h1.textContent.replace(/\\s+/g, ' ').trim() : (doc.title || '').trim(); var snippet = ''; var ps = target.querySelectorAll('p'); for (var i = 0; i 20) { snippet = t; break; } } if (snippet.length > 220) snippet = snippet.slice(0, 217).trim() + '…'; var img = target.querySelector('img'); var thumb = img ? fixImgSrc(img.getAttribute('src')) : null; return { title: title || 'Untitled', snippet: snippet, thumb: thumb }; } function render(data) { var html = ''; if (data.thumb) html += ''; html += ''; card.innerHTML = html; card.querySelector('.lp-title').textContent = data.title; card.querySelector('.lp-snippet').textContent = data.snippet; } function position(link) { var rect = link.getBoundingClientRect(); var margin = 10; var cardWidth = card.offsetWidth || 300; var left = rect.left; if (left + cardWidth > window.innerWidth - margin) left = window.innerWidth - cardWidth - margin; if (left window.innerHeight - margin && rect.top - cardHeight - 8 > margin) { top = rect.top - cardHeight - 8; } card.style.left = left + 'px'; card.style.top = top + 'px'; } function hide() { card.classList.remove('visible'); activeKey = null; } function showFor(link, key) { var data = cache[key]; if (!data || data === 'missing') return; render(data); position(link); card.classList.add('visible'); requestAnimationFrame(function () { position(link); }); } function handleEnter(link, key) { clearTimeout(hideTimer); clearTimeout(showTimer); activeKey = key; showTimer = setTimeout(function () { if (activeKey !== key) return; if (cache[key] === 'missing') return; if (cache[key]) { showFor(link, key); return; } fetch(key, { credentials: 'same-origin' }).then(function (res) { if (!res.ok) { cache[key] = 'missing'; return null; } return res.text(); }).then(function (html) { if (html == null) return; var data = extract(html); if (!data) { cache[key] = 'missing'; return; } cache[key] = data; if (activeKey === key) showFor(link, key); }).catch(function () { cache[key] = 'missing'; }); }, 350); } function handleLeave() { clearTimeout(showTimer); activeKey = null; hideTimer = setTimeout(hide, 200); } card.addEventListener('mouseenter', function () { clearTimeout(hideTimer); }); card.addEventListener('mouseleave', function () { hideTimer = setTimeout(hide, 150); }); content.querySelectorAll('a[href]').forEach(function (link) { var href = link.getAttribute('href'); if (!href || href.charAt(0) === '#') return; if (/^(mailto:|javascript:|tel:)/i.test(href)) return; if (link.hostname !== window.location.hostname) return; var key = stripHash(link.href); if (!/\\.html?$/i.test(key.split('?')[0])) return; link.addEventListener('mouseenter', function () { handleEnter(link, key); }); link.addEventListener('mouseleave', handleLeave); link.addEventListener('focus', function () { handleEnter(link, key); }); link.addEventListener('blur', handleLeave); }); window.addEventListener('scroll', hide, { passive: true }); window.addEventListener('resize', hide); })(); (function () { var DESKTOP_BREAKPOINT = 901; // must match the CSS media query below if (window.innerWidth immediately followed by \". Vimwiki wraps every heading in its own // ...",
     "section": "Resources"
   },
   "wiki/vimwiki_html/All_wiki/index.html": {
     "date": "2024-01-23",
-    "title": "index — Vishal Rao",
+    "title": "Wiki 0: List of all Wiki",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Blogs/Cricket Journey.html": {
     "date": "2025-10-02",
-    "title": "Cricket Journey — Vishal Rao",
+    "title": "Cricket Journey",
     "section": "Blogs"
   },
   "wiki/vimwiki_html/Blogs/Science and Ignorance.html": {
     "date": "2024-08-20",
-    "title": "Science and Ignorance — Vishal Rao",
+    "title": "Science and Ignorance",
     "section": "Blogs"
   },
   "wiki/vimwiki_html/Blogs/Who are we.html": {
     "date": "2024-08-20",
-    "title": "Who are we — Vishal Rao",
+    "title": "Who are we",
     "section": "Blogs"
   },
   "wiki/vimwiki_html/Blogs/cric-notes.html": {
     "date": "2026-08-03",
-    "title": "cric-notes — Vishal Rao",
+    "title": "cric-notes",
     "section": "Blogs"
   },
   "wiki/vimwiki_html/Blogs/diary/2024-08-29.html": {
     "date": "2024-08-29",
-    "title": "2024-08-29 — Vishal Rao",
+    "title": "Superstitions in the Age of Science",
     "section": "Blogs"
   },
   "wiki/vimwiki_html/Blogs/diary/2024-09-02.html": {
     "date": "2024-09-04",
-    "title": "2024-09-02 — Vishal Rao",
+    "title": "Absence of Free Will",
     "section": "Blogs"
   },
   "wiki/vimwiki_html/Blogs/diary/2025-05-18.html": {
     "date": "2025-05-18",
-    "title": "2025-05-18 — Vishal Rao",
+    "title": "The Nothingness",
     "section": "Blogs"
   },
   "wiki/vimwiki_html/Blogs/diary/2025-10-20.html": {
     "date": "2026-07-21",
-    "title": "2025-10-20 — Vishal Rao",
+    "title": "Who Am I ?",
     "section": "Blogs"
   },
   "wiki/vimwiki_html/Blogs/diary/2026-07-17.html": {
     "date": "2026-07-21",
-    "title": "2026-07-17 — Vishal Rao",
+    "title": "Understanding the Nature",
     "section": "Blogs"
   },
   "wiki/vimwiki_html/Blogs/diary/2026-08-03.html": {
     "date": "2026-08-05",
-    "title": "2026-08-03 — Vishal Rao",
+    "title": "Purpose of Life",
     "section": "Blogs"
   },
   "wiki/vimwiki_html/Blogs/diary/2026-08-04.html": {
     "date": "2026-08-04",
-    "title": "2026-08-04 — Vishal Rao",
+    "title": "Ameture Photography",
     "section": "Blogs"
   },
   "wiki/vimwiki_html/Blogs/diary/2026-08-06.html": {
     "date": "2026-08-06",
-    "title": "2026-08-06 — Vishal Rao",
+    "title": "The Debate of Ashtavakra and Bandi",
     "section": "Blogs"
   },
   "wiki/vimwiki_html/Blogs/diary/States.html": {
     "date": "2024-09-22",
-    "title": "States — Vishal Rao",
+    "title": "States",
     "section": "Blogs"
   },
   "wiki/vimwiki_html/Blogs/diary/fundamental particles.html": {
     "date": "2024-09-22",
-    "title": "fundamental particles — Vishal Rao",
+    "title": "fundamental particles",
     "section": "Blogs"
   },
   "wiki/vimwiki_html/Blogs/diary/fundamental physics.html": {
     "date": "2024-12-22",
-    "title": "fundamental physics — Vishal Rao",
+    "title": "fundamental physics",
     "section": "Blogs"
   },
   "wiki/vimwiki_html/Blogs/index.html": {
     "date": "2024-08-20",
-    "title": "index — Vishal Rao",
+    "title": "Wiki1:Blogs",
     "section": "Blogs"
   },
   "wiki/vimwiki_html/Lecture_notes/Analytic Functions of a Complex Variable (V Balakrishnan) Opus 5.html": {
     "date": "2026-08-08",
-    "title": "Analytic Functions of a Complex Variable (V Balakrishnan) Opus 5 — Vishal Rao",
+    "title": "Analytic Functions of a Complex Variable (V Balakrishnan) Opus 5",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Career Advice and Q&A.html": {
     "date": "2026-08-08",
-    "title": "Career Advice and Q%title%A — Vishal Rao",
+    "title": "Career Advice and Q%title%A",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Classical Mechanics Lec 13-16 (V Balakrishnan) Opus 5.html": {
     "date": "2026-08-07",
-    "title": "Classical Mechanics Lec 13-16 (V Balakrishnan) Opus 5 — Vishal Rao",
+    "title": "Classical Mechanics Lec 13-16 (V Balakrishnan) Opus 5",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Classical Mechanics Lec 13-16 (V Balakrishnan).html": {
     "date": "2026-08-07",
-    "title": "Classical Mechanics Lec 13-16 (V Balakrishnan) — Vishal Rao",
+    "title": "Classical Mechanics Lec 13-16 (V Balakrishnan)",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Classical Mechanics Lec 17-22 (V Balakrishnan) Opus 5.html": {
     "date": "2026-08-07",
-    "title": "Classical Mechanics Lec 17-22 (V Balakrishnan) Opus 5 — Vishal Rao",
+    "title": "Classical Mechanics Lec 17-22 (V Balakrishnan) Opus 5",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Classical Mechanics Lec 17-22 (V Balakrishnan).html": {
     "date": "2026-08-07",
-    "title": "Classical Mechanics Lec 17-22 (V Balakrishnan) — Vishal Rao",
+    "title": "Classical Mechanics Lec 17-22 (V Balakrishnan)",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Classical Mechanics Lec 23-26 (V Balakrishnan) Opus 5.html": {
     "date": "2026-08-07",
-    "title": "Classical Mechanics Lec 23-26 (V Balakrishnan) Opus 5 — Vishal Rao",
+    "title": "Classical Mechanics Lec 23-26 (V Balakrishnan) Opus 5",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Classical Mechanics Lec 23-26 (V Balakrishnan).html": {
     "date": "2026-08-07",
-    "title": "Classical Mechanics Lec 23-26 (V Balakrishnan) — Vishal Rao",
+    "title": "Classical Mechanics Lec 23-26 (V Balakrishnan)",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Classical Mechanics Lec 27-29 (V Balakrishnan) Opus 5.html": {
     "date": "2026-08-07",
-    "title": "Classical Mechanics Lec 27-29 (V Balakrishnan) Opus 5 — Vishal Rao",
+    "title": "Classical Mechanics Lec 27-29 (V Balakrishnan) Opus 5",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Classical Mechanics Lec 27-29 (V Balakrishnan).html": {
     "date": "2026-08-07",
-    "title": "Classical Mechanics Lec 27-29 (V Balakrishnan) — Vishal Rao",
+    "title": "Classical Mechanics Lec 27-29 (V Balakrishnan)",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Classical Mechanics Lec 34-36 (V Balakrishnan) Opus 5.html": {
     "date": "2026-08-08",
-    "title": "Classical Mechanics Lec 34-36 (V Balakrishnan) Opus 5 — Vishal Rao",
+    "title": "Classical Mechanics Lec 34-36 (V Balakrishnan) Opus 5",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Classical Mechanics and Dynamical Systems (V Balakrishnan) Opus 5.html": {
     "date": "2026-08-07",
-    "title": "Classical Mechanics and Dynamical Systems (V Balakrishnan) Opus 5 — Vishal Rao",
+    "title": "Classical Mechanics and Dynamical Systems (V Balakrishnan) Opus 5",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Classical Mechanics and Dynamical Systems (V Balakrishnan).html": {
     "date": "2026-08-07",
-    "title": "Classical Mechanics and Dynamical Systems (V Balakrishnan) — Vishal Rao",
+    "title": "Classical Mechanics and Dynamical Systems (V Balakrishnan)",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Dynamics_Lec_5.html": {
     "date": "2026-08-10",
-    "title": "Dynamics_Lec_5 — Vishal Rao",
+    "title": "Dynamics_Lec_5",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/EB_Transformation_Lec_6.html": {
     "date": "2026-08-10",
-    "title": "EB_Transformation_Lec_6 — Vishal Rao",
+    "title": "EB_Transformation_Lec_6",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Elementary particles and their dynamics.html": {
     "date": "2024-08-20",
-    "title": "Elementary particles and their dynamics — Vishal Rao",
+    "title": "Elementary particles and their dynamics",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Fermionic Fields(spin-half).html": {
     "date": "2026-05-22",
-    "title": "Fermionic Fields(spin-half) — Vishal Rao",
+    "title": "Fermionic Fields(spin-half)",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Group Theory - SO(3) and SU(2) (V Balakrishnan) Opus 5.html": {
     "date": "2026-08-10",
-    "title": "Group Theory - SO(3) and SU(2) (V Balakrishnan) Opus 5 — Vishal Rao",
+    "title": "Group Theory - SO(3) and SU(2) (V Balakrishnan) Opus 5",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/HTML-notes.html": {
     "date": "2026-07-30",
-    "title": "HTML-notes — Vishal Rao",
+    "title": "HTML-notes",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Heinz J. Rothe.html": {
     "date": "2024-05-29",
-    "title": "Heinz J. Rothe — Vishal Rao",
+    "title": "Heinz J. Rothe",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Introduction to Special Theory of Relativity.html": {
     "date": "2026-08-10",
-    "title": "Introduction to Special Theory of Relativity — Vishal Rao",
+    "title": "Introduction to Special Theory of Relativity",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Introduction_rothe.html": {
     "date": "2024-05-29",
-    "title": "Introduction_rothe — Vishal Rao",
+    "title": "Introduction_rothe",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Introduction_to_STR_Lec_1.html": {
     "date": "2026-08-10",
-    "title": "Introduction_to_STR_Lec_1 — Vishal Rao",
+    "title": "Introduction_to_STR_Lec_1",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Introduction_to_four_vectors_Lec_3.html": {
     "date": "2026-08-10",
-    "title": "Introduction_to_four_vectors_Lec_3 — Vishal Rao",
+    "title": "Introduction_to_four_vectors_Lec_3",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Lattice gauge theories.html": {
     "date": "2024-05-29",
-    "title": "Lattice gauge theories — Vishal Rao",
+    "title": "Lattice gauge theories",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Lorentz_transformations_Lec_2.html": {
     "date": "2026-08-10",
-    "title": "Lorentz_transformations_Lec_2 — Vishal Rao",
+    "title": "Lorentz_transformations_Lec_2",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Mathematics Notes.html": {
     "date": "2026-08-11",
-    "title": "Mathematics Notes — Vishal Rao",
+    "title": "Mathematics Notes",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Need for Quantum field theory.html": {
     "date": "2024-06-01",
-    "title": "Need for Quantum field theory — Vishal Rao",
+    "title": "Need for Quantum field theory",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Nuclear and particle Physics.html": {
     "date": "2024-06-01",
-    "title": "Nuclear and particle Physics — Vishal Rao",
+    "title": "Nuclear and particle Physics",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Permutation_Combination.html": {
     "date": "2026-08-11",
-    "title": "Permutation_Combination — Vishal Rao",
+    "title": "Permutation_Combination",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Physics_notes.html": {
     "date": "2026-08-11",
-    "title": "Physics_notes — Vishal Rao",
+    "title": "Physics_notes",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Preface_rothe.html": {
     "date": "2024-05-29",
-    "title": "Preface_rothe — Vishal Rao",
+    "title": "Preface_rothe",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Probability.html": {
     "date": "2026-08-11",
-    "title": "Probability — Vishal Rao",
+    "title": "Probability",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/QFT1-Sunil Mukhi(2010).html": {
     "date": "2024-09-17",
-    "title": "QFT1-Sunil Mukhi(2010) — Vishal Rao",
+    "title": "QFT1-Sunil Mukhi(2010)",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/QFT1-Suvrat Raju(ICTS-2022).html": {
     "date": "2024-09-17",
-    "title": "QFT1-Suvrat Raju(ICTS-2022) — Vishal Rao",
+    "title": "QFT1-Suvrat Raju(ICTS-2022)",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/QFT2-Ashoke-1-5.html": {
     "date": "2026-07-20",
-    "title": "QFT2-Ashoke-1-5 — Vishal Rao",
+    "title": "QFT2-Ashoke-1-5",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/QFT2-Ashoke-1.html": {
     "date": "2024-09-17",
-    "title": "QFT2-Ashoke-1 — Vishal Rao",
+    "title": "QFT2-Ashoke-1",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/QFT2-Ashoke-Sen(2022).html": {
     "date": "2026-07-21",
-    "title": "QFT2-Ashoke-Sen(2022) — Vishal Rao",
+    "title": "QFT2-Ashoke-Sen(2022)",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/QFT2-Sunil Mukhi(2024).html": {
     "date": "2024-01-23",
-    "title": "QFT2-Sunil Mukhi(2024) — Vishal Rao",
+    "title": "QFT2-Sunil Mukhi(2024)",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/QFT2-Sunil Mukhi-Classical Field Theories.html": {
     "date": "2024-01-23",
-    "title": "QFT2-Sunil Mukhi-Classical Field Theories — Vishal Rao",
+    "title": "QFT2-Sunil Mukhi-Classical Field Theories",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/QFT2-Sunil Mukhi-Classical Solutions in FT and their Quantisation.html": {
     "date": "2024-01-23",
-    "title": "QFT2-Sunil Mukhi-Classical Solutions in FT and their Quantisation — Vishal Rao",
+    "title": "QFT2-Sunil Mukhi-Classical Solutions in FT and their Quantisation",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/QFT2-Sunil Mukhi-Lecture-1.html": {
     "date": "2024-01-23",
-    "title": "QFT2-Sunil Mukhi-Lecture-1 — Vishal Rao",
+    "title": "QFT2-Sunil Mukhi-Lecture-1",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/QFT2-Sunil Mukhi-Path Integral Quantisation.html": {
     "date": "2024-01-23",
-    "title": "QFT2-Sunil Mukhi-Path Integral Quantisation — Vishal Rao",
+    "title": "QFT2-Sunil Mukhi-Path Integral Quantisation",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/QFT2-Sunil Mukhi-Renormalisation.html": {
     "date": "2024-01-23",
-    "title": "QFT2-Sunil Mukhi-Renormalisation — Vishal Rao",
+    "title": "QFT2-Sunil Mukhi-Renormalisation",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/QFT2-sachin-Lecture-1.html": {
     "date": "2026-08-25",
-    "title": "QFT2-sachin-Lecture-1 — Vishal Rao",
+    "title": "QFT2-sachin-Lecture-1",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/QFT2-sachin-Lecture-10-11.html": {
     "date": "2026-08-25",
-    "title": "QFT2-sachin-Lecture-10-11 — Vishal Rao",
+    "title": "QFT2-sachin-Lecture-10-11",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/QFT2-sachin-Lecture-2.html": {
     "date": "2026-08-25",
-    "title": "QFT2-sachin-Lecture-2 — Vishal Rao",
+    "title": "QFT2-sachin-Lecture-2",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/QFT2-sachin-Lecture-3.html": {
     "date": "2026-08-25",
-    "title": "QFT2-sachin-Lecture-3 — Vishal Rao",
+    "title": "QFT2-sachin-Lecture-3",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/QFT2-sachin-Lecture-4.html": {
     "date": "2026-08-25",
-    "title": "QFT2-sachin-Lecture-4 — Vishal Rao",
+    "title": "QFT2-sachin-Lecture-4",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/QFT2-sachin-Lecture-5.html": {
     "date": "2026-08-25",
-    "title": "QFT2-sachin-Lecture-5 — Vishal Rao",
+    "title": "QFT2-sachin-Lecture-5",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/QFT2-sachin-Lecture-6.html": {
     "date": "2026-08-25",
-    "title": "QFT2-sachin-Lecture-6 — Vishal Rao",
+    "title": "QFT2-sachin-Lecture-6",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/QFT2-sachin-Lecture-7.html": {
     "date": "2026-08-25",
-    "title": "QFT2-sachin-Lecture-7 — Vishal Rao",
+    "title": "QFT2-sachin-Lecture-7",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/QFT2-sachin-Lecture-8.html": {
     "date": "2026-08-25",
-    "title": "QFT2-sachin-Lecture-8 — Vishal Rao",
+    "title": "QFT2-sachin-Lecture-8",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/QFT2-sachin-Lecture-9.html": {
     "date": "2026-08-25",
-    "title": "QFT2-sachin-Lecture-9 — Vishal Rao",
+    "title": "QFT2-sachin-Lecture-9",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/QFT2-sachin-iisc(2023).html": {
     "date": "2026-07-21",
-    "title": "QFT2-sachin-iisc(2023) — Vishal Rao",
+    "title": "QFT2-sachin-iisc(2023)",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Qm9.html": {
     "date": "2026-08-15",
-    "title": "Qm9 — Vishal Rao",
+    "title": "Qm9",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Quantum Field Theory - 1.html": {
     "date": "2024-01-23",
-    "title": "Quantum Field Theory - 1 — Vishal Rao",
+    "title": "Quantum Field Theory - 1",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Quantum Field Theory - 2.html": {
     "date": "2024-01-23",
-    "title": "Quantum Field Theory - 2 — Vishal Rao",
+    "title": "Quantum Field Theory - 2",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Quantum Field Theory-1.html": {
     "date": "2024-06-01",
-    "title": "Quantum Field Theory-1 — Vishal Rao",
+    "title": "Quantum Field Theory-1",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Quantum Field Theory.html": {
     "date": "2024-01-23",
-    "title": "Quantum Field Theory — Vishal Rao",
+    "title": "Quantum Field Theory",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Quantum Mechanics (V Balakrishnan) Opus 5.html": {
     "date": "2026-08-08",
-    "title": "Quantum Mechanics (V Balakrishnan) Opus 5 — Vishal Rao",
+    "title": "Quantum Mechanics (V Balakrishnan) Opus 5",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Quantum Mechanics Lec 1-2 (V Balakrishnan) Opus 5.html": {
     "date": "2026-08-08",
-    "title": "Quantum Mechanics Lec 1-2 (V Balakrishnan) Opus 5 — Vishal Rao",
+    "title": "Quantum Mechanics Lec 1-2 (V Balakrishnan) Opus 5",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Quantum Mechanics Lec 11 (V Balakrishnan) Opus 5.html": {
     "date": "2026-08-08",
-    "title": "Quantum Mechanics Lec 11 (V Balakrishnan) Opus 5 — Vishal Rao",
+    "title": "Quantum Mechanics Lec 11 (V Balakrishnan) Opus 5",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Quantum Mechanics Lec 12-13 (V Balakrishnan) Opus 5.html": {
     "date": "2026-08-08",
-    "title": "Quantum Mechanics Lec 12-13 (V Balakrishnan) Opus 5 — Vishal Rao",
+    "title": "Quantum Mechanics Lec 12-13 (V Balakrishnan) Opus 5",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Quantum Mechanics Lec 14-15 (V Balakrishnan) Opus 5.html": {
     "date": "2026-08-08",
-    "title": "Quantum Mechanics Lec 14-15 (V Balakrishnan) Opus 5 — Vishal Rao",
+    "title": "Quantum Mechanics Lec 14-15 (V Balakrishnan) Opus 5",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Quantum Mechanics Lec 16-17 (V Balakrishnan) Opus 5.html": {
     "date": "2026-08-08",
-    "title": "Quantum Mechanics Lec 16-17 (V Balakrishnan) Opus 5 — Vishal Rao",
+    "title": "Quantum Mechanics Lec 16-17 (V Balakrishnan) Opus 5",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Quantum Mechanics Lec 18-19 (V Balakrishnan) Opus 5.html": {
     "date": "2026-08-08",
-    "title": "Quantum Mechanics Lec 18-19 (V Balakrishnan) Opus 5 — Vishal Rao",
+    "title": "Quantum Mechanics Lec 18-19 (V Balakrishnan) Opus 5",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Quantum Mechanics Lec 3-4 (V Balakrishnan) Opus 5.html": {
     "date": "2026-08-08",
-    "title": "Quantum Mechanics Lec 3-4 (V Balakrishnan) Opus 5 — Vishal Rao",
+    "title": "Quantum Mechanics Lec 3-4 (V Balakrishnan) Opus 5",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Quantum Mechanics Lec 5-6 (V Balakrishnan) Opus 5.html": {
     "date": "2026-08-08",
-    "title": "Quantum Mechanics Lec 5-6 (V Balakrishnan) Opus 5 — Vishal Rao",
+    "title": "Quantum Mechanics Lec 5-6 (V Balakrishnan) Opus 5",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Quantum Mechanics Lec 7-8 (V Balakrishnan) Opus 5.html": {
     "date": "2026-08-08",
-    "title": "Quantum Mechanics Lec 7-8 (V Balakrishnan) Opus 5 — Vishal Rao",
+    "title": "Quantum Mechanics Lec 7-8 (V Balakrishnan) Opus 5",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Quantum Mechanics Lec 9-10 (V Balakrishnan) Opus 5.html": {
     "date": "2026-08-08",
-    "title": "Quantum Mechanics Lec 9-10 (V Balakrishnan) Opus 5 — Vishal Rao",
+    "title": "Quantum Mechanics Lec 9-10 (V Balakrishnan) Opus 5",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Scalar fields.html": {
     "date": "2024-06-01",
-    "title": "Scalar fields — Vishal Rao",
+    "title": "Scalar fields",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Special Theory of Relativity.html": {
     "date": "2026-08-10",
-    "title": "Special Theory of Relativity — Vishal Rao",
+    "title": "Special Theory of Relativity",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Spinor fields.html": {
     "date": "2024-08-20",
-    "title": "Spinor fields — Vishal Rao",
+    "title": "Spinor fields",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Standard Model of particle Physics.html": {
     "date": "2024-06-01",
-    "title": "Standard Model of particle Physics — Vishal Rao",
+    "title": "Standard Model of particle Physics",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Sunil-Mukhi-QFT1-Lecture1.html": {
     "date": "2024-09-17",
-    "title": "Sunil-Mukhi-QFT1-Lecture1 — Vishal Rao",
+    "title": "Sunil-Mukhi-QFT1-Lecture1",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Sunil-Mukhi-QFT1-Lecture2.html": {
     "date": "2024-09-17",
-    "title": "Sunil-Mukhi-QFT1-Lecture2 — Vishal Rao",
+    "title": "Sunil-Mukhi-QFT1-Lecture2",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Tensors chapter 1.html": {
     "date": "2026-08-09",
-    "title": "Tensors chapter 1 — Vishal Rao",
+    "title": "Tensors chapter 1",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Tensors chapter 2.html": {
     "date": "2026-08-09",
-    "title": "Tensors chapter 2 — Vishal Rao",
+    "title": "Tensors chapter 2",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/Thermodynamics and Statistical Mechanics (V Balakrishnan).html": {
     "date": "2026-08-07",
-    "title": "Thermodynamics and Statistical Mechanics (V Balakrishnan) — Vishal Rao",
+    "title": "Thermodynamics and Statistical Mechanics (V Balakrishnan)",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/V Balakrishnan's lecture notes.html": {
     "date": "2026-05-22",
-    "title": "V Balakrishnan's lecture notes — Vishal Rao",
+    "title": "V Balakrishnan's lecture notes",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/combined-notes-sunil-mukhi-qft1.html": {
     "date": "2026-07-21",
-    "title": "combined-notes-sunil-mukhi-qft1 — Vishal Rao",
+    "title": "combined-notes-sunil-mukhi-qft1",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/comprehensive exam topics.html": {
     "date": "2024-06-01",
-    "title": "comprehensive exam topics — Vishal Rao",
+    "title": "comprehensive exam topics",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/diary/2024-01-24.html": {
     "date": "2024-01-27",
-    "title": "2024-01-24 — Vishal Rao",
+    "title": "Quantum fields : what, why and how",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/diary/2024-05-21.html": {
     "date": "2024-05-21",
-    "title": "2024-05-21 — Vishal Rao",
+    "title": "Framework of QFT",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/diary/2024-09-08.html": {
     "date": "2024-09-17",
-    "title": "2024-09-08 — Vishal Rao",
+    "title": "Important points from \"Padagogical lectures on QCD and physics of EIC\"",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/diary/2025-02-27.html": {
     "date": "2025-04-11",
-    "title": "2025-02-27 — Vishal Rao",
+    "title": "Quantum Chromodynamics (QCD)",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/diary/2026-08-20.html": {
     "date": "2026-08-20",
-    "title": "2026-08-20 — Vishal Rao",
+    "title": "Personal websites of physicists and philosophers",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/diary/Heisenberg's uncertainty principle.html": {
     "date": "2024-01-27",
-    "title": "Heisenberg's uncertainty principle — Vishal Rao",
+    "title": "Heisenberg's uncertainty principle",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/diary/degree of freedom.html": {
     "date": "2024-01-27",
-    "title": "degree of freedom — Vishal Rao",
+    "title": "degree of freedom",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/diary/n-point-function-interacting-theory.html": {
     "date": "2024-05-28",
-    "title": "n-point-function-interacting-theory — Vishal Rao",
+    "title": "n-point-function-interacting-theory",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/diary/particle_behaviour.html": {
     "date": "2024-05-21",
-    "title": "particle_behaviour — Vishal Rao",
+    "title": "particle_behaviour",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/index.html": {
     "date": "2024-01-23",
-    "title": "index — Vishal Rao",
+    "title": "Wiki 3: Lecture Notes",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/kinematics_Lec_4.html": {
     "date": "2026-08-10",
-    "title": "kinematics_Lec_4 — Vishal Rao",
+    "title": "kinematics_Lec_4",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/lecture-1-3-sunil-mukhi-qft-1.html": {
     "date": "2026-07-21",
-    "title": "lecture-1-3-sunil-mukhi-qft-1 — Vishal Rao",
+    "title": "lecture-1-3-sunil-mukhi-qft-1",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/lecture-10-12-sunil-mukhi-qft-1.html": {
     "date": "2026-07-21",
-    "title": "lecture-10-12-sunil-mukhi-qft-1 — Vishal Rao",
+    "title": "lecture-10-12-sunil-mukhi-qft-1",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/lecture-4-6-sunil-mukhi-qft-1.html": {
     "date": "2026-07-22",
-    "title": "lecture-4-6-sunil-mukhi-qft-1 — Vishal Rao",
+    "title": "lecture-4-6-sunil-mukhi-qft-1",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/lecture-7-9-sunil-mukhi-qft-1.html": {
     "date": "2026-07-21",
-    "title": "lecture-7-9-sunil-mukhi-qft-1 — Vishal Rao",
+    "title": "lecture-7-9-sunil-mukhi-qft-1",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/notes by me.html": {
     "date": "2026-07-15",
-    "title": "notes by me — Vishal Rao",
+    "title": "notes by me",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/papers/Spatial string tension and dimensional reduction in QCD.html": {
     "date": "2024-08-20",
-    "title": "Spatial string tension and dimensional reduction in QCD — Vishal Rao",
+    "title": "Spatial string tension and dimensional reduction in QCD",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/particles.html": {
     "date": "2024-06-01",
-    "title": "particles — Vishal Rao",
+    "title": "particles",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/quantum_mechanics_short_notes_combined.html": {
     "date": "2026-08-19",
-    "title": "quantum_mechanics_short_notes_combined — Vishal Rao",
+    "title": "quantum_mechanics_short_notes_combined",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Lecture_notes/tensors.html": {
     "date": "2026-08-09",
-    "title": "tensors — Vishal Rao",
+    "title": "tensors",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Applications_simulate_qcd.html": {
     "date": "2024-01-23",
-    "title": "Applications_simulate_qcd — Vishal Rao",
+    "title": "Applications_simulate_qcd",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Basics_of_AWK.html": {
     "date": "2024-01-23",
-    "title": "Basics_of_AWK — Vishal Rao",
+    "title": "Basics_of_AWK",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Basics_of_SED.html": {
     "date": "2024-01-23",
-    "title": "Basics_of_SED — Vishal Rao",
+    "title": "Basics_of_SED",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Bresenham.cpp.html": {
     "date": "2024-02-08",
-    "title": "Bresenham.cpp — Vishal Rao",
+    "title": "Bresenham.cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Computation : Lattice QCD.html": {
     "date": "2024-01-23",
-    "title": "Computation : Lattice QCD — Vishal Rao",
+    "title": "Computation : Lattice QCD",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Configuration_generation.html": {
     "date": "2024-01-23",
-    "title": "Configuration_generation — Vishal Rao",
+    "title": "Configuration_generation",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Continuum QCD.html": {
     "date": "2024-08-28",
-    "title": "Continuum QCD — Vishal Rao",
+    "title": "Continuum QCD",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Data modifiers.html": {
     "date": "2024-01-23",
-    "title": "Data modifiers — Vishal Rao",
+    "title": "Data modifiers",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Debye mass.html": {
     "date": "2026-07-28",
-    "title": "Debye mass — Vishal Rao",
+    "title": "Debye mass",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Deepseek_color_charge_requirement.html": {
     "date": "2025-04-10",
-    "title": "Deepseek_color_charge_requirement — Vishal Rao",
+    "title": "Deepseek_color_charge_requirement",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Design_strategy.html": {
     "date": "2024-01-23",
-    "title": "Design_strategy — Vishal Rao",
+    "title": "Design_strategy",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/EQCD.html": {
     "date": "2026-07-28",
-    "title": "EQCD — Vishal Rao",
+    "title": "EQCD",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Gauge_configurations.html": {
     "date": "2024-01-23",
-    "title": "Gauge_configurations — Vishal Rao",
+    "title": "Gauge_configurations",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Generating_configurations.html": {
     "date": "2024-01-23",
-    "title": "Generating_configurations — Vishal Rao",
+    "title": "Generating_configurations",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Generating_ratinal_approximation_file_for_RHMC.html": {
     "date": "2024-01-23",
-    "title": "Generating_ratinal_approximation_file_for_RHMC — Vishal Rao",
+    "title": "Generating_ratinal_approximation_file_for_RHMC",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/HISQ.html": {
     "date": "2024-01-23",
-    "title": "HISQ — Vishal Rao",
+    "title": "HISQ",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Header_files.html": {
     "date": "2024-01-23",
-    "title": "Header_files — Vishal Rao",
+    "title": "Header_files",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Health.html": {
     "date": "2024-01-23",
-    "title": "Health — Vishal Rao",
+    "title": "Health",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Hybrid_Monte_Carlo_Algorithm.html": {
     "date": "2024-01-23",
-    "title": "Hybrid_Monte_Carlo_Algorithm — Vishal Rao",
+    "title": "Hybrid_Monte_Carlo_Algorithm",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Importance Sampling.html": {
     "date": "2024-01-23",
-    "title": "Importance Sampling — Vishal Rao",
+    "title": "Importance Sampling",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Independent measurements.html": {
     "date": "2024-01-23",
-    "title": "Independent measurements — Vishal Rao",
+    "title": "Independent measurements",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Lagrangian density.html": {
     "date": "2026-07-28",
-    "title": "Lagrangian density — Vishal Rao",
+    "title": "Lagrangian density",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Lagrangian.html": {
     "date": "2026-07-28",
-    "title": "Lagrangian — Vishal Rao",
+    "title": "Lagrangian",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Lattice QCD at finite temperature.html": {
     "date": "2024-08-27",
-    "title": "Lattice QCD at finite temperature — Vishal Rao",
+    "title": "Lattice QCD at finite temperature",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Lattice_QCD.html": {
     "date": "2024-01-23",
-    "title": "Lattice_QCD — Vishal Rao",
+    "title": "Lattice_QCD",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/MQCD.html": {
     "date": "2026-07-28",
-    "title": "MQCD — Vishal Rao",
+    "title": "MQCD",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Matsubara modes.html": {
     "date": "2026-07-28",
-    "title": "Matsubara modes — Vishal Rao",
+    "title": "Matsubara modes",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Measurement_of_observables.html": {
     "date": "2024-01-23",
-    "title": "Measurement_of_observables — Vishal Rao",
+    "title": "Measurement_of_observables",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Metropolis_algorithm.html": {
     "date": "2024-01-23",
-    "title": "Metropolis_algorithm — Vishal Rao",
+    "title": "Metropolis_algorithm",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Multi-GPU: Distribution of local lattices on the individual GPUs.html": {
     "date": "2024-01-23",
-    "title": "Multi-GPU: Distribution of local lattices on the individual GPUs — Vishal Rao",
+    "title": "Multi-GPU: Distribution of local lattices on the individual GPUs",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Noise_reduction.html": {
     "date": "2024-01-23",
-    "title": "Noise_reduction — Vishal Rao",
+    "title": "Noise_reduction",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Nuclear and Particle Physics.html": {
     "date": "2024-01-23",
-    "title": "Nuclear and Particle Physics — Vishal Rao",
+    "title": "Nuclear and Particle Physics",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Pascal_FinFET Technology.html": {
     "date": "2024-01-23",
-    "title": "Pascal_FinFET Technology — Vishal Rao",
+    "title": "Pascal_FinFET Technology",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Pauli exclusion principle.html": {
     "date": "2026-07-28",
-    "title": "Pauli exclusion principle — Vishal Rao",
+    "title": "Pauli exclusion principle",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Physics_modules.html": {
     "date": "2024-01-23",
-    "title": "Physics_modules — Vishal Rao",
+    "title": "Physics_modules",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Poincare invariant Lagrangian.html": {
     "date": "2026-07-28",
-    "title": "Poincare invariant Lagrangian — Vishal Rao",
+    "title": "Poincare invariant Lagrangian",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/RHMC.html": {
     "date": "2024-01-23",
-    "title": "RHMC — Vishal Rao",
+    "title": "RHMC",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/RHMC_Paramfile.html": {
     "date": "2024-01-23",
-    "title": "RHMC_Paramfile — Vishal Rao",
+    "title": "RHMC_Paramfile",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/RHMC_source_code.html": {
     "date": "2024-01-23",
-    "title": "RHMC_source_code — Vishal Rao",
+    "title": "RHMC_source_code",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/RHMC_theory.html": {
     "date": "2024-01-23",
-    "title": "RHMC_theory — Vishal Rao",
+    "title": "RHMC_theory",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Relational Hybrid Monte Carlo Algorithm.html": {
     "date": "2024-01-23",
-    "title": "Relational Hybrid Monte Carlo Algorithm — Vishal Rao",
+    "title": "Relational Hybrid Monte Carlo Algorithm",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Research Papers.html": {
     "date": "2026-08-03",
-    "title": "Research Papers — Vishal Rao",
+    "title": "Research Papers",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Standard Model.html": {
     "date": "2024-01-23",
-    "title": "Standard Model — Vishal Rao",
+    "title": "Standard Model",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Statistical Mechanics.html": {
     "date": "2026-07-28",
-    "title": "Statistical Mechanics — Vishal Rao",
+    "title": "Statistical Mechanics",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Statistics.html": {
     "date": "2024-01-23",
-    "title": "Statistics — Vishal Rao",
+    "title": "Statistics",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/String Tension (Project 1).html": {
     "date": "2024-01-23",
-    "title": "String Tension (Project 1) — Vishal Rao",
+    "title": "String Tension (Project 1)",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Symanzik Improvement.html": {
     "date": "2024-01-23",
-    "title": "Symanzik Improvement — Vishal Rao",
+    "title": "Symanzik Improvement",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Terminal output and terminating the program.html": {
     "date": "2024-01-23",
-    "title": "Terminal output and terminating the program — Vishal Rao",
+    "title": "Terminal output and terminating the program",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Testing_and_Profiling.html": {
     "date": "2024-01-23",
-    "title": "Testing_and_Profiling — Vishal Rao",
+    "title": "Testing_and_Profiling",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/The Spatial String Tension and Dimensional Reduction in QCD..html": {
     "date": "2024-01-23",
-    "title": "The Spatial String Tension and Dimensional Reduction in QCD. — Vishal Rao",
+    "title": "The Spatial String Tension and Dimensional Reduction in QCD.",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Theory : Lattice QCD.html": {
     "date": "2024-01-23",
-    "title": "Theory : Lattice QCD — Vishal Rao",
+    "title": "Theory : Lattice QCD",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/Why spatial string tension and dimensional reduction.html": {
     "date": "2026-07-28",
-    "title": "Why spatial string tension and dimensional reduction — Vishal Rao",
+    "title": "Why spatial string tension and dimensional reduction",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/WilsonLoop.cpp.html": {
     "date": "2024-01-23",
-    "title": "WilsonLoop.cpp — Vishal Rao",
+    "title": "WilsonLoop.cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/WilsonLoopBresenhamSmeared_vector_passing.cpp.html": {
     "date": "2024-02-08",
-    "title": "WilsonLoopBresenhamSmeared_vector_passing.cpp — Vishal Rao",
+    "title": "WilsonLoopBresenhamSmeared_vector_passing.cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/WilsonLoopBresenham_all_paths.cpp.html": {
     "date": "2024-02-08",
-    "title": "WilsonLoopBresenham_all_paths.cpp — Vishal Rao",
+    "title": "WilsonLoopBresenham_all_paths.cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/WilsonLoopBresenham_noSmearingAlongZ.html": {
     "date": "2024-04-20",
-    "title": "WilsonLoopBresenham_noSmearingAlongZ — Vishal Rao",
+    "title": "WilsonLoopBresenham_noSmearingAlongZ",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/WilsonLoopSmeared.cpp.html": {
     "date": "2024-01-23",
-    "title": "WilsonLoopSmeared.cpp — Vishal Rao",
+    "title": "WilsonLoopSmeared.cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/WilsonLoopSmeared_bresenham.cpp.html": {
     "date": "2024-02-03",
-    "title": "WilsonLoopSmeared_bresenham.cpp — Vishal Rao",
+    "title": "WilsonLoopSmeared_bresenham.cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/abelian.html": {
     "date": "2026-07-28",
-    "title": "abelian — Vishal Rao",
+    "title": "abelian",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/adjoint representation.html": {
     "date": "2026-07-28",
-    "title": "adjoint representation — Vishal Rao",
+    "title": "adjoint representation",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/area law.html": {
     "date": "2026-07-28",
-    "title": "area law — Vishal Rao",
+    "title": "area law",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/asymptotic freedom.html": {
     "date": "2026-07-28",
-    "title": "asymptotic freedom — Vishal Rao",
+    "title": "asymptotic freedom",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/back_end.html": {
     "date": "2024-01-23",
-    "title": "back_end — Vishal Rao",
+    "title": "back_end",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/base.html": {
     "date": "2024-01-23",
-    "title": "base — Vishal Rao",
+    "title": "base",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/boson.html": {
     "date": "2026-07-28",
-    "title": "boson — Vishal Rao",
+    "title": "boson",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/bound states.html": {
     "date": "2026-07-28",
-    "title": "bound states — Vishal Rao",
+    "title": "bound states",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/bresenham_n_paths.cpp.html": {
     "date": "2024-02-08",
-    "title": "bresenham_n_paths.cpp — Vishal Rao",
+    "title": "bresenham_n_paths.cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/calculation.html": {
     "date": "2024-01-23",
-    "title": "calculation — Vishal Rao",
+    "title": "calculation",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/case-change.html": {
     "date": "2024-01-23",
-    "title": "case-change — Vishal Rao",
+    "title": "case-change",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/cheat sheet.html": {
     "date": "2024-01-23",
-    "title": "cheat sheet — Vishal Rao",
+    "title": "cheat sheet",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/checkConf.html": {
     "date": "2024-01-23",
-    "title": "checkConf — Vishal Rao",
+    "title": "checkConf",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/checkRand.html": {
     "date": "2024-01-23",
-    "title": "checkRand — Vishal Rao",
+    "title": "checkRand",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/classes.html": {
     "date": "2024-01-23",
-    "title": "classes — Vishal Rao",
+    "title": "classes",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/color charge.html": {
     "date": "2026-07-28",
-    "title": "color charge — Vishal Rao",
+    "title": "color charge",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/computation-lattice_QCD.html": {
     "date": "2024-01-23",
-    "title": "computation-lattice_QCD — Vishal Rao",
+    "title": "computation-lattice_QCD",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/configConverter.html": {
     "date": "2024-01-23",
-    "title": "configConverter — Vishal Rao",
+    "title": "configConverter",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/covariant derivative.html": {
     "date": "2026-07-28",
-    "title": "covariant derivative — Vishal Rao",
+    "title": "covariant derivative",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/deconfinement.html": {
     "date": "2026-07-28",
-    "title": "deconfinement — Vishal Rao",
+    "title": "deconfinement",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/degenerate.html": {
     "date": "2024-01-23",
-    "title": "degenerate — Vishal Rao",
+    "title": "degenerate",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/dimensional reduction.html": {
     "date": "2026-07-28",
-    "title": "dimensional reduction — Vishal Rao",
+    "title": "dimensional reduction",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/docs_src.html": {
     "date": "2024-01-23",
-    "title": "docs_src — Vishal Rao",
+    "title": "docs_src",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/effective field theory.html": {
     "date": "2026-07-28",
-    "title": "effective field theory — Vishal Rao",
+    "title": "effective field theory",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/equilibrium.html": {
     "date": "2026-07-28",
-    "title": "equilibrium — Vishal Rao",
+    "title": "equilibrium",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/euclidean.html": {
     "date": "2026-07-28",
-    "title": "euclidean — Vishal Rao",
+    "title": "euclidean",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/examples.html": {
     "date": "2024-01-23",
-    "title": "examples — Vishal Rao",
+    "title": "examples",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/fermion.html": {
     "date": "2026-07-28",
-    "title": "fermion — Vishal Rao",
+    "title": "fermion",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/fields.html": {
     "date": "2026-07-28",
-    "title": "fields — Vishal Rao",
+    "title": "fields",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/free Lagrangian.html": {
     "date": "2026-07-28",
-    "title": "free Lagrangian — Vishal Rao",
+    "title": "free Lagrangian",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/functions.py.html": {
     "date": "2024-01-23",
-    "title": "functions.py — Vishal Rao",
+    "title": "functions.py",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/fundamental data types.html": {
     "date": "2024-01-23",
-    "title": "fundamental data types — Vishal Rao",
+    "title": "fundamental data types",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/fundamental particles.html": {
     "date": "2025-02-23",
-    "title": "fundamental particles — Vishal Rao",
+    "title": "fundamental particles",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/gauge.html": {
     "date": "2024-01-23",
-    "title": "gauge — Vishal Rao",
+    "title": "gauge",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/gaugeFixing.html": {
     "date": "2024-01-23",
-    "title": "gaugeFixing — Vishal Rao",
+    "title": "gaugeFixing",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/generateQuenched.html": {
     "date": "2024-01-23",
-    "title": "generateQuenched — Vishal Rao",
+    "title": "generateQuenched",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/gluons.html": {
     "date": "2026-07-28",
-    "title": "gluons — Vishal Rao",
+    "title": "gluons",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/gradientFLow.html": {
     "date": "2024-01-23",
-    "title": "gradientFLow — Vishal Rao",
+    "title": "gradientFLow",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/index.html": {
     "date": "2024-01-23",
-    "title": "index — Vishal Rao",
+    "title": "Protected Page",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/light quarks.html": {
     "date": "2024-09-02",
-    "title": "light quarks — Vishal Rao",
+    "title": "light quarks",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/local gauge invariance.html": {
     "date": "2026-07-28",
-    "title": "local gauge invariance — Vishal Rao",
+    "title": "local gauge invariance",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/measureHadrons.html": {
     "date": "2024-01-23",
-    "title": "measureHadrons — Vishal Rao",
+    "title": "measureHadrons",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/non-abelian.html": {
     "date": "2026-07-28",
-    "title": "non-abelian — Vishal Rao",
+    "title": "non-abelian",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/objective.html": {
     "date": "2024-01-23",
-    "title": "objective — Vishal Rao",
+    "title": "objective",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/p1_Abstract.html": {
     "date": "2024-01-23",
-    "title": "p1_Abstract — Vishal Rao",
+    "title": "p1_Abstract",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/p1_Conclusion.html": {
     "date": "2024-01-23",
-    "title": "p1_Conclusion — Vishal Rao",
+    "title": "p1_Conclusion",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/p1_SIMULATeQCD.html": {
     "date": "2024-01-23",
-    "title": "p1_SIMULATeQCD — Vishal Rao",
+    "title": "p1_SIMULATeQCD",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/p2_Abstract.html": {
     "date": "2024-01-23",
-    "title": "p2_Abstract — Vishal Rao",
+    "title": "p2_Abstract",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/p2_conclusions.html": {
     "date": "2024-01-23",
-    "title": "p2_conclusions — Vishal Rao",
+    "title": "p2_conclusions",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/p5_data_tyes.cpp.html": {
     "date": "2024-01-23",
-    "title": "p5_data_tyes.cpp — Vishal Rao",
+    "title": "p5_data_tyes.cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/partition function.html": {
     "date": "2026-07-28",
-    "title": "partition function — Vishal Rao",
+    "title": "partition function",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/path integral formulation.html": {
     "date": "2026-07-28",
-    "title": "path integral formulation — Vishal Rao",
+    "title": "path integral formulation",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/polSuscRenorm.html": {
     "date": "2024-01-23",
-    "title": "polSuscRenorm — Vishal Rao",
+    "title": "polSuscRenorm",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/profiling.html": {
     "date": "2024-01-23",
-    "title": "profiling — Vishal Rao",
+    "title": "profiling",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/quark-gluon plasma.html": {
     "date": "2026-07-28",
-    "title": "quark-gluon plasma — Vishal Rao",
+    "title": "quark-gluon plasma",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/quarks.html": {
     "date": "2026-07-28",
-    "title": "quarks — Vishal Rao",
+    "title": "quarks",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/running coupling.html": {
     "date": "2026-07-28",
-    "title": "running coupling — Vishal Rao",
+    "title": "running coupling",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/sampleTopology.html": {
     "date": "2024-01-23",
-    "title": "sampleTopology — Vishal Rao",
+    "title": "sampleTopology",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/spatial Wilson loop.html": {
     "date": "2026-07-28",
-    "title": "spatial Wilson loop — Vishal Rao",
+    "title": "spatial Wilson loop",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/spatial string tension.html": {
     "date": "2026-07-28",
-    "title": "spatial string tension — Vishal Rao",
+    "title": "spatial string tension",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/spinor.html": {
     "date": "2024-01-23",
-    "title": "spinor — Vishal Rao",
+    "title": "spinor",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/spinors.html": {
     "date": "2026-07-28",
-    "title": "spinors — Vishal Rao",
+    "title": "spinors",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/src.html": {
     "date": "2024-01-23",
-    "title": "src — Vishal Rao",
+    "title": "src",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/sublatticeUpdates.html": {
     "date": "2024-01-23",
-    "title": "sublatticeUpdates — Vishal Rao",
+    "title": "sublatticeUpdates",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/temperature.html": {
     "date": "2026-07-28",
-    "title": "temperature — Vishal Rao",
+    "title": "temperature",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/testing.html": {
     "date": "2024-01-23",
-    "title": "testing — Vishal Rao",
+    "title": "testing",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/todo.html": {
     "date": "2024-01-23",
-    "title": "todo — Vishal Rao",
+    "title": "todo",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/wilson lines.html": {
     "date": "2024-01-23",
-    "title": "wilson lines — Vishal Rao",
+    "title": "wilson lines",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/wilsonLinesCorrelator.html": {
     "date": "2024-01-23",
-    "title": "wilsonLinesCorrelator — Vishal Rao",
+    "title": "wilsonLinesCorrelator",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Research_work/wilsonLoopSmeared hyp (excluded dir).html": {
     "date": "2024-04-20",
-    "title": "wilsonLoopSmeared hyp (excluded dir) — Vishal Rao",
+    "title": "wilsonLoopSmeared hyp (excluded dir)",
     "section": "Resources"
   },
   "wiki/vimwiki_html/SIMULATeQCD/index.html": {
     "date": "2024-01-23",
-    "title": "index — Vishal Rao",
+    "title": "Wiki 6: SIMULATeQCD",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/(void**)&d_a.html": {
     "date": "2024-01-28",
-    "title": "(void**)%title%d_a — Vishal Rao",
+    "title": "(void**)%title%d_a",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Bash.html": {
     "date": "2024-01-23",
-    "title": "Bash — Vishal Rao",
+    "title": "Bash",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Basics.html": {
     "date": "2025-04-07",
-    "title": "Basics — Vishal Rao",
+    "title": "Basics",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Basics_of_AWK.html": {
     "date": "2024-01-23",
-    "title": "Basics_of_AWK — Vishal Rao",
+    "title": "Basics_of_AWK",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Basics_of_SED.html": {
     "date": "2024-01-23",
-    "title": "Basics_of_SED — Vishal Rao",
+    "title": "Basics_of_SED",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/C++.html": {
     "date": "2024-01-23",
-    "title": "C++ — Vishal Rao",
+    "title": "C++",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/CUDA C++.html": {
     "date": "2024-01-23",
-    "title": "CUDA C++ — Vishal Rao",
+    "title": "CUDA C++",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Cuda Learning Center.html": {
     "date": "2024-01-28",
-    "title": "Cuda Learning Center — Vishal Rao",
+    "title": "Cuda Learning Center",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Data Structures in c++.html": {
     "date": "2024-01-23",
-    "title": "Data Structures in c++ — Vishal Rao",
+    "title": "Data Structures in c++",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Data modifiers.html": {
     "date": "2024-01-23",
-    "title": "Data modifiers — Vishal Rao",
+    "title": "Data modifiers",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Debugging tools in cpp.html": {
     "date": "2024-05-21",
-    "title": "Debugging tools in cpp — Vishal Rao",
+    "title": "Debugging tools in cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/File Handling in cpp.html": {
     "date": "2024-01-23",
-    "title": "File Handling in cpp — Vishal Rao",
+    "title": "File Handling in cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Folding in Neovim-codes.html": {
     "date": "2024-05-21",
-    "title": "Folding in Neovim-codes — Vishal Rao",
+    "title": "Folding in Neovim-codes",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Functors in c++.html": {
     "date": "2024-01-23",
-    "title": "Functors in c++ — Vishal Rao",
+    "title": "Functors in c++",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/GPU and CPU basics.html": {
     "date": "2024-01-23",
-    "title": "GPU and CPU basics — Vishal Rao",
+    "title": "GPU and CPU basics",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Generics in c++ (Template Introduction).html": {
     "date": "2024-01-23",
-    "title": "Generics in c++ (Template Introduction) — Vishal Rao",
+    "title": "Generics in c++ (Template Introduction)",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Header_files.html": {
     "date": "2024-01-23",
-    "title": "Header_files — Vishal Rao",
+    "title": "Header_files",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/High Level Concepts.html": {
     "date": "2024-01-28",
-    "title": "High Level Concepts — Vishal Rao",
+    "title": "High Level Concepts",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Importance Sampling.html": {
     "date": "2024-01-23",
-    "title": "Importance Sampling — Vishal Rao",
+    "title": "Importance Sampling",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Independent measurements.html": {
     "date": "2024-01-23",
-    "title": "Independent measurements — Vishal Rao",
+    "title": "Independent measurements",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Indexing Threads within Grids and Blocks.html": {
     "date": "2024-02-06",
-    "title": "Indexing Threads within Grids and Blocks — Vishal Rao",
+    "title": "Indexing Threads within Grids and Blocks",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Intermediate or advanced level AWK.html": {
     "date": "2024-01-23",
-    "title": "Intermediate or advanced level AWK — Vishal Rao",
+    "title": "Intermediate or advanced level AWK",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Lecture 1.html": {
     "date": "2024-01-23",
-    "title": "Lecture 1 — Vishal Rao",
+    "title": "Lecture 1",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Lecture 2.html": {
     "date": "2024-01-23",
-    "title": "Lecture 2 — Vishal Rao",
+    "title": "Lecture 2",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Lecture 3.html": {
     "date": "2024-01-23",
-    "title": "Lecture 3 — Vishal Rao",
+    "title": "Lecture 3",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Lecture2(Introduction to CUDA).html": {
     "date": "2024-05-21",
-    "title": "Lecture2(Introduction to CUDA) — Vishal Rao",
+    "title": "Lecture2(Introduction to CUDA)",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Makefile.html": {
     "date": "2025-04-07",
-    "title": "Makefile — Vishal Rao",
+    "title": "Makefile",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Mike shah modern C++.html": {
     "date": "2024-01-23",
-    "title": "Mike shah modern C++ — Vishal Rao",
+    "title": "Mike shah modern C++",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/More about (void**)&a.html": {
     "date": "2024-01-28",
-    "title": "More about (void**)%title%a — Vishal Rao",
+    "title": "More about (void**)%title%a",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/My init.vim file.html": {
     "date": "2024-05-21",
-    "title": "My init.vim file — Vishal Rao",
+    "title": "My init.vim file",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/NVIDIA NSM DLI 2024.html": {
     "date": "2025-04-07",
-    "title": "NVIDIA NSM DLI 2024 — Vishal Rao",
+    "title": "NVIDIA NSM DLI 2024",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Nvim keybindings.html": {
     "date": "2024-01-23",
-    "title": "Nvim keybindings — Vishal Rao",
+    "title": "Nvim keybindings",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Operator overloading in cpp.html": {
     "date": "2024-01-23",
-    "title": "Operator overloading in cpp — Vishal Rao",
+    "title": "Operator overloading in cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Parallelizing a for loop.html": {
     "date": "2024-01-29",
-    "title": "Parallelizing a for loop — Vishal Rao",
+    "title": "Parallelizing a for loop",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Pascal_FinFET Technology.html": {
     "date": "2024-01-23",
-    "title": "Pascal_FinFET Technology — Vishal Rao",
+    "title": "Pascal_FinFET Technology",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Pass by value, reference and pointers.html": {
     "date": "2024-01-23",
-    "title": "Pass by value, reference and pointers — Vishal Rao",
+    "title": "Pass by value, reference and pointers",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Plugin commands.html": {
     "date": "2024-01-23",
-    "title": "Plugin commands — Vishal Rao",
+    "title": "Plugin commands",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Pointers In CPP.html": {
     "date": "2025-01-09",
-    "title": "Pointers In CPP — Vishal Rao",
+    "title": "Pointers In CPP",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Programming Languages.html": {
     "date": "2024-01-23",
-    "title": "Programming Languages — Vishal Rao",
+    "title": "Programming Languages",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Programming Model.html": {
     "date": "2024-01-28",
-    "title": "Programming Model — Vishal Rao",
+    "title": "Programming Model",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Python.html": {
     "date": "2024-01-23",
-    "title": "Python — Vishal Rao",
+    "title": "Python",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/SED_and_AWK.html": {
     "date": "2024-01-23",
-    "title": "SED_and_AWK — Vishal Rao",
+    "title": "SED_and_AWK",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Spell-checking.html": {
     "date": "2024-01-23",
-    "title": "Spell-checking — Vishal Rao",
+    "title": "Spell-checking",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Stanford CUDA lectures.html": {
     "date": "2024-05-21",
-    "title": "Stanford CUDA lectures — Vishal Rao",
+    "title": "Stanford CUDA lectures",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Statistics.html": {
     "date": "2024-01-23",
-    "title": "Statistics — Vishal Rao",
+    "title": "Statistics",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Structures with templates.html": {
     "date": "2024-01-23",
-    "title": "Structures with templates — Vishal Rao",
+    "title": "Structures with templates",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Structures.html": {
     "date": "2024-01-23",
-    "title": "Structures — Vishal Rao",
+    "title": "Structures",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Terminal output and terminating the program.html": {
     "date": "2024-01-23",
-    "title": "Terminal output and terminating the program — Vishal Rao",
+    "title": "Terminal output and terminating the program",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Understanding init.vim commands.html": {
     "date": "2024-01-23",
-    "title": "Understanding init.vim commands — Vishal Rao",
+    "title": "Understanding init.vim commands",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/Vectors in C++.html": {
     "date": "2024-01-27",
-    "title": "Vectors in C++ — Vishal Rao",
+    "title": "Vectors in C++",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/ascii.cpp.html": {
     "date": "2024-01-27",
-    "title": "ascii.cpp — Vishal Rao",
+    "title": "ascii.cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/case-change.html": {
     "date": "2024-01-23",
-    "title": "case-change — Vishal Rao",
+    "title": "case-change",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/cheat sheet.html": {
     "date": "2024-01-23",
-    "title": "cheat sheet — Vishal Rao",
+    "title": "cheat sheet",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/clangd for real time code compilation.html": {
     "date": "2024-01-23",
-    "title": "clangd for real time code compilation — Vishal Rao",
+    "title": "clangd for real time code compilation",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/classes and objects 1.html": {
     "date": "2024-07-30",
-    "title": "classes and objects 1 — Vishal Rao",
+    "title": "classes and objects 1",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/classes.html": {
     "date": "2024-01-23",
-    "title": "classes — Vishal Rao",
+    "title": "classes",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/coc-help.html": {
     "date": "2024-01-23",
-    "title": "coc-help — Vishal Rao",
+    "title": "coc-help",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/diary/2024-02-01.html": {
     "date": "2024-02-01",
-    "title": "2024-02-01 — Vishal Rao",
+    "title": "The demonstration",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/diary/Assembly_code_for_serial_programm_above.html": {
     "date": "2024-02-02",
-    "title": "Assembly_code_for_serial_programm_above — Vishal Rao",
+    "title": "Assembly_code_for_serial_programm_above",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/diary/Memory allocation.html": {
     "date": "2024-01-29",
-    "title": "Memory allocation — Vishal Rao",
+    "title": "Memory allocation",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/diary/choice1.html": {
     "date": "2024-02-02",
-    "title": "choice1 — Vishal Rao",
+    "title": "choice1",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/diary/choice2.html": {
     "date": "2024-02-02",
-    "title": "choice2 — Vishal Rao",
+    "title": "choice2",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/diary/choice3.html": {
     "date": "2024-02-02",
-    "title": "choice3 — Vishal Rao",
+    "title": "choice3",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/diary/code1_demo.html": {
     "date": "2024-02-02",
-    "title": "code1_demo — Vishal Rao",
+    "title": "code1_demo",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/diary/code2_demo.html": {
     "date": "2024-02-02",
-    "title": "code2_demo — Vishal Rao",
+    "title": "code2_demo",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/diary/code3_demo.html": {
     "date": "2024-02-02",
-    "title": "code3_demo — Vishal Rao",
+    "title": "code3_demo",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/diary/code4 demo.html": {
     "date": "2024-02-02",
-    "title": "code4 demo — Vishal Rao",
+    "title": "code4 demo",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/diary/code5 demo.html": {
     "date": "2024-02-02",
-    "title": "code5 demo — Vishal Rao",
+    "title": "code5 demo",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/diary/code6_demo.html": {
     "date": "2024-02-02",
-    "title": "code6_demo — Vishal Rao",
+    "title": "code6_demo",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/diary/code7_demo.html": {
     "date": "2024-02-02",
-    "title": "code7_demo — Vishal Rao",
+    "title": "code7_demo",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/diary/dynamic memory allocation.html": {
     "date": "2024-01-29",
-    "title": "dynamic memory allocation — Vishal Rao",
+    "title": "dynamic memory allocation",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/diary/machine_language_for_serial_program_above.html": {
     "date": "2024-02-02",
-    "title": "machine_language_for_serial_program_above — Vishal Rao",
+    "title": "machine_language_for_serial_program_above",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/diary/mistakes_answers.html": {
     "date": "2024-02-02",
-    "title": "mistakes_answers — Vishal Rao",
+    "title": "mistakes_answers",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/diary/mistakes_demonstration.html": {
     "date": "2024-02-02",
-    "title": "mistakes_demonstration — Vishal Rao",
+    "title": "mistakes_demonstration",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/diary/size_thread.cpp.html": {
     "date": "2024-02-02",
-    "title": "size_thread.cpp — Vishal Rao",
+    "title": "size_thread.cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/examples.html": {
     "date": "2024-01-23",
-    "title": "examples — Vishal Rao",
+    "title": "examples",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/fundamental data types.html": {
     "date": "2024-01-23",
-    "title": "fundamental data types — Vishal Rao",
+    "title": "fundamental data types",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/gnuplot.html": {
     "date": "2024-05-21",
-    "title": "gnuplot — Vishal Rao",
+    "title": "gnuplot",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/gpu9_not_found.html": {
     "date": "2024-07-20",
-    "title": "gpu9_not_found — Vishal Rao",
+    "title": "gpu9_not_found",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/index.html": {
     "date": "2024-01-23",
-    "title": "index — Vishal Rao",
+    "title": "Wiki 4: Tools",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/kill process in bash.html": {
     "date": "2024-05-21",
-    "title": "kill process in bash — Vishal Rao",
+    "title": "kill process in bash",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/kill processes_bash.html": {
     "date": "2024-05-21",
-    "title": "kill processes_bash — Vishal Rao",
+    "title": "kill processes_bash",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/nasstorage_content_issue.html": {
     "date": "2024-07-20",
-    "title": "nasstorage_content_issue — Vishal Rao",
+    "title": "nasstorage_content_issue",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/p10_loops.cpp.html": {
     "date": "2024-01-27",
-    "title": "p10_loops.cpp — Vishal Rao",
+    "title": "p10_loops.cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/p11_break_continue.cpp.html": {
     "date": "2024-01-27",
-    "title": "p11_break_continue.cpp — Vishal Rao",
+    "title": "p11_break_continue.cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/p12_conditional_operators.cpp.html": {
     "date": "2024-01-27",
-    "title": "p12_conditional_operators.cpp — Vishal Rao",
+    "title": "p12_conditional_operators.cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/p13_guessing_game.cpp.html": {
     "date": "2024-01-27",
-    "title": "p13_guessing_game.cpp — Vishal Rao",
+    "title": "p13_guessing_game.cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/p14_array_vectors.html": {
     "date": "2024-01-27",
-    "title": "p14_array_vectors — Vishal Rao",
+    "title": "p14_array_vectors",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/p3_variables.cpp.html": {
     "date": "2024-01-27",
-    "title": "p3_variables.cpp — Vishal Rao",
+    "title": "p3_variables.cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/p4_functions.cpp.html": {
     "date": "2024-01-27",
-    "title": "p4_functions.cpp — Vishal Rao",
+    "title": "p4_functions.cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/p5_data_tyes.cpp.html": {
     "date": "2024-01-23",
-    "title": "p5_data_tyes.cpp — Vishal Rao",
+    "title": "p5_data_tyes.cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/p5_data_types.cpp.html": {
     "date": "2024-01-27",
-    "title": "p5_data_types.cpp — Vishal Rao",
+    "title": "p5_data_types.cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/p6_function.cpp.html": {
     "date": "2024-01-27",
-    "title": "p6_function.cpp — Vishal Rao",
+    "title": "p6_function.cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/p7_strings.cpp.html": {
     "date": "2024-01-27",
-    "title": "p7_strings.cpp — Vishal Rao",
+    "title": "p7_strings.cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/p8_literals.cpp.html": {
     "date": "2024-01-27",
-    "title": "p8_literals.cpp — Vishal Rao",
+    "title": "p8_literals.cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/p9_control_flow.cpp.html": {
     "date": "2024-01-27",
-    "title": "p9_control_flow.cpp — Vishal Rao",
+    "title": "p9_control_flow.cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/podman.html": {
     "date": "2024-01-23",
-    "title": "podman — Vishal Rao",
+    "title": "podman",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/program 1.html": {
     "date": "2024-01-27",
-    "title": "program 1 — Vishal Rao",
+    "title": "program 1",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/program 2.html": {
     "date": "2024-01-27",
-    "title": "program 2 — Vishal Rao",
+    "title": "program 2",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/random.cpp.html": {
     "date": "2024-01-27",
-    "title": "random.cpp — Vishal Rao",
+    "title": "random.cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/reference in c++.html": {
     "date": "2024-01-23",
-    "title": "reference in c++ — Vishal Rao",
+    "title": "reference in c++",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/reference.cpp.html": {
     "date": "2024-01-27",
-    "title": "reference.cpp — Vishal Rao",
+    "title": "reference.cpp",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/scalar_cpp_macro.html": {
     "date": "2024-01-23",
-    "title": "scalar_cpp_macro — Vishal Rao",
+    "title": "scalar_cpp_macro",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/todo.html": {
     "date": "2024-01-23",
-    "title": "todo — Vishal Rao",
+    "title": "todo",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/using pointer as array.html": {
     "date": "2024-01-28",
-    "title": "using pointer as array — Vishal Rao",
+    "title": "using pointer as array",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/vim-help.html": {
     "date": "2024-01-23",
-    "title": "vim-help — Vishal Rao",
+    "title": "vim-help",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/vim-surround.html": {
     "date": "2024-01-23",
-    "title": "vim-surround — Vishal Rao",
+    "title": "vim-surround",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/vim.html": {
     "date": "2024-01-23",
-    "title": "vim — Vishal Rao",
+    "title": "vim",
     "section": "Resources"
   },
   "wiki/vimwiki_html/Tools/vimwiki.html": {
     "date": "2024-01-23",
-    "title": "vimwiki — Vishal Rao",
+    "title": "vimwiki",
     "section": "Resources"
   }
 }

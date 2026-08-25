@@ -88,6 +88,24 @@ BAD_TITLES = {"", "index", "contents"}
 # rather than "2026-08-06 (6 Aug 2026)".
 DATE_TITLE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
+# Every wiki page is rendered from wiki/templates/default_colored.html, whose
+# <title> line is "%title% - Vishal Rao". That suffix is a browser-tab/site
+# label, not an authorship claim, but read verbatim it turns every panel entry
+# into "QFT2-sachin-Lecture-9 - Vishal Rao", which reads as if you wrote the
+# lecture. Strip it here (the template keeps it, so tabs are unaffected).
+SITE_TITLE_SUFFIX = "Vishal Rao"
+SITE_SUFFIX_RE = re.compile(
+    r"\s*[\u2014\u2013|-]\s*" + re.escape(SITE_TITLE_SUFFIX) + r"\s*$"
+)
+
+
+def strip_site_suffix(t):
+    """Remove the site-wide "- Vishal Rao" tail from a <title> string."""
+    stripped = SITE_SUFFIX_RE.sub("", t).strip()
+    # Never let stripping empty the title (e.g. a page actually named
+    # "Vishal Rao"); fall back to what the template gave us.
+    return stripped or t
+
 
 def first_heading(content):
     """First <h1> that isn't vimwiki's auto-generated "Contents" heading."""
@@ -108,6 +126,10 @@ def page_title(path, url):
     # <h1> is usually the auto-generated "Contents" table-of-contents heading.
     m = TITLE_RE.search(c)
     t = clean_text(m.group(1)) if m else ""
+    # Drop the template's site-name suffix before any other test, so that
+    # date-named diary pages ("2026-08-20 - Vishal Rao") still match
+    # DATE_TITLE_RE below and use their own heading instead.
+    t = strip_site_suffix(t)
     if DATE_TITLE_RE.match(t):
         # Date-named page: prefer its heading, but keep the date if it has none.
         return first_heading(c) or t
