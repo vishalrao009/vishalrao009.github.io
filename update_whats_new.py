@@ -47,11 +47,15 @@ WIKI_DIR = os.path.join("wiki", "vimwiki_html")
 MANIFEST = "updates.json"
 
 # Folders we never advertise as "new". Add or remove entries to taste.
-#   "/Research_work/diary/" holds ~120 daily research logs; excluded so they
-#   don't bury your actual notes. Blogs/diary (your blog posts) is kept.
+#   "/Research_work/" is the research wiki: working notes, derivations and
+#   ~120 daily research logs. It is excluded wholesale so the Resources
+#   panel only advertises finished, reader-facing material (lecture notes,
+#   papers, blogs). The pages stay on the site and stay searchable - they
+#   are just never listed under "New arrivals". Blogs/diary (your blog
+#   posts) is kept.
 EXCLUDE_DIR_PARTS = (
     "/old_wiki/", "/encrypted/", "/Images/", "/images/",
-    "/diary/images/", "/Research_work/diary/",
+    "/diary/images/", "/Research_work/",
 )
 # Filenames that are noise rather than content.
 EXCLUDE_FILENAMES = {"diary.html"}
