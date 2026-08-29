@@ -6,8 +6,6 @@
     <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
     <link id="hljs-theme-light" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
     <link id="hljs-theme-dark" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" disabled />
-    <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
-    <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
     <title>QFT2-sachin-Lecture-3</title>
     <meta property="og:type" content="article">
     <meta property="og:title" content="QFT2-sachin-Lecture-3">
@@ -1210,16 +1208,30 @@ S \;=\; \int \overline{\Psi}\,M\,\Psi\ d^4x
 at \(p_\mu = 0\),<br />
 </p>
 
-<pre class="tikz">
-\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
-\begin{tikzpicture}[scale=0.9,&gt;=Stealth]
-\draw (-1.6,0) -- (1.9,0);
-\draw (-0.9,-0.9) -- (-0.9,1.1);
-\draw (-0.9,0) circle (0.16);
-\draw (-1.01,-0.11) -- (-0.79,0.11);
-\draw (-1.01,0.11) -- (-0.79,-0.11);
-\draw[-&gt;] (2.6,0.55) .. controls (1.6,0.35) .. (0.35,0.05);
-\end{tikzpicture}
+<pre class="tikz" data-prerendered="1">
+<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='107.547606pt' height='51.421719pt' viewBox='-70.007476 -70.007478 107.547606 51.421719'>
+<g id='t1827ecf9-page1'>
+<g stroke-miterlimit='10' transform='translate(-28.98948,-41.745295)scale(0.996264,-0.996264)'>
+<g fill='#000' stroke='#000'>
+<g stroke-width='0.4'>
+<path d='M -40.97182 0.0 L 48.65369 0.0' fill='none'/>
+<path d='M -23.04639 -23.04639 L -23.04639 28.16817' fill='none'/>
+<path d='M -23.04639 0.0 M -18.94914 0.0 C -18.94914 2.26286 -20.78352 4.09724 -23.04639 4.09724 C -25.30925 4.09724 -27.14363 2.26286 -27.14363 0.0 C -27.14363 -2.26286 -25.30925 -4.09724 -23.04639 -4.09724 C -20.78352 -4.09724 -18.94914 -2.26286 -18.94914 0.0 Z M -23.04639 0.0' fill='none'/>
+<path d='M -25.86322 -2.8168 L -20.22957 2.8168' fill='none'/>
+<path d='M -25.86322 2.8168 L -20.22957 -2.8168' fill='none'/>
+<path d='M 66.5791 14.08408 C 40.97182 8.9627 40.97182 8.9627 11.95299 1.99802' fill='none'/>
+<g transform='matrix(-0.97234,-0.23334,0.23334,-0.97234,13.62988,2.40044)'>
+<g stroke-dasharray='none' stroke-dashoffset='0.0'>
+ <g stroke-linejoin='miter'>
+ <path d=' M 4.2304 0.0 L 0.64584 1.35075 L 1.8246 0.0 L 0.64584 -1.35075 Z  '/>
+ </g>
+ </g>
+</g>
+</g>
+</g>
+</g>
+</g>
+</svg>
 </pre>
 
 \[
@@ -2714,16 +2726,32 @@ S\left[\phi,\partial_\mu\phi\right] \;=\; \int d^4x\ \phi\left(\int\frac{d^4p}{(
         sweep('img[src]', 'src');
     })();
     </script>
-    <!-- 1. Turn vimwiki {{{class="tikz"}}} blocks into TikZJax script tags (must run BEFORE tikzjax.js) -->
+    <!-- 1. TikZ diagrams are pre-rendered to inline SVG at build time by
+         tools/prerender_tikz.py. This only handles blocks that are *not* yet
+         pre-rendered (e.g. a page edited by hand since the last build): it
+         converts them for TikZJax and pulls TikZJax in on demand. When every
+         block is pre-rendered -- the normal case -- nothing below the first
+         line runs, and the page skips TikZJax's ~10.9 MB download. -->
     <script>
-        document.querySelectorAll('pre.tikz').forEach(function (pre) {
-            var s = document.createElement('script');
-            s.type = 'text/tikz';
-            s.textContent = pre.textContent; // browser decodes HTML entities here
-            pre.textContent = '';
-            pre.appendChild(s); // keep <pre class="tikz"> as the container so its
-                                 // text-align:center still applies to the SVG tikzjax inserts
-        });
+        (function () {
+            var pending = document.querySelectorAll('pre.tikz:not([data-prerendered])');
+            if (!pending.length) return;
+            pending.forEach(function (pre) {
+                var s = document.createElement('script');
+                s.type = 'text/tikz';
+                s.textContent = pre.textContent; // browser decodes HTML entities here
+                pre.textContent = '';
+                pre.appendChild(s); // keep <pre class="tikz"> as the container so its
+                                    // text-align:center still applies to the SVG tikzjax inserts
+            });
+            var css = document.createElement('link');
+            css.rel = 'stylesheet';
+            css.href = 'https://tikzjax.com/v1/fonts.css';
+            document.head.appendChild(css);
+            var js = document.createElement('script');
+            js.src = 'https://tikzjax.com/v1/tikzjax.js';
+            document.body.appendChild(js);
+        })();
     </script>
     <!-- 2. Syntax-highlight code blocks, but skip diagram blocks -->
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
@@ -2732,8 +2760,6 @@ S\left[\phi,\partial_\mu\phi\right] \;=\; \int d^4x\ \phi\left(\int\frac{d^4p}{(
             hljs.highlightBlock(block);
         });
     </script>
-    <!-- 3. TikZJax: renders <script type="text/tikz"> into SVG -->
-    <script src="https://tikzjax.com/v1/tikzjax.js"></script>
     <!-- 4. Mermaid: renders <pre class="mermaid"> into SVG -->
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
