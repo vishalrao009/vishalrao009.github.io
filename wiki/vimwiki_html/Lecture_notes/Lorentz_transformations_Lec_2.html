@@ -6,6 +6,8 @@
     <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
     <link id="hljs-theme-light" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
     <link id="hljs-theme-dark" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" disabled />
+    <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
+    <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
     <title>Lorentz_transformations_Lec_2</title>
     <meta property="og:type" content="article">
     <meta property="og:title" content="Lorentz_transformations_Lec_2">
@@ -47,6 +49,54 @@
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Tablet (iPad) layout flag.
+
+         iPads report CSS viewport widths of 744-1032px in PORTRAIT (mini 744,
+         iPad / Air 11" 820, Pro 11" 834, Air 13" / Pro 12.9" 1024, Pro 13" M4
+         1032) and 1133-1376px in LANDSCAPE. Landscape therefore already lands
+         in the normal desktop layout and is deliberately left alone; it's
+         portrait that had no home, falling between the 600px phone breakpoint
+         and the 901px desktop one — so it kept the desktop's 3cm page margin
+         (113px a side: ~28% of an 820px screen thrown away) while getting the
+         phone's floating Contents button, because the sidebar script needs
+         901px. This flag is what the tablet CSS and the scripts at the end of
+         the body key off to fix that.
+
+         Why a class and not a plain media query: width alone can't tell an
+         iPad in portrait from a desktop window that happens to be narrow, and
+         a CSS (hover: none)/(pointer: coarse) test isn't trustworthy either —
+         iPadOS Safari ships with "Request Desktop Website" ON by default,
+         which makes it claim a fine, hovering pointer. navigator.maxTouchPoints
+         is > 1 on iPad in BOTH modes and 0 on a real desktop, so it's the
+         reliable half of the test; it can only be read from JS.
+
+         Set here, in <head>, before any body content is parsed, so there is no
+         flash of the wrong layout. Re-evaluated on rotation: the DOM the
+         TOC-sidebar script builds is identical in tablet and desktop modes, so
+         adding/removing this one class is all it takes to move an iPad between
+         the two presentations when it's turned on its side.
+
+         Falls back to today's behaviour (no class) if JS is off. -->
+    <script>
+    (function () {
+        var TABLET_MIN = 601;   // just above the 600px phone breakpoint used throughout this file
+        var TABLET_MAX = 1032;  // widest iPad portrait viewport (iPad Pro 13" M4)
+        function isTablet() {
+            if (!((navigator.maxTouchPoints || 0) > 1)) return false; // real mouse-driven desktop: never
+            var w = window.innerWidth || document.documentElement.clientWidth || 0;
+            return w >= TABLET_MIN && w <= TABLET_MAX;
+        }
+        window.wikiIsTabletLayout = isTablet;
+        function sync() {
+            var on = isTablet();
+            var cl = document.documentElement.classList;
+            if (on) cl.add('tablet-layout'); else cl.remove('tablet-layout');
+        }
+        sync();
+        window.addEventListener('resize', sync);
+        window.addEventListener('orientationchange', sync);
+    })();
+    </script>
     <style>
         /* Theme variables. Light values live at :root; the dark theme
            (toggled by the theme button, script near the end of <body>)
@@ -397,6 +447,104 @@
                 height: 72px;
             }
         }
+        /* ===============================================================
+           iPad / tablet layout (portrait only).
+
+           Gated on html.tablet-layout, set by the flag script in <head> —
+           see the long comment there for what it detects and why it can't
+           be a plain media query. Phones (<=600px) and mouse-driven
+           desktops never get that class, so both of those layouts are
+           completely unchanged by everything below.
+
+           Every rule here is written as `html.tablet-layout <sel>`, which
+           outranks the plain `<sel>` rules in the (min-width: 901px) block
+           above on specificity alone. That matters for the two widest
+           iPads in portrait (1024px and 1032px), which match BOTH that
+           media query and this class — order in the file is irrelevant,
+           these win either way.
+           =============================================================== */
+        html.tablet-layout body {
+            /* Sides: 20px instead of the desktop's 3cm, which hands ~186px
+               of width back to the article on every iPad. Top: the
+               top-right icon row is fixed at top:16px with 48px buttons, so
+               it ends at 64px — 76px keeps the article card clear of it,
+               the same job the 68px phone value does. */
+            padding: 76px 20px 20px 20px;
+        }
+        /* --- Docked Contents sidebar, using the same #page-shell flex row
+               the desktop builds. The markup is identical in both modes, so
+               rotating the iPad just swaps which set of rules applies. --- */
+        html.tablet-layout #page-shell {
+            max-width: none;
+            margin: 0;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 16px;   /* the desktop's draggable gutter is hidden below, so this is a plain fixed gap */
+        }
+        html.tablet-layout body.has-toc-sidebar {
+            /* Undoes the desktop rule's 1cm: the tablet margin above is
+               already tight, so there is nothing left to reclaim here. */
+            padding-left: 20px;
+        }
+        html.tablet-layout #page-shell > #content {
+            margin: 0;
+            max-width: none;
+            flex: 1 1 auto;
+            min-width: 0;   /* let wide equations/code wrap instead of forcing the column wider */
+        }
+        html.tablet-layout #toc-sidebar {
+            /* Width comes from the inline flex-basis the sidebar script
+               sets (200px on tablets — see the MAX_SIDEBAR/DEFAULT_SIDEBAR
+               override there), so it stays the single source of truth that
+               the content-fitting maths also reads. Fixed here so the box
+               can't be squeezed: #content is always the column that gives
+               way, exactly as on desktop. */
+            flex-grow: 0;
+            flex-shrink: 0;
+            position: sticky;
+            top: 16px;
+            max-height: calc(100vh - 32px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 12px 10px;   /* tighter than desktop's 14px/16px: every px here comes out of the article */
+            font-size: 14px;
+        }
+        /* Roomier rows — these are tap targets here, not mouse targets. */
+        html.tablet-layout #toc-sidebar .toc-sidebar-list a { padding: 7px 8px; }
+        /* Drag-to-resize (the square handles + the two gutter strips) and
+           drag-to-move are mouse affordances. On a touch screen they carry
+           touch-action:none, so a swipe that happens to start on one drags
+           the box instead of scrolling the page. Hidden here; the matching
+           pointer handlers bail out on tablets too (see the sidebar script
+           near the end of the body), and fitReservedWidth() there accounts
+           for the strips being gone. */
+        html.tablet-layout #toc-sidebar .toc-resize-handle,
+        html.tablet-layout #toc-resizer,
+        html.tablet-layout #content-resizer {
+            display: none !important;
+        }
+        html.tablet-layout #toc-sidebar .toc-sidebar-title {
+            cursor: default;
+            touch-action: auto;   /* let a swipe here scroll the page */
+        }
+        /* Hover previews are a mouse feature: on a touch screen the "hover"
+           fires on tap and can leave a card stranded over the page. Off
+           here, exactly as it already is on phones. The script that fetches
+           them bails out on tablets too, so nothing is downloaded either. */
+        html.tablet-layout .link-preview-card { display: none !important; }
+        /* Wide display equations and code blocks scroll inside their own box
+           rather than stretching the page sideways — the same protection the
+           phone layout already has, and worth keeping now that the article
+           column here is narrower than a desktop one. */
+        html.tablet-layout mjx-container[display="true"] {
+            max-width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+        html.tablet-layout mjx-container { max-width: 100%; }
+        html.tablet-layout #content pre { overflow-x: auto; }
+
         /* Applied to <body> only while actively dragging the resizer, so the
            cursor/no-select behavior holds even if the pointer strays off the
            thin handle mid-drag. */
@@ -898,68 +1046,14 @@
 
 <div id="Lorentz transformations"><h1 id="Lorentz transformations" class="header"><a href="#Lorentz transformations">Lorentz transformations</a></h1></div>
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='238.906959pt' height='82.759831pt' viewBox='-70.007476 -70.007481 238.906959 82.759831'>
-<defs>
-<path id='t7821b819-g0-48' d='m2.022416-3.291656c.055791-.118555 .062765-.174346 .062765-.223163c0-.216189-.195268-.383562-.411457-.383562c-.265006 0-.348692 .216189-.383562 .327771l-.920548 3.019676c-.006974 .013948-.034869 .104608-.034869 .111582c0 .083686 .216189 .153425 .27198 .153425c.048817 0 .055791-.013948 .104608-.118555l1.311083-2.887173z'/>
-<path id='t7821b819-g1-83' d='m6.425903-6.924035c0-.029888-.019925-.099626-.109589-.099626c-.049813 0-.059776 .009963-.179328 .14944l-.478207 .56787c-.259029-.468244-.777086-.71731-1.424658-.71731c-1.265255 0-2.460772 1.145704-2.460772 2.351183c0 .806974 .52802 1.265255 1.036115 1.414695l1.066002 .278954c.368618 .089664 .916563 .239103 .916563 1.05604c0 .896638-.816936 1.833126-1.793275 1.833126c-.637609 0-1.743462-.219178-1.743462-1.454545c0-.239103 .049813-.478207 .059776-.537983c.009963-.039851 .019925-.049813 .019925-.069738c0-.099626-.069738-.109589-.119552-.109589s-.069738 .009963-.099626 .039851c-.039851 .039851-.597758 2.311333-.597758 2.34122c0 .059776 .049813 .099626 .109589 .099626c.049813 0 .059776-.009963 .179328-.14944l.488169-.56787c.428394 .577833 1.105853 .71731 1.683686 .71731c1.354919 0 2.530511-1.325031 2.530511-2.560399c0-.687422-.33873-1.026152-.488169-1.165629c-.229141-.229141-.37858-.268991-1.265255-.498132c-.219178-.059776-.577833-.159402-.667497-.179328c-.268991-.089664-.607721-.37858-.607721-.9066c0-.806974 .797011-1.653798 1.743462-1.653798c.826899 0 1.43462 .428394 1.43462 1.544209c0 .318804-.039851 .498132-.039851 .557908c0 .009963 0 .099626 .119552 .099626c.099626 0 .109589-.029888 .14944-.199253l.537983-2.181818z'/>
-<path id='t7821b819-g1-117' d='m3.486924-.557908c.109589 .408468 .458281 .667497 .886675 .667497c.348692 0 .577833-.229141 .737235-.547945c.169365-.358655 .298879-.966376 .298879-.986301c0-.099626-.089664-.099626-.119552-.099626c-.099626 0-.109589 .039851-.139477 .179328c-.139477 .557908-.328767 1.235367-.747198 1.235367c-.209215 0-.308842-.129514-.308842-.458281c0-.219178 .119552-.687422 .199253-1.036115l.278954-1.075965c.029888-.14944 .129514-.52802 .169365-.67746c.049813-.229141 .14944-.607721 .14944-.667497c0-.179328-.139477-.268991-.288917-.268991c-.049813 0-.308842 .009963-.388543 .348692c-.18929 .727273-.627646 2.470735-.747198 2.998755c-.009963 .039851-.408468 .836862-1.135741 .836862c-.518057 0-.617684-.448319-.617684-.816936c0-.557908 .278954-1.344956 .537983-2.032379c.119552-.298879 .169365-.438356 .169365-.627646c0-.448319-.318804-.816936-.816936-.816936c-.946451 0-1.315068 1.444583-1.315068 1.534247c0 .099626 .099626 .099626 .119552 .099626c.099626 0 .109589-.019925 .159402-.179328c.249066-.86675 .627646-1.235367 1.006227-1.235367c.089664 0 .249066 .009963 .249066 .328767c0 .239103-.109589 .52802-.169365 .67746c-.368618 .986301-.577833 1.603985-.577833 2.092154c0 .946451 .687422 1.195517 1.225405 1.195517c.657534 0 1.016189-.448319 1.185554-.667497z'/>
-</defs>
-<g id='t7821b819-page1'>
-<g stroke-miterlimit='10' transform='translate(-69.608977,12.35385)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<g stroke-width='0.8'>
-<path d='M 0.0 68.2864 L 0.0 0.0 L 65.44139 0.0' fill='none'/>
-</g>
-<g transform='translate(3.53297,71.81938)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.608977,12.35385)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.608977' y='12.35385' xlink:href='#t7821b819-g1-83'/>
-</g>
-</g>
-</g>
-</g>
-<g stroke-width='0.8'>
-<path d='M 65.44139 68.2864 L 65.44139 0.0 L 239.00287 0.0' fill='none'/>
-</g>
-<g transform='translate(68.97437,71.81938)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.608977,12.35385)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.608977' y='12.35385' xlink:href='#t7821b819-g1-83'/>
-<use x='-62.925715' y='8.738486' xlink:href='#t7821b819-g0-48'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 65.44139 46.94684 L 83.47551 46.94684' fill='none'/>
-<g transform='translate(83.47551,46.94684)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(87.46848,44.79407)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.608977,12.35385)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.608977' y='12.35385' xlink:href='#t7821b819-g1-117'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\begin{tikzpicture}
+\draw[thick] (0,2.4) -- (0,0) -- (2.3,0);
+\node[above right] at (0,2.4) {$S$};
+\draw[thick] (2.3,2.4) -- (2.3,0) -- (8.4,0);
+\node[above right] at (2.3,2.4) {$S'$};
+\draw[-&gt;] (2.3,1.65) -- (2.95,1.65) node[right] {$u$};
+\end{tikzpicture}
 </pre>
 
 <p>
@@ -1009,179 +1103,21 @@ t' &amp;= \left( t - \frac{ux}{c^{2}} \right)\gamma
 
 <div id="Lorentz transformations-Rotation of coordinate system :-"><h2 id="Rotation of coordinate system :-" class="header"><a href="#Lorentz transformations-Rotation of coordinate system :-">Rotation of coordinate system :-</a></h2></div>
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='172.464618pt' height='150.17863pt' viewBox='-70.007476 -70.00747 172.464618 150.17863'>
-<defs>
-<path id='t27c1e5ef-g2-18' d='m3.563636-3.396264c0-.732254-.278954-1.513325-.962391-1.513325c-1.046077 0-2.161893 1.868991-2.161893 3.466002c0 .829888 .320797 1.513325 .962391 1.513325c1.060025 0 2.161893-1.903861 2.161893-3.466002zm-2.336239 .850809c.355666-1.506351 .955417-2.168867 1.366874-2.168867c.446326 0 .446326 .774097 .446326 .9066c0 .27198-.055791 .676463-.202242 1.262267h-1.610959zm1.548194 .251059c-.195268 .760149-.355666 1.136737-.564882 1.478456c-.216189 .36264-.495143 .690411-.801993 .690411c-.383562 0-.446326-.530012-.446326-.9066c0-.460274 .132503-1.004234 .202242-1.262267h1.610959z'/>
-<path id='t27c1e5ef-g2-120' d='m1.736488-.739228c-.069738 .237111-.299875 .613699-.655542 .613699c-.020922 0-.230137 0-.376588-.097634c.285928-.09066 .306849-.341719 .306849-.383562c0-.153425-.118555-.258032-.278954-.258032c-.195268 0-.397509 .167372-.397509 .425405c0 .348692 .390535 .509091 .732254 .509091c.320797 0 .606725-.202242 .781071-.495143c.167372 .369614 .550934 .495143 .829888 .495143c.801993 0 1.227397-.871731 1.227397-1.066999c0-.09066-.09066-.09066-.111582-.09066c-.097634 0-.104608 .034869-.132503 .118555c-.146451 .481196-.564882 .843836-.955417 .843836c-.278954 0-.425405-.188294-.425405-.4533c0-.18132 .167372-.81594 .36264-1.590037c.139477-.536986 .4533-.711333 .683437-.711333c.013948 0 .230137 0 .376588 .097634c-.223163 .062765-.306849 .258032-.306849 .383562c0 .153425 .118555 .258032 .278954 .258032s.390535-.132503 .390535-.425405c0-.390535-.446326-.509091-.72528-.509091c-.348692 0-.627646 .230137-.781071 .495143c-.125529-.285928-.446326-.495143-.836862-.495143c-.781071 0-1.227397 .857783-1.227397 1.066999c0 .09066 .097634 .09066 .118555 .09066c.09066 0 .097634-.027895 .132503-.118555c.174346-.54396 .613699-.843836 .955417-.843836c.230137 0 .418431 .125529 .418431 .460274c0 .139477-.083686 .488169-.146451 .72528l-.237111 .955417z'/>
-<path id='t27c1e5ef-g0-48' d='m2.022416-3.291656c.055791-.118555 .062765-.174346 .062765-.223163c0-.216189-.195268-.383562-.411457-.383562c-.265006 0-.348692 .216189-.383562 .327771l-.920548 3.019676c-.006974 .013948-.034869 .104608-.034869 .111582c0 .083686 .216189 .153425 .27198 .153425c.048817 0 .055791-.013948 .104608-.118555l1.311083-2.887173z'/>
-<path id='t27c1e5ef-g3-40' d='m3.297634 2.391034c0-.029888 0-.049813-.169365-.219178c-1.24533-1.255293-1.564134-3.138232-1.564134-4.662516c0-1.733499 .37858-3.466999 1.603985-4.712329c.129514-.119552 .129514-.139477 .129514-.169365c0-.069738-.039851-.099626-.099626-.099626c-.099626 0-.996264 .67746-1.58406 1.942715c-.508095 1.09589-.627646 2.201743-.627646 3.038605c0 .777086 .109589 1.982565 .657534 3.108344c.597758 1.225405 1.454545 1.872976 1.554172 1.872976c.059776 0 .099626-.029888 .099626-.099626z'/>
-<path id='t27c1e5ef-g3-41' d='m2.879203-2.49066c0-.777086-.109589-1.982565-.657534-3.108344c-.597758-1.225405-1.454545-1.872976-1.554172-1.872976c-.059776 0-.099626 .039851-.099626 .099626c0 .029888 0 .049813 .18929 .229141c.976339 .986301 1.544209 2.570361 1.544209 4.652553c0 1.703611-.368618 3.457036-1.603985 4.712329c-.129514 .119552-.129514 .139477-.129514 .169365c0 .059776 .039851 .099626 .099626 .099626c.099626 0 .996264-.67746 1.58406-1.942715c.508095-1.09589 .627646-2.201743 .627646-3.038605z'/>
-<path id='t27c1e5ef-g1-59' d='m2.022416-.009963c0-.657534-.249066-1.046077-.637609-1.046077c-.328767 0-.52802 .249066-.52802 .52802c0 .268991 .199253 .52802 .52802 .52802c.119552 0 .249066-.039851 .348692-.129514c.029888-.019925 .039851-.029888 .049813-.029888s.019925 .009963 .019925 .14944c0 .737235-.348692 1.334994-.67746 1.663761c-.109589 .109589-.109589 .129514-.109589 .159402c0 .069738 .049813 .109589 .099626 .109589c.109589 0 .9066-.767123 .9066-1.932752z'/>
-<path id='t27c1e5ef-g1-120' d='m3.327522-3.008717c.059776-.259029 .288917-1.175592 .986301-1.175592c.049813 0 .288917 0 .498132 .129514c-.278954 .049813-.478207 .298879-.478207 .537983c0 .159402 .109589 .348692 .37858 .348692c.219178 0 .537983-.179328 .537983-.577833c0-.518057-.587796-.657534-.926526-.657534c-.577833 0-.926526 .52802-1.046077 .757161c-.249066-.657534-.787049-.757161-1.075965-.757161c-1.036115 0-1.603985 1.285181-1.603985 1.534247c0 .099626 .099626 .099626 .119552 .099626c.079701 0 .109589-.019925 .129514-.109589c.33873-1.05604 .996264-1.305106 1.334994-1.305106c.18929 0 .537983 .089664 .537983 .667497c0 .308842-.169365 .976339-.537983 2.371108c-.159402 .617684-.508095 1.036115-.946451 1.036115c-.059776 0-.288917 0-.498132-.129514c.249066-.049813 .468244-.259029 .468244-.537983c0-.268991-.219178-.348692-.368618-.348692c-.298879 0-.547945 .259029-.547945 .577833c0 .458281 .498132 .657534 .936488 .657534c.657534 0 1.016189-.697385 1.046077-.757161c.119552 .368618 .478207 .757161 1.075965 .757161c1.026152 0 1.594022-1.285181 1.594022-1.534247c0-.099626-.089664-.099626-.119552-.099626c-.089664 0-.109589 .039851-.129514 .109589c-.328767 1.066002-1.006227 1.305106-1.325031 1.305106c-.388543 0-.547945-.318804-.547945-.657534c0-.219178 .059776-.438356 .169365-.876712l.33873-1.364882z'/>
-<path id='t27c1e5ef-g1-121' d='m4.841843-3.795766c.039851-.139477 .039851-.159402 .039851-.229141c0-.179328-.139477-.268991-.288917-.268991c-.099626 0-.259029 .059776-.348692 .209215c-.019925 .049813-.099626 .358655-.139477 .537983c-.069738 .259029-.139477 .52802-.199253 .797011l-.448319 1.793275c-.039851 .14944-.468244 .846824-1.125778 .846824c-.508095 0-.617684-.438356-.617684-.806974c0-.458281 .169365-1.075965 .508095-1.952677c.159402-.408468 .199253-.518057 .199253-.71731c0-.448319-.318804-.816936-.816936-.816936c-.946451 0-1.315068 1.444583-1.315068 1.534247c0 .099626 .099626 .099626 .119552 .099626c.099626 0 .109589-.019925 .159402-.179328c.268991-.936488 .667497-1.235367 1.006227-1.235367c.079701 0 .249066 0 .249066 .318804c0 .249066-.099626 .508095-.169365 .697385c-.398506 1.05604-.577833 1.62391-.577833 2.092154c0 .886675 .627646 1.185554 1.215442 1.185554c.388543 0 .727273-.169365 1.006227-.448319c-.129514 .518057-.249066 1.006227-.647572 1.534247c-.259029 .33873-.637609 .627646-1.09589 .627646c-.139477 0-.587796-.029888-.757161-.418431c.159402 0 .288917 0 .428394-.119552c.099626-.089664 .199253-.219178 .199253-.408468c0-.308842-.268991-.348692-.368618-.348692c-.229141 0-.557908 .159402-.557908 .647572c0 .498132 .438356 .86675 1.05604 .86675c1.026152 0 2.052304-.9066 2.331258-2.032379l.956413-3.805729z'/>
-</defs>
-<g id='t27c1e5ef-page1'>
-<g stroke-miterlimit='10' transform='translate(1.907793,21.295006)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<path d='M -71.98495 0.0 L 87.8852 0.0' fill='none'/>
-<g transform='translate(87.8852,0.0)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(91.87816,-2.15277)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(1.907793,21.295006)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='1.907793' y='21.295006' xlink:href='#t27c1e5ef-g1-120'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 -58.89694 L 0.0 78.06895' fill='none'/>
-<g transform='matrix(0.0,1.0,-1.0,0.0,0.0,78.06895)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(-2.6308,84.00635)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(1.907793,21.295006)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='1.907793' y='21.295006' xlink:href='#t27c1e5ef-g1-121'/>
-</g>
-</g>
-</g>
-</g>
-<g stroke-dasharray='3.0,3.0' stroke-dashoffset='0.0'>
-<path d='M -63.80482 -44.82689 L 83.0609 58.30508' fill='none'/>
-<g transform='matrix(0.81834,0.57466,-0.57466,0.81834,83.06088,58.30507)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(86.97029,54.8105)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(1.907793,21.295006)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='1.907793' y='21.295006' xlink:href='#t27c1e5ef-g1-120'/>
-<use x='7.601725' y='17.679643' xlink:href='#t27c1e5ef-g0-48'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-<g stroke-dasharray='3.0,3.0' stroke-dashoffset='0.0'>
-<path d='M 34.35658 -49.0807 L -47.18074 67.35484' fill='none'/>
-<g transform='matrix(-0.5736,0.81912,-0.81912,-0.5736,-47.18074,67.35484)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(-59.0447,73.20903)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(1.907793,21.295006)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='1.907793' y='21.295006' xlink:href='#t27c1e5ef-g1-121'/>
-<use x='7.149736' y='17.679643' xlink:href='#t27c1e5ef-g0-48'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-<path d='M 39.26447 55.6247 M 40.98946 55.6247 C 40.98946 56.5774 40.21716 57.34969 39.26447 57.34969 C 38.31177 57.34969 37.53947 56.5774 37.53947 55.6247 C 37.53947 54.672 38.31177 53.8997 39.26447 53.8997 C 40.21716 53.8997 40.98946 54.672 40.98946 55.6247 Z M 39.26447 55.6247' stroke='none'/>
-<g transform='translate(41.16132,62.31223)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(1.907793,21.295006)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='1.907793' y='21.295006' xlink:href='#t27c1e5ef-g3-40'/>
-<use x='5.782167' y='21.295006' xlink:href='#t27c1e5ef-g1-120'/>
-<use x='11.476099' y='21.295006' xlink:href='#t27c1e5ef-g1-59'/>
-<use x='15.903907' y='21.295006' xlink:href='#t27c1e5ef-g1-121'/>
-<use x='21.14585' y='21.295006' xlink:href='#t27c1e5ef-g3-41'/>
-</g>
-</g>
-</g>
-</g>
-<g stroke-dasharray='3.0,3.0' stroke-dashoffset='0.0'>
-<path d='M 39.26447 55.6247 L 39.26447 0.0' fill='none'/>
-</g>
-<g stroke-dasharray='3.0,3.0' stroke-dashoffset='0.0'>
-<path d='M 39.26447 55.6247 L 0.0 55.6247' fill='none'/>
-</g>
-<path d='M 17.99635 0.0 C 17.99635 3.69257 16.85948 7.29756 14.74176 10.3223' fill='none'/>
-<g transform='translate(23.5098,4.11345)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(1.907793,21.295006)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='1.907793' y='21.295006' xlink:href='#t27c1e5ef-g2-18'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.45999 -12.43393 L 38.80447 -12.43393' fill='none'/>
-<g transform='matrix(-1.0,0.0,0.0,-1.0,0.45999,-12.43393)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(38.80447,-12.43393)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(17.3651,-18.32623)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(1.907793,21.295006)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='1.907793' y='21.295006' xlink:href='#t27c1e5ef-g2-120'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\begin{tikzpicture}[scale=1.15]
+\draw[-&gt;] (-2.2,0) -- (2.7,0) node[right] {$x$};
+\draw[-&gt;] (0,-1.8) -- (0,2.4) node[above] {$y$};
+\draw[dashed,-&gt;] (-1.95,-1.37) -- (2.55,1.79) node[right] {$x'$};
+\draw[dashed,-&gt;] (1.05,-1.50) -- (-1.45,2.07) node[above left] {$y'$};
+\fill (1.20,1.70) circle (1.5pt);
+\node[above right] at (1.15,1.72) {$(x,y)$};
+\draw[dashed] (1.20,1.70) -- (1.20,0);
+\draw[dashed] (1.20,1.70) -- (0,1.70);
+\draw (0.55,0) arc (0:35:0.55);
+\node at (0.78,0.20) {\scriptsize $\theta$};
+\draw[&lt;-&gt;] (0,-0.38) -- (1.20,-0.38);
+\node[below] at (0.60,-0.36) {\scriptsize $x$};
+\end{tikzpicture}
 </pre>
 
 \[
@@ -1195,139 +1131,21 @@ y' &amp;= -x\sin\theta + y\cos\theta
 Came from the way unit vectors transform<br />
 </p>
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='126.978829pt' height='75.547168pt' viewBox='-70.007476 -70.007471 126.978829 75.547168'>
-<defs>
-<path id='t3b42ec7a-g0-48' d='m2.022416-3.291656c.055791-.118555 .062765-.174346 .062765-.223163c0-.216189-.195268-.383562-.411457-.383562c-.265006 0-.348692 .216189-.383562 .327771l-.920548 3.019676c-.006974 .013948-.034869 .104608-.034869 .111582c0 .083686 .216189 .153425 .27198 .153425c.048817 0 .055791-.013948 .104608-.118555l1.311083-2.887173z'/>
-<path id='t3b42ec7a-g2-18' d='m3.563636-3.396264c0-.732254-.278954-1.513325-.962391-1.513325c-1.046077 0-2.161893 1.868991-2.161893 3.466002c0 .829888 .320797 1.513325 .962391 1.513325c1.060025 0 2.161893-1.903861 2.161893-3.466002zm-2.336239 .850809c.355666-1.506351 .955417-2.168867 1.366874-2.168867c.446326 0 .446326 .774097 .446326 .9066c0 .27198-.055791 .676463-.202242 1.262267h-1.610959zm1.548194 .251059c-.195268 .760149-.355666 1.136737-.564882 1.478456c-.216189 .36264-.495143 .690411-.801993 .690411c-.383562 0-.446326-.530012-.446326-.9066c0-.460274 .132503-1.004234 .202242-1.262267h1.610959z'/>
-<path id='t3b42ec7a-g2-120' d='m1.736488-.739228c-.069738 .237111-.299875 .613699-.655542 .613699c-.020922 0-.230137 0-.376588-.097634c.285928-.09066 .306849-.341719 .306849-.383562c0-.153425-.118555-.258032-.278954-.258032c-.195268 0-.397509 .167372-.397509 .425405c0 .348692 .390535 .509091 .732254 .509091c.320797 0 .606725-.202242 .781071-.495143c.167372 .369614 .550934 .495143 .829888 .495143c.801993 0 1.227397-.871731 1.227397-1.066999c0-.09066-.09066-.09066-.111582-.09066c-.097634 0-.104608 .034869-.132503 .118555c-.146451 .481196-.564882 .843836-.955417 .843836c-.278954 0-.425405-.188294-.425405-.4533c0-.18132 .167372-.81594 .36264-1.590037c.139477-.536986 .4533-.711333 .683437-.711333c.013948 0 .230137 0 .376588 .097634c-.223163 .062765-.306849 .258032-.306849 .383562c0 .153425 .118555 .258032 .278954 .258032s.390535-.132503 .390535-.425405c0-.390535-.446326-.509091-.72528-.509091c-.348692 0-.627646 .230137-.781071 .495143c-.125529-.285928-.446326-.495143-.836862-.495143c-.781071 0-1.227397 .857783-1.227397 1.066999c0 .09066 .097634 .09066 .118555 .09066c.09066 0 .097634-.027895 .132503-.118555c.174346-.54396 .613699-.843836 .955417-.843836c.230137 0 .418431 .125529 .418431 .460274c0 .139477-.083686 .488169-.146451 .72528l-.237111 .955417z'/>
-<path id='t3b42ec7a-g2-121' d='m3.87746-2.629141c.027895-.097634 .027895-.111582 .027895-.153425c0-.139477-.111582-.223163-.230137-.223163c-.076712 0-.209215 .034869-.285928 .167372c-.020922 .041843-.076712 .265006-.111582 .404483l-.146451 .578829c-.041843 .167372-.258032 1.046077-.278954 1.12279c-.006974 0-.313823 .606725-.857783 .606725c-.474222 0-.474222-.4533-.474222-.578829c0-.376588 .160399-.81594 .369614-1.352927c.083686-.223163 .118555-.306849 .118555-.425405c0-.334745-.285928-.592777-.662516-.592777c-.704359 0-1.018182 .948443-1.018182 1.066999c0 .09066 .097634 .09066 .118555 .09066c.097634 0 .104608-.034869 .125529-.111582c.174346-.578829 .474222-.850809 .753176-.850809c.118555 0 .174346 .076712 .174346 .244085c0 .160399-.062765 .313823-.097634 .404483c-.334745 .850809-.404483 1.108842-.404483 1.415691c0 .118555 0 .446326 .27198 .669489c.216189 .18132 .509091 .216189 .697385 .216189c.278954 0 .530012-.104608 .760149-.313823c-.09066 .383562-.167372 .676463-.460274 1.025156c-.188294 .216189-.467248 .446326-.836862 .446326c-.048817 0-.376588 0-.523039-.230137c.376588-.041843 .376588-.376588 .376588-.383562c0-.223163-.202242-.265006-.27198-.265006c-.174346 0-.404483 .139477-.404483 .460274c0 .355666 .334745 .613699 .829888 .613699c.704359 0 1.562142-.54396 1.778331-1.415691l.662516-2.636115z'/>
-<path id='t3b42ec7a-g1-101' d='m1.863014-2.30137c.288917 0 1.026152-.019925 1.524284-.229141c.697385-.298879 .747198-.886675 .747198-1.026152c0-.438356-.37858-.846824-1.066002-.846824c-1.105853 0-2.610212 .966376-2.610212 2.709838c0 1.016189 .587796 1.803238 1.564134 1.803238c1.424658 0 2.261519-1.05604 2.261519-1.175592c0-.059776-.059776-.129514-.119552-.129514c-.049813 0-.069738 .019925-.129514 .099626c-.787049 .986301-1.872976 .986301-1.992528 .986301c-.777086 0-.86675-.836862-.86675-1.155666c0-.119552 .009963-.428394 .159402-1.036115h.52802zm-.468244-.219178c.388543-1.514321 1.414695-1.663761 1.673724-1.663761c.468244 0 .737235 .288917 .737235 .627646c0 1.036115-1.594022 1.036115-2.002491 1.036115h-.408468z'/>
-<path id='t3b42ec7a-g3-94' d='m2.49066-6.914072l-1.334994 1.354919l.179328 .179328l1.155666-1.016189l1.145704 1.016189l.179328-.179328l-1.325031-1.354919z'/>
-</defs>
-<g id='t3b42ec7a-page1'>
-<g stroke-miterlimit='10' transform='translate(-28.267228,-10.280525)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<path d='M 0.0 0.0 L 84.89824 0.0' fill='none'/>
-<g transform='translate(84.89824,0.0)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(25.02997,-11.04659)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-28.267228,-10.280525)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-27.884964' y='-10.280525' xlink:href='#t3b42ec7a-g3-94'/>
-<use x='-28.267228' y='-10.280525' xlink:href='#t3b42ec7a-g1-101'/>
-<use x='-23.628356' y='-8.786144' xlink:href='#t3b42ec7a-g2-120'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 0.0 59.29094' fill='none'/>
-<g transform='matrix(0.0,1.0,-1.0,0.0,0.0,59.29094)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(-14.4187,33.52425)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-28.267228,-10.280525)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-27.884964' y='-10.280525' xlink:href='#t3b42ec7a-g3-94'/>
-<use x='-28.267228' y='-10.280525' xlink:href='#t3b42ec7a-g1-101'/>
-<use x='-23.628356' y='-8.786144' xlink:href='#t3b42ec7a-g2-121'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 55.1575 55.1575' fill='none'/>
-<g transform='matrix(0.7071,0.7071,-0.7071,0.7071,55.1575,55.1575)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(31.98572,19.75334)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-28.267228,-10.280525)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-27.884964' y='-10.280525' xlink:href='#t3b42ec7a-g3-94'/>
-<use x='-28.267228' y='-10.280525' xlink:href='#t3b42ec7a-g1-101'/>
-<use x='-23.628356' y='-8.786144' xlink:href='#t3b42ec7a-g2-120'/>
-<use x='-18.612439' y='-13.895888' xlink:href='#t3b42ec7a-g0-48'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L -39.5084 39.5084' fill='none'/>
-<g transform='matrix(-0.7071,0.7071,-0.7071,-0.7071,-39.5084,39.5084)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(-38.5638,18.15764)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-28.267228,-10.280525)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-27.884964' y='-10.280525' xlink:href='#t3b42ec7a-g3-94'/>
-<use x='-28.267228' y='-10.280525' xlink:href='#t3b42ec7a-g1-101'/>
-<use x='-23.628356' y='-8.786144' xlink:href='#t3b42ec7a-g2-121'/>
-<use x='-18.839569' y='-13.895888' xlink:href='#t3b42ec7a-g0-48'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 22.1931 0.0 C 22.1931 5.88487 19.8541 11.53171 15.6929 15.6929' fill='none'/>
-<g transform='translate(26.44061,6.10536)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-28.267228,-10.280525)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-28.267228' y='-10.280525' xlink:href='#t3b42ec7a-g2-18'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 27.88356 C -7.3938 27.88356 -14.48851 24.94484 -19.71667 19.71667' fill='none'/>
-<g transform='translate(-8.27176,28.86765)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-28.267228,-10.280525)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-28.267228' y='-10.280525' xlink:href='#t3b42ec7a-g2-18'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\begin{tikzpicture}
+\draw[-&gt;] (0,0) -- (3.0,0);
+\node[below] at (1.05,-0.02) {$\hat{e}_x$};
+\draw[-&gt;] (0,0) -- (0,2.1);
+\node[left] at (-0.05,1.25) {$\hat{e}_y$};
+\draw[-&gt;] (0,0) -- (1.95,1.95);
+\node[right] at (1.00,0.80) {$\hat{e}_x{}'$};
+\draw[-&gt;] (0,0) -- (-1.40,1.40);
+\node[left] at (-0.80,0.72) {$\hat{e}_y{}'$};
+\draw (0.78,0) arc (0:45:0.78);
+\node at (1.00,0.30) {\scriptsize $\theta$};
+\draw (0,0.98) arc (90:135:0.98);
+\node at (-0.22,1.10) {\scriptsize $\theta$};
+\end{tikzpicture}
 </pre>
 
 \[
@@ -1466,101 +1284,17 @@ For Galilean result \(c\to\infty\)<br />
 \text{If} \quad V=c, \qquad W = \frac{c-u}{1 - \dfrac{u}{c}} \;=\; c
 \]
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='210.560508pt' height='79.92544pt' viewBox='-70.007476 -70.007478 210.560508 79.92544'>
-<defs>
-<path id='t5ae04418-g0-48' d='m2.022416-3.291656c.055791-.118555 .062765-.174346 .062765-.223163c0-.216189-.195268-.383562-.411457-.383562c-.265006 0-.348692 .216189-.383562 .327771l-.920548 3.019676c-.006974 .013948-.034869 .104608-.034869 .111582c0 .083686 .216189 .153425 .27198 .153425c.048817 0 .055791-.013948 .104608-.118555l1.311083-2.887173z'/>
-<path id='t5ae04418-g1-83' d='m6.425903-6.924035c0-.029888-.019925-.099626-.109589-.099626c-.049813 0-.059776 .009963-.179328 .14944l-.478207 .56787c-.259029-.468244-.777086-.71731-1.424658-.71731c-1.265255 0-2.460772 1.145704-2.460772 2.351183c0 .806974 .52802 1.265255 1.036115 1.414695l1.066002 .278954c.368618 .089664 .916563 .239103 .916563 1.05604c0 .896638-.816936 1.833126-1.793275 1.833126c-.637609 0-1.743462-.219178-1.743462-1.454545c0-.239103 .049813-.478207 .059776-.537983c.009963-.039851 .019925-.049813 .019925-.069738c0-.099626-.069738-.109589-.119552-.109589s-.069738 .009963-.099626 .039851c-.039851 .039851-.597758 2.311333-.597758 2.34122c0 .059776 .049813 .099626 .109589 .099626c.049813 0 .059776-.009963 .179328-.14944l.488169-.56787c.428394 .577833 1.105853 .71731 1.683686 .71731c1.354919 0 2.530511-1.325031 2.530511-2.560399c0-.687422-.33873-1.026152-.488169-1.165629c-.229141-.229141-.37858-.268991-1.265255-.498132c-.219178-.059776-.577833-.159402-.667497-.179328c-.268991-.089664-.607721-.37858-.607721-.9066c0-.806974 .797011-1.653798 1.743462-1.653798c.826899 0 1.43462 .428394 1.43462 1.544209c0 .318804-.039851 .498132-.039851 .557908c0 .009963 0 .099626 .119552 .099626c.099626 0 .109589-.029888 .14944-.199253l.537983-2.181818z'/>
-<path id='t5ae04418-g1-87' d='m9.135741-5.648817c.249066-.438356 .488169-.797011 1.115816-.846824c.089664-.009963 .18929-.009963 .18929-.199253c0-.039851-.039851-.109589-.119552-.109589c-.239103 0-.518057 .029888-.767123 .029888c-.33873 0-.707347-.029888-1.036115-.029888c-.059776 0-.18929 0-.18929 .18929c0 .109589 .089664 .119552 .14944 .119552c.239103 .009963 .587796 .089664 .587796 .388543c0 .109589-.049813 .18929-.129514 .328767l-2.689913 4.692403l-.368618-4.941469c-.009963-.199253-.029888-.458281 .697385-.468244c.169365 0 .268991 0 .268991-.199253c0-.099626-.109589-.109589-.14944-.109589c-.398506 0-.816936 .029888-1.215442 .029888c-.229141 0-.816936-.029888-1.046077-.029888c-.059776 0-.18929 0-.18929 .199253c0 .109589 .099626 .109589 .239103 .109589c.438356 0 .508095 .059776 .52802 .249066l.059776 .767123l-2.520548 4.393524l-.37858-5.051059c0-.119552 0-.348692 .757161-.358655c.099626 0 .209215 0 .209215-.199253c0-.109589-.119552-.109589-.139477-.109589c-.398506 0-.816936 .029888-1.225405 .029888c-.348692 0-.707347-.029888-1.046077-.029888c-.049813 0-.179328 0-.179328 .18929c0 .119552 .089664 .119552 .249066 .119552c.498132 0 .508095 .089664 .52802 .368618l.448319 6.087173c.009963 .179328 .019925 .259029 .159402 .259029c.119552 0 .14944-.059776 .239103-.209215l2.929016-5.080946l.368618 5.031133c.019925 .209215 .039851 .259029 .159402 .259029c.129514 0 .18929-.099626 .239103-.18929l3.267746-5.678705z'/>
-<path id='t5ae04418-g1-117' d='m3.486924-.557908c.109589 .408468 .458281 .667497 .886675 .667497c.348692 0 .577833-.229141 .737235-.547945c.169365-.358655 .298879-.966376 .298879-.986301c0-.099626-.089664-.099626-.119552-.099626c-.099626 0-.109589 .039851-.139477 .179328c-.139477 .557908-.328767 1.235367-.747198 1.235367c-.209215 0-.308842-.129514-.308842-.458281c0-.219178 .119552-.687422 .199253-1.036115l.278954-1.075965c.029888-.14944 .129514-.52802 .169365-.67746c.049813-.229141 .14944-.607721 .14944-.667497c0-.179328-.139477-.268991-.288917-.268991c-.049813 0-.308842 .009963-.388543 .348692c-.18929 .727273-.627646 2.470735-.747198 2.998755c-.009963 .039851-.408468 .836862-1.135741 .836862c-.518057 0-.617684-.448319-.617684-.816936c0-.557908 .278954-1.344956 .537983-2.032379c.119552-.298879 .169365-.438356 .169365-.627646c0-.448319-.318804-.816936-.816936-.816936c-.946451 0-1.315068 1.444583-1.315068 1.534247c0 .099626 .099626 .099626 .119552 .099626c.099626 0 .109589-.019925 .159402-.179328c.249066-.86675 .627646-1.235367 1.006227-1.235367c.089664 0 .249066 .009963 .249066 .328767c0 .239103-.109589 .52802-.169365 .67746c-.368618 .986301-.577833 1.603985-.577833 2.092154c0 .946451 .687422 1.195517 1.225405 1.195517c.657534 0 1.016189-.448319 1.185554-.667497z'/>
-</defs>
-<g id='t5ae04418-page1'>
-<g stroke-miterlimit='10' transform='translate(-69.608977,9.519463)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<g stroke-width='0.8'>
-<path d='M 0.0 65.44139 L 0.0 0.0 L 210.55013 0.0' fill='none'/>
-</g>
-<g transform='translate(3.53297,68.97437)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.608977,9.519463)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.608977' y='9.519463' xlink:href='#t5ae04418-g1-83'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 48.36957 65.44139 L 48.36957 24.185 L 196.32375 24.185' fill='none'/>
-<g transform='translate(51.90254,68.97437)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.608977,9.519463)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.608977' y='9.519463' xlink:href='#t5ae04418-g1-83'/>
-<use x='-62.925715' y='5.904099' xlink:href='#t5ae04418-g0-48'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 48.36957 29.87546 L 64.9814 29.87546' fill='none'/>
-<g transform='translate(64.9814,29.87546)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(68.97437,27.72269)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.608977,9.519463)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.608977' y='9.519463' xlink:href='#t5ae04418-g1-117'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 110.96552 31.86693 M 114.94887 31.86693 C 114.94887 34.0669 113.16548 35.85028 110.96552 35.85028 C 108.76555 35.85028 106.98216 34.0669 106.98216 31.86693 C 106.98216 29.66696 108.76555 27.88358 110.96552 27.88358 C 113.16548 27.88358 114.94887 29.66696 114.94887 31.86693 Z M 110.96552 31.86693' fill='none'/>
-<path d='M 116.65642 29.87546 L 134.69054 29.87546' fill='none'/>
-<g transform='translate(134.69054,29.87546)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(138.6835,26.4588)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.608977,9.519463)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.608977' y='9.519463' xlink:href='#t5ae04418-g1-87'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 110.96552 22.76227 L 110.96552 27.42357' fill='none'/>
-<g transform='matrix(0.0,1.0,-1.0,0.0,110.96552,27.42357)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\begin{tikzpicture}
+\draw[thick] (0,2.3) -- (0,0) -- (7.4,0);
+\node[above right] at (0,2.3) {$S$};
+\draw (1.7,2.3) -- (1.7,0.85) -- (6.9,0.85);
+\node[above right] at (1.7,2.3) {$S'$};
+\draw[-&gt;] (1.7,1.05) -- (2.3,1.05) node[right] {$u$};
+\draw (3.9,1.12) circle (0.14);
+\draw[-&gt;] (4.1,1.05) -- (4.75,1.05) node[right] {$W$};
+\draw[-&gt;] (3.9,0.80) -- (3.9,0.98);
+\end{tikzpicture}
 </pre>
 
 <p>
@@ -1613,187 +1347,26 @@ If \(\Delta t = 0\) (simultaneous in `\(S\)' frame)<br />
 This implies that<br />
 </p>
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='295.599841pt' height='79.084274pt' viewBox='-70.007476 -70.007472 295.599841 79.084274'>
-<defs>
-<path id='t4fd825ce-g5-49' d='m1.982565-3.16812c0-.14944-.014944-.14944-.179328-.14944c-.353674 .318804-.9066 .318804-1.006227 .318804h-.084682v.219178h.084682c.11457 0 .438356-.014944 .727273-.139477v2.49066c0 .154421 0 .209215-.52802 .209215h-.249066v.219178c.273973-.019925 .71731-.019925 1.006227-.019925s.732254 0 1.006227 .019925v-.219178h-.249066c-.52802 0-.52802-.054795-.52802-.209215v-2.739726z'/>
-<path id='t4fd825ce-g5-50' d='m2.933998-.961395h-.209215c-.014944 .094645-.064757 .403487-.144458 .4533c-.039851 .029888-.458281 .029888-.533001 .029888h-.976339c.328767-.244085 .697385-.523039 .996264-.722291c.448319-.308842 .86675-.597758 .86675-1.125778c0-.637609-.60274-.991283-1.315068-.991283c-.672478 0-1.165629 .388543-1.165629 .876712c0 .259029 .219178 .303861 .288917 .303861c.134496 0 .293898-.089664 .293898-.293898c0-.179328-.129514-.278954-.283935-.293898c.139477-.224159 .428394-.373599 .762142-.373599c.483188 0 .886675 .288917 .886675 .777086c0 .418431-.288917 .737235-.672478 1.061021l-1.215442 1.031133c-.049813 .044832-.054795 .044832-.059776 .079701v.14944h2.316314l.164384-.961395z'/>
-<path id='t4fd825ce-g1-48' d='m1.793275-2.316314c.004981-.004981 .049813-.099626 .049813-.174346c0-.179328-.159402-.293898-.308842-.293898c-.204234 0-.259029 .154421-.283935 .229141l-.767123 2.156912c-.019925 .059776-.019925 .07472-.019925 .079701c0 .079701 .209215 .129514 .214197 .129514c.044832 0 .054795-.024907 .084682-.084682l1.031133-2.042341z'/>
-<path id='t4fd825ce-g3-59' d='m1.471482-.111582c0 .383562-.069738 .829888-.54396 1.276214c-.027895 .027895-.048817 .048817-.048817 .083686c0 .048817 .055791 .097634 .097634 .097634c.097634 0 .690411-.557908 .690411-1.387796c0-.432379-.167372-.760149-.488169-.760149c-.230137 0-.397509 .18132-.397509 .397509c0 .223163 .160399 .404483 .404483 .404483c.167372 0 .278954-.111582 .285928-.111582z'/>
-<path id='t4fd825ce-g3-116' d='m1.715567-2.75467h.711333c.132503 0 .223163 0 .223163-.153425c0-.097634-.09066-.097634-.209215-.097634h-.662516l.258032-1.03213c.006974-.034869 .020922-.069738 .020922-.097634c0-.125529-.097634-.223163-.237111-.223163c-.174346 0-.278954 .118555-.327771 .299875c-.048817 .174346 .041843-.160399-.265006 1.053051h-.711333c-.132503 0-.223163 0-.223163 .153425c0 .097634 .083686 .097634 .209215 .097634h.662516l-.411457 1.645828c-.041843 .174346-.104608 .425405-.104608 .516065c0 .411457 .348692 .662516 .746202 .662516c.774097 0 1.21345-.976339 1.21345-1.066999s-.09066-.09066-.111582-.09066c-.083686 0-.09066 .013948-.146451 .132503c-.195268 .439352-.550934 .829888-.934496 .829888c-.146451 0-.244085-.09066-.244085-.341719c0-.069738 .027895-.216189 .041843-.285928l.502117-2.001494z'/>
-<path id='t4fd825ce-g3-120' d='m1.736488-.739228c-.069738 .237111-.299875 .613699-.655542 .613699c-.020922 0-.230137 0-.376588-.097634c.285928-.09066 .306849-.341719 .306849-.383562c0-.153425-.118555-.258032-.278954-.258032c-.195268 0-.397509 .167372-.397509 .425405c0 .348692 .390535 .509091 .732254 .509091c.320797 0 .606725-.202242 .781071-.495143c.167372 .369614 .550934 .495143 .829888 .495143c.801993 0 1.227397-.871731 1.227397-1.066999c0-.09066-.09066-.09066-.111582-.09066c-.097634 0-.104608 .034869-.132503 .118555c-.146451 .481196-.564882 .843836-.955417 .843836c-.278954 0-.425405-.188294-.425405-.4533c0-.18132 .167372-.81594 .36264-1.590037c.139477-.536986 .4533-.711333 .683437-.711333c.013948 0 .230137 0 .376588 .097634c-.223163 .062765-.306849 .258032-.306849 .383562c0 .153425 .118555 .258032 .278954 .258032s.390535-.132503 .390535-.425405c0-.390535-.446326-.509091-.72528-.509091c-.348692 0-.627646 .230137-.781071 .495143c-.125529-.285928-.446326-.495143-.836862-.495143c-.781071 0-1.227397 .857783-1.227397 1.066999c0 .09066 .097634 .09066 .118555 .09066c.09066 0 .097634-.027895 .132503-.118555c.174346-.54396 .613699-.843836 .955417-.843836c.230137 0 .418431 .125529 .418431 .460274c0 .139477-.083686 .488169-.146451 .72528l-.237111 .955417z'/>
-<path id='t4fd825ce-g4-40' d='m2.475716-5.230386c-1.325031 .934496-1.673724 2.412951-1.673724 3.47995c0 .983313 .292902 2.510585 1.673724 3.486924c.055791 0 .139477 0 .139477-.083686c0-.041843-.020922-.055791-.069738-.104608c-.927522-.836862-1.26924-2.022416-1.26924-3.291656c0-1.882939 .718306-2.803487 1.290162-3.319552c.027895-.027895 .048817-.048817 .048817-.083686c0-.083686-.083686-.083686-.139477-.083686z'/>
-<path id='t4fd825ce-g4-41' d='m.627646-5.230386c-.048817 0-.132503 0-.132503 .083686c0 .034869 .020922 .055791 .062765 .104608c.599751 .550934 1.26924 1.492403 1.26924 3.291656c0 1.457534-.4533 2.559402-1.206476 3.242839c-.118555 .118555-.125529 .125529-.125529 .160399s.020922 .083686 .09066 .083686c.083686 0 .746202-.460274 1.206476-1.332005c.306849-.578829 .509091-1.332005 .509091-2.147945c0-.983313-.292902-2.510585-1.673724-3.486924z'/>
-<path id='t4fd825ce-g4-49' d='m2.336239-4.435367c0-.188294-.013948-.195268-.209215-.195268c-.446326 .439352-1.080946 .446326-1.366874 .446326v.251059c.167372 0 .627646 0 1.011208-.195268v3.556663c0 .230137 0 .320797-.697385 .320797h-.265006v.251059c.125529-.006974 .983313-.027895 1.241345-.027895c.216189 0 1.094894 .020922 1.248319 .027895v-.251059h-.265006c-.697385 0-.697385-.09066-.697385-.320797v-3.863512z'/>
-<path id='t4fd825ce-g4-50' d='m3.521793-1.26924h-.237111c-.020922 .153425-.09066 .564882-.18132 .63462c-.055791 .041843-.592777 .041843-.690411 .041843h-1.283188c.732254-.648568 .976339-.843836 1.39477-1.171606c.516065-.411457 .99726-.843836 .99726-1.506351c0-.843836-.739228-1.3599-1.63188-1.3599c-.864757 0-1.45056 .606725-1.45056 1.248319c0 .355666 .299875 .390535 .369614 .390535c.167372 0 .369614-.118555 .369614-.369614c0-.125529-.048817-.369614-.411457-.369614c.216189-.495143 .690411-.648568 1.018182-.648568c.697385 0 1.060025 .54396 1.060025 1.108842c0 .606725-.432379 1.08792-.655542 1.338979l-1.680697 1.659776c-.069738 .062765-.069738 .076712-.069738 .27198h2.873225l.209215-1.26924z'/>
-<path id='t4fd825ce-g4-99' d='m2.712827-2.782565c-.125529 .055791-.195268 .167372-.195268 .306849c0 .188294 .132503 .327771 .327771 .327771c.188294 0 .334745-.118555 .334745-.341719c0-.620672-.969365-.620672-1.164633-.620672c-1.046077 0-1.694645 .801993-1.694645 1.603985c0 .878705 .746202 1.57609 1.659776 1.57609c1.039103 0 1.283188-.822914 1.283188-.9066s-.09066-.083686-.118555-.083686c-.09066 0-.097634 .020922-.132503 .118555c-.153425 .432379-.523039 .648568-.948443 .648568c-.481196 0-1.108842-.355666-1.108842-1.3599c0-.885679 .432379-1.373848 1.080946-1.373848c.09066 0 .425405 0 .676463 .104608z'/>
-<path id='t4fd825ce-g4-101' d='m3.068493-1.590037c.146451 0 .195268 0 .195268-.153425c0-.613699-.341719-1.366874-1.380822-1.366874c-.913574 0-1.610959 .72528-1.610959 1.583064c0 .885679 .774097 1.597011 1.701619 1.597011c.941469 0 1.290162-.753176 1.290162-.9066c0-.027895-.013948-.097634-.118555-.097634c-.09066 0-.104608 .041843-.125529 .111582c-.216189 .564882-.746202 .669489-.99726 .669489c-.327771 0-.641594-.146451-.850809-.411457c-.258032-.327771-.265006-.753176-.265006-1.025156h2.161893zm-2.154919-.18132c.076712-.983313 .704359-1.143711 .969365-1.143711c.857783 0 .885679 .969365 .892653 1.143711h-1.862017z'/>
-<path id='t4fd825ce-g4-103' d='m1.004234-1.241345c.104608 .062765 .355666 .216189 .760149 .216189c.718306 0 1.241345-.481196 1.241345-1.025156c0-.27198-.125529-.488169-.292902-.669489c.313823-.223163 .585803-.230137 .704359-.230137c-.027895 .027895-.062765 .055791-.062765 .167372c0 .139477 .104608 .223163 .223163 .223163c.097634 0 .223163-.069738 .223163-.230137s-.132503-.355666-.411457-.355666c-.104608 0-.481196 .020922-.808966 .320797c-.209215-.153425-.502117-.251059-.808966-.251059c-.718306 0-1.241345 .481196-1.241345 1.025156c0 .27198 .139477 .523039 .334745 .704359c-.055791 .062765-.209215 .292902-.209215 .564882c0 .09066 .020922 .418431 .292902 .620672c-.313823 .104608-.676463 .334745-.676463 .697385c0 .509091 .767123 .892653 1.708593 .892653c.885679 0 1.708593-.348692 1.708593-.9066c0-.209215-.083686-.585803-.467248-.795019c-.411457-.216189-.822914-.216189-1.499377-.216189c-.153425 0-.404483 0-.460274-.006974c-.223163-.048817-.348692-.258032-.348692-.460274c0-.174346 .048817-.230137 .09066-.285928zm.767123 .006974c-.683437 0-.683437-.669489-.683437-.81594c0-.111582 0-.390535 .139477-.571856c.097634-.118555 .285928-.244085 .536986-.244085c.683437 0 .683437 .669489 .683437 .81594c0 .111582 0 .390535-.139477 .571856c-.097634 .118555-.285928 .244085-.536986 .244085zm0 1.21345c.620672 0 1.492403 0 1.492403 .550934c0 .369614-.550934 .690411-1.283188 .690411s-1.283188-.327771-1.283188-.690411c0-.244085 .223163-.54396 .669489-.550934h.404483z'/>
-<path id='t4fd825ce-g4-105' d='m1.471482-4.302864c0-.202242-.167372-.397509-.404483-.397509c-.209215 0-.397509 .167372-.397509 .397509c0 .251059 .202242 .404483 .397509 .404483c.223163 0 .404483-.174346 .404483-.404483zm-1.060025 1.30411v.251059c.439352 0 .502117 .041843 .502117 .383562v1.8132c0 .299875-.069738 .299875-.523039 .299875v.251059c.013948 0 .502117-.027895 .781071-.027895c.244085 0 .495143 .006974 .739228 .027895v-.251059c-.404483 0-.474222 0-.474222-.292902v-2.531507l-1.025156 .076712z'/>
-<path id='t4fd825ce-g4-107' d='m2.252553-1.889913c.857783-.662516 1.08792-.850809 1.569116-.864757v-.251059c-.146451 .013948-.327771 .027895-.474222 .027895c-.278954 0-.557908-.006974-.836862-.027895v.251059c.09066 .013948 .125529 .069738 .125529 .125529c0 .111582-.132503 .244085-.216189 .306849l-1.03213 .795019v-3.312578l-1.046077 .076712v.251059c.467248 0 .523039 .048817 .523039 .390535v3.57061c0 .299875-.069738 .299875-.523039 .299875v.251059c.258032-.020922 .516065-.027895 .774097-.027895s.516065 .006974 .774097 .027895v-.251059c-.4533 0-.523039 0-.523039-.299875v-.662516l.502117-.390535l.760149 .941469c.076712 .09066 .160399 .195268 .160399 .285928c0 .111582-.125529 .125529-.195268 .125529v.251059c.09066-.006974 .585803-.027895 .788045-.027895s.404483 .013948 .606725 .027895v-.251059c-.258032 0-.411457-.020922-.613699-.265006l-1.12279-1.373848z'/>
-<path id='t4fd825ce-g4-108' d='m1.436613-4.839851l-1.046077 .076712v.251059c.467248 0 .523039 .048817 .523039 .390535v3.57061c0 .299875-.069738 .299875-.523039 .299875v.251059c.013948 0 .502117-.027895 .781071-.027895c.265006 0 .523039 .006974 .788045 .027895v-.251059c-.4533 0-.523039 0-.523039-.299875v-4.288917z'/>
-<path id='t4fd825ce-g4-110' d='m3.591532-2.113076c0-.606725-.299875-.962391-1.046077-.962391c-.571856 0-.941469 .313823-1.136737 .676463h-.006974v-.676463l-1.025156 .076712v.251059c.467248 0 .523039 .048817 .523039 .390535v1.806227c0 .299875-.069738 .299875-.523039 .299875v.251059c.013948 0 .502117-.027895 .795019-.027895c.258032 0 .739228 .020922 .801993 .027895v-.251059c-.4533 0-.523039 0-.523039-.299875v-1.255293c0-.732254 .578829-1.073973 1.039103-1.073973c.488169 0 .550934 .383562 .550934 .739228v1.590037c0 .299875-.069738 .299875-.523039 .299875v.251059c.013948 0 .502117-.027895 .795019-.027895c.258032 0 .739228 .020922 .801993 .027895v-.251059c-.4533 0-.523039 0-.523039-.299875v-1.562142z'/>
-<path id='t4fd825ce-g4-111' d='m3.689166-1.48543c0-.871731-.746202-1.624907-1.708593-1.624907s-1.708593 .753176-1.708593 1.624907c0 .864757 .767123 1.555168 1.708593 1.555168s1.708593-.690411 1.708593-1.555168zm-1.708593 1.332005c-.258032 0-.63462-.083686-.864757-.425405c-.188294-.285928-.209215-.648568-.209215-.969365c0-.299875 .006974-.711333 .251059-1.011208c.174346-.202242 .467248-.355666 .822914-.355666c.411457 0 .704359 .195268 .857783 .411457c.195268 .27198 .216189 .620672 .216189 .955417s-.020922 .704359-.223163 .990286c-.188294 .265006-.509091 .404483-.850809 .404483z'/>
-<path id='t4fd825ce-g0-48' d='m2.022416-3.291656c.055791-.118555 .062765-.174346 .062765-.223163c0-.216189-.195268-.383562-.411457-.383562c-.265006 0-.348692 .216189-.383562 .327771l-.920548 3.019676c-.006974 .013948-.034869 .104608-.034869 .111582c0 .083686 .216189 .153425 .27198 .153425c.048817 0 .055791-.013948 .104608-.118555l1.311083-2.887173z'/>
-<path id='t4fd825ce-g2-83' d='m6.425903-6.924035c0-.029888-.019925-.099626-.109589-.099626c-.049813 0-.059776 .009963-.179328 .14944l-.478207 .56787c-.259029-.468244-.777086-.71731-1.424658-.71731c-1.265255 0-2.460772 1.145704-2.460772 2.351183c0 .806974 .52802 1.265255 1.036115 1.414695l1.066002 .278954c.368618 .089664 .916563 .239103 .916563 1.05604c0 .896638-.816936 1.833126-1.793275 1.833126c-.637609 0-1.743462-.219178-1.743462-1.454545c0-.239103 .049813-.478207 .059776-.537983c.009963-.039851 .019925-.049813 .019925-.069738c0-.099626-.069738-.109589-.119552-.109589s-.069738 .009963-.099626 .039851c-.039851 .039851-.597758 2.311333-.597758 2.34122c0 .059776 .049813 .099626 .109589 .099626c.049813 0 .059776-.009963 .179328-.14944l.488169-.56787c.428394 .577833 1.105853 .71731 1.683686 .71731c1.354919 0 2.530511-1.325031 2.530511-2.560399c0-.687422-.33873-1.026152-.488169-1.165629c-.229141-.229141-.37858-.268991-1.265255-.498132c-.219178-.059776-.577833-.159402-.667497-.179328c-.268991-.089664-.607721-.37858-.607721-.9066c0-.806974 .797011-1.653798 1.743462-1.653798c.826899 0 1.43462 .428394 1.43462 1.544209c0 .318804-.039851 .498132-.039851 .557908c0 .009963 0 .099626 .119552 .099626c.099626 0 .109589-.029888 .14944-.199253l.537983-2.181818z'/>
-<path id='t4fd825ce-g2-116' d='m2.052304-3.985056h.936488c.199253 0 .298879 0 .298879-.199253c0-.109589-.099626-.109589-.278954-.109589h-.876712c.358655-1.414695 .408468-1.613948 .408468-1.673724c0-.169365-.119552-.268991-.288917-.268991c-.029888 0-.308842 .009963-.398506 .358655l-.388543 1.58406h-.936488c-.199253 0-.298879 0-.298879 .18929c0 .119552 .079701 .119552 .278954 .119552h.876712c-.71731 2.82939-.757161 2.998755-.757161 3.178082c0 .537983 .37858 .916563 .916563 .916563c1.016189 0 1.58406-1.454545 1.58406-1.534247c0-.099626-.079701-.099626-.119552-.099626c-.089664 0-.099626 .029888-.14944 .139477c-.428394 1.036115-.956413 1.275218-1.295143 1.275218c-.209215 0-.308842-.129514-.308842-.458281c0-.239103 .019925-.308842 .059776-.478207l.737235-2.938979z'/>
-<path id='t4fd825ce-g2-117' d='m3.486924-.557908c.109589 .408468 .458281 .667497 .886675 .667497c.348692 0 .577833-.229141 .737235-.547945c.169365-.358655 .298879-.966376 .298879-.986301c0-.099626-.089664-.099626-.119552-.099626c-.099626 0-.109589 .039851-.139477 .179328c-.139477 .557908-.328767 1.235367-.747198 1.235367c-.209215 0-.308842-.129514-.308842-.458281c0-.219178 .119552-.687422 .199253-1.036115l.278954-1.075965c.029888-.14944 .129514-.52802 .169365-.67746c.049813-.229141 .14944-.607721 .14944-.667497c0-.179328-.139477-.268991-.288917-.268991c-.049813 0-.308842 .009963-.388543 .348692c-.18929 .727273-.627646 2.470735-.747198 2.998755c-.009963 .039851-.408468 .836862-1.135741 .836862c-.518057 0-.617684-.448319-.617684-.816936c0-.557908 .278954-1.344956 .537983-2.032379c.119552-.298879 .169365-.438356 .169365-.627646c0-.448319-.318804-.816936-.816936-.816936c-.946451 0-1.315068 1.444583-1.315068 1.534247c0 .099626 .099626 .099626 .119552 .099626c.099626 0 .109589-.019925 .159402-.179328c.249066-.86675 .627646-1.235367 1.006227-1.235367c.089664 0 .249066 .009963 .249066 .328767c0 .239103-.109589 .52802-.169365 .67746c-.368618 .986301-.577833 1.603985-.577833 2.092154c0 .946451 .687422 1.195517 1.225405 1.195517c.657534 0 1.016189-.448319 1.185554-.667497z'/>
-<path id='t4fd825ce-g2-120' d='m3.327522-3.008717c.059776-.259029 .288917-1.175592 .986301-1.175592c.049813 0 .288917 0 .498132 .129514c-.278954 .049813-.478207 .298879-.478207 .537983c0 .159402 .109589 .348692 .37858 .348692c.219178 0 .537983-.179328 .537983-.577833c0-.518057-.587796-.657534-.926526-.657534c-.577833 0-.926526 .52802-1.046077 .757161c-.249066-.657534-.787049-.757161-1.075965-.757161c-1.036115 0-1.603985 1.285181-1.603985 1.534247c0 .099626 .099626 .099626 .119552 .099626c.079701 0 .109589-.019925 .129514-.109589c.33873-1.05604 .996264-1.305106 1.334994-1.305106c.18929 0 .537983 .089664 .537983 .667497c0 .308842-.169365 .976339-.537983 2.371108c-.159402 .617684-.508095 1.036115-.946451 1.036115c-.059776 0-.288917 0-.498132-.129514c.249066-.049813 .468244-.259029 .468244-.537983c0-.268991-.219178-.348692-.368618-.348692c-.298879 0-.547945 .259029-.547945 .577833c0 .458281 .498132 .657534 .936488 .657534c.657534 0 1.016189-.697385 1.046077-.757161c.119552 .368618 .478207 .757161 1.075965 .757161c1.026152 0 1.594022-1.285181 1.594022-1.534247c0-.099626-.089664-.099626-.119552-.099626c-.089664 0-.109589 .039851-.129514 .109589c-.328767 1.066002-1.006227 1.305106-1.325031 1.305106c-.388543 0-.547945-.318804-.547945-.657534c0-.219178 .059776-.438356 .169365-.876712l.33873-1.364882z'/>
-</defs>
-<g id='t4fd825ce-page1'>
-<g stroke-miterlimit='10' transform='translate(-69.608977,-.401966)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<g stroke-width='0.8'>
-<path d='M 0.0 55.48276 L 0.0 15.6491 L 295.90836 15.6491' fill='none'/>
-</g>
-<g transform='translate(3.53297,59.01573)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.608977,-.401966)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.608977' y='-.401966' xlink:href='#t4fd825ce-g2-83'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 38.41138 55.48276 L 38.41138 33.57402 L 241.84831 33.57402' fill='none'/>
-<g transform='translate(41.94435,59.01573)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.608977,-.401966)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.608977' y='-.401966' xlink:href='#t4fd825ce-g2-83'/>
-<use x='-62.925715' y='-4.017329' xlink:href='#t4fd825ce-g0-48'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 38.41138 43.24829 L 55.02277 43.24829' fill='none'/>
-<g transform='translate(55.02277,43.24829)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(59.01573,41.09552)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.608977,-.401966)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.608977' y='-.401966' xlink:href='#t4fd825ce-g2-117'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 241.84831 33.57402 L 241.84831 56.90549 L 280.25969 51.21501 L 280.25969 31.29819 Z' fill='none'/>
-<g transform='translate(250.0987,42.4282)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.608977,-.401966)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.608977' y='-.401966' xlink:href='#t4fd825ce-g4-101'/>
-<use x='-66.066685' y='-.401966' xlink:href='#t4fd825ce-g4-110'/>
-<use x='-61.666496' y='-.401966' xlink:href='#t4fd825ce-g4-103'/>
-<use x='-57.695255' y='-.401966' xlink:href='#t4fd825ce-g4-105'/>
-<use x='-55.43981' y='-.401966' xlink:href='#t4fd825ce-g4-110'/>
-<use x='-51.03962' y='-.401966' xlink:href='#t4fd825ce-g4-101'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 81.09048 29.87546 M 85.35822 29.87546 C 85.35822 32.23248 83.44751 34.14319 81.09048 34.14319 C 78.73346 34.14319 76.82275 32.23248 76.82275 29.87546 C 76.82275 27.51843 78.73346 25.60773 81.09048 25.60773 C 83.44751 25.60773 85.35822 27.51843 85.35822 29.87546 Z M 81.09048 29.87546' fill='none'/>
-<g transform='translate(54.58885,26.30656)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.608977,-.401966)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.608977' y='-.401966' xlink:href='#t4fd825ce-g4-99'/>
-<use x='-66.066685' y='-.401966' xlink:href='#t4fd825ce-g4-108'/>
-<use x='-63.811239' y='-.401966' xlink:href='#t4fd825ce-g4-111'/>
-<use x='-59.625532' y='-.401966' xlink:href='#t4fd825ce-g4-99'/>
-<use x='-56.297722' y='-.401966' xlink:href='#t4fd825ce-g4-107'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 197.74648 29.87546 M 202.0142 29.87546 C 202.0142 32.23248 200.1035 34.14319 197.74648 34.14319 C 195.38945 34.14319 193.47874 32.23248 193.47874 29.87546 C 193.47874 27.51843 195.38945 25.60773 197.74648 25.60773 C 200.1035 25.60773 202.0142 27.51843 202.0142 29.87546 Z M 197.74648 29.87546' fill='none'/>
-<g transform='translate(171.24484,26.30656)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.608977,-.401966)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.608977' y='-.401966' xlink:href='#t4fd825ce-g4-99'/>
-<use x='-66.066685' y='-.401966' xlink:href='#t4fd825ce-g4-108'/>
-<use x='-63.811239' y='-.401966' xlink:href='#t4fd825ce-g4-111'/>
-<use x='-59.625532' y='-.401966' xlink:href='#t4fd825ce-g4-99'/>
-<use x='-56.297722' y='-.401966' xlink:href='#t4fd825ce-g4-107'/>
-</g>
-</g>
-</g>
-</g>
-<g transform='translate(96.86723,44.1955)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.608977,-.401966)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.608977' y='-.401966' xlink:href='#t4fd825ce-g4-40'/>
-<use x='-66.495634' y='-.401966' xlink:href='#t4fd825ce-g3-120'/>
-<use x='-61.977832' y='-3.408483' xlink:href='#t4fd825ce-g1-48'/>
-<use x='-61.977832' y='1.590547' xlink:href='#t4fd825ce-g5-49'/>
-<use x='-58.089581' y='-.401966' xlink:href='#t4fd825ce-g3-59'/>
-<use x='-54.362804' y='-.401966' xlink:href='#t4fd825ce-g3-116'/>
-<use x='-51.353233' y='-3.408483' xlink:href='#t4fd825ce-g1-48'/>
-<use x='-51.353233' y='1.590547' xlink:href='#t4fd825ce-g5-49'/>
-<use x='-47.464982' y='-.401966' xlink:href='#t4fd825ce-g4-41'/>
-</g>
-</g>
-</g>
-</g>
-<g transform='translate(207.83276,44.1955)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.608977,-.401966)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.608977' y='-.401966' xlink:href='#t4fd825ce-g4-40'/>
-<use x='-66.495634' y='-.401966' xlink:href='#t4fd825ce-g3-120'/>
-<use x='-61.977832' y='-3.408483' xlink:href='#t4fd825ce-g1-48'/>
-<use x='-61.977832' y='1.590547' xlink:href='#t4fd825ce-g5-50'/>
-<use x='-58.089581' y='-.401966' xlink:href='#t4fd825ce-g3-59'/>
-<use x='-54.362804' y='-.401966' xlink:href='#t4fd825ce-g3-116'/>
-<use x='-51.353233' y='-3.408483' xlink:href='#t4fd825ce-g1-48'/>
-<use x='-51.353233' y='1.590547' xlink:href='#t4fd825ce-g5-50'/>
-<use x='-47.464982' y='-.401966' xlink:href='#t4fd825ce-g4-41'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 92.4714 15.6491 M 93.77141 15.6491 C 93.77141 16.36707 93.18938 16.9491 92.4714 16.9491 C 91.75343 16.9491 91.1714 16.36707 91.1714 15.6491 C 91.1714 14.93112 91.75343 14.34909 92.4714 14.34909 C 93.18938 14.34909 93.77141 14.93112 93.77141 15.6491 Z M 92.4714 15.6491' stroke='none'/>
-<g transform='translate(87.37071,-6.18134)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.608977,-.401966)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.608977' y='-12.357134' xlink:href='#t4fd825ce-g2-120'/>
-<use x='-63.915045' y='-10.862753' xlink:href='#t4fd825ce-g4-49'/>
-<use x='-66.326137' y='-.401966' xlink:href='#t4fd825ce-g2-116'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 206.28238 15.6491 M 207.58238 15.6491 C 207.58238 16.36707 207.00035 16.9491 206.28238 16.9491 C 205.5644 16.9491 204.98238 16.36707 204.98238 15.6491 C 204.98238 14.93112 205.5644 14.34909 206.28238 14.34909 C 207.00035 14.34909 207.58238 14.93112 207.58238 15.6491 Z M 206.28238 15.6491' stroke='none'/>
-<g transform='translate(201.18169,-6.18134)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.608977,-.401966)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.608977' y='-12.357134' xlink:href='#t4fd825ce-g2-120'/>
-<use x='-63.915045' y='-10.862753' xlink:href='#t4fd825ce-g4-50'/>
-<use x='-66.326137' y='-.401966' xlink:href='#t4fd825ce-g2-116'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\begin{tikzpicture}
+\draw[thick] (0,1.95) -- (0,0.55) -- (10.4,0.55);
+\node[above right] at (0,1.95) {$S$};
+\draw (1.35,1.95) -- (1.35,1.18) -- (8.5,1.18);
+\node[above right] at (1.35,1.95) {$S'$};
+\draw[-&gt;] (1.35,1.52) -- (1.95,1.52) node[right] {$u$};
+\draw (8.5,1.18) -- (8.5,2.00) -- (9.85,1.80) -- (9.85,1.10) -- cycle;
+\node at (9.18,1.55) {\scriptsize engine};
+\draw (2.85,1.05) circle (0.15);
+\node[left] at (2.66,1.01) {\scriptsize clock};
+\draw (6.95,1.05) circle (0.15);
+\node[left] at (6.76,1.01) {\scriptsize clock};
+\node at (3.85,1.62) {\scriptsize $(x_1',t_1')$};
+\node at (7.75,1.62) {\scriptsize $(x_2',t_2')$};
+\fill (3.25,0.55) circle (1.3pt);
+\node[below,align=center] at (3.25,0.48) {$x_1$\\$t$};
+\fill (7.25,0.55) circle (1.3pt);
+\node[below,align=center] at (7.25,0.48) {$x_2$\\$t$};
+\end{tikzpicture}
 </pre>
 
 \[
@@ -1832,107 +1405,24 @@ Or we can check,<br />
 Or consider an example :-<br />
 </p>
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='289.93064pt' height='84.177225pt' viewBox='-70.007476 -70.007477 289.93064 84.177225'>
-<defs>
-<path id='t0afc8d7e-g0-48' d='m2.022416-3.291656c.055791-.118555 .062765-.174346 .062765-.223163c0-.216189-.195268-.383562-.411457-.383562c-.265006 0-.348692 .216189-.383562 .327771l-.920548 3.019676c-.006974 .013948-.034869 .104608-.034869 .111582c0 .083686 .216189 .153425 .27198 .153425c.048817 0 .055791-.013948 .104608-.118555l1.311083-2.887173z'/>
-<path id='t0afc8d7e-g1-83' d='m6.425903-6.924035c0-.029888-.019925-.099626-.109589-.099626c-.049813 0-.059776 .009963-.179328 .14944l-.478207 .56787c-.259029-.468244-.777086-.71731-1.424658-.71731c-1.265255 0-2.460772 1.145704-2.460772 2.351183c0 .806974 .52802 1.265255 1.036115 1.414695l1.066002 .278954c.368618 .089664 .916563 .239103 .916563 1.05604c0 .896638-.816936 1.833126-1.793275 1.833126c-.637609 0-1.743462-.219178-1.743462-1.454545c0-.239103 .049813-.478207 .059776-.537983c.009963-.039851 .019925-.049813 .019925-.069738c0-.099626-.069738-.109589-.119552-.109589s-.069738 .009963-.099626 .039851c-.039851 .039851-.597758 2.311333-.597758 2.34122c0 .059776 .049813 .099626 .109589 .099626c.049813 0 .059776-.009963 .179328-.14944l.488169-.56787c.428394 .577833 1.105853 .71731 1.683686 .71731c1.354919 0 2.530511-1.325031 2.530511-2.560399c0-.687422-.33873-1.026152-.488169-1.165629c-.229141-.229141-.37858-.268991-1.265255-.498132c-.219178-.059776-.577833-.159402-.667497-.179328c-.268991-.089664-.607721-.37858-.607721-.9066c0-.806974 .797011-1.653798 1.743462-1.653798c.826899 0 1.43462 .428394 1.43462 1.544209c0 .318804-.039851 .498132-.039851 .557908c0 .009963 0 .099626 .119552 .099626c.099626 0 .109589-.029888 .14944-.199253l.537983-2.181818z'/>
-<path id='t0afc8d7e-g1-99' d='m3.945205-3.785803c-.159402 0-.298879 0-.438356 .139477c-.159402 .14944-.179328 .318804-.179328 .388543c0 .239103 .179328 .348692 .368618 .348692c.288917 0 .557908-.239103 .557908-.637609c0-.488169-.468244-.856787-1.175592-.856787c-1.344956 0-2.669988 1.424658-2.669988 2.82939c0 .896638 .577833 1.683686 1.613948 1.683686c1.424658 0 2.261519-1.05604 2.261519-1.175592c0-.059776-.059776-.129514-.119552-.129514c-.049813 0-.069738 .019925-.129514 .099626c-.787049 .986301-1.872976 .986301-1.992528 .986301c-.627646 0-.896638-.488169-.896638-1.085928c0-.408468 .199253-1.374844 .537983-1.992528c.308842-.56787 .856787-.996264 1.404732-.996264c.33873 0 .71731 .129514 .856787 .398506z'/>
-<path id='t0afc8d7e-g1-117' d='m3.486924-.557908c.109589 .408468 .458281 .667497 .886675 .667497c.348692 0 .577833-.229141 .737235-.547945c.169365-.358655 .298879-.966376 .298879-.986301c0-.099626-.089664-.099626-.119552-.099626c-.099626 0-.109589 .039851-.139477 .179328c-.139477 .557908-.328767 1.235367-.747198 1.235367c-.209215 0-.308842-.129514-.308842-.458281c0-.219178 .119552-.687422 .199253-1.036115l.278954-1.075965c.029888-.14944 .129514-.52802 .169365-.67746c.049813-.229141 .14944-.607721 .14944-.667497c0-.179328-.139477-.268991-.288917-.268991c-.049813 0-.308842 .009963-.388543 .348692c-.18929 .727273-.627646 2.470735-.747198 2.998755c-.009963 .039851-.408468 .836862-1.135741 .836862c-.518057 0-.617684-.448319-.617684-.816936c0-.557908 .278954-1.344956 .537983-2.032379c.119552-.298879 .169365-.438356 .169365-.627646c0-.448319-.318804-.816936-.816936-.816936c-.946451 0-1.315068 1.444583-1.315068 1.534247c0 .099626 .099626 .099626 .119552 .099626c.099626 0 .109589-.019925 .159402-.179328c.249066-.86675 .627646-1.235367 1.006227-1.235367c.089664 0 .249066 .009963 .249066 .328767c0 .239103-.109589 .52802-.169365 .67746c-.368618 .986301-.577833 1.603985-.577833 2.092154c0 .946451 .687422 1.195517 1.225405 1.195517c.657534 0 1.016189-.448319 1.185554-.667497z'/>
-</defs>
-<g id='t0afc8d7e-page1'>
-<g stroke-miterlimit='10' transform='translate(-69.608977,13.771249)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<g stroke-width='0.8'>
-<path d='M 0.0 68.2864 L 0.0 0.0 L 290.2179 0.0' fill='none'/>
-</g>
-<path d='M 48.36957 69.70912 L 48.36957 41.25638 L 213.39557 41.25638 L 213.39557 29.87546' fill='none'/>
-<g transform='translate(51.90254,73.2421)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.608977,13.771249)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.608977' y='13.771249' xlink:href='#t0afc8d7e-g1-83'/>
-<use x='-62.925715' y='10.155885' xlink:href='#t0afc8d7e-g0-48'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 42.67911 36.41946 L 54.06003 46.09329' fill='none'/>
-<path d='M 42.67911 46.09329 L 54.06003 36.41946' fill='none'/>
-<path d='M 48.36957 34.71237 L 48.36957 47.8004' fill='none'/>
-<path d='M 207.70511 36.41946 L 219.08603 46.09329' fill='none'/>
-<path d='M 207.70511 46.09329 L 219.08603 36.41946' fill='none'/>
-<path d='M 213.39557 34.71237 L 213.39557 47.8004' fill='none'/>
-<path d='M 217.6633 34.1432 L 237.12059 34.1432' fill='none'/>
-<g transform='translate(237.12059,34.1432)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(241.11356,31.99043)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.608977,13.771249)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.608977' y='13.771249' xlink:href='#t0afc8d7e-g1-117'/>
-</g>
-</g>
-</g>
-</g>
-<g transform='translate(98.84355,30.5677)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.608977,13.771249)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.608977' y='13.771249' xlink:href='#t0afc8d7e-g1-99'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 108.58049 32.72047 L 126.61461 32.72047' fill='none'/>
-<g transform='matrix(-1.0,0.0,0.0,-1.0,108.58049,32.72047)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-<path d='M 130.88278 32.72047 M 132.38278 32.72047 C 132.38278 33.5489 131.71121 34.22047 130.88278 34.22047 C 130.05435 34.22047 129.38278 33.5489 129.38278 32.72047 C 129.38278 31.89204 130.05435 31.22047 130.88278 31.22047 C 131.71121 31.22047 132.38278 31.89204 132.38278 32.72047 Z M 130.88278 32.72047' stroke='none'/>
-<path d='M 135.15053 32.72047 L 153.18465 32.72047' fill='none'/>
-<g transform='translate(153.18465,32.72047)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(158.59404,30.5677)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.608977,13.771249)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.608977' y='13.771249' xlink:href='#t0afc8d7e-g1-99'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\begin{tikzpicture}
+\draw[thick] (0,2.4) -- (0,0) -- (10.2,0);
+\draw (1.7,2.45) -- (1.7,1.45) -- (7.5,1.45) -- (7.5,1.05);
+\node[above right] at (1.7,2.45) {$S'$};
+\draw (1.50,1.28) -- (1.90,1.62);
+\draw (1.50,1.62) -- (1.90,1.28);
+\draw (1.70,1.22) -- (1.70,1.68);
+\draw (7.30,1.28) -- (7.70,1.62);
+\draw (7.30,1.62) -- (7.70,1.28);
+\draw (7.50,1.22) -- (7.50,1.68);
+\draw[-&gt;] (7.65,1.20) -- (8.35,1.20) node[right] {$u$};
+\node at (3.55,1.15) {$c$};
+\draw[&lt;-] (3.80,1.15) -- (4.45,1.15);
+\fill (4.60,1.15) circle (1.5pt);
+\draw[-&gt;] (4.75,1.15) -- (5.40,1.15);
+\node at (5.65,1.15) {$c$};
+\end{tikzpicture}
 </pre>
 
 <p>
@@ -2041,115 +1531,22 @@ I see your clock is moving, so \((\Delta t' &lt; \Delta t)\).<br />
 It is similar to case, we both (I &amp; you) carry a light clock.<br />
 </p>
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='261.584199pt' height='102.101705pt' viewBox='-70.007476 -70.007474 261.584199 102.101705'>
-<defs>
-<path id='td63cee5a-g1-40' d='m3.297634 2.391034c0-.029888 0-.049813-.169365-.219178c-1.24533-1.255293-1.564134-3.138232-1.564134-4.662516c0-1.733499 .37858-3.466999 1.603985-4.712329c.129514-.119552 .129514-.139477 .129514-.169365c0-.069738-.039851-.099626-.099626-.099626c-.099626 0-.996264 .67746-1.58406 1.942715c-.508095 1.09589-.627646 2.201743-.627646 3.038605c0 .777086 .109589 1.982565 .657534 3.108344c.597758 1.225405 1.454545 1.872976 1.554172 1.872976c.059776 0 .099626-.029888 .099626-.099626z'/>
-<path id='td63cee5a-g1-41' d='m2.879203-2.49066c0-.777086-.109589-1.982565-.657534-3.108344c-.597758-1.225405-1.454545-1.872976-1.554172-1.872976c-.059776 0-.099626 .039851-.099626 .099626c0 .029888 0 .049813 .18929 .229141c.976339 .986301 1.544209 2.570361 1.544209 4.652553c0 1.703611-.368618 3.457036-1.603985 4.712329c-.129514 .119552-.129514 .139477-.129514 .169365c0 .059776 .039851 .099626 .099626 .099626c.099626 0 .996264-.67746 1.58406-1.942715c.508095-1.09589 .627646-2.201743 .627646-3.038605z'/>
-<path id='td63cee5a-g1-73' d='m2.241594-6.027397c0-.358655 .029888-.468244 .816936-.468244h.259029v-.308842c-.348692 .029888-1.135741 .029888-1.514321 .029888c-.388543 0-1.175592 0-1.524284-.029888v.308842h.259029c.787049 0 .816936 .109589 .816936 .468244v5.250311c0 .358655-.029888 .468244-.816936 .468244h-.259029v.308842c.348692-.029888 1.135741-.029888 1.514321-.029888c.388543 0 1.175592 0 1.524284 .029888v-.308842h-.259029c-.787049 0-.816936-.109589-.816936-.468244v-5.250311z'/>
-<path id='td63cee5a-g1-89' d='m6.07721-5.84807c.368618-.607721 .956413-.647572 1.275218-.647572v-.308842c-.308842 .019925-.707347 .029888-.976339 .029888c-.308842 0-.886675-.019925-1.145704-.029888v.308842c.408468 0 .56787 .18929 .56787 .388543c0 .109589-.059776 .239103-.099626 .298879l-1.643836 2.669988l-1.803238-2.938979c-.069738-.099626-.069738-.119552-.069738-.169365c0-.209215 .249066-.249066 .697385-.249066v-.308842c-.358655 .029888-1.085928 .029888-1.474471 .029888c-.418431 0-.876712-.009963-1.295143-.029888v.308842h.179328c.67746 0 .757161 .109589 .916563 .368618l2.092154 3.407223v1.942715c0 .358655-.019925 .468244-.787049 .468244h-.239103v.308842c.358655-.029888 1.066002-.029888 1.454545-.029888s1.09589 0 1.454545 .029888v-.308842h-.229141c-.767123 0-.797011-.099626-.797011-.488169v-1.92279l1.92279-3.128269z'/>
-<path id='td63cee5a-g1-111' d='m4.692403-2.132005c0-1.275218-.996264-2.331258-2.201743-2.331258c-1.24533 0-2.211706 1.085928-2.211706 2.331258c0 1.285181 1.036115 2.241594 2.201743 2.241594c1.205479 0 2.211706-.976339 2.211706-2.241594zm-2.201743 1.992528c-.428394 0-.86675-.209215-1.135741-.667497c-.249066-.438356-.249066-1.046077-.249066-1.404732c0-.388543 0-.926526 .239103-1.364882c.268991-.458281 .737235-.667497 1.135741-.667497c.438356 0 .86675 .219178 1.125778 .647572s.259029 1.006227 .259029 1.384807c0 .358655 0 .896638-.219178 1.334994c-.219178 .448319-.657534 .737235-1.155666 .737235z'/>
-<path id='td63cee5a-g1-117' d='m3.895392-.787049v.896638l1.43462-.109589v-.308842c-.697385 0-.777086-.069738-.777086-.557908v-3.536737l-1.464508 .109589v.308842c.697385 0 .777086 .069738 .777086 .557908v1.77335c0 .86675-.478207 1.544209-1.205479 1.544209c-.836862 0-.876712-.468244-.876712-.986301v-3.307597l-1.464508 .109589v.308842c.777086 0 .777086 .029888 .777086 .916563v1.494396c0 .777086 0 1.683686 1.514321 1.683686c.557908 0 .996264-.278954 1.285181-.896638z'/>
-<path id='td63cee5a-g0-117' d='m3.486924-.557908c.109589 .408468 .458281 .667497 .886675 .667497c.348692 0 .577833-.229141 .737235-.547945c.169365-.358655 .298879-.966376 .298879-.986301c0-.099626-.089664-.099626-.119552-.099626c-.099626 0-.109589 .039851-.139477 .179328c-.139477 .557908-.328767 1.235367-.747198 1.235367c-.209215 0-.308842-.129514-.308842-.458281c0-.219178 .119552-.687422 .199253-1.036115l.278954-1.075965c.029888-.14944 .129514-.52802 .169365-.67746c.049813-.229141 .14944-.607721 .14944-.667497c0-.179328-.139477-.268991-.288917-.268991c-.049813 0-.308842 .009963-.388543 .348692c-.18929 .727273-.627646 2.470735-.747198 2.998755c-.009963 .039851-.408468 .836862-1.135741 .836862c-.518057 0-.617684-.448319-.617684-.816936c0-.557908 .278954-1.344956 .537983-2.032379c.119552-.298879 .169365-.438356 .169365-.627646c0-.448319-.318804-.816936-.816936-.816936c-.946451 0-1.315068 1.444583-1.315068 1.534247c0 .099626 .099626 .099626 .119552 .099626c.099626 0 .109589-.019925 .159402-.179328c.249066-.86675 .627646-1.235367 1.006227-1.235367c.089664 0 .249066 .009963 .249066 .328767c0 .239103-.109589 .52802-.169365 .67746c-.368618 .986301-.577833 1.603985-.577833 2.092154c0 .946451 .687422 1.195517 1.225405 1.195517c.657534 0 1.016189-.448319 1.185554-.667497z'/>
-</defs>
-<g id='td63cee5a-page1'>
-<g stroke-miterlimit='10' transform='translate(-69.608977,29.603571)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<g stroke-width='0.8'>
-<path d='M 0.0 99.5846 L 0.0 0.0 L 261.76515 0.0' fill='none'/>
-</g>
-<path d='M 49.7923 99.5846 L 49.7923 51.21501 L 193.47873 51.21501' fill='none'/>
-<path d='M 49.7923 72.55458 L 67.82642 72.55458' fill='none'/>
-<g transform='translate(67.82642,72.55458)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(72.38855,70.40181)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.608977,29.603571)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.608977' y='29.603571' xlink:href='#td63cee5a-g0-117'/>
-</g>
-</g>
-</g>
-</g>
-<g transform='translate(57.20909,55.8282)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.608977,29.603571)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.608977' y='29.603571' xlink:href='#td63cee5a-g1-40'/>
-<use x='-65.734603' y='29.603571' xlink:href='#td63cee5a-g1-89'/>
-<use x='-59.092834' y='29.603571' xlink:href='#td63cee5a-g1-111'/>
-<use x='-54.111495' y='29.603571' xlink:href='#td63cee5a-g1-117'/>
-<use x='-48.576678' y='29.603571' xlink:href='#td63cee5a-g1-41'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 95.31686 86.78094 L 133.3802 53.79253' fill='none'/>
-<g transform='matrix(0.75566,-0.6549,0.6549,0.75566,133.3802,53.79254)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-<path d='M 133.7278 53.49129 L 171.79158 86.4797' fill='none'/>
-<g transform='matrix(0.75566,0.6549,-0.6549,0.75566,171.79158,86.47969)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-<path d='M 86.78094 85.9274 L 105.27505 89.91077' fill='none'/>
-<path d='M 163.60327 85.9274 L 182.09738 89.91077' fill='none'/>
-<path d='M 123.7696 51.21501 L 143.68643 51.21501' fill='none'/>
-<g transform='translate(21.33556,20.26227)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.608977,29.603571)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.608977' y='29.603571' xlink:href='#td63cee5a-g1-40'/>
-<use x='-65.734603' y='29.603571' xlink:href='#td63cee5a-g1-73'/>
-<use x='-62.136978' y='29.603571' xlink:href='#td63cee5a-g1-41'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 72.55458 2.84544 L 72.55458 36.52866' fill='none'/>
-<g transform='matrix(0.0,1.0,-1.0,0.0,72.55458,36.52866)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-<path d='M 62.59595 36.41946 L 82.51277 40.40283' fill='none'/>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\begin{tikzpicture}
+\draw[thick] (0,3.5) -- (0,0) -- (9.2,0);
+\draw (1.75,3.5) -- (1.75,1.80) -- (6.8,1.80);
+\draw[-&gt;] (1.75,2.55) -- (2.40,2.55);
+\node[right] at (2.42,2.55) {$u$};
+\node at (2.45,2.05) {(You)};
+\draw[-&gt;] (3.35,3.05) -- (4.70,1.88);
+\draw[-&gt;] (4.70,1.88) -- (6.05,3.05);
+\draw (3.05,3.02) -- (3.70,3.16);
+\draw (5.75,3.02) -- (6.40,3.16);
+\draw (4.35,1.80) -- (5.05,1.80);
+\node at (0.95,0.80) {(I)};
+\draw[-&gt;] (2.55,0.10) -- (2.55,1.30);
+\draw (2.20,1.28) -- (2.90,1.42);
+\end{tikzpicture}
 </pre>
 
 <p>
@@ -2158,101 +1555,16 @@ We accuse each other of using slower clocks.<br />
 
 <div id="Length contraction :-"><h1 id="Length contraction :-" class="header"><a href="#Length contraction :-">Length contraction :-</a></h1></div>
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='232.189579pt' height='69.140006pt' viewBox='-70.007476 -70.00748 232.189579 69.140006'>
-<defs>
-<path id='t7ff0f3fb-g0-48' d='m1.793275-2.316314c.004981-.004981 .049813-.099626 .049813-.174346c0-.179328-.159402-.293898-.308842-.293898c-.204234 0-.259029 .154421-.283935 .229141l-.767123 2.156912c-.019925 .059776-.019925 .07472-.019925 .079701c0 .079701 .209215 .129514 .214197 .129514c.044832 0 .054795-.024907 .084682-.084682l1.031133-2.042341z'/>
-<path id='t7ff0f3fb-g2-83' d='m4.951432-4.811955c0-.034869-.020922-.09066-.09066-.09066c-.041843 0-.048817 .006974-.139477 .097634l-.341719 .397509c-.265006-.369614-.704359-.495143-1.129763-.495143c-.983313 0-1.855044 .795019-1.855044 1.597011c0 .104608 .020922 .383562 .230137 .641594c.237111 .278954 .495143 .341719 .969365 .4533c.139477 .034869 .488169 .111582 .592777 .139477c.223163 .055791 .648568 .209215 .648568 .732254c0 .564882-.592777 1.227397-1.387796 1.227397c-.613699 0-1.352927-.216189-1.352927-.990286c0-.069738 .013948-.223163 .041843-.348692c.006974-.027895 .006974-.034869 .006974-.041843c0-.09066-.083686-.09066-.111582-.09066c-.097634 0-.104608 .013948-.132503 .139477l-.355666 1.39477c-.006974 .027895-.020922 .069738-.020922 .104608c0 .041843 .027895 .083686 .097634 .083686c.041843 0 .048817-.006974 .139477-.097634c.076712-.083686 .258032-.306849 .334745-.390535c.369614 .404483 .913574 .488169 1.332005 .488169c1.053051 0 1.903861-.9066 1.903861-1.729514c0-.306849-.125529-.585803-.278954-.746202c-.244085-.251059-.348692-.278954-1.248319-.488169c-.146451-.034869-.376588-.09066-.439352-.111582c-.174346-.062765-.467248-.237111-.467248-.63462c0-.550934 .620672-1.108842 1.345953-1.108842c.753176 0 1.115816 .425405 1.115816 1.08792c0 .09066-.027895 .251059-.027895 .313823c0 .097634 .083686 .097634 .118555 .097634c.104608 0 .111582-.034869 .139477-.153425l.36264-1.478456z'/>
-<path id='t7ff0f3fb-g3-48' d='m3.598506-2.224658c0-.767123-.09066-1.318057-.411457-1.806227c-.216189-.320797-.648568-.599751-1.206476-.599751c-1.617933 0-1.617933 1.903861-1.617933 2.405978s0 2.364134 1.617933 2.364134s1.617933-1.862017 1.617933-2.364134zm-1.617933 2.168867c-.320797 0-.746202-.188294-.885679-.760149c-.097634-.411457-.097634-.983313-.097634-1.499377c0-.509091 0-1.039103 .104608-1.422665c.146451-.550934 .592777-.697385 .878705-.697385c.376588 0 .739228 .230137 .864757 .63462c.111582 .376588 .118555 .878705 .118555 1.48543c0 .516065 0 1.03213-.09066 1.471482c-.139477 .63462-.613699 .788045-.892653 .788045z'/>
-<path id='t7ff0f3fb-g3-97' d='m3.110336-1.868991c0-.369614 0-.63462-.320797-.892653c-.285928-.237111-.620672-.348692-1.03213-.348692c-.662516 0-1.129763 .251059-1.129763 .676463c0 .223163 .153425 .341719 .334745 .341719c.188294 0 .327771-.139477 .327771-.327771c0-.118555-.055791-.265006-.244085-.320797c.251059-.174346 .655542-.174346 .697385-.174346c.390535 0 .81594 .258032 .81594 .843836v.216189c-.383562 .013948-.843836 .034869-1.352927 .223163c-.627646 .230137-.822914 .613699-.822914 .927522c0 .599751 .72528 .774097 1.220423 .774097c.557908 0 .885679-.313823 1.03213-.585803c.027895 .285928 .216189 .550934 .536986 .550934c.013948 0 .690411 0 .690411-.662516v-.383562h-.237111v.376588c0 .069738 0 .404483-.258032 .404483s-.258032-.327771-.258032-.418431v-1.220423zm-.550934 .885679c0 .669489-.585803 .857783-.899626 .857783c-.355666 0-.690411-.237111-.690411-.578829c0-.383562 .334745-.920548 1.590037-.969365v.690411z'/>
-<path id='t7ff0f3fb-g3-101' d='m3.068493-1.590037c.146451 0 .195268 0 .195268-.153425c0-.613699-.341719-1.366874-1.380822-1.366874c-.913574 0-1.610959 .72528-1.610959 1.583064c0 .885679 .774097 1.597011 1.701619 1.597011c.941469 0 1.290162-.753176 1.290162-.9066c0-.027895-.013948-.097634-.118555-.097634c-.09066 0-.104608 .041843-.125529 .111582c-.216189 .564882-.746202 .669489-.99726 .669489c-.327771 0-.641594-.146451-.850809-.411457c-.258032-.327771-.265006-.753176-.265006-1.025156h2.161893zm-2.154919-.18132c.076712-.983313 .704359-1.143711 .969365-1.143711c.857783 0 .885679 .969365 .892653 1.143711h-1.862017z'/>
-<path id='t7ff0f3fb-g3-102' d='m1.436613-2.75467h.871731v-.251059h-.899626v-.781071c0-.63462 .376588-.927522 .676463-.927522c.062765 0 .132503 .013948 .202242 .034869c-.097634 .055791-.153425 .167372-.153425 .278954c0 .188294 .132503 .320797 .320797 .320797s.320797-.132503 .320797-.320797c0-.299875-.299875-.509091-.683437-.509091c-.550934 0-1.17858 .390535-1.17858 1.12279v.781071h-.599751v.251059h.599751v2.203736c0 .299875-.069738 .299875-.523039 .299875v.251059c.034869 0 .509091-.027895 .795019-.027895c.299875 0 .606725 .013948 .9066 .027895v-.251059h-.139477c-.516065 0-.516065-.076712-.516065-.313823v-2.189788z'/>
-<path id='t7ff0f3fb-g3-109' d='m5.732503-2.113076c0-.606725-.299875-.962391-1.046077-.962391c-.550934 0-.927522 .299875-1.115816 .648568c-.139477-.495143-.516065-.648568-1.025156-.648568c-.571856 0-.941469 .313823-1.136737 .676463h-.006974v-.676463l-1.025156 .076712v.251059c.467248 0 .523039 .048817 .523039 .390535v1.806227c0 .299875-.069738 .299875-.523039 .299875v.251059c.013948 0 .502117-.027895 .795019-.027895c.258032 0 .739228 .020922 .801993 .027895v-.251059c-.4533 0-.523039 0-.523039-.299875v-1.255293c0-.732254 .578829-1.073973 1.039103-1.073973c.488169 0 .550934 .383562 .550934 .739228v1.590037c0 .299875-.069738 .299875-.523039 .299875v.251059c.013948 0 .502117-.027895 .795019-.027895c.258032 0 .739228 .020922 .801993 .027895v-.251059c-.4533 0-.523039 0-.523039-.299875v-1.255293c0-.732254 .578829-1.073973 1.039103-1.073973c.488169 0 .550934 .383562 .550934 .739228v1.590037c0 .299875-.069738 .299875-.523039 .299875v.251059c.013948 0 .502117-.027895 .795019-.027895c.258032 0 .739228 .020922 .801993 .027895v-.251059c-.4533 0-.523039 0-.523039-.299875v-1.562142z'/>
-<path id='t7ff0f3fb-g3-114' d='m1.387796-1.590037c0-.585803 .27198-1.290162 .934496-1.290162c-.062765 .048817-.118555 .139477-.118555 .251059c0 .230137 .18132 .320797 .313823 .320797c.167372 0 .320797-.111582 .320797-.320797c0-.237111-.223163-.446326-.550934-.446326c-.348692 0-.732254 .216189-.941469 .746202h-.006974v-.746202l-.99726 .076712v.251059c.467248 0 .523039 .048817 .523039 .390535v1.806227c0 .299875-.069738 .299875-.523039 .299875v.251059c.034869 0 .509091-.027895 .795019-.027895c.299875 0 .606725 .013948 .9066 .027895v-.251059h-.139477c-.516065 0-.516065-.076712-.516065-.313823v-1.025156z'/>
-<path id='t7ff0f3fb-g1-76' d='m3.726027-6.027397c.089664-.358655 .119552-.468244 1.05604-.468244c.298879 0 .37858 0 .37858-.18929c0-.119552-.109589-.119552-.159402-.119552c-.328767 0-1.145704 .029888-1.474471 .029888c-.298879 0-1.026152-.029888-1.325031-.029888c-.069738 0-.18929 0-.18929 .199253c0 .109589 .089664 .109589 .278954 .109589c.019925 0 .209215 0 .37858 .019925c.179328 .019925 .268991 .029888 .268991 .159402c0 .039851-.009963 .069738-.039851 .18929l-1.334994 5.349938c-.099626 .388543-.119552 .468244-.9066 .468244c-.169365 0-.268991 0-.268991 .199253c0 .109589 .089664 .109589 .268991 .109589h4.612702c.239103 0 .249066 0 .308842-.169365l.787049-2.15193c.039851-.109589 .039851-.129514 .039851-.139477c0-.039851-.029888-.109589-.119552-.109589s-.099626 .049813-.169365 .209215c-.33873 .916563-.777086 2.052304-2.500623 2.052304h-.936488c-.139477 0-.159402 0-.219178-.009963c-.099626-.009963-.129514-.019925-.129514-.099626c0-.029888 0-.049813 .049813-.229141l1.344956-5.379826z'/>
-<path id='t7ff0f3fb-g1-83' d='m6.425903-6.924035c0-.029888-.019925-.099626-.109589-.099626c-.049813 0-.059776 .009963-.179328 .14944l-.478207 .56787c-.259029-.468244-.777086-.71731-1.424658-.71731c-1.265255 0-2.460772 1.145704-2.460772 2.351183c0 .806974 .52802 1.265255 1.036115 1.414695l1.066002 .278954c.368618 .089664 .916563 .239103 .916563 1.05604c0 .896638-.816936 1.833126-1.793275 1.833126c-.637609 0-1.743462-.219178-1.743462-1.454545c0-.239103 .049813-.478207 .059776-.537983c.009963-.039851 .019925-.049813 .019925-.069738c0-.099626-.069738-.109589-.119552-.109589s-.069738 .009963-.099626 .039851c-.039851 .039851-.597758 2.311333-.597758 2.34122c0 .059776 .049813 .099626 .109589 .099626c.049813 0 .059776-.009963 .179328-.14944l.488169-.56787c.428394 .577833 1.105853 .71731 1.683686 .71731c1.354919 0 2.530511-1.325031 2.530511-2.560399c0-.687422-.33873-1.026152-.488169-1.165629c-.229141-.229141-.37858-.268991-1.265255-.498132c-.219178-.059776-.577833-.159402-.667497-.179328c-.268991-.089664-.607721-.37858-.607721-.9066c0-.806974 .797011-1.653798 1.743462-1.653798c.826899 0 1.43462 .428394 1.43462 1.544209c0 .318804-.039851 .498132-.039851 .557908c0 .009963 0 .099626 .119552 .099626c.099626 0 .109589-.029888 .14944-.199253l.537983-2.181818z'/>
-<path id='t7ff0f3fb-g1-117' d='m3.486924-.557908c.109589 .408468 .458281 .667497 .886675 .667497c.348692 0 .577833-.229141 .737235-.547945c.169365-.358655 .298879-.966376 .298879-.986301c0-.099626-.089664-.099626-.119552-.099626c-.099626 0-.109589 .039851-.139477 .179328c-.139477 .557908-.328767 1.235367-.747198 1.235367c-.209215 0-.308842-.129514-.308842-.458281c0-.219178 .119552-.687422 .199253-1.036115l.278954-1.075965c.029888-.14944 .129514-.52802 .169365-.67746c.049813-.229141 .14944-.607721 .14944-.667497c0-.179328-.139477-.268991-.288917-.268991c-.049813 0-.308842 .009963-.388543 .348692c-.18929 .727273-.627646 2.470735-.747198 2.998755c-.009963 .039851-.408468 .836862-1.135741 .836862c-.518057 0-.617684-.448319-.617684-.816936c0-.557908 .278954-1.344956 .537983-2.032379c.119552-.298879 .169365-.438356 .169365-.627646c0-.448319-.318804-.816936-.816936-.816936c-.946451 0-1.315068 1.444583-1.315068 1.534247c0 .099626 .099626 .099626 .119552 .099626c.099626 0 .109589-.019925 .159402-.179328c.249066-.86675 .627646-1.235367 1.006227-1.235367c.089664 0 .249066 .009963 .249066 .328767c0 .239103-.109589 .52802-.169365 .67746c-.368618 .986301-.577833 1.603985-.577833 2.092154c0 .946451 .687422 1.195517 1.225405 1.195517c.657534 0 1.016189-.448319 1.185554-.667497z'/>
-</defs>
-<g id='t7ff0f3fb-page1'>
-<g stroke-miterlimit='10' transform='translate(-59.318738,-2.501332)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<g stroke-width='0.8'>
-<path d='M 0.0 54.06003 L 0.0 0.0 L 221.93147 0.0' fill='none'/>
-</g>
-<g transform='translate(-7.39584,57.593)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-59.318738,-2.501332)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-59.318738' y='-2.501332' xlink:href='#t7ff0f3fb-g1-83'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 42.67911 L 0.0 53.60004' fill='none'/>
-<g transform='matrix(0.0,1.0,-1.0,0.0,0.0,53.60004)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-<path d='M 9.95863 27.88356 M 9.95863 27.88356 L 9.95863 38.69574 L 98.16187 38.69574 L 98.16187 27.88356 Z M 98.16187 38.69574' fill='none'/>
-<g transform='translate(48.41418,44.29787)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-59.318738,-2.501332)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-59.318738' y='-2.501332' xlink:href='#t7ff0f3fb-g1-76'/>
-<use x='-52.538591' y='-1.006951' xlink:href='#t7ff0f3fb-g3-48'/>
-</g>
-</g>
-</g>
-</g>
-<g transform='translate(38.85614,30.1075)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-59.318738,-2.501332)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-59.318738' y='-2.501332' xlink:href='#t7ff0f3fb-g2-83'/>
-<use x='-54.045438' y='-5.507849' xlink:href='#t7ff0f3fb-g0-48'/>
-<use x='-48.666272' y='-2.501332' xlink:href='#t7ff0f3fb-g3-102'/>
-<use x='-46.196345' y='-2.501332' xlink:href='#t7ff0f3fb-g3-114'/>
-<use x='-43.083002' y='-2.501332' xlink:href='#t7ff0f3fb-g3-97'/>
-<use x='-39.111761' y='-2.501332' xlink:href='#t7ff0f3fb-g3-109'/>
-<use x='-32.566829' y='-2.501332' xlink:href='#t7ff0f3fb-g3-101'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 99.5846 33.28966 L 120.46416 33.28966' fill='none'/>
-<g transform='translate(120.46416,33.28966)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(124.45712,31.13689)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-59.318738,-2.501332)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-59.318738' y='-2.501332' xlink:href='#t7ff0f3fb-g1-117'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\begin{tikzpicture}
+\draw[thick] (0,1.9) -- (0,0) -- (7.8,0);
+\node[above left] at (0.1,1.9) {$S$};
+\draw[-&gt;] (0,1.5) -- (0,1.9);
+\draw (0.35,0.98) rectangle (3.45,1.36);
+\node[above] at (1.90,1.38) {$L_0$};
+\node at (1.90,1.16) {\scriptsize $S'$ frame};
+\draw[-&gt;] (3.50,1.17) -- (4.25,1.17) node[right] {$u$};
+\end{tikzpicture}
 </pre>
 
 <p>
@@ -2287,127 +1599,19 @@ To measure length of rod in ground frame \((S)\) we need to mark ends of rod sim
 So You will claim that I measured front end first then rod passes some distance and then rear end marking were taken.<br />
 </p>
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='300.671722pt' height='63.302854pt' viewBox='-86.816254 -70.007479 300.671722 63.302854'>
-<defs>
-<path id='t58b1480c-g0-58' d='m1.912827-.52802c0-.288917-.239103-.52802-.52802-.52802s-.52802 .239103-.52802 .52802s.239103 .52802 .52802 .52802s.52802-.239103 .52802-.52802z'/>
-<path id='t58b1480c-g0-117' d='m3.486924-.557908c.109589 .408468 .458281 .667497 .886675 .667497c.348692 0 .577833-.229141 .737235-.547945c.169365-.358655 .298879-.966376 .298879-.986301c0-.099626-.089664-.099626-.119552-.099626c-.099626 0-.109589 .039851-.139477 .179328c-.139477 .557908-.328767 1.235367-.747198 1.235367c-.209215 0-.308842-.129514-.308842-.458281c0-.219178 .119552-.687422 .199253-1.036115l.278954-1.075965c.029888-.14944 .129514-.52802 .169365-.67746c.049813-.229141 .14944-.607721 .14944-.667497c0-.179328-.139477-.268991-.288917-.268991c-.049813 0-.308842 .009963-.388543 .348692c-.18929 .727273-.627646 2.470735-.747198 2.998755c-.009963 .039851-.408468 .836862-1.135741 .836862c-.518057 0-.617684-.448319-.617684-.816936c0-.557908 .278954-1.344956 .537983-2.032379c.119552-.298879 .169365-.438356 .169365-.627646c0-.448319-.318804-.816936-.816936-.816936c-.946451 0-1.315068 1.444583-1.315068 1.534247c0 .099626 .099626 .099626 .119552 .099626c.099626 0 .109589-.019925 .159402-.179328c.249066-.86675 .627646-1.235367 1.006227-1.235367c.089664 0 .249066 .009963 .249066 .328767c0 .239103-.109589 .52802-.169365 .67746c-.368618 .986301-.577833 1.603985-.577833 2.092154c0 .946451 .687422 1.195517 1.225405 1.195517c.657534 0 1.016189-.448319 1.185554-.667497z'/>
-<path id='t58b1480c-g1-48' d='m4.582814-3.188045c0-.797011-.049813-1.594022-.398506-2.331258c-.458281-.956413-1.275218-1.115816-1.693649-1.115816c-.597758 0-1.325031 .259029-1.733499 1.185554c-.318804 .687422-.368618 1.464508-.368618 2.261519c0 .747198 .039851 1.643836 .448319 2.400996c.428394 .806974 1.155666 1.006227 1.643836 1.006227c.537983 0 1.295143-.209215 1.733499-1.155666c.318804-.687422 .368618-1.464508 .368618-2.251557zm-2.102117 3.188045c-.388543 0-.976339-.249066-1.155666-1.205479c-.109589-.597758-.109589-1.514321-.109589-2.102117c0-.637609 0-1.295143 .079701-1.833126c.18929-1.185554 .936488-1.275218 1.185554-1.275218c.328767 0 .986301 .179328 1.175592 1.165629c.099626 .557908 .099626 1.315068 .099626 1.942715c0 .747198 0 1.424658-.109589 2.062267c-.14944 .946451-.71731 1.24533-1.165629 1.24533z'/>
-<path id='t58b1480c-g1-49' d='m2.929016-6.37609c0-.239103 0-.259029-.229141-.259029c-.617684 .637609-1.494396 .637609-1.8132 .637609v.308842c.199253 0 .787049 0 1.305106-.259029v5.160648c0 .358655-.029888 .478207-.926526 .478207h-.318804v.308842c.348692-.029888 1.215442-.029888 1.613948-.029888s1.265255 0 1.613948 .029888v-.308842h-.318804c-.896638 0-.926526-.109589-.926526-.478207v-5.589041z'/>
-<path id='t58b1480c-g1-53' d='m4.473225-2.002491c0-1.185554-.816936-2.181818-1.892902-2.181818c-.478207 0-.9066 .159402-1.265255 .508095v-1.942715c.199253 .059776 .52802 .129514 .846824 .129514c1.225405 0 1.92279-.9066 1.92279-1.036115c0-.059776-.029888-.109589-.099626-.109589c-.009963 0-.029888 0-.079701 .029888c-.199253 .089664-.687422 .288917-1.354919 .288917c-.398506 0-.856787-.069738-1.325031-.278954c-.079701-.029888-.099626-.029888-.119552-.029888c-.099626 0-.099626 .079701-.099626 .239103v2.948941c0 .179328 0 .259029 .139477 .259029c.069738 0 .089664-.029888 .129514-.089664c.109589-.159402 .478207-.697385 1.285181-.697385c.518057 0 .767123 .458281 .846824 .637609c.159402 .368618 .179328 .757161 .179328 1.255293c0 .348692 0 .946451-.239103 1.364882c-.239103 .388543-.607721 .647572-1.066002 .647572c-.727273 0-1.295143-.52802-1.464508-1.115816c.029888 .009963 .059776 .019925 .169365 .019925c.328767 0 .498132-.249066 .498132-.488169s-.169365-.488169-.498132-.488169c-.139477 0-.488169 .069738-.488169 .52802c0 .856787 .687422 1.823163 1.803238 1.823163c1.155666 0 2.171856-.956413 2.171856-2.221669z'/>
-<path id='t58b1480c-g1-101' d='m1.115816-2.510585c.059776-1.484433 .896638-1.733499 1.235367-1.733499c1.026152 0 1.125778 1.344956 1.125778 1.733499h-2.361146zm-.009963 .209215h2.779577c.219178 0 .249066 0 .249066-.209215c0-.986301-.537983-1.952677-1.783313-1.952677c-1.155666 0-2.072229 1.026152-2.072229 2.271482c0 1.334994 1.046077 2.30137 2.191781 2.30137c1.215442 0 1.663761-1.105853 1.663761-1.295143c0-.099626-.079701-.119552-.129514-.119552c-.089664 0-.109589 .059776-.129514 .139477c-.348692 1.026152-1.24533 1.026152-1.344956 1.026152c-.498132 0-.896638-.298879-1.125778-.667497c-.298879-.478207-.298879-1.135741-.298879-1.494396z'/>
-<path id='t58b1480c-g1-104' d='m1.09589-.757161c0 .448319-.109589 .448319-.777086 .448319v.308842c.348692-.009963 .856787-.029888 1.125778-.029888c.259029 0 .777086 .019925 1.115816 .029888v-.308842c-.667497 0-.777086 0-.777086-.448319v-1.833126c0-1.036115 .707347-1.594022 1.344956-1.594022c.627646 0 .737235 .537983 .737235 1.105853v2.321295c0 .448319-.109589 .448319-.777086 .448319v.308842c.348692-.009963 .856787-.029888 1.125778-.029888c.259029 0 .777086 .019925 1.115816 .029888v-.308842c-.518057 0-.767123 0-.777086-.298879v-1.902864c0-.856787 0-1.165629-.308842-1.524284c-.139477-.169365-.468244-.368618-1.046077-.368618c-.836862 0-1.275218 .597758-1.444583 .976339v-3.486924l-1.43462 .109589v.308842c.697385 0 .777086 .069738 .777086 .557908v5.180573z'/>
-<path id='t58b1480c-g1-108' d='m1.763387-6.914072l-1.43462 .109589v.308842c.697385 0 .777086 .069738 .777086 .557908v5.180573c0 .448319-.109589 .448319-.777086 .448319v.308842c.328767-.009963 .856787-.029888 1.105853-.029888s.737235 .019925 1.105853 .029888v-.308842c-.667497 0-.777086 0-.777086-.448319v-6.156912z'/>
-<path id='t58b1480c-g1-109' d='m1.09589-3.427148v2.669988c0 .448319-.109589 .448319-.777086 .448319v.308842c.348692-.009963 .856787-.029888 1.125778-.029888c.259029 0 .777086 .019925 1.115816 .029888v-.308842c-.667497 0-.777086 0-.777086-.448319v-1.833126c0-1.036115 .707347-1.594022 1.344956-1.594022c.627646 0 .737235 .537983 .737235 1.105853v2.321295c0 .448319-.109589 .448319-.777086 .448319v.308842c.348692-.009963 .856787-.029888 1.125778-.029888c.259029 0 .777086 .019925 1.115816 .029888v-.308842c-.667497 0-.777086 0-.777086-.448319v-1.833126c0-1.036115 .707347-1.594022 1.344956-1.594022c.627646 0 .737235 .537983 .737235 1.105853v2.321295c0 .448319-.109589 .448319-.777086 .448319v.308842c.348692-.009963 .856787-.029888 1.125778-.029888c.259029 0 .777086 .019925 1.115816 .029888v-.308842c-.518057 0-.767123 0-.777086-.298879v-1.902864c0-.856787 0-1.165629-.308842-1.524284c-.139477-.169365-.468244-.368618-1.046077-.368618c-.836862 0-1.275218 .597758-1.444583 .976339c-.139477-.86675-.876712-.976339-1.325031-.976339c-.727273 0-1.195517 .428394-1.474471 1.046077v-1.046077l-1.404732 .109589v.308842c.697385 0 .777086 .069738 .777086 .557908z'/>
-<path id='t58b1480c-g1-111' d='m4.692403-2.132005c0-1.275218-.996264-2.331258-2.201743-2.331258c-1.24533 0-2.211706 1.085928-2.211706 2.331258c0 1.285181 1.036115 2.241594 2.201743 2.241594c1.205479 0 2.211706-.976339 2.211706-2.241594zm-2.201743 1.992528c-.428394 0-.86675-.209215-1.135741-.667497c-.249066-.438356-.249066-1.046077-.249066-1.404732c0-.388543 0-.926526 .239103-1.364882c.268991-.458281 .737235-.667497 1.135741-.667497c.438356 0 .86675 .219178 1.125778 .647572s.259029 1.006227 .259029 1.384807c0 .358655 0 .896638-.219178 1.334994c-.219178 .448319-.657534 .737235-1.155666 .737235z'/>
-</defs>
-<g id='t58b1480c-page1'>
-<g stroke-miterlimit='10' transform='translate(-86.816254,-17.061979)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<path d='M 17.07181 27.03001 M 17.07181 27.03001 L 17.07181 39.26492 L 96.73915 39.26492 L 96.73915 27.03001 Z M 96.73915 39.26492' fill='none'/>
-<g transform='translate(49.40549,43.36664)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-86.816254,-17.061979)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-86.816254' y='-17.061979' xlink:href='#t58b1480c-g1-49'/>
-<use x='-80.174516' y='-17.061979' xlink:href='#t58b1480c-g1-109'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 98.16187 33.00528 L 119.04144 33.00528' fill='none'/>
-<g transform='translate(119.04144,33.00528)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(123.03441,30.85251)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-86.816254,-17.061979)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-86.816254' y='-17.061979' xlink:href='#t58b1480c-g0-117'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 150.79962 27.03001 L 207.70511 27.03001' fill='none'/>
-<path d='M 236.15785 27.03001 L 301.59924 27.03001' fill='none'/>
-<path d='M 153.64464 27.03001 L 148.52335 20.48601' fill='none'/>
-<path d='M 160.75781 27.03001 L 155.63654 20.48601' fill='none'/>
-<path d='M 167.871 27.03001 L 162.74973 20.48601' fill='none'/>
-<path d='M 174.98419 27.03001 L 169.8629 20.48601' fill='none'/>
-<path d='M 182.09738 27.03001 L 176.97609 20.48601' fill='none'/>
-<path d='M 189.21056 27.03001 L 184.08928 20.48601' fill='none'/>
-<path d='M 196.32375 27.03001 L 191.20247 20.48601' fill='none'/>
-<path d='M 203.43694 27.03001 L 198.31564 20.48601' fill='none'/>
-<path d='M 239.00287 27.03001 L 233.88158 20.48601' fill='none'/>
-<path d='M 246.11604 27.03001 L 240.99477 20.48601' fill='none'/>
-<path d='M 253.22923 27.03001 L 248.10796 20.48601' fill='none'/>
-<path d='M 260.34242 27.03001 L 255.22113 20.48601' fill='none'/>
-<path d='M 267.45561 27.03001 L 262.33432 20.48601' fill='none'/>
-<path d='M 274.56879 27.03001 L 269.44751 20.48601' fill='none'/>
-<path d='M 281.68198 27.03001 L 276.5607 20.48601' fill='none'/>
-<path d='M 288.79517 27.03001 L 283.67387 20.48601' fill='none'/>
-<path d='M 295.90836 27.03001 L 290.78706 20.48601' fill='none'/>
-<path d='M 208.1651 15.6491 L 235.69786 15.6491' fill='none'/>
-<g transform='matrix(-1.0,0.0,0.0,-1.0,208.1651,15.6491)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(235.69786,15.6491)'>
-<g stroke-width='0.31999'>
- <g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -1.19998 1.59998 C -1.09998 0.99998 0.0 0.09999 0.29999 0.0 C 0.0 -0.09999 -1.09998 -0.99998 -1.19998 -1.59998  ' fill='none'/>
- </g>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(210.54257,4.81815)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-86.816254,-17.061979)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-86.816254' y='-17.061979' xlink:href='#t58b1480c-g1-48'/>
-<use x='-81.834915' y='-17.061979' xlink:href='#t58b1480c-g0-58'/>
-<use x='-79.067507' y='-17.061979' xlink:href='#t58b1480c-g1-53'/>
-<use x='-72.425768' y='-17.061979' xlink:href='#t58b1480c-g1-109'/>
-</g>
-</g>
-</g>
-</g>
-<g transform='translate(213.04257,-7.06322)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-86.816254,-17.061979)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-86.816254' y='-17.061979' xlink:href='#t58b1480c-g1-104'/>
-<use x='-81.281437' y='-17.061979' xlink:href='#t58b1480c-g1-111'/>
-<use x='-76.300098' y='-17.061979' xlink:href='#t58b1480c-g1-108'/>
-<use x='-73.53269' y='-17.061979' xlink:href='#t58b1480c-g1-101'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\begin{tikzpicture}
+\draw (0.6,0.95) rectangle (3.4,1.38);
+\node[above] at (2.0,1.40) {$1\,\mathrm{m}$};
+\draw[-&gt;] (3.45,1.16) -- (4.20,1.16) node[right] {$u$};
+\draw (5.3,0.95) -- (7.3,0.95);
+\draw (8.3,0.95) -- (10.6,0.95);
+\foreach \x in {5.4,5.65,...,7.2} { \draw (\x,0.95) -- (\x-0.18,0.72); }
+\foreach \x in {8.4,8.65,...,10.5} { \draw (\x,0.95) -- (\x-0.18,0.72); }
+\draw[&lt;-&gt;] (7.3,0.55) -- (8.3,0.55);
+\node[below] at (7.8,0.52) {$0.5\,\mathrm{m}$};
+\node[below] at (7.8,0.12) {hole};
+\end{tikzpicture}
 </pre>
 
 <p>
@@ -2967,6 +2171,10 @@ what happens is --- Frond end enters in first, rear end comes later on. &amp; ro
     (function () {
         var content = document.getElementById('content');
         if (!content) return;
+        // Tablets: a "hover" is a tap here, so previews would pop up on the
+        // way to following a link. The card is hidden by CSS on tablets as
+        // well; bailing out this early also skips the background fetches.
+        if (window.wikiIsTabletLayout && window.wikiIsTabletLayout()) return;
 
         var LOCAL_ANCHOR = '/vimwiki/';
         var WEB_ROOT = '/wiki/vimwiki_html/';
@@ -3111,7 +2319,14 @@ what happens is --- Frond end enters in first, rear end comes later on. &amp; ro
     <script>
     (function () {
         var DESKTOP_BREAKPOINT = 901; // must match the CSS media query below
-        if (window.innerWidth < DESKTOP_BREAKPOINT) return; // phones/narrow: leave the page 100% untouched, exactly as before this feature existed
+        // iPads in portrait (744-1032px) sit below that breakpoint but still
+        // have room for a real docked sidebar, so they run this script too and
+        // skip the phone panel further down. What gets built is byte-for-byte
+        // the same DOM either way — only the CSS differs (see the
+        // html.tablet-layout block in the stylesheet), which is what lets a
+        // rotating iPad move between the two layouts without a reload.
+        var TABLET = !!(window.wikiIsTabletLayout && window.wikiIsTabletLayout());
+        if (window.innerWidth < DESKTOP_BREAKPOINT && !TABLET) return; // phones/narrow: leave the page 100% untouched, exactly as before this feature existed
 
         var contentEl = document.getElementById('content');
         if (!contentEl) return;
@@ -3188,7 +2403,7 @@ what happens is --- Frond end enters in first, rear end comes later on. &amp; ro
         var label = document.createElement('div');
         label.className = 'toc-sidebar-title';
         label.textContent = tocLabel;
-        label.title = 'Drag to move';
+        label.title = TABLET ? '' : 'Drag to move'; // dragging is disabled on tablets — see below
         sidebar.appendChild(label);
         sidebar.appendChild(tocList);
 
@@ -3198,6 +2413,20 @@ what happens is --- Frond end enters in first, rear end comes later on. &amp; ro
         // a big strip elsewhere on the page. Works whether the box is
         // docked (flex-basis) or floating (width) — see applyWidth below.
         var MIN_SIDEBAR = 160, MAX_SIDEBAR = 480, DEFAULT_SIDEBAR = 240;
+        // Tablet portrait is far narrower than a desktop window, where a
+        // 240-480px Contents box would eat the article column (on an iPad mini
+        // that is over a third of the screen). Capped in JS rather than CSS so
+        // fitReservedWidth()/renderContentWidth() below stay in step with what
+        // is actually painted. localStorage is deliberately NOT rewritten: a
+        // width the reader chose on a desktop survives untouched and comes
+        // back the next time they are on one.
+        if (TABLET) {
+            MAX_SIDEBAR = 220;
+            // Two tiers, because "iPad portrait" spans 744px (mini) to 1032px
+            // (Pro 13"): a box that leaves the Pro a comfortable column would
+            // squeeze the mini's article down to about 44 characters a line.
+            DEFAULT_SIDEBAR = window.innerWidth < 900 ? 180 : 200;
+        }
         var WIDTH_KEY = 'wikiTocSidebarWidth';
 
         function clampWidth(w) { return Math.max(MIN_SIDEBAR, Math.min(MAX_SIDEBAR, w)); }
@@ -3278,8 +2507,12 @@ what happens is --- Frond end enters in first, rear end comes later on. &amp; ro
             });
             return h;
         }
-        makeSidebarHandle('corner');
-        makeSidebarHandle('edge');
+        // Hidden by CSS on tablets (display:none also makes them untappable),
+        // but there is no reason to build them there at all.
+        if (!TABLET) {
+            makeSidebarHandle('corner');
+            makeSidebarHandle('edge');
+        }
 
         // Put the sidebar OUTSIDE #content — as a sibling to its left inside
         // a shared wrapper — rather than nesting it inside the card's own
@@ -3407,15 +2640,22 @@ what happens is --- Frond end enters in first, rear end comes later on. &amp; ro
             sidebar.style.maxHeight = '';
             try { localStorage.removeItem(POS_KEY); } catch (e) {}
         }
-        try {
-            var savedPos = JSON.parse(localStorage.getItem(POS_KEY));
-            if (savedPos && typeof savedPos.left === 'number' && typeof savedPos.top === 'number') {
-                floatAt(savedPos.left, savedPos.top);
-            }
-        } catch (e) {}
+        // Not on tablets: the box can't be dragged there, so a position saved
+        // from a desktop session must not strand it floating with no way to
+        // put it back other than the top-right Contents toggle. The saved
+        // value is left in localStorage for when they're back on a desktop.
+        if (!TABLET) {
+            try {
+                var savedPos = JSON.parse(localStorage.getItem(POS_KEY));
+                if (savedPos && typeof savedPos.left === 'number' && typeof savedPos.top === 'number') {
+                    floatAt(savedPos.left, savedPos.top);
+                }
+            } catch (e) {}
+        }
 
         var draggingTitle = false, titleStartX = 0, titleStartY = 0, boxStartLeft = 0, boxStartTop = 0;
         label.addEventListener('pointerdown', function (e) {
+            if (TABLET) return; // a swipe starting on the title should scroll the page, not pick the box up
             draggingTitle = true;
             var rect = sidebar.getBoundingClientRect();
             titleStartX = e.clientX;
@@ -3526,10 +2766,13 @@ what happens is --- Frond end enters in first, rear end comes later on. &amp; ro
         // the Contents toggle, or floating, both take them out of the flow)
         // plus the content-resizer's own fixed-width handle.
         function fitReservedWidth() {
-            var w = 24; // content-resizer's own box, always present
+            // Tablets hide both gutter strips and use a plain 20px flex gap on
+            // #page-shell instead (see the html.tablet-layout CSS), so the
+            // reserved space has to be counted differently there.
+            var w = TABLET ? 0 : 24; // content-resizer's own box, always present on desktop
             var sidebarHidden = sidebar.style.display === 'none';
             if (!sidebarHidden && !sidebar.classList.contains('floating')) w += currentWidth;
-            if (!sidebarHidden) w += currentGap;
+            if (!sidebarHidden) w += TABLET ? 16 : currentGap;
             return w;
         }
 
@@ -3703,7 +2946,8 @@ what happens is --- Frond end enters in first, rear end comes later on. &amp; ro
     <script>
     (function () {
         var MOBILE_BREAKPOINT = 900; // must match the CSS media query above
-        if (window.innerWidth > MOBILE_BREAKPOINT) return; // desktop/tablet: the sidebar script above handles it instead
+        if (window.innerWidth > MOBILE_BREAKPOINT) return; // desktop: the sidebar script above handles it instead
+        if (window.wikiIsTabletLayout && window.wikiIsTabletLayout()) return; // iPad portrait: ditto — it gets the real docked sidebar, not this phone panel
 
         var contentEl = document.getElementById('content');
         if (!contentEl) return;
@@ -3851,32 +3095,16 @@ what happens is --- Frond end enters in first, rear end comes later on. &amp; ro
         sweep('img[src]', 'src');
     })();
     </script>
-    <!-- 1. TikZ diagrams are pre-rendered to inline SVG at build time by
-         tools/prerender_tikz.py. This only handles blocks that are *not* yet
-         pre-rendered (e.g. a page edited by hand since the last build): it
-         converts them for TikZJax and pulls TikZJax in on demand. When every
-         block is pre-rendered -- the normal case -- nothing below the first
-         line runs, and the page skips TikZJax's ~10.9 MB download. -->
+    <!-- 1. Turn vimwiki {{{class="tikz"}}} blocks into TikZJax script tags (must run BEFORE tikzjax.js) -->
     <script>
-        (function () {
-            var pending = document.querySelectorAll('pre.tikz:not([data-prerendered])');
-            if (!pending.length) return;
-            pending.forEach(function (pre) {
-                var s = document.createElement('script');
-                s.type = 'text/tikz';
-                s.textContent = pre.textContent; // browser decodes HTML entities here
-                pre.textContent = '';
-                pre.appendChild(s); // keep <pre class="tikz"> as the container so its
-                                    // text-align:center still applies to the SVG tikzjax inserts
-            });
-            var css = document.createElement('link');
-            css.rel = 'stylesheet';
-            css.href = 'https://tikzjax.com/v1/fonts.css';
-            document.head.appendChild(css);
-            var js = document.createElement('script');
-            js.src = 'https://tikzjax.com/v1/tikzjax.js';
-            document.body.appendChild(js);
-        })();
+        document.querySelectorAll('pre.tikz').forEach(function (pre) {
+            var s = document.createElement('script');
+            s.type = 'text/tikz';
+            s.textContent = pre.textContent; // browser decodes HTML entities here
+            pre.textContent = '';
+            pre.appendChild(s); // keep <pre class="tikz"> as the container so its
+                                 // text-align:center still applies to the SVG tikzjax inserts
+        });
     </script>
     <!-- 2. Syntax-highlight code blocks, but skip diagram blocks -->
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
@@ -3885,6 +3113,8 @@ what happens is --- Frond end enters in first, rear end comes later on. &amp; ro
             hljs.highlightBlock(block);
         });
     </script>
+    <!-- 3. TikZJax: renders <script type="text/tikz"> into SVG -->
+    <script src="https://tikzjax.com/v1/tikzjax.js"></script>
     <!-- 4. Mermaid: renders <pre class="mermaid"> into SVG -->
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';

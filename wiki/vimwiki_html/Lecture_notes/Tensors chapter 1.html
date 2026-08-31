@@ -6,6 +6,8 @@
     <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
     <link id="hljs-theme-light" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
     <link id="hljs-theme-dark" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" disabled />
+    <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
+    <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
     <title>Tensors chapter 1</title>
     <meta property="og:type" content="article">
     <meta property="og:title" content="Tensors chapter 1">
@@ -47,6 +49,54 @@
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Tablet (iPad) layout flag.
+
+         iPads report CSS viewport widths of 744-1032px in PORTRAIT (mini 744,
+         iPad / Air 11" 820, Pro 11" 834, Air 13" / Pro 12.9" 1024, Pro 13" M4
+         1032) and 1133-1376px in LANDSCAPE. Landscape therefore already lands
+         in the normal desktop layout and is deliberately left alone; it's
+         portrait that had no home, falling between the 600px phone breakpoint
+         and the 901px desktop one — so it kept the desktop's 3cm page margin
+         (113px a side: ~28% of an 820px screen thrown away) while getting the
+         phone's floating Contents button, because the sidebar script needs
+         901px. This flag is what the tablet CSS and the scripts at the end of
+         the body key off to fix that.
+
+         Why a class and not a plain media query: width alone can't tell an
+         iPad in portrait from a desktop window that happens to be narrow, and
+         a CSS (hover: none)/(pointer: coarse) test isn't trustworthy either —
+         iPadOS Safari ships with "Request Desktop Website" ON by default,
+         which makes it claim a fine, hovering pointer. navigator.maxTouchPoints
+         is > 1 on iPad in BOTH modes and 0 on a real desktop, so it's the
+         reliable half of the test; it can only be read from JS.
+
+         Set here, in <head>, before any body content is parsed, so there is no
+         flash of the wrong layout. Re-evaluated on rotation: the DOM the
+         TOC-sidebar script builds is identical in tablet and desktop modes, so
+         adding/removing this one class is all it takes to move an iPad between
+         the two presentations when it's turned on its side.
+
+         Falls back to today's behaviour (no class) if JS is off. -->
+    <script>
+    (function () {
+        var TABLET_MIN = 601;   // just above the 600px phone breakpoint used throughout this file
+        var TABLET_MAX = 1032;  // widest iPad portrait viewport (iPad Pro 13" M4)
+        function isTablet() {
+            if (!((navigator.maxTouchPoints || 0) > 1)) return false; // real mouse-driven desktop: never
+            var w = window.innerWidth || document.documentElement.clientWidth || 0;
+            return w >= TABLET_MIN && w <= TABLET_MAX;
+        }
+        window.wikiIsTabletLayout = isTablet;
+        function sync() {
+            var on = isTablet();
+            var cl = document.documentElement.classList;
+            if (on) cl.add('tablet-layout'); else cl.remove('tablet-layout');
+        }
+        sync();
+        window.addEventListener('resize', sync);
+        window.addEventListener('orientationchange', sync);
+    })();
+    </script>
     <style>
         /* Theme variables. Light values live at :root; the dark theme
            (toggled by the theme button, script near the end of <body>)
@@ -397,6 +447,104 @@
                 height: 72px;
             }
         }
+        /* ===============================================================
+           iPad / tablet layout (portrait only).
+
+           Gated on html.tablet-layout, set by the flag script in <head> —
+           see the long comment there for what it detects and why it can't
+           be a plain media query. Phones (<=600px) and mouse-driven
+           desktops never get that class, so both of those layouts are
+           completely unchanged by everything below.
+
+           Every rule here is written as `html.tablet-layout <sel>`, which
+           outranks the plain `<sel>` rules in the (min-width: 901px) block
+           above on specificity alone. That matters for the two widest
+           iPads in portrait (1024px and 1032px), which match BOTH that
+           media query and this class — order in the file is irrelevant,
+           these win either way.
+           =============================================================== */
+        html.tablet-layout body {
+            /* Sides: 20px instead of the desktop's 3cm, which hands ~186px
+               of width back to the article on every iPad. Top: the
+               top-right icon row is fixed at top:16px with 48px buttons, so
+               it ends at 64px — 76px keeps the article card clear of it,
+               the same job the 68px phone value does. */
+            padding: 76px 20px 20px 20px;
+        }
+        /* --- Docked Contents sidebar, using the same #page-shell flex row
+               the desktop builds. The markup is identical in both modes, so
+               rotating the iPad just swaps which set of rules applies. --- */
+        html.tablet-layout #page-shell {
+            max-width: none;
+            margin: 0;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 16px;   /* the desktop's draggable gutter is hidden below, so this is a plain fixed gap */
+        }
+        html.tablet-layout body.has-toc-sidebar {
+            /* Undoes the desktop rule's 1cm: the tablet margin above is
+               already tight, so there is nothing left to reclaim here. */
+            padding-left: 20px;
+        }
+        html.tablet-layout #page-shell > #content {
+            margin: 0;
+            max-width: none;
+            flex: 1 1 auto;
+            min-width: 0;   /* let wide equations/code wrap instead of forcing the column wider */
+        }
+        html.tablet-layout #toc-sidebar {
+            /* Width comes from the inline flex-basis the sidebar script
+               sets (200px on tablets — see the MAX_SIDEBAR/DEFAULT_SIDEBAR
+               override there), so it stays the single source of truth that
+               the content-fitting maths also reads. Fixed here so the box
+               can't be squeezed: #content is always the column that gives
+               way, exactly as on desktop. */
+            flex-grow: 0;
+            flex-shrink: 0;
+            position: sticky;
+            top: 16px;
+            max-height: calc(100vh - 32px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 12px 10px;   /* tighter than desktop's 14px/16px: every px here comes out of the article */
+            font-size: 14px;
+        }
+        /* Roomier rows — these are tap targets here, not mouse targets. */
+        html.tablet-layout #toc-sidebar .toc-sidebar-list a { padding: 7px 8px; }
+        /* Drag-to-resize (the square handles + the two gutter strips) and
+           drag-to-move are mouse affordances. On a touch screen they carry
+           touch-action:none, so a swipe that happens to start on one drags
+           the box instead of scrolling the page. Hidden here; the matching
+           pointer handlers bail out on tablets too (see the sidebar script
+           near the end of the body), and fitReservedWidth() there accounts
+           for the strips being gone. */
+        html.tablet-layout #toc-sidebar .toc-resize-handle,
+        html.tablet-layout #toc-resizer,
+        html.tablet-layout #content-resizer {
+            display: none !important;
+        }
+        html.tablet-layout #toc-sidebar .toc-sidebar-title {
+            cursor: default;
+            touch-action: auto;   /* let a swipe here scroll the page */
+        }
+        /* Hover previews are a mouse feature: on a touch screen the "hover"
+           fires on tap and can leave a card stranded over the page. Off
+           here, exactly as it already is on phones. The script that fetches
+           them bails out on tablets too, so nothing is downloaded either. */
+        html.tablet-layout .link-preview-card { display: none !important; }
+        /* Wide display equations and code blocks scroll inside their own box
+           rather than stretching the page sideways — the same protection the
+           phone layout already has, and worth keeping now that the article
+           column here is narrower than a desktop one. */
+        html.tablet-layout mjx-container[display="true"] {
+            max-width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+        html.tablet-layout mjx-container { max-width: 100%; }
+        html.tablet-layout #content pre { overflow-x: auto; }
+
         /* Applied to <body> only while actively dragging the resizer, so the
            cursor/no-select behavior holds even if the pointer strays off the
            thin handle mid-drag. */
@@ -1028,101 +1176,15 @@ In an \(n\)-dimentional space a tensor of rank \('r'\) is a mathematical object 
 
 <div id="Chapter 1: Tensors-componente in a given basis :-"><h2 id="componente in a given basis :-" class="header"><a href="#Chapter 1: Tensors-componente in a given basis :-">componente in a given basis :-</a></h2></div>
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='94.785016pt' height='95.965131pt' viewBox='-70.007476 -70.007479 94.785016 95.965131'>
-<defs>
-<path id='td0fd532e-g1-94' d='m2.49066-6.914072l-1.334994 1.354919l.179328 .179328l1.155666-1.016189l1.145704 1.016189l.179328-.179328l-1.325031-1.354919z'/>
-<path id='td0fd532e-g0-110' d='m.876712-.587796c-.029888 .14944-.089664 .37858-.089664 .428394c0 .179328 .139477 .268991 .288917 .268991c.119552 0 .298879-.079701 .368618-.278954c.009963-.019925 .129514-.488169 .18929-.737235l.219178-.896638c.059776-.219178 .119552-.438356 .169365-.667497c.039851-.169365 .119552-.458281 .129514-.498132c.14944-.308842 .67746-1.215442 1.62391-1.215442c.448319 0 .537983 .368618 .537983 .697385c0 .617684-.488169 1.892902-.647572 2.321295c-.089664 .229141-.099626 .348692-.099626 .458281c0 .468244 .348692 .816936 .816936 .816936c.936488 0 1.305106-1.454545 1.305106-1.534247c0-.099626-.089664-.099626-.119552-.099626c-.099626 0-.099626 .029888-.14944 .179328c-.199253 .67746-.52802 1.235367-1.016189 1.235367c-.169365 0-.239103-.099626-.239103-.328767c0-.249066 .089664-.488169 .179328-.707347c.18929-.52802 .607721-1.62391 .607721-2.191781c0-.667497-.428394-1.066002-1.145704-1.066002c-.896638 0-1.384807 .637609-1.554172 .86675c-.049813-.557908-.458281-.86675-.916563-.86675s-.647572 .388543-.747198 .56787c-.159402 .33873-.298879 .926526-.298879 .966376c0 .099626 .099626 .099626 .119552 .099626c.099626 0 .109589-.009963 .169365-.229141c.169365-.707347 .368618-1.185554 .727273-1.185554c.199253 0 .308842 .129514 .308842 .458281c0 .209215-.029888 .318804-.159402 .836862l-.577833 2.30137z'/>
-<path id='td0fd532e-g0-120' d='m3.327522-3.008717c.059776-.259029 .288917-1.175592 .986301-1.175592c.049813 0 .288917 0 .498132 .129514c-.278954 .049813-.478207 .298879-.478207 .537983c0 .159402 .109589 .348692 .37858 .348692c.219178 0 .537983-.179328 .537983-.577833c0-.518057-.587796-.657534-.926526-.657534c-.577833 0-.926526 .52802-1.046077 .757161c-.249066-.657534-.787049-.757161-1.075965-.757161c-1.036115 0-1.603985 1.285181-1.603985 1.534247c0 .099626 .099626 .099626 .119552 .099626c.079701 0 .109589-.019925 .129514-.109589c.33873-1.05604 .996264-1.305106 1.334994-1.305106c.18929 0 .537983 .089664 .537983 .667497c0 .308842-.169365 .976339-.537983 2.371108c-.159402 .617684-.508095 1.036115-.946451 1.036115c-.059776 0-.288917 0-.498132-.129514c.249066-.049813 .468244-.259029 .468244-.537983c0-.268991-.219178-.348692-.368618-.348692c-.298879 0-.547945 .259029-.547945 .577833c0 .458281 .498132 .657534 .936488 .657534c.657534 0 1.016189-.697385 1.046077-.757161c.119552 .368618 .478207 .757161 1.075965 .757161c1.026152 0 1.594022-1.285181 1.594022-1.534247c0-.099626-.089664-.099626-.119552-.099626c-.089664 0-.109589 .039851-.129514 .109589c-.328767 1.066002-1.006227 1.305106-1.325031 1.305106c-.388543 0-.547945-.318804-.547945-.657534c0-.219178 .059776-.438356 .169365-.876712l.33873-1.364882z'/>
-<path id='td0fd532e-g0-121' d='m4.841843-3.795766c.039851-.139477 .039851-.159402 .039851-.229141c0-.179328-.139477-.268991-.288917-.268991c-.099626 0-.259029 .059776-.348692 .209215c-.019925 .049813-.099626 .358655-.139477 .537983c-.069738 .259029-.139477 .52802-.199253 .797011l-.448319 1.793275c-.039851 .14944-.468244 .846824-1.125778 .846824c-.508095 0-.617684-.438356-.617684-.806974c0-.458281 .169365-1.075965 .508095-1.952677c.159402-.408468 .199253-.518057 .199253-.71731c0-.448319-.318804-.816936-.816936-.816936c-.946451 0-1.315068 1.444583-1.315068 1.534247c0 .099626 .099626 .099626 .119552 .099626c.099626 0 .109589-.019925 .159402-.179328c.268991-.936488 .667497-1.235367 1.006227-1.235367c.079701 0 .249066 0 .249066 .318804c0 .249066-.099626 .508095-.169365 .697385c-.398506 1.05604-.577833 1.62391-.577833 2.092154c0 .886675 .627646 1.185554 1.215442 1.185554c.388543 0 .727273-.169365 1.006227-.448319c-.129514 .518057-.249066 1.006227-.647572 1.534247c-.259029 .33873-.637609 .627646-1.09589 .627646c-.139477 0-.587796-.029888-.757161-.418431c.159402 0 .288917 0 .428394-.119552c.099626-.089664 .199253-.219178 .199253-.408468c0-.308842-.268991-.348692-.368618-.348692c-.229141 0-.557908 .159402-.557908 .647572c0 .498132 .438356 .86675 1.05604 .86675c1.026152 0 2.052304-.9066 2.331258-2.032379l.956413-3.805729z'/>
-<path id='td0fd532e-g0-122' d='m1.325031-.826899c.537983-.577833 .826899-.826899 1.185554-1.135741c0-.009963 .617684-.537983 .976339-.896638c.946451-.926526 1.165629-1.404732 1.165629-1.444583c0-.099626-.089664-.099626-.109589-.099626c-.069738 0-.099626 .019925-.14944 .109589c-.298879 .478207-.508095 .637609-.747198 .637609s-.358655-.14944-.508095-.318804c-.18929-.229141-.358655-.428394-.687422-.428394c-.747198 0-1.205479 .926526-1.205479 1.135741c0 .049813 .029888 .109589 .119552 .109589s.109589-.049813 .129514-.109589c.18929-.458281 .767123-.468244 .846824-.468244c.209215 0 .398506 .069738 .627646 .14944c.398506 .14944 .508095 .14944 .767123 .14944c-.358655 .428394-1.195517 1.145704-1.384807 1.305106l-.896638 .836862c-.67746 .667497-1.026152 1.235367-1.026152 1.305106c0 .099626 .099626 .099626 .119552 .099626c.079701 0 .099626-.019925 .159402-.129514c.229141-.348692 .52802-.617684 .846824-.617684c.229141 0 .328767 .089664 .577833 .37858c.169365 .209215 .348692 .368618 .637609 .368618c.986301 0 1.564134-1.265255 1.564134-1.534247c0-.049813-.039851-.099626-.119552-.099626c-.089664 0-.109589 .059776-.139477 .129514c-.229141 .647572-.86675 .836862-1.195517 .836862c-.199253 0-.37858-.059776-.587796-.129514c-.33873-.129514-.488169-.169365-.697385-.169365c-.019925 0-.179328 0-.268991 .029888z'/>
-</defs>
-<g id='td0fd532e-page1'>
-<g stroke-miterlimit='10' transform='translate(-38.328376,-16.353363)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<path d='M 0.0 0.0 L 0.0 47.96957' fill='none'/>
-<g transform='matrix(0.0,1.0,-1.0,0.0,0.0,48.16957)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(-8.62328,46.2168)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-38.328376,-16.353363)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-38.328376' y='-16.353363' xlink:href='#td0fd532e-g0-122'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 50.81502 0.0' fill='none'/>
-<g transform='translate(51.01501,0.0)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(54.74799,-1.18056)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-38.328376,-16.353363)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-38.328376' y='-16.353363' xlink:href='#td0fd532e-g0-121'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L -25.35402 -30.98863' fill='none'/>
-<g transform='matrix(-0.6332,-0.77391,0.77391,-0.6332,-25.48065,-31.1434)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(-28.46492,-39.1367)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-38.328376,-16.353363)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-38.328376' y='-16.353363' xlink:href='#td0fd532e-g0-120'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 9.8265 28.07523' fill='none'/>
-<g transform='matrix(0.33034,0.94382,-0.94382,0.33034,9.89256,28.26399)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(-1.57846,23.5578)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-38.328376,-16.353363)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-37.829073' y='-16.353363' xlink:href='#td0fd532e-g1-94'/>
-<use x='-38.328376' y='-16.353363' xlink:href='#td0fd532e-g0-110'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,0) -- (0,1.7) node[left] {$z$};
+  \draw[-&gt;] (0,0) -- (1.8,0) node[right] {$y$};
+  \draw[-&gt;] (0,0) -- (-0.9,-1.1) node[below] {$x$};
+  \draw[-&gt;] (0,0) -- (0.35,1.0);
+  \node at (0.05,0.95) {$\hat n$};
+\end{tikzpicture}
 </pre>
 
 \[
@@ -1140,42 +1202,12 @@ vector can also define area ,<br />
 \vec{dA} = |dA|\,\hat n
 \]
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='61.208339pt' height='25.910117pt' viewBox='-70.007476 -70.007478 61.208339 25.910117'>
-<defs>
-<path id='tad28563c-g0-110' d='m.876712-.587796c-.029888 .14944-.089664 .37858-.089664 .428394c0 .179328 .139477 .268991 .288917 .268991c.119552 0 .298879-.079701 .368618-.278954c.009963-.019925 .129514-.488169 .18929-.737235l.219178-.896638c.059776-.219178 .119552-.438356 .169365-.667497c.039851-.169365 .119552-.458281 .129514-.498132c.14944-.308842 .67746-1.215442 1.62391-1.215442c.448319 0 .537983 .368618 .537983 .697385c0 .617684-.488169 1.892902-.647572 2.321295c-.089664 .229141-.099626 .348692-.099626 .458281c0 .468244 .348692 .816936 .816936 .816936c.936488 0 1.305106-1.454545 1.305106-1.534247c0-.099626-.089664-.099626-.119552-.099626c-.099626 0-.099626 .029888-.14944 .179328c-.199253 .67746-.52802 1.235367-1.016189 1.235367c-.169365 0-.239103-.099626-.239103-.328767c0-.249066 .089664-.488169 .179328-.707347c.18929-.52802 .607721-1.62391 .607721-2.191781c0-.667497-.428394-1.066002-1.145704-1.066002c-.896638 0-1.384807 .637609-1.554172 .86675c-.049813-.557908-.458281-.86675-.916563-.86675s-.647572 .388543-.747198 .56787c-.159402 .33873-.298879 .926526-.298879 .966376c0 .099626 .099626 .099626 .119552 .099626c.099626 0 .109589-.009963 .169365-.229141c.169365-.707347 .368618-1.185554 .727273-1.185554c.199253 0 .308842 .129514 .308842 .458281c0 .209215-.029888 .318804-.159402 .836862l-.577833 2.30137z'/>
-<path id='tad28563c-g1-94' d='m2.49066-6.914072l-1.334994 1.354919l.179328 .179328l1.155666-1.016189l1.145704 1.016189l.179328-.179328l-1.325031-1.354919z'/>
-</defs>
-<g id='tad28563c-page1'>
-<g stroke-miterlimit='10' transform='translate(-69.808226,-44.29661)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<path d='M 0.0 0.0 L 7.11317 25.60728 L 28.45274 25.60728 L 21.33955 0.0 Z' fill='none'/>
-<path d='M 15.6491 14.22636 L 47.9711 17.03717' fill='none'/>
-<g transform='matrix(0.99622,0.08662,-0.08662,0.99622,48.17033,17.05449)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(51.90254,13.5996)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.808226,-44.29661)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.308924' y='-44.29661' xlink:href='#tad28563c-g1-94'/>
-<use x='-69.808226' y='-44.29661' xlink:href='#tad28563c-g0-110'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw (0,0) -- (0.25,0.9) -- (1.0,0.9) -- (0.75,0) -- cycle;
+  \draw[-&gt;] (0.55,0.5) -- (1.7,0.6) node[right] {$\hat n$};
+\end{tikzpicture}
 </pre>
 
 <p>
@@ -1190,20 +1222,13 @@ vector can also define area ,<br />
  To specify temp of water<br />
 </p>
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='30.729405pt' height='28.744946pt' viewBox='-70.007476 -70.007479 30.729405 28.744946'>
-<g id='t43d35482-page1'>
-<g stroke-miterlimit='10' transform='translate(-69.808226,-41.461782)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<path d='M 0.0 28.45274 L 3.41418 0.0 L 27.03001 0.0 L 30.44464 28.45274' fill='none'/>
-<path d='M 4.26773 20.48601 L 27.03001 20.48601' fill='none'/>
-<path d='M 7.96672 11.95009 L 20.48601 11.95009' fill='none'/>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw (0,1.0) -- (0.12,0) -- (0.95,0) -- (1.07,1.0);
+  \draw (0.15,0.72) -- (0.95,0.72);
+  \draw (0.28,0.42) -- (0.72,0.42);
+\end{tikzpicture}
 </pre>
 
 <p>
@@ -1235,258 +1260,52 @@ vector can also define area ,<br />
  How will you define stress at point \(O\).<br />
 </p>
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='136.461509pt' height='42.938085pt' viewBox='-70.007476 -70.007475 136.461509 42.938085'>
-<defs>
-<path id='t903fbf5c-g0-79' d='m7.372354-4.343711c0-1.603985-1.05604-2.67995-2.540473-2.67995c-2.15193 0-4.343711 2.261519-4.343711 4.582814c0 1.653798 1.115816 2.660025 2.550436 2.660025c2.11208 0 4.333748-2.181818 4.333748-4.562889zm-4.273973 4.303861c-.986301 0-1.683686-.806974-1.683686-2.122042c0-.438356 .139477-1.892902 .9066-3.058531c.687422-1.036115 1.663761-1.554172 2.450809-1.554172c.816936 0 1.713574 .557908 1.713574 2.042341c0 .71731-.268991 2.271482-1.255293 3.496887c-.478207 .607721-1.295143 1.195517-2.132005 1.195517z'/>
-</defs>
-<g id='t903fbf5c-page1'>
-<g stroke-miterlimit='10' transform='translate(-69.808226,-27.288568)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<path d='M 0.0 0.0 L 113.81097 0.0 L 113.81097 25.60728 L 0.0 25.60728 Z' fill='none'/>
-<path d='M 0.0 25.60728 L 22.76227 42.67911 L 136.57324 42.67911 L 113.81097 25.60728' fill='none'/>
-<path d='M 113.81097 0.0 L 136.57324 17.07181 L 136.57324 42.67911' fill='none'/>
-<g stroke-dasharray='3.0,3.0' stroke-dashoffset='0.0'>
-<path d='M 22.76227 42.67911 L 22.76227 17.07181 L 136.57324 17.07181' fill='none'/>
-</g>
-<g stroke-dasharray='3.0,3.0' stroke-dashoffset='0.0'>
-<path d='M 0.0 0.0 L 22.76227 17.07181' fill='none'/>
-</g>
-<path d='M 56.90549 20.48601 M 58.3282 20.48601 C 58.3282 21.27176 57.69124 21.90872 56.90549 21.90872 C 56.11974 21.90872 55.48277 21.27176 55.48277 20.48601 C 55.48277 19.70026 56.11974 19.0633 56.90549 19.0633 C 57.69124 19.0633 58.3282 19.70026 58.3282 20.48601 Z M 56.90549 20.48601' stroke='none'/>
-<g transform='translate(62.91135,17.06935)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.808226,-27.288568)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.808226' y='-27.288568' xlink:href='#t903fbf5c-g0-79'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw (0,0) -- (4,0) -- (4,0.9) -- (0,0.9) -- cycle;
+  \draw (0,0.9) -- (0.8,1.5) -- (4.8,1.5) -- (4,0.9);
+  \draw (4,0) -- (4.8,0.6) -- (4.8,1.5);
+  \draw[dashed] (0.8,1.5) -- (0.8,0.6) -- (4.8,0.6);
+  \draw[dashed] (0,0) -- (0.8,0.6);
+  \fill (2.0,0.72) circle (0.05);
+  \node at (2.35,0.72) {$O$};
+\end{tikzpicture}
 </pre>
 
 <p>
  we can cut surface in 3 ways at point \('O'\)<br />
 </p>
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='307.912259pt' height='90.322381pt' viewBox='-70.007476 -70.007479 307.912259 90.322381'>
-<defs>
-<path id='t6522faea-g1-120' d='m1.736488-.739228c-.069738 .237111-.299875 .613699-.655542 .613699c-.020922 0-.230137 0-.376588-.097634c.285928-.09066 .306849-.341719 .306849-.383562c0-.153425-.118555-.258032-.278954-.258032c-.195268 0-.397509 .167372-.397509 .425405c0 .348692 .390535 .509091 .732254 .509091c.320797 0 .606725-.202242 .781071-.495143c.167372 .369614 .550934 .495143 .829888 .495143c.801993 0 1.227397-.871731 1.227397-1.066999c0-.09066-.09066-.09066-.111582-.09066c-.097634 0-.104608 .034869-.132503 .118555c-.146451 .481196-.564882 .843836-.955417 .843836c-.278954 0-.425405-.188294-.425405-.4533c0-.18132 .167372-.81594 .36264-1.590037c.139477-.536986 .4533-.711333 .683437-.711333c.013948 0 .230137 0 .376588 .097634c-.223163 .062765-.306849 .258032-.306849 .383562c0 .153425 .118555 .258032 .278954 .258032s.390535-.132503 .390535-.425405c0-.390535-.446326-.509091-.72528-.509091c-.348692 0-.627646 .230137-.781071 .495143c-.125529-.285928-.446326-.495143-.836862-.495143c-.781071 0-1.227397 .857783-1.227397 1.066999c0 .09066 .097634 .09066 .118555 .09066c.09066 0 .097634-.027895 .132503-.118555c.174346-.54396 .613699-.843836 .955417-.843836c.230137 0 .418431 .125529 .418431 .460274c0 .139477-.083686 .488169-.146451 .72528l-.237111 .955417z'/>
-<path id='t6522faea-g1-121' d='m3.87746-2.629141c.027895-.097634 .027895-.111582 .027895-.153425c0-.139477-.111582-.223163-.230137-.223163c-.076712 0-.209215 .034869-.285928 .167372c-.020922 .041843-.076712 .265006-.111582 .404483l-.146451 .578829c-.041843 .167372-.258032 1.046077-.278954 1.12279c-.006974 0-.313823 .606725-.857783 .606725c-.474222 0-.474222-.4533-.474222-.578829c0-.376588 .160399-.81594 .369614-1.352927c.083686-.223163 .118555-.306849 .118555-.425405c0-.334745-.285928-.592777-.662516-.592777c-.704359 0-1.018182 .948443-1.018182 1.066999c0 .09066 .097634 .09066 .118555 .09066c.097634 0 .104608-.034869 .125529-.111582c.174346-.578829 .474222-.850809 .753176-.850809c.118555 0 .174346 .076712 .174346 .244085c0 .160399-.062765 .313823-.097634 .404483c-.334745 .850809-.404483 1.108842-.404483 1.415691c0 .118555 0 .446326 .27198 .669489c.216189 .18132 .509091 .216189 .697385 .216189c.278954 0 .530012-.104608 .760149-.313823c-.09066 .383562-.167372 .676463-.460274 1.025156c-.188294 .216189-.467248 .446326-.836862 .446326c-.048817 0-.376588 0-.523039-.230137c.376588-.041843 .376588-.376588 .376588-.383562c0-.223163-.202242-.265006-.27198-.265006c-.174346 0-.404483 .139477-.404483 .460274c0 .355666 .334745 .613699 .829888 .613699c.704359 0 1.562142-.54396 1.778331-1.415691l.662516-2.636115z'/>
-<path id='t6522faea-g1-122' d='m1.171606-.613699c.18132-.18132 .306849-.313823 .899626-.788045c.146451-.118555 .669489-.536986 .871731-.732254c.425405-.418431 .690411-.774097 .690411-.857783s-.09066-.083686-.118555-.083686c-.062765 0-.083686 .013948-.118555 .069738c-.216189 .320797-.36264 .425405-.530012 .425405c-.083686 0-.188294-.006974-.397509-.209215c-.237111-.237111-.390535-.285928-.550934-.285928c-.557908 0-.934496 .606725-.934496 .81594c0 .062765 .069738 .083686 .118555 .083686c.083686 0 .097634-.020922 .125529-.097634c.104608-.244085 .495143-.258032 .606725-.258032c.160399 0 .341719 .041843 .439352 .062765c.383562 .083686 .432379 .083686 .606725 .083686c-.18132 .188294-.306849 .313823-.969365 .843836c-.54396 .432379-.732254 .606725-.864757 .746202c-.418431 .411457-.620672 .718306-.620672 .781071c0 .083686 .09066 .083686 .118555 .083686c.069738 0 .083686-.013948 .118555-.069738c.188294-.265006 .404483-.425405 .641594-.425405c.083686 0 .188294 .006974 .376588 .18132c.216189 .209215 .355666 .313823 .578829 .313823c.746202 0 1.21345-.843836 1.21345-1.080946c0-.083686-.076712-.09066-.118555-.09066c-.083686 0-.097634 .034869-.125529 .111582c-.132503 .348692-.54396 .516065-.885679 .516065c-.160399 0-.334745-.034869-.509091-.076712c-.320797-.069738-.376588-.069738-.502117-.069738c-.013948 0-.118555 0-.160399 .006974z'/>
-<path id='t6522faea-g0-27' d='m5.160648-3.716065c.129514 0 .488169 0 .488169-.33873c0-.239103-.209215-.239103-.388543-.239103h-2.271482c-1.504359 0-2.610212 1.643836-2.610212 2.82939c0 .876712 .587796 1.574097 1.494396 1.574097c1.175592 0 2.500623-1.205479 2.500623-2.739726c0-.169365 0-.647572-.308842-1.085928h1.09589zm-3.277709 3.606476c-.488169 0-.886675-.358655-.886675-1.075965c0-.298879 .119552-1.115816 .468244-1.703611c.418431-.687422 1.016189-.826899 1.354919-.826899c.836862 0 .916563 .657534 .916563 .966376c0 .468244-.199253 1.285181-.537983 1.793275c-.388543 .587796-.926526 .846824-1.315068 .846824z'/>
-</defs>
-<g id='t6522faea-page1'>
-<g stroke-miterlimit='10' transform='translate(-69.808226,-16.342479)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<path d='M 0.0 0.0 M 0.0 0.0 L 0.0 22.76227 L 28.45274 22.76227 L 28.45274 0.0 Z M 28.45274 22.76227' fill='none'/>
-<path d='M 4.26773 -2.84544 L 32.72047 -2.84544 L 32.72047 19.91682 L 4.26773 19.91682 Z' fill='none'/>
-<path d='M 17.07181 9.95863 M 18.20972 9.95863 C 18.20972 10.58708 17.70026 11.09654 17.07181 11.09654 C 16.44336 11.09654 15.9339 10.58708 15.9339 9.95863 C 15.9339 9.33018 16.44336 8.82072 17.07181 8.82072 C 17.70026 8.82072 18.20972 9.33018 18.20972 9.95863 Z M 17.07181 9.95863' stroke='none'/>
-<path d='M 17.07181 9.95863 L 17.07181 35.16592' fill='none'/>
-<g transform='matrix(0.0,1.0,-1.0,0.0,17.07181,35.36592)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(20.60478,40.59886)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.808226,-16.342479)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.808226' y='-16.342479' xlink:href='#t6522faea-g0-27'/>
-<use x='-64.115435' y='-14.848098' xlink:href='#t6522faea-g1-120'/>
-<use x='-59.597633' y='-14.848098' xlink:href='#t6522faea-g1-122'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 17.07181 9.95863 L 53.66003 9.95863' fill='none'/>
-<g transform='translate(53.86003,9.95863)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(57.593,9.2364)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.808226,-16.342479)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.808226' y='-16.342479' xlink:href='#t6522faea-g0-27'/>
-<use x='-64.115435' y='-14.848098' xlink:href='#t6522faea-g1-120'/>
-<use x='-59.597633' y='-14.848098' xlink:href='#t6522faea-g1-121'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 17.07181 9.95863 L 17.07181 -20.93956' fill='none'/>
-<g transform='matrix(0.0,-1.0,1.0,0.0,17.07181,-21.13956)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(9.43002,-29.17807)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.808226,-16.342479)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.808226' y='-16.342479' xlink:href='#t6522faea-g0-27'/>
-<use x='-64.115435' y='-14.848098' xlink:href='#t6522faea-g1-120'/>
-<use x='-59.597633' y='-14.848098' xlink:href='#t6522faea-g1-120'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 120.92415 -5.69046 L 140.84099 -9.95863 L 143.68643 28.45274 L 123.76917 32.72047 Z' fill='none'/>
-<path d='M 132.30507 9.95863 M 133.44298 9.95863 C 133.44298 10.58708 132.93352 11.09654 132.30507 11.09654 C 131.67662 11.09654 131.16716 10.58708 131.16716 9.95863 C 131.16716 9.33018 131.67662 8.82072 132.30507 8.82072 C 132.93352 8.82072 133.44298 9.33018 133.44298 9.95863 Z M 132.30507 9.95863' stroke='none'/>
-<path d='M 132.30507 9.95863 L 132.30507 39.43367' fill='none'/>
-<g transform='matrix(0.0,1.0,-1.0,0.0,132.30507,39.63367)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(135.83804,46.22772)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.808226,-16.342479)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.808226' y='-16.342479' xlink:href='#t6522faea-g0-27'/>
-<use x='-64.115435' y='-14.848098' xlink:href='#t6522faea-g1-121'/>
-<use x='-59.824765' y='-14.848098' xlink:href='#t6522faea-g1-122'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 132.30507 9.95863 L 167.47101 9.95863' fill='none'/>
-<g transform='translate(167.671,9.95863)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(171.40398,9.2364)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.808226,-16.342479)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.808226' y='-16.342479' xlink:href='#t6522faea-g0-27'/>
-<use x='-64.115435' y='-14.848098' xlink:href='#t6522faea-g1-121'/>
-<use x='-59.824765' y='-14.848098' xlink:href='#t6522faea-g1-121'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 132.30507 9.95863 L 132.30507 -22.36227' fill='none'/>
-<g transform='matrix(0.0,-1.0,1.0,0.0,132.30507,-22.56227)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(124.77727,-30.60078)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.808226,-16.342479)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.808226' y='-16.342479' xlink:href='#t6522faea-g0-27'/>
-<use x='-64.115435' y='-14.848098' xlink:href='#t6522faea-g1-121'/>
-<use x='-59.824765' y='-14.848098' xlink:href='#t6522faea-g1-120'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 240.42558 -5.69046 M 240.42558 -5.69046 L 240.42558 28.45274 L 263.18787 28.45274 L 263.18787 -5.69046 Z M 263.18787 28.45274' fill='none'/>
-<path d='M 251.8065 9.95863 M 252.94441 9.95863 C 252.94441 10.58708 252.43495 11.09654 251.8065 11.09654 C 251.17805 11.09654 250.6686 10.58708 250.6686 9.95863 C 250.6686 9.33018 251.17805 8.82072 251.8065 8.82072 C 252.43495 8.82072 252.94441 9.33018 252.94441 9.95863 Z M 251.8065 9.95863' stroke='none'/>
-<path d='M 251.8065 9.95863 L 251.8065 39.43367' fill='none'/>
-<g transform='matrix(0.0,1.0,-1.0,0.0,251.8065,39.63367)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(255.33948,44.86661)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.808226,-16.342479)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.808226' y='-16.342479' xlink:href='#t6522faea-g0-27'/>
-<use x='-64.115435' y='-14.848098' xlink:href='#t6522faea-g1-122'/>
-<use x='-60.023099' y='-14.848098' xlink:href='#t6522faea-g1-122'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 251.8065 9.95863 L 286.97244 9.95863' fill='none'/>
-<g transform='translate(287.17244,9.95863)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(290.90541,9.2364)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.808226,-16.342479)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.808226' y='-16.342479' xlink:href='#t6522faea-g0-27'/>
-<use x='-64.115435' y='-14.848098' xlink:href='#t6522faea-g1-122'/>
-<use x='-60.023099' y='-14.848098' xlink:href='#t6522faea-g1-121'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 251.8065 9.95863 L 251.8065 -22.36227' fill='none'/>
-<g transform='matrix(0.0,-1.0,1.0,0.0,251.8065,-22.56227)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(244.37823,-30.60078)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.808226,-16.342479)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.808226' y='-16.342479' xlink:href='#t6522faea-g0-27'/>
-<use x='-64.115435' y='-14.848098' xlink:href='#t6522faea-g1-122'/>
-<use x='-60.023099' y='-14.848098' xlink:href='#t6522faea-g1-120'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  % first cut
+  \begin{scope}[shift={(0,0)}]
+    \draw (0,0) rectangle (1.0,0.8);
+    \draw (0.15,-0.1) -- (1.15,-0.1) -- (1.15,0.7) -- (0.15,0.7) -- cycle;
+    \fill (0.6,0.35) circle (0.04);
+    \draw[-&gt;] (0.6,0.35) -- (0.6,1.25) node[above right] {$\sigma_{xz}$};
+    \draw[-&gt;] (0.6,0.35) -- (1.9,0.35) node[right] {$\sigma_{xy}$};
+    \draw[-&gt;] (0.6,0.35) -- (0.6,-0.75) node[below] {$\sigma_{xx}$};
+  \end{scope}
+  % second cut
+  \begin{scope}[shift={(4.2,0)}]
+    \draw (0.05,-0.2) -- (0.75,-0.35) -- (0.85,1.0) -- (0.15,1.15) -- cycle;
+    \fill (0.45,0.35) circle (0.04);
+    \draw[-&gt;] (0.45,0.35) -- (0.45,1.4) node[above right] {$\sigma_{yz}$};
+    \draw[-&gt;] (0.45,0.35) -- (1.7,0.35) node[right] {$\sigma_{yy}$};
+    \draw[-&gt;] (0.45,0.35) -- (0.45,-0.8) node[below] {$\sigma_{yx}$};
+  \end{scope}
+  % third cut
+  \begin{scope}[shift={(8.4,0)}]
+    \draw (0.05,-0.2) rectangle (0.85,1.0);
+    \fill (0.45,0.35) circle (0.04);
+    \draw[-&gt;] (0.45,0.35) -- (0.45,1.4) node[above right] {$\sigma_{zz}$};
+    \draw[-&gt;] (0.45,0.35) -- (1.7,0.35) node[right] {$\sigma_{zy}$};
+    \draw[-&gt;] (0.45,0.35) -- (0.45,-0.8) node[below] {$\sigma_{zx}$};
+  \end{scope}
+\end{tikzpicture}
 </pre>
 
 <p>
@@ -1741,95 +1560,16 @@ X_i^{\ jj} \qquad
 
 <div id="Chapter 1: Tensors-Contravariant tensor :-"><h2 id="Contravariant tensor :-" class="header"><a href="#Chapter 1: Tensors-Contravariant tensor :-">Contravariant tensor :-</a></h2></div>
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='109.624169pt' height='84.899108pt' viewBox='-70.007476 -70.007473 109.624169 84.899108'>
-<defs>
-<path id='t53b9f33d-g0-65' d='m1.783313-1.145704c-.398506 .667497-.787049 .806974-1.225405 .836862c-.119552 .009963-.209215 .009963-.209215 .199253c0 .059776 .049813 .109589 .129514 .109589c.268991 0 .577833-.029888 .856787-.029888c.328767 0 .67746 .029888 .996264 .029888c.059776 0 .18929 0 .18929-.18929c0-.109589-.089664-.119552-.159402-.119552c-.229141-.019925-.468244-.099626-.468244-.348692c0-.119552 .059776-.229141 .139477-.368618l.757161-1.275218h2.500623c.019925 .209215 .159402 1.564134 .159402 1.663761c0 .298879-.518057 .328767-.71731 .328767c-.139477 0-.239103 0-.239103 .199253c0 .109589 .119552 .109589 .139477 .109589c.408468 0 .836862-.029888 1.24533-.029888c.249066 0 .876712 .029888 1.125778 .029888c.059776 0 .179328 0 .179328-.199253c0-.109589-.099626-.109589-.229141-.109589c-.617684 0-.617684-.069738-.647572-.358655l-.607721-6.22665c-.019925-.199253-.019925-.239103-.18929-.239103c-.159402 0-.199253 .069738-.259029 .169365l-3.466999 5.818182zm1.195517-1.464508l1.96264-3.287671l.318804 3.287671h-2.281445z'/>
-<path id='t53b9f33d-g0-66' d='m1.594022-.777086c-.099626 .388543-.119552 .468244-.9066 .468244c-.169365 0-.268991 0-.268991 .199253c0 .109589 .089664 .109589 .268991 .109589h3.556663c1.574097 0 2.749689-1.175592 2.749689-2.15193c0-.71731-.577833-1.295143-1.544209-1.404732c1.036115-.18929 2.082192-.926526 2.082192-1.872976c0-.737235-.657534-1.374844-1.853051-1.374844h-3.347447c-.18929 0-.288917 0-.288917 .199253c0 .109589 .089664 .109589 .278954 .109589c.019925 0 .209215 0 .37858 .019925c.179328 .019925 .268991 .029888 .268991 .159402c0 .039851-.009963 .069738-.039851 .18929l-1.334994 5.349938zm1.504359-2.86924l.617684-2.470735c.089664-.348692 .109589-.37858 .537983-.37858h1.285181c.876712 0 1.085928 .587796 1.085928 1.026152c0 .876712-.856787 1.823163-2.072229 1.823163h-1.454545zm-.448319 3.337484c-.139477 0-.159402 0-.219178-.009963c-.099626-.009963-.129514-.019925-.129514-.099626c0-.029888 0-.049813 .049813-.229141l.687422-2.779577h1.882939c.956413 0 1.145704 .737235 1.145704 1.165629c0 .986301-.886675 1.952677-2.062267 1.952677h-1.354919z'/>
-<path id='t53b9f33d-g0-105' d='m2.82939-6.22665c0-.199253-.139477-.358655-.368618-.358655c-.268991 0-.537983 .259029-.537983 .52802c0 .18929 .139477 .358655 .37858 .358655c.229141 0 .52802-.229141 .52802-.52802zm-.757161 3.745953c.119552-.288917 .119552-.308842 .219178-.577833c.079701-.199253 .129514-.33873 .129514-.52802c0-.448319-.318804-.816936-.816936-.816936c-.936488 0-1.315068 1.444583-1.315068 1.534247c0 .099626 .099626 .099626 .119552 .099626c.099626 0 .109589-.019925 .159402-.179328c.268991-.936488 .667497-1.235367 1.006227-1.235367c.079701 0 .249066 0 .249066 .318804c0 .209215-.069738 .418431-.109589 .518057c-.079701 .259029-.52802 1.414695-.687422 1.843088c-.099626 .259029-.229141 .587796-.229141 .797011c0 .468244 .33873 .816936 .816936 .816936c.936488 0 1.305106-1.444583 1.305106-1.534247c0-.099626-.089664-.099626-.119552-.099626c-.099626 0-.099626 .029888-.14944 .179328c-.179328 .627646-.508095 1.235367-1.016189 1.235367c-.169365 0-.239103-.099626-.239103-.328767c0-.249066 .059776-.388543 .288917-.996264l.388543-1.046077z'/>
-<path id='t53b9f33d-g0-106' d='m3.955168-6.22665c0-.18929-.139477-.358655-.37858-.358655c-.229141 0-.52802 .229141-.52802 .52802c0 .199253 .139477 .358655 .368618 .358655c.268991 0 .537983-.259029 .537983-.52802zm-2.002491 6.724782c-.18929 .757161-.667497 1.325031-1.225405 1.325031c-.059776 0-.209215 0-.388543-.089664c.298879-.069738 .448319-.328767 .448319-.52802c0-.159402-.109589-.348692-.37858-.348692c-.249066 0-.537983 .209215-.537983 .56787c0 .398506 .398506 .617684 .876712 .617684c.697385 0 1.62391-.52802 1.872976-1.514321l.916563-3.646326c.049813-.199253 .049813-.33873 .049813-.368618c0-.56787-.418431-.916563-.916563-.916563c-1.016189 0-1.58406 1.444583-1.58406 1.534247c0 .099626 .099626 .099626 .119552 .099626c.089664 0 .099626-.009963 .179328-.199253c.249066-.607721 .707347-1.215442 1.255293-1.215442c.139477 0 .318804 .039851 .318804 .458281c0 .229141-.029888 .33873-.069738 .508095l-.936488 3.716065z'/>
-<path id='t53b9f33d-g1-94' d='m2.49066-6.914072l-1.334994 1.354919l.179328 .179328l1.155666-1.016189l1.145704 1.016189l.179328-.179328l-1.325031-1.354919z'/>
-</defs>
-<g id='t53b9f33d-page1'>
-<g stroke-miterlimit='10' transform='translate(-55.695196,1.243551)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<path d='M 0.0 0.0 L 0.0 62.19595' fill='none'/>
-<g transform='matrix(0.0,1.0,-1.0,0.0,0.0,62.39595)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(-8.22346,58.9511)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-55.695196,1.243551)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-55.849372' y='-1.037598' xlink:href='#t53b9f33d-g1-94'/>
-<use x='-55.695196' y='1.243551' xlink:href='#t53b9f33d-g0-106'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 84.95824 0.0' fill='none'/>
-<g transform='translate(85.15823,0.0)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(88.8912,-4.61707)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-55.695196,1.243551)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-56.469727' y='-1.037598' xlink:href='#t53b9f33d-g1-94'/>
-<use x='-55.695196' y='1.243551' xlink:href='#t53b9f33d-g0-105'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 28.45274 -2.27626 L 28.45274 2.27626' fill='none'/>
-<path d='M 56.90549 -2.27626 L 56.90549 2.27626' fill='none'/>
-<path d='M -2.27626 28.45274 L 2.27626 28.45274' fill='none'/>
-<g transform='translate(-11.03297,-10.36629)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-55.695196,1.243551)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-55.695196' y='1.243551' xlink:href='#t53b9f33d-g0-65'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 50.88222 33.92136' fill='none'/>
-<g transform='matrix(0.83202,0.55466,-0.55466,0.83202,51.04861,34.03227)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(54.74799,30.72655)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-55.695196,1.243551)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-55.695196' y='1.243551' xlink:href='#t53b9f33d-g0-66'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,0) -- (0,2.2) node[left] {$\hat j$};
+  \draw[-&gt;] (0,0) -- (3.0,0) node[right] {$\hat i$};
+  \foreach \x in {1,2} {\draw (\x,-0.08) -- (\x,0.08);}
+  \foreach \y in {1} {\draw (-0.08,\y) -- (0.08,\y);}
+  \node[below left] at (0,0) {$A$};
+  \draw[-&gt;] (0,0) -- (1.8,1.2) node[right] {$B$};
+\end{tikzpicture}
 </pre>
 
 \[
@@ -1843,102 +1583,17 @@ X_i^{\ jj} \qquad
 \hat j' = \hat j
 \]
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='112.419228pt' height='87.733928pt' viewBox='-70.007476 -70.007479 112.419228 87.733928'>
-<defs>
-<path id='te86e7b08-g0-48' d='m2.022416-3.291656c.055791-.118555 .062765-.174346 .062765-.223163c0-.216189-.195268-.383562-.411457-.383562c-.265006 0-.348692 .216189-.383562 .327771l-.920548 3.019676c-.006974 .013948-.034869 .104608-.034869 .111582c0 .083686 .216189 .153425 .27198 .153425c.048817 0 .055791-.013948 .104608-.118555l1.311083-2.887173z'/>
-<path id='te86e7b08-g1-65' d='m1.783313-1.145704c-.398506 .667497-.787049 .806974-1.225405 .836862c-.119552 .009963-.209215 .009963-.209215 .199253c0 .059776 .049813 .109589 .129514 .109589c.268991 0 .577833-.029888 .856787-.029888c.328767 0 .67746 .029888 .996264 .029888c.059776 0 .18929 0 .18929-.18929c0-.109589-.089664-.119552-.159402-.119552c-.229141-.019925-.468244-.099626-.468244-.348692c0-.119552 .059776-.229141 .139477-.368618l.757161-1.275218h2.500623c.019925 .209215 .159402 1.564134 .159402 1.663761c0 .298879-.518057 .328767-.71731 .328767c-.139477 0-.239103 0-.239103 .199253c0 .109589 .119552 .109589 .139477 .109589c.408468 0 .836862-.029888 1.24533-.029888c.249066 0 .876712 .029888 1.125778 .029888c.059776 0 .179328 0 .179328-.199253c0-.109589-.099626-.109589-.229141-.109589c-.617684 0-.617684-.069738-.647572-.358655l-.607721-6.22665c-.019925-.199253-.019925-.239103-.18929-.239103c-.159402 0-.199253 .069738-.259029 .169365l-3.466999 5.818182zm1.195517-1.464508l1.96264-3.287671l.318804 3.287671h-2.281445z'/>
-<path id='te86e7b08-g1-66' d='m1.594022-.777086c-.099626 .388543-.119552 .468244-.9066 .468244c-.169365 0-.268991 0-.268991 .199253c0 .109589 .089664 .109589 .268991 .109589h3.556663c1.574097 0 2.749689-1.175592 2.749689-2.15193c0-.71731-.577833-1.295143-1.544209-1.404732c1.036115-.18929 2.082192-.926526 2.082192-1.872976c0-.737235-.657534-1.374844-1.853051-1.374844h-3.347447c-.18929 0-.288917 0-.288917 .199253c0 .109589 .089664 .109589 .278954 .109589c.019925 0 .209215 0 .37858 .019925c.179328 .019925 .268991 .029888 .268991 .159402c0 .039851-.009963 .069738-.039851 .18929l-1.334994 5.349938zm1.504359-2.86924l.617684-2.470735c.089664-.348692 .109589-.37858 .537983-.37858h1.285181c.876712 0 1.085928 .587796 1.085928 1.026152c0 .876712-.856787 1.823163-2.072229 1.823163h-1.454545zm-.448319 3.337484c-.139477 0-.159402 0-.219178-.009963c-.099626-.009963-.129514-.019925-.129514-.099626c0-.029888 0-.049813 .049813-.229141l.687422-2.779577h1.882939c.956413 0 1.145704 .737235 1.145704 1.165629c0 .986301-.886675 1.952677-2.062267 1.952677h-1.354919z'/>
-<path id='te86e7b08-g1-105' d='m2.82939-6.22665c0-.199253-.139477-.358655-.368618-.358655c-.268991 0-.537983 .259029-.537983 .52802c0 .18929 .139477 .358655 .37858 .358655c.229141 0 .52802-.229141 .52802-.52802zm-.757161 3.745953c.119552-.288917 .119552-.308842 .219178-.577833c.079701-.199253 .129514-.33873 .129514-.52802c0-.448319-.318804-.816936-.816936-.816936c-.936488 0-1.315068 1.444583-1.315068 1.534247c0 .099626 .099626 .099626 .119552 .099626c.099626 0 .109589-.019925 .159402-.179328c.268991-.936488 .667497-1.235367 1.006227-1.235367c.079701 0 .249066 0 .249066 .318804c0 .209215-.069738 .418431-.109589 .518057c-.079701 .259029-.52802 1.414695-.687422 1.843088c-.099626 .259029-.229141 .587796-.229141 .797011c0 .468244 .33873 .816936 .816936 .816936c.936488 0 1.305106-1.444583 1.305106-1.534247c0-.099626-.089664-.099626-.119552-.099626c-.099626 0-.099626 .029888-.14944 .179328c-.179328 .627646-.508095 1.235367-1.016189 1.235367c-.169365 0-.239103-.099626-.239103-.328767c0-.249066 .059776-.388543 .288917-.996264l.388543-1.046077z'/>
-<path id='te86e7b08-g1-106' d='m3.955168-6.22665c0-.18929-.139477-.358655-.37858-.358655c-.229141 0-.52802 .229141-.52802 .52802c0 .199253 .139477 .358655 .368618 .358655c.268991 0 .537983-.259029 .537983-.52802zm-2.002491 6.724782c-.18929 .757161-.667497 1.325031-1.225405 1.325031c-.059776 0-.209215 0-.388543-.089664c.298879-.069738 .448319-.328767 .448319-.52802c0-.159402-.109589-.348692-.37858-.348692c-.249066 0-.537983 .209215-.537983 .56787c0 .398506 .398506 .617684 .876712 .617684c.697385 0 1.62391-.52802 1.872976-1.514321l.916563-3.646326c.049813-.199253 .049813-.33873 .049813-.368618c0-.56787-.418431-.916563-.916563-.916563c-1.016189 0-1.58406 1.444583-1.58406 1.534247c0 .099626 .099626 .099626 .119552 .099626c.089664 0 .099626-.009963 .179328-.199253c.249066-.607721 .707347-1.215442 1.255293-1.215442c.139477 0 .318804 .039851 .318804 .458281c0 .229141-.029888 .33873-.069738 .508095l-.936488 3.716065z'/>
-<path id='te86e7b08-g2-94' d='m2.49066-6.914072l-1.334994 1.354919l.179328 .179328l1.155666-1.016189l1.145704 1.016189l.179328-.179328l-1.325031-1.354919z'/>
-</defs>
-<g id='te86e7b08-page1'>
-<g stroke-miterlimit='10' transform='translate(-55.695196,4.078365)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<path d='M 0.0 0.0 L 0.0 65.0414' fill='none'/>
-<g transform='matrix(0.0,1.0,-1.0,0.0,0.0,65.2414)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(-11.029,61.79654)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-55.695196,4.078365)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-55.849372' y='1.797216' xlink:href='#te86e7b08-g2-94'/>
-<use x='-55.695196' y='4.078365' xlink:href='#te86e7b08-g1-106'/>
-<use x='-51.022215' y='.463001' xlink:href='#te86e7b08-g0-48'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 84.95824 0.0' fill='none'/>
-<g transform='translate(85.15823,0.0)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(88.8912,-4.61707)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-55.695196,4.078365)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-56.469727' y='1.797216' xlink:href='#te86e7b08-g2-94'/>
-<use x='-55.695196' y='4.078365' xlink:href='#te86e7b08-g1-105'/>
-<use x='-52.262937' y='.463001' xlink:href='#te86e7b08-g0-48'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M -2.27626 11.38092 L 2.27626 11.38092' fill='none'/>
-<path d='M -2.27626 22.76227 L 2.27626 22.76227' fill='none'/>
-<path d='M -2.27626 34.1432 L 2.27626 34.1432' fill='none'/>
-<path d='M -2.27626 45.52455 L 2.27626 45.52455' fill='none'/>
-<path d='M 25.60728 -2.27626 L 25.60728 2.27626' fill='none'/>
-<path d='M 51.21501 -2.27626 L 51.21501 2.27626' fill='none'/>
-<g transform='translate(-11.03297,-10.36629)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-55.695196,4.078365)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-55.695196' y='4.078365' xlink:href='#te86e7b08-g1-65'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 45.21413 36.73643' fill='none'/>
-<g transform='matrix(0.7761,0.63057,-0.63057,0.7761,45.36934,36.86253)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(49.05753,40.52162)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-55.695196,4.078365)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-55.695196' y='4.078365' xlink:href='#te86e7b08-g1-66'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 45.52455 36.98865 L 45.52455 0.0' fill='none'/>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,0) -- (0,2.3) node[left] {$\hat j'$};
+  \draw[-&gt;] (0,0) -- (3.0,0) node[right] {$\hat i'$};
+  \foreach \y in {0.4,0.8,1.2,1.6} {\draw (-0.08,\y) -- (0.08,\y);}
+  \foreach \x in {0.9,1.8} {\draw (\x,-0.08) -- (\x,0.08);}
+  \node[below left] at (0,0) {$A$};
+  \draw[-&gt;] (0,0) -- (1.6,1.3) node[above right] {$B$};
+  \draw (1.6,1.3) -- (1.6,0);
+\end{tikzpicture}
 </pre>
 
 \[
@@ -2009,115 +1664,19 @@ A tensor whose components change in same manner as basis change under given tran
 
 <div id="Chapter 1: Tensors-Tensor Notation :-"><h2 id="Tensor Notation :-" class="header"><a href="#Chapter 1: Tensors-Tensor Notation :-">Tensor Notation :-</a></h2></div>
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='135.20277pt' height='94.839024pt' viewBox='-70.007476 -70.007475 135.20277 94.839024'>
-<defs>
-<path id='tf39e11ef-g2-49' d='m2.336239-4.435367c0-.188294-.013948-.195268-.209215-.195268c-.446326 .439352-1.080946 .446326-1.366874 .446326v.251059c.167372 0 .627646 0 1.011208-.195268v3.556663c0 .230137 0 .320797-.697385 .320797h-.265006v.251059c.125529-.006974 .983313-.027895 1.241345-.027895c.216189 0 1.094894 .020922 1.248319 .027895v-.251059h-.265006c-.697385 0-.697385-.09066-.697385-.320797v-3.863512z'/>
-<path id='tf39e11ef-g2-50' d='m3.521793-1.26924h-.237111c-.020922 .153425-.09066 .564882-.18132 .63462c-.055791 .041843-.592777 .041843-.690411 .041843h-1.283188c.732254-.648568 .976339-.843836 1.39477-1.171606c.516065-.411457 .99726-.843836 .99726-1.506351c0-.843836-.739228-1.3599-1.63188-1.3599c-.864757 0-1.45056 .606725-1.45056 1.248319c0 .355666 .299875 .390535 .369614 .390535c.167372 0 .369614-.118555 .369614-.369614c0-.125529-.048817-.369614-.411457-.369614c.216189-.495143 .690411-.648568 1.018182-.648568c.697385 0 1.060025 .54396 1.060025 1.108842c0 .606725-.432379 1.08792-.655542 1.338979l-1.680697 1.659776c-.069738 .062765-.069738 .076712-.069738 .27198h2.873225l.209215-1.26924z'/>
-<path id='tf39e11ef-g0-97' d='m3.716065-3.765878c-.179328-.368618-.468244-.637609-.916563-.637609c-1.165629 0-2.400996 1.464508-2.400996 2.919054c0 .936488 .547945 1.594022 1.325031 1.594022c.199253 0 .697385-.039851 1.295143-.747198c.079701 .418431 .428394 .747198 .9066 .747198c.348692 0 .577833-.229141 .737235-.547945c.169365-.358655 .298879-.966376 .298879-.986301c0-.099626-.089664-.099626-.119552-.099626c-.099626 0-.109589 .039851-.139477 .179328c-.169365 .647572-.348692 1.235367-.757161 1.235367c-.268991 0-.298879-.259029-.298879-.458281c0-.219178 .019925-.298879 .129514-.737235c.109589-.418431 .129514-.518057 .219178-.896638l.358655-1.39477c.069738-.278954 .069738-.298879 .069738-.33873c0-.169365-.119552-.268991-.288917-.268991c-.239103 0-.388543 .219178-.418431 .438356zm-.647572 2.580324c-.049813 .179328-.049813 .199253-.199253 .368618c-.438356 .547945-.846824 .707347-1.125778 .707347c-.498132 0-.637609-.547945-.637609-.936488c0-.498132 .318804-1.723537 .547945-2.181818c.308842-.587796 .757161-.956413 1.155666-.956413c.647572 0 .787049 .816936 .787049 .876712s-.019925 .119552-.029888 .169365l-.498132 1.952677z'/>
-<path id='tf39e11ef-g0-101' d='m1.863014-2.30137c.288917 0 1.026152-.019925 1.524284-.229141c.697385-.298879 .747198-.886675 .747198-1.026152c0-.438356-.37858-.846824-1.066002-.846824c-1.105853 0-2.610212 .966376-2.610212 2.709838c0 1.016189 .587796 1.803238 1.564134 1.803238c1.424658 0 2.261519-1.05604 2.261519-1.175592c0-.059776-.059776-.129514-.119552-.129514c-.049813 0-.069738 .019925-.129514 .099626c-.787049 .986301-1.872976 .986301-1.992528 .986301c-.777086 0-.86675-.836862-.86675-1.155666c0-.119552 .009963-.428394 .159402-1.036115h.52802zm-.468244-.219178c.388543-1.514321 1.414695-1.663761 1.673724-1.663761c.468244 0 .737235 .288917 .737235 .627646c0 1.036115-1.594022 1.036115-2.002491 1.036115h-.408468z'/>
-<path id='tf39e11ef-g1-94' d='m2.49066-6.914072l-1.334994 1.354919l.179328 .179328l1.155666-1.016189l1.145704 1.016189l.179328-.179328l-1.325031-1.354919z'/>
-</defs>
-<g id='tf39e11ef-page1'>
-<g stroke-miterlimit='10' transform='translate(-69.808226,-.118422)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<path d='M 0.0 0.0 L 119.10144 0.0' fill='none'/>
-<g transform='translate(119.30144,0.0)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(123.03441,-2.72223)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.808226,-.118422)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.425962' y='-.118422' xlink:href='#tf39e11ef-g1-94'/>
-<use x='-69.808226' y='-.118422' xlink:href='#tf39e11ef-g0-101'/>
-<use x='-65.169355' y='1.375959' xlink:href='#tf39e11ef-g2-49'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 56.63644 62.3' fill='none'/>
-<g transform='matrix(0.67264,0.7399,-0.7399,0.67264,56.77097,62.44797)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(60.43846,59.87372)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.808226,-.118422)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.425962' y='-.118422' xlink:href='#tf39e11ef-g1-94'/>
-<use x='-69.808226' y='-.118422' xlink:href='#tf39e11ef-g0-101'/>
-<use x='-65.169355' y='1.375959' xlink:href='#tf39e11ef-g2-50'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 84.97513 25.49236' fill='none'/>
-<g transform='matrix(0.95778,0.28734,-0.28734,0.95778,85.16669,25.54982)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(88.8912,23.45451)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.808226,-.118422)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.808226' y='-.118422' xlink:href='#tf39e11ef-g0-97'/>
-</g>
-</g>
-</g>
-</g>
-<g stroke-dasharray='3.0,3.0' stroke-dashoffset='0.0'>
-<path d='M 0.0 0.0 L 24.185 27.03001' fill='none'/>
-</g>
-<g stroke-dasharray='3.0,3.0' stroke-dashoffset='0.0'>
-<path d='M 24.185 27.03001 L 85.35823 25.60728' fill='none'/>
-</g>
-<g stroke-dasharray='3.0,3.0' stroke-dashoffset='0.0'>
-<path d='M 61.17322 -1.42271 L 85.35823 25.60728' fill='none'/>
-</g>
-<g transform='translate(10.76309,17.26955)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.808226,-.118422)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.808226' y='-.118422' xlink:href='#tf39e11ef-g0-97'/>
-<use x='-64.542073' y='-3.733786' xlink:href='#tf39e11ef-g2-50'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 -8.5359 M 0.0 -8.5359 C 0.59998 -9.73592 2.0 -10.5359 4.0 -10.5359 L 26.58661 -10.5359 C 28.58661 -10.5359 29.98663 -11.33589 30.58661 -12.5359 C 31.18658 -11.33589 32.58661 -10.5359 34.58661 -10.5359 L 57.17322 -10.5359 C 59.17322 -10.5359 60.57324 -9.73592 61.17322 -8.5359' fill='none'/>
-<g transform='translate(26.41219,-21.71056)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.808226,-.118422)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.808226' y='-.118422' xlink:href='#tf39e11ef-g0-97'/>
-<use x='-64.542073' y='-3.733786' xlink:href='#tf39e11ef-g2-49'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,0) -- (4.2,0) node[right] {$\hat e_1$};
+  \draw[-&gt;] (0,0) -- (2.0,2.2) node[right] {$\hat e_2$};
+  \draw[-&gt;] (0,0) -- (3.0,0.9) node[right] {$a$};
+  \draw[dashed] (0,0) -- (0.85,0.95);
+  \draw[dashed] (0.85,0.95) -- (3.0,0.9);
+  \draw[dashed] (2.15,-0.05) -- (3.0,0.9);
+  \node at (0.55,0.75) {$a^2$};
+  \draw[decorate,decoration={brace,mirror,amplitude=4pt}] (0,-0.3) -- (2.15,-0.3);
+  \node at (1.1,-0.62) {$a^1$};
+\end{tikzpicture}
 </pre>
 
 <p>
@@ -2128,123 +1687,18 @@ A tensor whose components change in same manner as basis change under given tran
 \vec a = a^1\hat e_1 + a^2\hat e_2
 \]
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='135.627325pt' height='88.857733pt' viewBox='-70.432032 -70.007478 135.627325 88.857733'>
-<defs>
-<path id='tf28412c2-g2-49' d='m2.336239-4.435367c0-.188294-.013948-.195268-.209215-.195268c-.446326 .439352-1.080946 .446326-1.366874 .446326v.251059c.167372 0 .627646 0 1.011208-.195268v3.556663c0 .230137 0 .320797-.697385 .320797h-.265006v.251059c.125529-.006974 .983313-.027895 1.241345-.027895c.216189 0 1.094894 .020922 1.248319 .027895v-.251059h-.265006c-.697385 0-.697385-.09066-.697385-.320797v-3.863512z'/>
-<path id='tf28412c2-g2-50' d='m3.521793-1.26924h-.237111c-.020922 .153425-.09066 .564882-.18132 .63462c-.055791 .041843-.592777 .041843-.690411 .041843h-1.283188c.732254-.648568 .976339-.843836 1.39477-1.171606c.516065-.411457 .99726-.843836 .99726-1.506351c0-.843836-.739228-1.3599-1.63188-1.3599c-.864757 0-1.45056 .606725-1.45056 1.248319c0 .355666 .299875 .390535 .369614 .390535c.167372 0 .369614-.118555 .369614-.369614c0-.125529-.048817-.369614-.411457-.369614c.216189-.495143 .690411-.648568 1.018182-.648568c.697385 0 1.060025 .54396 1.060025 1.108842c0 .606725-.432379 1.08792-.655542 1.338979l-1.680697 1.659776c-.069738 .062765-.069738 .076712-.069738 .27198h2.873225l.209215-1.26924z'/>
-<path id='tf28412c2-g0-97' d='m3.716065-3.765878c-.179328-.368618-.468244-.637609-.916563-.637609c-1.165629 0-2.400996 1.464508-2.400996 2.919054c0 .936488 .547945 1.594022 1.325031 1.594022c.199253 0 .697385-.039851 1.295143-.747198c.079701 .418431 .428394 .747198 .9066 .747198c.348692 0 .577833-.229141 .737235-.547945c.169365-.358655 .298879-.966376 .298879-.986301c0-.099626-.089664-.099626-.119552-.099626c-.099626 0-.109589 .039851-.139477 .179328c-.169365 .647572-.348692 1.235367-.757161 1.235367c-.268991 0-.298879-.259029-.298879-.458281c0-.219178 .019925-.298879 .129514-.737235c.109589-.418431 .129514-.518057 .219178-.896638l.358655-1.39477c.069738-.278954 .069738-.298879 .069738-.33873c0-.169365-.119552-.268991-.288917-.268991c-.239103 0-.388543 .219178-.418431 .438356zm-.647572 2.580324c-.049813 .179328-.049813 .199253-.199253 .368618c-.438356 .547945-.846824 .707347-1.125778 .707347c-.498132 0-.637609-.547945-.637609-.936488c0-.498132 .318804-1.723537 .547945-2.181818c.308842-.587796 .757161-.956413 1.155666-.956413c.647572 0 .787049 .816936 .787049 .876712s-.019925 .119552-.029888 .169365l-.498132 1.952677z'/>
-<path id='tf28412c2-g0-101' d='m1.863014-2.30137c.288917 0 1.026152-.019925 1.524284-.229141c.697385-.298879 .747198-.886675 .747198-1.026152c0-.438356-.37858-.846824-1.066002-.846824c-1.105853 0-2.610212 .966376-2.610212 2.709838c0 1.016189 .587796 1.803238 1.564134 1.803238c1.424658 0 2.261519-1.05604 2.261519-1.175592c0-.059776-.059776-.129514-.119552-.129514c-.049813 0-.069738 .019925-.129514 .099626c-.787049 .986301-1.872976 .986301-1.992528 .986301c-.777086 0-.86675-.836862-.86675-1.155666c0-.119552 .009963-.428394 .159402-1.036115h.52802zm-.468244-.219178c.388543-1.514321 1.414695-1.663761 1.673724-1.663761c.468244 0 .737235 .288917 .737235 .627646c0 1.036115-1.594022 1.036115-2.002491 1.036115h-.408468z'/>
-<path id='tf28412c2-g0-126' d='m5.349938-5.927771c-.139477 .129514-.468244 .408468-.468244 .587796c0 .099626 .099626 .199253 .199253 .199253c.089664 0 .139477-.069738 .18929-.129514c.119552-.14944 .348692-.428394 .787049-.647572c.069738-.039851 .169365-.089664 .169365-.209215c0-.099626-.069738-.14944-.139477-.199253c-.219178-.14944-.328767-.328767-.408468-.56787c-.019925-.089664-.059776-.219178-.199253-.219178s-.199253 .129514-.199253 .209215c0 .049813 .079701 .368618 .239103 .577833h-3.35741c-.169365 0-.348692 0-.348692 .199253s.179328 .199253 .348692 .199253h3.188045z'/>
-<path id='tf28412c2-g1-94' d='m2.49066-6.914072l-1.334994 1.354919l.179328 .179328l1.155666-1.016189l1.145704 1.016189l.179328-.179328l-1.325031-1.354919z'/>
-</defs>
-<g id='tf28412c2-page1'>
-<g stroke-miterlimit='10' transform='translate(-69.808226,2.716391)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<path d='M 0.0 0.0 L 119.10144 0.0' fill='none'/>
-<g transform='translate(119.30144,0.0)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(123.03441,-2.72223)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.808226,2.716391)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.425962' y='2.716391' xlink:href='#tf28412c2-g1-94'/>
-<use x='-69.808226' y='2.716391' xlink:href='#tf28412c2-g0-101'/>
-<use x='-65.169355' y='4.210772' xlink:href='#tf28412c2-g2-49'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 42.46062 65.10637' fill='none'/>
-<g transform='matrix(0.54625,0.83757,-0.83757,0.54625,42.56987,65.27388)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(46.21208,62.71916)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.808226,2.716391)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.425962' y='2.716391' xlink:href='#tf28412c2-g1-94'/>
-<use x='-69.808226' y='2.716391' xlink:href='#tf28412c2-g0-101'/>
-<use x='-65.169355' y='4.210772' xlink:href='#tf28412c2-g2-50'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 73.60893 31.14235' fill='none'/>
-<g transform='matrix(0.92094,0.38962,-0.38962,0.92094,73.7931,31.22028)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(77.51027,27.72597)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.808226,2.716391)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-70.432032' y='2.716391' xlink:href='#tf28412c2-g0-126'/>
-<use x='-69.808226' y='2.716391' xlink:href='#tf28412c2-g0-97'/>
-</g>
-</g>
-</g>
-</g>
-<g stroke-dasharray='3.0,3.0' stroke-dashoffset='0.0'>
-<path d='M 73.9773 31.29819 L 73.9773 0.0' fill='none'/>
-</g>
-<g stroke-dasharray='3.0,3.0' stroke-dashoffset='0.0'>
-<path d='M 73.9773 31.29819 L 29.87546 45.80893' fill='none'/>
-</g>
-<g transform='translate(5.07263,28.47267)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.808226,2.716391)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.808226' y='2.716391' xlink:href='#tf28412c2-g0-97'/>
-<use x='-64.542073' y='4.210772' xlink:href='#tf28412c2-g2-50'/>
-</g>
-</g>
-</g>
-</g>
-<g transform='translate(32.10265,-11.36142)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.808226,2.716391)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.808226' y='2.716391' xlink:href='#tf28412c2-g0-97'/>
-<use x='-64.542073' y='4.210772' xlink:href='#tf28412c2-g2-49'/>
-</g>
-</g>
-</g>
-</g>
-<g transform='translate(61.97812,11.40085)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.808226,2.716391)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.808226' y='2.716391' xlink:href='#tf28412c2-g0-97'/>
-<use x='-64.542073' y='4.210772' xlink:href='#tf28412c2-g2-49'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,0) -- (4.2,0) node[right] {$\hat e_1$};
+  \draw[-&gt;] (0,0) -- (1.5,2.3) node[right] {$\hat e_2$};
+  \draw[-&gt;] (0,0) -- (2.6,1.1) node[right] {$\vec a$};
+  \draw[dashed] (2.6,1.1) -- (2.6,0);
+  \draw[dashed] (2.6,1.1) -- (1.05,1.61);
+  \node at (0.35,1.05) {$a_2$};
+  \node at (1.3,-0.35) {$a_1$};
+  \node at (2.35,0.45) {$a_1$};
+\end{tikzpicture}
 </pre>
 
 <p>
@@ -2596,140 +2050,18 @@ a_{ij}x_ix_j = a_{ji}x_ix_j \equiv a_{ji}x_jx_i
 <em>linear transformations</em><br />
 </p>
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='147.413938pt' height='88.439701pt' viewBox='-70.007476 -70.007479 147.413938 88.439701'>
-<defs>
-<path id='t240b0494-g0-48' d='m2.022416-3.291656c.055791-.118555 .062765-.174346 .062765-.223163c0-.216189-.195268-.383562-.411457-.383562c-.265006 0-.348692 .216189-.383562 .327771l-.920548 3.019676c-.006974 .013948-.034869 .104608-.034869 .111582c0 .083686 .216189 .153425 .27198 .153425c.048817 0 .055791-.013948 .104608-.118555l1.311083-2.887173z'/>
-<path id='t240b0494-g1-99' d='m3.945205-3.785803c-.159402 0-.298879 0-.438356 .139477c-.159402 .14944-.179328 .318804-.179328 .388543c0 .239103 .179328 .348692 .368618 .348692c.288917 0 .557908-.239103 .557908-.637609c0-.488169-.468244-.856787-1.175592-.856787c-1.344956 0-2.669988 1.424658-2.669988 2.82939c0 .896638 .577833 1.683686 1.613948 1.683686c1.424658 0 2.261519-1.05604 2.261519-1.175592c0-.059776-.059776-.129514-.119552-.129514c-.049813 0-.069738 .019925-.129514 .099626c-.787049 .986301-1.872976 .986301-1.992528 .986301c-.627646 0-.896638-.488169-.896638-1.085928c0-.408468 .199253-1.374844 .537983-1.992528c.308842-.56787 .856787-.996264 1.404732-.996264c.33873 0 .71731 .129514 .856787 .398506z'/>
-<path id='t240b0494-g1-120' d='m3.327522-3.008717c.059776-.259029 .288917-1.175592 .986301-1.175592c.049813 0 .288917 0 .498132 .129514c-.278954 .049813-.478207 .298879-.478207 .537983c0 .159402 .109589 .348692 .37858 .348692c.219178 0 .537983-.179328 .537983-.577833c0-.518057-.587796-.657534-.926526-.657534c-.577833 0-.926526 .52802-1.046077 .757161c-.249066-.657534-.787049-.757161-1.075965-.757161c-1.036115 0-1.603985 1.285181-1.603985 1.534247c0 .099626 .099626 .099626 .119552 .099626c.079701 0 .109589-.019925 .129514-.109589c.33873-1.05604 .996264-1.305106 1.334994-1.305106c.18929 0 .537983 .089664 .537983 .667497c0 .308842-.169365 .976339-.537983 2.371108c-.159402 .617684-.508095 1.036115-.946451 1.036115c-.059776 0-.288917 0-.498132-.129514c.249066-.049813 .468244-.259029 .468244-.537983c0-.268991-.219178-.348692-.368618-.348692c-.298879 0-.547945 .259029-.547945 .577833c0 .458281 .498132 .657534 .936488 .657534c.657534 0 1.016189-.697385 1.046077-.757161c.119552 .368618 .478207 .757161 1.075965 .757161c1.026152 0 1.594022-1.285181 1.594022-1.534247c0-.099626-.089664-.099626-.119552-.099626c-.089664 0-.109589 .039851-.129514 .109589c-.328767 1.066002-1.006227 1.305106-1.325031 1.305106c-.388543 0-.547945-.318804-.547945-.657534c0-.219178 .059776-.438356 .169365-.876712l.33873-1.364882z'/>
-</defs>
-<g id='t240b0494-page1'>
-<g stroke-miterlimit='10' transform='translate(-35.792581,3.89269)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<path d='M 0.0 0.0 L 0.0 73.5773' fill='none'/>
-<g transform='matrix(0.0,1.0,-1.0,0.0,0.0,73.7773)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<path d='M 0.0 0.0 L -33.74321 0.0' fill='none'/>
-<g transform='matrix(-1.0,0.0,0.0,-1.0,-33.9432,0.0)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<path d='M 0.0 0.0 L -19.81285 73.59106' fill='none'/>
-<g transform='matrix(-0.25996,0.96559,-0.96559,-0.25996,-19.86484,73.78418)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<path d='M 0.0 0.0 L -13.94353 -13.94353' fill='none'/>
-<g transform='matrix(-0.7071,-0.7071,0.7071,-0.7071,-14.08495,-14.08495)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<path d='M 0.0 0.0 L 36.71649 39.54057' fill='none'/>
-<g transform='matrix(0.68042,0.73277,-0.73277,0.68042,36.85257,39.6871)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(27.7404,43.36664)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-35.792581,3.89269)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-35.792581' y='3.89269' xlink:href='#t240b0494-g1-120'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 42.3818 38.14381' fill='none'/>
-<g transform='matrix(0.74327,0.66895,-0.66895,0.74327,42.53046,38.27759)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(46.21208,41.94435)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-35.792581,3.89269)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-35.792581' y='3.89269' xlink:href='#t240b0494-g1-120'/>
-<use x='-30.098649' y='.277326' xlink:href='#t240b0494-g0-48'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 102.03004 0.0' fill='none'/>
-<g transform='translate(102.23004,0.0)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(105.96301,-2.15277)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-35.792581,3.89269)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-35.792581' y='3.89269' xlink:href='#t240b0494-g1-99'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 96.3525 25.50494' fill='none'/>
-<g transform='matrix(0.96666,0.25587,-0.25587,0.96666,96.54582,25.55612)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(100.27213,21.84837)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-35.792581,3.89269)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-35.792581' y='3.89269' xlink:href='#t240b0494-g1-99'/>
-<use x='-31.481185' y='.277326' xlink:href='#t240b0494-g0-48'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,0) -- (0,2.6);
+  \draw[-&gt;] (0,0) -- (-1.2,0);
+  \draw[-&gt;] (0,0) -- (-0.7,2.6);
+  \draw[-&gt;] (0,0) -- (-0.5,-0.5);
+  \draw[-&gt;] (0,0) -- (1.3,1.4) node[above left] {$x$};
+  \draw[-&gt;] (0,0) -- (1.5,1.35) node[above right] {$x'$};
+  \draw[-&gt;] (0,0) -- (3.6,0) node[right] {$c$};
+  \draw[-&gt;] (0,0) -- (3.4,0.9) node[right] {$c'$};
+\end{tikzpicture}
 </pre>
 
 <p>
@@ -2751,100 +2083,15 @@ x' = L\,x
 <em>General Transformation :</em><br />
 </p>
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='153.083138pt' height='91.107019pt' viewBox='-70.007476 -70.007477 153.083138 91.107019'>
-<defs>
-<path id='t9ef873df-g0-48' d='m2.022416-3.291656c.055791-.118555 .062765-.174346 .062765-.223163c0-.216189-.195268-.383562-.411457-.383562c-.265006 0-.348692 .216189-.383562 .327771l-.920548 3.019676c-.006974 .013948-.034869 .104608-.034869 .111582c0 .083686 .216189 .153425 .27198 .153425c.048817 0 .055791-.013948 .104608-.118555l1.311083-2.887173z'/>
-<path id='t9ef873df-g1-99' d='m3.945205-3.785803c-.159402 0-.298879 0-.438356 .139477c-.159402 .14944-.179328 .318804-.179328 .388543c0 .239103 .179328 .348692 .368618 .348692c.288917 0 .557908-.239103 .557908-.637609c0-.488169-.468244-.856787-1.175592-.856787c-1.344956 0-2.669988 1.424658-2.669988 2.82939c0 .896638 .577833 1.683686 1.613948 1.683686c1.424658 0 2.261519-1.05604 2.261519-1.175592c0-.059776-.059776-.129514-.119552-.129514c-.049813 0-.069738 .019925-.129514 .099626c-.787049 .986301-1.872976 .986301-1.992528 .986301c-.627646 0-.896638-.488169-.896638-1.085928c0-.408468 .199253-1.374844 .537983-1.992528c.308842-.56787 .856787-.996264 1.404732-.996264c.33873 0 .71731 .129514 .856787 .398506z'/>
-<path id='t9ef873df-g1-120' d='m3.327522-3.008717c.059776-.259029 .288917-1.175592 .986301-1.175592c.049813 0 .288917 0 .498132 .129514c-.278954 .049813-.478207 .298879-.478207 .537983c0 .159402 .109589 .348692 .37858 .348692c.219178 0 .537983-.179328 .537983-.577833c0-.518057-.587796-.657534-.926526-.657534c-.577833 0-.926526 .52802-1.046077 .757161c-.249066-.657534-.787049-.757161-1.075965-.757161c-1.036115 0-1.603985 1.285181-1.603985 1.534247c0 .099626 .099626 .099626 .119552 .099626c.079701 0 .109589-.019925 .129514-.109589c.33873-1.05604 .996264-1.305106 1.334994-1.305106c.18929 0 .537983 .089664 .537983 .667497c0 .308842-.169365 .976339-.537983 2.371108c-.159402 .617684-.508095 1.036115-.946451 1.036115c-.059776 0-.288917 0-.498132-.129514c.249066-.049813 .468244-.259029 .468244-.537983c0-.268991-.219178-.348692-.368618-.348692c-.298879 0-.547945 .259029-.547945 .577833c0 .458281 .498132 .657534 .936488 .657534c.657534 0 1.016189-.697385 1.046077-.757161c.119552 .368618 .478207 .757161 1.075965 .757161c1.026152 0 1.594022-1.285181 1.594022-1.534247c0-.099626-.089664-.099626-.119552-.099626c-.089664 0-.109589 .039851-.129514 .109589c-.328767 1.066002-1.006227 1.305106-1.325031 1.305106c-.388543 0-.547945-.318804-.547945-.657534c0-.219178 .059776-.438356 .169365-.876712l.33873-1.364882z'/>
-</defs>
-<g id='t9ef873df-page1'>
-<g stroke-miterlimit='10' transform='translate(-30.123381,-1.776936)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<path d='M 0.0 0.0 L 0.0 67.88641' fill='none'/>
-<g transform='matrix(0.0,1.0,-1.0,0.0,0.0,68.08641)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<path d='M 0.0 0.0 L 102.03004 0.0' fill='none'/>
-<g transform='translate(102.23004,0.0)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(105.96301,-2.15277)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-30.123381,-1.776936)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-30.123381' y='-1.776936' xlink:href='#t9ef873df-g1-99'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 39.56076 42.3867' fill='none'/>
-<g transform='matrix(0.6823,0.73105,-0.73105,0.6823,39.6972,42.53291)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(43.36664,46.21208)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-30.123381,-1.776936)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-30.123381' y='-1.776936' xlink:href='#t9ef873df-g1-120'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M -25.60728 -19.91682 C -34.1432 22.76227 -34.1432 22.76227 -20.08234 53.69592' fill='none'/>
-<g transform='matrix(0.41379,0.91031,-0.91031,0.41379,-19.99959,53.87798)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<path d='M -39.83366 -22.76227 C 17.07181 -11.38092 62.59595 25.60728 93.4958 28.41653' fill='none'/>
-<g transform='matrix(0.99585,0.09053,-0.09053,0.99585,93.69496,28.43465)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(97.42711,24.69383)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-30.123381,-1.776936)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-30.123381' y='-1.776936' xlink:href='#t9ef873df-g1-99'/>
-<use x='-25.811984' y='-5.3923' xlink:href='#t9ef873df-g0-48'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,0) -- (0,2.4);
+  \draw[-&gt;] (0,0) -- (3.6,0) node[right] {$c$};
+  \draw[-&gt;] (0,0) -- (1.4,1.5) node[above right] {$x$};
+  \draw[-&gt;] (-0.9,-0.7) .. controls (-1.2,0.8) .. (-0.7,1.9);
+  \draw[-&gt;] (-1.4,-0.8) .. controls (0.6,-0.4) and (2.2,0.9) .. (3.3,1.0) node[right] {$c'$};
+\end{tikzpicture}
 </pre>
 
 <p>
@@ -2865,161 +2112,24 @@ x'_i = T_p(x_1,x_2,x_3 \cdots x_n)
 A bijective transformation is one to one, every \('x'\) in original coordinate system coorespondes to unique \(x'\) in the image coordinate system &amp; every \(x'\) in image coordinate system corresponds to a unique \(x\) in the original coordinate system.<br />
 </p>
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='209.998984pt' height='87.407711pt' viewBox='-70.007476 -70.007477 209.998984 87.407711'>
-<defs>
-<path id='t01809a98-g0-0' d='m6.56538-2.291407c.169365 0 .348692 0 .348692-.199253s-.179328-.199253-.348692-.199253h-5.389788c-.169365 0-.348692 0-.348692 .199253s.179328 .199253 .348692 .199253h5.389788z'/>
-<path id='t01809a98-g4-49' d='m2.336239-4.435367c0-.188294-.013948-.195268-.209215-.195268c-.446326 .439352-1.080946 .446326-1.366874 .446326v.251059c.167372 0 .627646 0 1.011208-.195268v3.556663c0 .230137 0 .320797-.697385 .320797h-.265006v.251059c.125529-.006974 .983313-.027895 1.241345-.027895c.216189 0 1.094894 .020922 1.248319 .027895v-.251059h-.265006c-.697385 0-.697385-.09066-.697385-.320797v-3.863512z'/>
-<path id='t01809a98-g4-50' d='m3.521793-1.26924h-.237111c-.020922 .153425-.09066 .564882-.18132 .63462c-.055791 .041843-.592777 .041843-.690411 .041843h-1.283188c.732254-.648568 .976339-.843836 1.39477-1.171606c.516065-.411457 .99726-.843836 .99726-1.506351c0-.843836-.739228-1.3599-1.63188-1.3599c-.864757 0-1.45056 .606725-1.45056 1.248319c0 .355666 .299875 .390535 .369614 .390535c.167372 0 .369614-.118555 .369614-.369614c0-.125529-.048817-.369614-.411457-.369614c.216189-.495143 .690411-.648568 1.018182-.648568c.697385 0 1.060025 .54396 1.060025 1.108842c0 .606725-.432379 1.08792-.655542 1.338979l-1.680697 1.659776c-.069738 .062765-.069738 .076712-.069738 .27198h2.873225l.209215-1.26924z'/>
-<path id='t01809a98-g4-51' d='m1.903861-2.329265c.54396 0 .934496 .376588 .934496 1.12279c0 .864757-.502117 1.12279-.9066 1.12279c-.278954 0-.892653-.076712-1.185554-.488169c.327771-.013948 .404483-.244085 .404483-.390535c0-.223163-.167372-.383562-.383562-.383562c-.195268 0-.390535 .118555-.390535 .404483c0 .655542 .72528 1.080946 1.569116 1.080946c.969365 0 1.638854-.648568 1.638854-1.345953c0-.54396-.446326-1.08792-1.21345-1.248319c.732254-.265006 .99726-.788045 .99726-1.21345c0-.550934-.63462-.962391-1.408717-.962391s-1.366874 .376588-1.366874 .934496c0 .237111 .153425 .369614 .36264 .369614c.216189 0 .355666-.160399 .355666-.355666c0-.202242-.139477-.348692-.355666-.36264c.244085-.306849 .72528-.383562 .983313-.383562c.313823 0 .753176 .153425 .753176 .760149c0 .292902-.097634 .613699-.278954 .829888c-.230137 .265006-.425405 .278954-.774097 .299875c-.174346 .013948-.188294 .013948-.223163 .020922c-.013948 0-.069738 .013948-.069738 .09066c0 .097634 .062765 .097634 .18132 .097634h.376588z'/>
-<path id='t01809a98-g3-101' d='m1.115816-2.510585c.059776-1.484433 .896638-1.733499 1.235367-1.733499c1.026152 0 1.125778 1.344956 1.125778 1.733499h-2.361146zm-.009963 .209215h2.779577c.219178 0 .249066 0 .249066-.209215c0-.986301-.537983-1.952677-1.783313-1.952677c-1.155666 0-2.072229 1.026152-2.072229 2.271482c0 1.334994 1.046077 2.30137 2.191781 2.30137c1.215442 0 1.663761-1.105853 1.663761-1.295143c0-.099626-.079701-.119552-.129514-.119552c-.089664 0-.109589 .059776-.129514 .139477c-.348692 1.026152-1.24533 1.026152-1.344956 1.026152c-.498132 0-.896638-.298879-1.125778-.667497c-.298879-.478207-.298879-1.135741-.298879-1.494396z'/>
-<path id='t01809a98-g3-110' d='m1.09589-3.427148v2.669988c0 .448319-.109589 .448319-.777086 .448319v.308842c.348692-.009963 .856787-.029888 1.125778-.029888c.259029 0 .777086 .019925 1.115816 .029888v-.308842c-.667497 0-.777086 0-.777086-.448319v-1.833126c0-1.036115 .707347-1.594022 1.344956-1.594022c.627646 0 .737235 .537983 .737235 1.105853v2.321295c0 .448319-.109589 .448319-.777086 .448319v.308842c.348692-.009963 .856787-.029888 1.125778-.029888c.259029 0 .777086 .019925 1.115816 .029888v-.308842c-.518057 0-.767123 0-.777086-.298879v-1.902864c0-.856787 0-1.165629-.308842-1.524284c-.139477-.169365-.468244-.368618-1.046077-.368618c-.727273 0-1.195517 .428394-1.474471 1.046077v-1.046077l-1.404732 .109589v.308842c.697385 0 .777086 .069738 .777086 .557908z'/>
-<path id='t01809a98-g3-111' d='m4.692403-2.132005c0-1.275218-.996264-2.331258-2.201743-2.331258c-1.24533 0-2.211706 1.085928-2.211706 2.331258c0 1.285181 1.036115 2.241594 2.201743 2.241594c1.205479 0 2.211706-.976339 2.211706-2.241594zm-2.201743 1.992528c-.428394 0-.86675-.209215-1.135741-.667497c-.249066-.438356-.249066-1.046077-.249066-1.404732c0-.388543 0-.926526 .239103-1.364882c.268991-.458281 .737235-.667497 1.135741-.667497c.438356 0 .86675 .219178 1.125778 .647572s.259029 1.006227 .259029 1.384807c0 .358655 0 .896638-.219178 1.334994c-.219178 .448319-.657534 .737235-1.155666 .737235z'/>
-<path id='t01809a98-g1-48' d='m2.022416-3.291656c.055791-.118555 .062765-.174346 .062765-.223163c0-.216189-.195268-.383562-.411457-.383562c-.265006 0-.348692 .216189-.383562 .327771l-.920548 3.019676c-.006974 .013948-.034869 .104608-.034869 .111582c0 .083686 .216189 .153425 .27198 .153425c.048817 0 .055791-.013948 .104608-.118555l1.311083-2.887173z'/>
-<path id='t01809a98-g2-99' d='m3.945205-3.785803c-.159402 0-.298879 0-.438356 .139477c-.159402 .14944-.179328 .318804-.179328 .388543c0 .239103 .179328 .348692 .368618 .348692c.288917 0 .557908-.239103 .557908-.637609c0-.488169-.468244-.856787-1.175592-.856787c-1.344956 0-2.669988 1.424658-2.669988 2.82939c0 .896638 .577833 1.683686 1.613948 1.683686c1.424658 0 2.261519-1.05604 2.261519-1.175592c0-.059776-.059776-.129514-.119552-.129514c-.049813 0-.069738 .019925-.129514 .099626c-.787049 .986301-1.872976 .986301-1.992528 .986301c-.627646 0-.896638-.488169-.896638-1.085928c0-.408468 .199253-1.374844 .537983-1.992528c.308842-.56787 .856787-.996264 1.404732-.996264c.33873 0 .71731 .129514 .856787 .398506z'/>
-<path id='t01809a98-g2-120' d='m3.327522-3.008717c.059776-.259029 .288917-1.175592 .986301-1.175592c.049813 0 .288917 0 .498132 .129514c-.278954 .049813-.478207 .298879-.478207 .537983c0 .159402 .109589 .348692 .37858 .348692c.219178 0 .537983-.179328 .537983-.577833c0-.518057-.587796-.657534-.926526-.657534c-.577833 0-.926526 .52802-1.046077 .757161c-.249066-.657534-.787049-.757161-1.075965-.757161c-1.036115 0-1.603985 1.285181-1.603985 1.534247c0 .099626 .099626 .099626 .119552 .099626c.079701 0 .109589-.019925 .129514-.109589c.33873-1.05604 .996264-1.305106 1.334994-1.305106c.18929 0 .537983 .089664 .537983 .667497c0 .308842-.169365 .976339-.537983 2.371108c-.159402 .617684-.508095 1.036115-.946451 1.036115c-.059776 0-.288917 0-.498132-.129514c.249066-.049813 .468244-.259029 .468244-.537983c0-.268991-.219178-.348692-.368618-.348692c-.298879 0-.547945 .259029-.547945 .577833c0 .458281 .498132 .657534 .936488 .657534c.657534 0 1.016189-.697385 1.046077-.757161c.119552 .368618 .478207 .757161 1.075965 .757161c1.026152 0 1.594022-1.285181 1.594022-1.534247c0-.099626-.089664-.099626-.119552-.099626c-.089664 0-.109589 .039851-.129514 .109589c-.328767 1.066002-1.006227 1.305106-1.325031 1.305106c-.388543 0-.547945-.318804-.547945-.657534c0-.219178 .059776-.438356 .169365-.876712l.33873-1.364882z'/>
-</defs>
-<g id='t01809a98-page1'>
-<g stroke-miterlimit='10' transform='translate(-38.708694,-6.673187)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<path d='M 25.60728 25.60728 C 27.18636 33.108 17.6973 51.29655 11.38092 54.06003 C 5.06454 56.8235 -14.38998 50.26186 -19.91682 45.52455 C -25.44366 40.78725 -31.21616 26.23326 -28.45274 19.91682 C -25.68933 13.60039 -7.50072 -0.78954 0.0 0.0 C 7.50072 0.78954 24.02821 18.10657 25.60728 25.60728 Z' fill='none'/>
-<path d='M 176.40692 22.76227 C 179.17033 30.65779 173.79265 52.95773 167.871 56.90549 C 161.94936 60.85324 140.04417 55.95232 133.7278 51.21501 C 127.41142 46.4777 120.373 29.86826 122.34688 22.76227 C 124.32076 15.65628 140.45346 0.0 147.95418 0.0 C 155.4549 0.0 173.64351 14.86674 176.40692 22.76227 Z' fill='none'/>
-<g transform='translate(-7.85423,-19.22458)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-38.708694,-6.673187)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-38.708694' y='-6.673187' xlink:href='#t01809a98-g2-99'/>
-</g>
-</g>
-</g>
-</g>
-<g transform='translate(147.23306,-20.83072)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-38.708694,-6.673187)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-38.708694' y='-6.673187' xlink:href='#t01809a98-g2-99'/>
-<use x='-34.397297' y='-10.288551' xlink:href='#t01809a98-g1-48'/>
-</g>
-</g>
-</g>
-</g>
-<g transform='translate(-20.74979,37.00859)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-38.708694,-6.673187)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-38.708694' y='-6.673187' xlink:href='#t01809a98-g2-120'/>
-<use x='-33.014762' y='-5.178806' xlink:href='#t01809a98-g4-49'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M -7.11317 38.41138 M -6.25963 38.41138 C -6.25963 38.88278 -6.64177 39.26492 -7.11317 39.26492 C -7.58458 39.26492 -7.96672 38.88278 -7.96672 38.41138 C -7.96672 37.93997 -7.58458 37.55783 -7.11317 37.55783 C -6.64177 37.55783 -6.25963 37.93997 -6.25963 38.41138 Z M -7.11317 38.41138' stroke='none'/>
-<g transform='translate(-20.74979,19.93677)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-38.708694,-6.673187)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-38.708694' y='-6.673187' xlink:href='#t01809a98-g2-120'/>
-<use x='-33.014762' y='-5.178806' xlink:href='#t01809a98-g4-50'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M -7.11317 21.33955 M -6.25963 21.33955 C -6.25963 21.81096 -6.64177 22.1931 -7.11317 22.1931 C -7.58458 22.1931 -7.96672 21.81096 -7.96672 21.33955 C -7.96672 20.86815 -7.58458 20.48601 -7.11317 20.48601 C -6.64177 20.48601 -6.25963 20.86815 -6.25963 21.33955 Z M -7.11317 21.33955' stroke='none'/>
-<g transform='translate(-20.74979,4.28767)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-38.708694,-6.673187)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-38.708694' y='-6.673187' xlink:href='#t01809a98-g2-120'/>
-<use x='-33.014762' y='-5.178806' xlink:href='#t01809a98-g4-51'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M -7.11317 5.69046 M -6.25963 5.69046 C -6.25963 6.16187 -6.64177 6.544 -7.11317 6.544 C -7.58458 6.544 -7.96672 6.16187 -7.96672 5.69046 C -7.96672 5.21906 -7.58458 4.83691 -7.11317 4.83691 C -6.64177 4.83691 -6.25963 5.21906 -6.25963 5.69046 Z M -7.11317 5.69046' stroke='none'/>
-<g transform='translate(145.69893,40.16124)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-38.708694,-6.673187)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-38.708694' y='-6.673187' xlink:href='#t01809a98-g2-120'/>
-<use x='-33.014762' y='-10.288551' xlink:href='#t01809a98-g1-48'/>
-<use x='-33.014762' y='-4.200359' xlink:href='#t01809a98-g4-49'/>
-</g>
-</g>
-</g>
-</g>
-<g transform='translate(145.69893,25.93488)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-38.708694,-6.673187)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-38.708694' y='-6.673187' xlink:href='#t01809a98-g2-120'/>
-<use x='-33.014762' y='-10.288551' xlink:href='#t01809a98-g1-48'/>
-<use x='-33.014762' y='-4.200359' xlink:href='#t01809a98-g4-50'/>
-</g>
-</g>
-</g>
-</g>
-<g transform='translate(145.69893,11.7085)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-38.708694,-6.673187)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-38.708694' y='-6.673187' xlink:href='#t01809a98-g2-120'/>
-<use x='-33.014762' y='-10.288551' xlink:href='#t01809a98-g1-48'/>
-<use x='-33.014762' y='-4.200359' xlink:href='#t01809a98-g4-51'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M -5.69046 39.83366 C 56.90549 54.06003 56.90549 54.06003 143.28986 42.73111' fill='none'/>
-<g transform='matrix(0.99147,-0.13002,0.13002,0.99147,143.48814,42.70511)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<path d='M -5.69046 22.76227 C 56.90549 34.1432 56.90549 34.1432 143.28732 28.4789' fill='none'/>
-<g transform='matrix(0.9978,-0.06541,0.06541,0.9978,143.48688,28.46582)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<path d='M -5.69046 7.11317 C 56.90549 19.91682 56.90549 19.91682 143.28732 14.25252' fill='none'/>
-<g transform='matrix(0.9978,-0.06541,0.06541,0.9978,143.48688,14.23944)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(49.39748,54.40549)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-38.708694,-6.673187)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-38.708694' y='-6.673187' xlink:href='#t01809a98-g3-111'/>
-<use x='-33.727355' y='-6.673187' xlink:href='#t01809a98-g3-110'/>
-<use x='-28.192538' y='-6.673187' xlink:href='#t01809a98-g3-101'/>
-<use x='-23.764686' y='-6.673187' xlink:href='#t01809a98-g0-0'/>
-<use x='-16.015939' y='-6.673187' xlink:href='#t01809a98-g3-111'/>
-<use x='-11.034599' y='-6.673187' xlink:href='#t01809a98-g3-110'/>
-<use x='-5.499783' y='-6.673187' xlink:href='#t01809a98-g3-101'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw plot [smooth cycle] coordinates {(0,0) (0.9,0.9) (0.4,1.9) (-0.7,1.6) (-1.0,0.7)};
+  \draw plot [smooth cycle] coordinates {(5.2,0) (6.2,0.8) (5.9,2.0) (4.7,1.8) (4.3,0.8)};
+  \node at (-0.2,-0.6) {$c$};
+  \node at (5.3,-0.6) {$c'$};
+  \node at (-0.55,1.35) {$x_1$}; \fill (-0.25,1.35) circle (0.03);
+  \node at (-0.55,0.75) {$x_2$}; \fill (-0.25,0.75) circle (0.03);
+  \node at (-0.55,0.2) {$x_3$}; \fill (-0.25,0.2) circle (0.03);
+  \node at (5.3,1.5) {$x_1'$};
+  \node at (5.3,1.0) {$x_2'$};
+  \node at (5.3,0.5) {$x_3'$};
+  \draw[-&gt;] (-0.2,1.4) .. controls (2.0,1.9) .. (5.05,1.5);
+  \draw[-&gt;] (-0.2,0.8) .. controls (2.0,1.2) .. (5.05,1.0);
+  \draw[-&gt;] (-0.2,0.25) .. controls (2.0,0.7) .. (5.05,0.5);
+  \node at (2.4,2.0) {one$-$one};
+\end{tikzpicture}
 </pre>
 
 <p>
@@ -3067,55 +2177,16 @@ Then we know that<br />
 <em>New notation :-</em> A vector in \(\mathbb{R}^n\)<br />
 </p>
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='74.099417pt' height='56.366994pt' viewBox='-70.007476 -70.007477 74.099417 56.366994'>
-<defs>
-<path id='t52938e34-g0-65' d='m1.783313-1.145704c-.398506 .667497-.787049 .806974-1.225405 .836862c-.119552 .009963-.209215 .009963-.209215 .199253c0 .059776 .049813 .109589 .129514 .109589c.268991 0 .577833-.029888 .856787-.029888c.328767 0 .67746 .029888 .996264 .029888c.059776 0 .18929 0 .18929-.18929c0-.109589-.089664-.119552-.159402-.119552c-.229141-.019925-.468244-.099626-.468244-.348692c0-.119552 .059776-.229141 .139477-.368618l.757161-1.275218h2.500623c.019925 .209215 .159402 1.564134 .159402 1.663761c0 .298879-.518057 .328767-.71731 .328767c-.139477 0-.239103 0-.239103 .199253c0 .109589 .119552 .109589 .139477 .109589c.408468 0 .836862-.029888 1.24533-.029888c.249066 0 .876712 .029888 1.125778 .029888c.059776 0 .179328 0 .179328-.199253c0-.109589-.099626-.109589-.229141-.109589c-.617684 0-.617684-.069738-.647572-.358655l-.607721-6.22665c-.019925-.199253-.019925-.239103-.18929-.239103c-.159402 0-.199253 .069738-.259029 .169365l-3.466999 5.818182zm1.195517-1.464508l1.96264-3.287671l.318804 3.287671h-2.281445z'/>
-<path id='t52938e34-g0-80' d='m3.01868-3.148194h1.693649c1.414695 0 2.799502-1.036115 2.799502-2.15193c0-.767123-.657534-1.504359-1.96264-1.504359h-3.227895c-.18929 0-.298879 0-.298879 .18929c0 .119552 .089664 .119552 .288917 .119552c.129514 0 .308842 .009963 .428394 .019925c.159402 .019925 .219178 .049813 .219178 .159402c0 .039851-.009963 .069738-.039851 .18929l-1.334994 5.349938c-.099626 .388543-.119552 .468244-.9066 .468244c-.169365 0-.278954 0-.278954 .18929c0 .119552 .119552 .119552 .14944 .119552c.278954 0 .986301-.029888 1.265255-.029888c.209215 0 .428394 .009963 .637609 .009963c.219178 0 .438356 .019925 .647572 .019925c.069738 0 .199253 0 .199253-.199253c0-.109589-.089664-.109589-.278954-.109589c-.368618 0-.647572 0-.647572-.179328c0-.059776 .019925-.109589 .029888-.169365l.617684-2.49066zm.71731-2.968867c.089664-.348692 .109589-.37858 .537983-.37858h.956413c.826899 0 1.354919 .268991 1.354919 .956413c0 .388543-.199253 1.24533-.587796 1.603985c-.498132 .448319-1.09589 .52802-1.534247 .52802h-1.404732l.67746-2.709838z'/>
-<path id='t52938e34-g0-81' d='m4.363636-.059776c1.544209-.587796 3.008717-2.361146 3.008717-4.283935c0-1.603985-1.05604-2.67995-2.540473-2.67995c-2.15193 0-4.343711 2.261519-4.343711 4.582814c0 1.653798 1.115816 2.660025 2.550436 2.660025c.249066 0 .587796-.039851 .976339-.14944c-.039851 .617684-.039851 .637609-.039851 .767123c0 .318804 0 1.09589 .826899 1.09589c1.185554 0 1.663761-1.823163 1.663761-1.932752c0-.069738-.069738-.099626-.109589-.099626c-.079701 0-.099626 .049813-.119552 .109589c-.239103 .707347-.816936 .956413-1.165629 .956413c-.458281 0-.607721-.268991-.707347-1.026152zm-1.882939-.079701c-.777086-.308842-1.115816-1.085928-1.115816-1.982565c0-.687422 .259029-2.102117 1.016189-3.178082c.727273-1.016189 1.663761-1.474471 2.391034-1.474471c.996264 0 1.723537 .777086 1.723537 2.11208c0 .996264-.508095 3.327522-2.181818 4.26401c-.049813-.348692-.14944-1.075965-.876712-1.075965c-.52802 0-1.016189 .498132-1.016189 1.016189c0 .199253 .059776 .308842 .059776 .318804zm.617684 .109589c-.139477 0-.458281 0-.458281-.428394c0-.398506 .37858-.797011 .797011-.797011s.607721 .239103 .607721 .846824c0 .14944-.009963 .159402-.109589 .199253c-.259029 .109589-.557908 .179328-.836862 .179328z'/>
-</defs>
-<g id='t52938e34-page1'>
-<g stroke-miterlimit='10' transform='translate(-69.808226,-24.453754)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<path d='M 0.0 -5.69046 L 0.0 45.52455' fill='none'/>
-<path d='M 0.0 -5.69046 L 73.9773 -5.69046' fill='none'/>
-<path d='M 7.11317 4.26773 M 8.25108 4.26773 C 8.25108 4.89618 7.74162 5.40564 7.11317 5.40564 C 6.48473 5.40564 5.97527 4.89618 5.97527 4.26773 C 5.97527 3.63928 6.48473 3.12982 7.11317 3.12982 C 7.74162 3.12982 8.25108 3.63928 8.25108 4.26773 Z M 7.11317 4.26773' stroke='none'/>
-<g transform='translate(3.20866,-7.52084)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.808226,-24.453754)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.808226' y='-24.453754' xlink:href='#t52938e34-g0-80'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 36.98865 27.03001 M 38.12656 27.03001 C 38.12656 27.65846 37.6171 28.16792 36.98865 28.16792 C 36.3602 28.16792 35.85074 27.65846 35.85074 27.03001 C 35.85074 26.40157 36.3602 25.8921 36.98865 25.8921 C 37.6171 25.8921 38.12656 26.40157 38.12656 27.03001 Z M 36.98865 27.03001' stroke='none'/>
-<g transform='translate(33.03587,33.93015)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.808226,-24.453754)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.808226' y='-24.453754' xlink:href='#t52938e34-g0-81'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 7.11317 4.26773 L 36.98865 27.03001' fill='none'/>
-<path d='M 32.72047 4.26773 M 33.85838 4.26773 C 33.85838 4.89618 33.34892 5.40564 32.72047 5.40564 C 32.09203 5.40564 31.58257 4.89618 31.58257 4.26773 C 31.58257 3.63928 32.09203 3.12982 32.72047 3.12982 C 33.34892 3.12982 33.85838 3.63928 33.85838 4.26773 Z M 32.72047 4.26773' stroke='none'/>
-<g transform='translate(37.67618,0.85107)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.808226,-24.453754)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.808226' y='-24.453754' xlink:href='#t52938e34-g0-65'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw (0,-0.2) -- (0,1.6);
+  \draw (0,-0.2) -- (2.6,-0.2);
+  \fill (0.25,0.15) circle (0.04); \node[below] at (0.25,0.1) {$P$};
+  \fill (1.3,0.95) circle (0.04); \node[above] at (1.3,1.0) {$Q$};
+  \draw (0.25,0.15) -- (1.3,0.95);
+  \fill (1.15,0.15) circle (0.04); \node[right] at (1.2,0.15) {$A$};
+\end{tikzpicture}
 </pre>
 
 \[
@@ -3145,67 +2216,18 @@ Then we know that<br />
 <em>Ractangular coordinates :-</em><br />
 </p>
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='102.445858pt' height='78.928638pt' viewBox='-70.007476 -70.007472 102.445858 78.928638'>
-<defs>
-<path id='tb745ef0e-g1-49' d='m2.336239-4.435367c0-.188294-.013948-.195268-.209215-.195268c-.446326 .439352-1.080946 .446326-1.366874 .446326v.251059c.167372 0 .627646 0 1.011208-.195268v3.556663c0 .230137 0 .320797-.697385 .320797h-.265006v.251059c.125529-.006974 .983313-.027895 1.241345-.027895c.216189 0 1.094894 .020922 1.248319 .027895v-.251059h-.265006c-.697385 0-.697385-.09066-.697385-.320797v-3.863512z'/>
-<path id='tb745ef0e-g1-50' d='m3.521793-1.26924h-.237111c-.020922 .153425-.09066 .564882-.18132 .63462c-.055791 .041843-.592777 .041843-.690411 .041843h-1.283188c.732254-.648568 .976339-.843836 1.39477-1.171606c.516065-.411457 .99726-.843836 .99726-1.506351c0-.843836-.739228-1.3599-1.63188-1.3599c-.864757 0-1.45056 .606725-1.45056 1.248319c0 .355666 .299875 .390535 .369614 .390535c.167372 0 .369614-.118555 .369614-.369614c0-.125529-.048817-.369614-.411457-.369614c.216189-.495143 .690411-.648568 1.018182-.648568c.697385 0 1.060025 .54396 1.060025 1.108842c0 .606725-.432379 1.08792-.655542 1.338979l-1.680697 1.659776c-.069738 .062765-.069738 .076712-.069738 .27198h2.873225l.209215-1.26924z'/>
-<path id='tb745ef0e-g0-66' d='m1.594022-.777086c-.099626 .388543-.119552 .468244-.9066 .468244c-.169365 0-.268991 0-.268991 .199253c0 .109589 .089664 .109589 .268991 .109589h3.556663c1.574097 0 2.749689-1.175592 2.749689-2.15193c0-.71731-.577833-1.295143-1.544209-1.404732c1.036115-.18929 2.082192-.926526 2.082192-1.872976c0-.737235-.657534-1.374844-1.853051-1.374844h-3.347447c-.18929 0-.288917 0-.288917 .199253c0 .109589 .089664 .109589 .278954 .109589c.019925 0 .209215 0 .37858 .019925c.179328 .019925 .268991 .029888 .268991 .159402c0 .039851-.009963 .069738-.039851 .18929l-1.334994 5.349938zm1.504359-2.86924l.617684-2.470735c.089664-.348692 .109589-.37858 .537983-.37858h1.285181c.876712 0 1.085928 .587796 1.085928 1.026152c0 .876712-.856787 1.823163-2.072229 1.823163h-1.454545zm-.448319 3.337484c-.139477 0-.159402 0-.219178-.009963c-.099626-.009963-.129514-.019925-.129514-.099626c0-.029888 0-.049813 .049813-.229141l.687422-2.779577h1.882939c.956413 0 1.145704 .737235 1.145704 1.165629c0 .986301-.886675 1.952677-2.062267 1.952677h-1.354919z'/>
-<path id='tb745ef0e-g0-79' d='m7.372354-4.343711c0-1.603985-1.05604-2.67995-2.540473-2.67995c-2.15193 0-4.343711 2.261519-4.343711 4.582814c0 1.653798 1.115816 2.660025 2.550436 2.660025c2.11208 0 4.333748-2.181818 4.333748-4.562889zm-4.273973 4.303861c-.986301 0-1.683686-.806974-1.683686-2.122042c0-.438356 .139477-1.892902 .9066-3.058531c.687422-1.036115 1.663761-1.554172 2.450809-1.554172c.816936 0 1.713574 .557908 1.713574 2.042341c0 .71731-.268991 2.271482-1.255293 3.496887c-.478207 .607721-1.295143 1.195517-2.132005 1.195517z'/>
-<path id='tb745ef0e-g0-120' d='m3.327522-3.008717c.059776-.259029 .288917-1.175592 .986301-1.175592c.049813 0 .288917 0 .498132 .129514c-.278954 .049813-.478207 .298879-.478207 .537983c0 .159402 .109589 .348692 .37858 .348692c.219178 0 .537983-.179328 .537983-.577833c0-.518057-.587796-.657534-.926526-.657534c-.577833 0-.926526 .52802-1.046077 .757161c-.249066-.657534-.787049-.757161-1.075965-.757161c-1.036115 0-1.603985 1.285181-1.603985 1.534247c0 .099626 .099626 .099626 .119552 .099626c.079701 0 .109589-.019925 .129514-.109589c.33873-1.05604 .996264-1.305106 1.334994-1.305106c.18929 0 .537983 .089664 .537983 .667497c0 .308842-.169365 .976339-.537983 2.371108c-.159402 .617684-.508095 1.036115-.946451 1.036115c-.059776 0-.288917 0-.498132-.129514c.249066-.049813 .468244-.259029 .468244-.537983c0-.268991-.219178-.348692-.368618-.348692c-.298879 0-.547945 .259029-.547945 .577833c0 .458281 .498132 .657534 .936488 .657534c.657534 0 1.016189-.697385 1.046077-.757161c.119552 .368618 .478207 .757161 1.075965 .757161c1.026152 0 1.594022-1.285181 1.594022-1.534247c0-.099626-.089664-.099626-.119552-.099626c-.089664 0-.109589 .039851-.129514 .109589c-.328767 1.066002-1.006227 1.305106-1.325031 1.305106c-.388543 0-.547945-.318804-.547945-.657534c0-.219178 .059776-.438356 .169365-.876712l.33873-1.364882z'/>
-</defs>
-<g id='tb745ef0e-page1'>
-<g stroke-miterlimit='10' transform='translate(-52.800199,-15.950166)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<path d='M 0.0 -5.69046 L 0.0 54.06003' fill='none'/>
-<path d='M -17.07181 0.0 L 85.35823 0.0' fill='none'/>
-<g transform='translate(-11.43852,-10.36629)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-52.800199,-15.950166)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-52.800199' y='-15.950166' xlink:href='#tb745ef0e-g0-79'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 31.29819 29.87546 M 32.4361 29.87546 C 32.4361 30.5039 31.92664 31.01337 31.29819 31.01337 C 30.66974 31.01337 30.16028 30.5039 30.16028 29.87546 C 30.16028 29.24701 30.66974 28.73755 31.29819 28.73755 C 31.92664 28.73755 32.4361 29.24701 32.4361 29.87546 Z M 31.29819 29.87546' stroke='none'/>
-<g transform='translate(19.67842,33.40843)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-52.800199,-15.950166)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-52.800199' y='-15.950166' xlink:href='#tb745ef0e-g0-66'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 35.56592 29.87546 M 35.56592 29.87546 C 36.76593 29.27548 37.56592 27.87546 37.56592 25.87546 L 37.56592 19.6491 C 37.56592 17.6491 38.3659 16.24907 39.56592 15.6491 C 38.3659 15.04912 37.56592 13.6491 37.56592 11.6491 L 37.56592 5.42271 C 37.56592 3.42271 36.76593 2.02269 35.56592 1.42271' fill='none'/>
-<g transform='translate(41.94435,11.57909)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-52.800199,-15.950166)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-52.800199' y='-15.950166' xlink:href='#tb745ef0e-g0-120'/>
-<use x='-47.106267' y='-19.56553' xlink:href='#tb745ef0e-g1-50'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 -7.11317 M 0.0 -7.11317 C 0.59998 -8.31319 2.0 -9.11317 4.0 -9.11317 L 11.6491 -9.11317 C 13.6491 -9.11317 15.04912 -9.91316 15.6491 -11.11317 C 16.24907 -9.91316 17.6491 -9.11317 19.6491 -9.11317 L 27.29819 -9.11317 C 29.29819 -9.11317 30.69821 -8.31319 31.29819 -7.11317' fill='none'/>
-<g transform='translate(10.5484,-21.63162)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-52.800199,-15.950166)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-52.800199' y='-15.950166' xlink:href='#tb745ef0e-g0-120'/>
-<use x='-47.106267' y='-19.56553' xlink:href='#tb745ef0e-g1-49'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw (0,-0.2) -- (0,1.9);
+  \draw (-0.6,0) -- (3.0,0);
+  \node[below left] at (0,0) {$O$};
+  \fill (1.1,1.05) circle (0.04); \node[above left] at (1.1,1.05) {$B$};
+  \draw[decorate,decoration={brace,amplitude=4pt}] (1.25,1.05) -- (1.25,0.05);
+  \node[right] at (1.35,0.55) {$x^2$};
+  \draw[decorate,decoration={brace,mirror,amplitude=4pt}] (0,-0.25) -- (1.1,-0.25);
+  \node[below] at (0.55,-0.35) {$x^1$};
+\end{tikzpicture}
 </pre>
 
 \[
@@ -3270,111 +2292,19 @@ curvilinear if \(F\) is not-linear
  (1) polar coordinates<br />
 </p>
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='101.181031pt' height='71.842042pt' viewBox='-70.007476 -70.007476 101.181031 71.842042'>
-<defs>
-<path id='tcd158787-g1-22' d='m4.283935-5.569116v-.308842h-3.596513v.308842h3.596513z'/>
-<path id='tcd158787-g1-40' d='m3.297634 2.391034c0-.029888 0-.049813-.169365-.219178c-1.24533-1.255293-1.564134-3.138232-1.564134-4.662516c0-1.733499 .37858-3.466999 1.603985-4.712329c.129514-.119552 .129514-.139477 .129514-.169365c0-.069738-.039851-.099626-.099626-.099626c-.099626 0-.996264 .67746-1.58406 1.942715c-.508095 1.09589-.627646 2.201743-.627646 3.038605c0 .777086 .109589 1.982565 .657534 3.108344c.597758 1.225405 1.454545 1.872976 1.554172 1.872976c.059776 0 .099626-.029888 .099626-.099626z'/>
-<path id='tcd158787-g1-41' d='m2.879203-2.49066c0-.777086-.109589-1.982565-.657534-3.108344c-.597758-1.225405-1.454545-1.872976-1.554172-1.872976c-.059776 0-.099626 .039851-.099626 .099626c0 .029888 0 .049813 .18929 .229141c.976339 .986301 1.544209 2.570361 1.544209 4.652553c0 1.703611-.368618 3.457036-1.603985 4.712329c-.129514 .119552-.129514 .139477-.129514 .169365c0 .059776 .039851 .099626 .099626 .099626c.099626 0 .996264-.67746 1.58406-1.942715c.508095-1.09589 .627646-2.201743 .627646-3.038605z'/>
-<path id='tcd158787-g2-49' d='m2.336239-4.435367c0-.188294-.013948-.195268-.209215-.195268c-.446326 .439352-1.080946 .446326-1.366874 .446326v.251059c.167372 0 .627646 0 1.011208-.195268v3.556663c0 .230137 0 .320797-.697385 .320797h-.265006v.251059c.125529-.006974 .983313-.027895 1.241345-.027895c.216189 0 1.094894 .020922 1.248319 .027895v-.251059h-.265006c-.697385 0-.697385-.09066-.697385-.320797v-3.863512z'/>
-<path id='tcd158787-g2-50' d='m3.521793-1.26924h-.237111c-.020922 .153425-.09066 .564882-.18132 .63462c-.055791 .041843-.592777 .041843-.690411 .041843h-1.283188c.732254-.648568 .976339-.843836 1.39477-1.171606c.516065-.411457 .99726-.843836 .99726-1.506351c0-.843836-.739228-1.3599-1.63188-1.3599c-.864757 0-1.45056 .606725-1.45056 1.248319c0 .355666 .299875 .390535 .369614 .390535c.167372 0 .369614-.118555 .369614-.369614c0-.125529-.048817-.369614-.411457-.369614c.216189-.495143 .690411-.648568 1.018182-.648568c.697385 0 1.060025 .54396 1.060025 1.108842c0 .606725-.432379 1.08792-.655542 1.338979l-1.680697 1.659776c-.069738 .062765-.069738 .076712-.069738 .27198h2.873225l.209215-1.26924z'/>
-<path id='tcd158787-g0-59' d='m2.022416-.009963c0-.657534-.249066-1.046077-.637609-1.046077c-.328767 0-.52802 .249066-.52802 .52802c0 .268991 .199253 .52802 .52802 .52802c.119552 0 .249066-.039851 .348692-.129514c.029888-.019925 .039851-.029888 .049813-.029888s.019925 .009963 .019925 .14944c0 .737235-.348692 1.334994-.67746 1.663761c-.109589 .109589-.109589 .129514-.109589 .159402c0 .069738 .049813 .109589 .099626 .109589c.109589 0 .9066-.767123 .9066-1.932752z'/>
-<path id='tcd158787-g0-80' d='m3.01868-3.148194h1.693649c1.414695 0 2.799502-1.036115 2.799502-2.15193c0-.767123-.657534-1.504359-1.96264-1.504359h-3.227895c-.18929 0-.298879 0-.298879 .18929c0 .119552 .089664 .119552 .288917 .119552c.129514 0 .308842 .009963 .428394 .019925c.159402 .019925 .219178 .049813 .219178 .159402c0 .039851-.009963 .069738-.039851 .18929l-1.334994 5.349938c-.099626 .388543-.119552 .468244-.9066 .468244c-.169365 0-.278954 0-.278954 .18929c0 .119552 .119552 .119552 .14944 .119552c.278954 0 .986301-.029888 1.265255-.029888c.209215 0 .428394 .009963 .637609 .009963c.219178 0 .438356 .019925 .647572 .019925c.069738 0 .199253 0 .199253-.199253c0-.109589-.089664-.109589-.278954-.109589c-.368618 0-.647572 0-.647572-.179328c0-.059776 .019925-.109589 .029888-.169365l.617684-2.49066zm.71731-2.968867c.089664-.348692 .109589-.37858 .537983-.37858h.956413c.826899 0 1.354919 .268991 1.354919 .956413c0 .388543-.199253 1.24533-.587796 1.603985c-.498132 .448319-1.09589 .52802-1.534247 .52802h-1.404732l.67746-2.709838z'/>
-<path id='tcd158787-g0-120' d='m3.327522-3.008717c.059776-.259029 .288917-1.175592 .986301-1.175592c.049813 0 .288917 0 .498132 .129514c-.278954 .049813-.478207 .298879-.478207 .537983c0 .159402 .109589 .348692 .37858 .348692c.219178 0 .537983-.179328 .537983-.577833c0-.518057-.587796-.657534-.926526-.657534c-.577833 0-.926526 .52802-1.046077 .757161c-.249066-.657534-.787049-.757161-1.075965-.757161c-1.036115 0-1.603985 1.285181-1.603985 1.534247c0 .099626 .099626 .099626 .119552 .099626c.079701 0 .109589-.019925 .129514-.109589c.33873-1.05604 .996264-1.305106 1.334994-1.305106c.18929 0 .537983 .089664 .537983 .667497c0 .308842-.169365 .976339-.537983 2.371108c-.159402 .617684-.508095 1.036115-.946451 1.036115c-.059776 0-.288917 0-.498132-.129514c.249066-.049813 .468244-.259029 .468244-.537983c0-.268991-.219178-.348692-.368618-.348692c-.298879 0-.547945 .259029-.547945 .577833c0 .458281 .498132 .657534 .936488 .657534c.657534 0 1.016189-.697385 1.046077-.757161c.119552 .368618 .478207 .757161 1.075965 .757161c1.026152 0 1.594022-1.285181 1.594022-1.534247c0-.099626-.089664-.099626-.119552-.099626c-.089664 0-.109589 .039851-.129514 .109589c-.328767 1.066002-1.006227 1.305106-1.325031 1.305106c-.388543 0-.547945-.318804-.547945-.657534c0-.219178 .059776-.438356 .169365-.876712l.33873-1.364882z'/>
-</defs>
-<g id='tcd158787-page1'>
-<g stroke-miterlimit='10' transform='translate(-61.304213,-13.115338)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<path d='M 0.0 -2.84544 L 0.0 56.5055' fill='none'/>
-<g transform='matrix(0.0,1.0,-1.0,0.0,0.0,56.70549)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<path d='M -8.5359 0.0 L 79.26776 0.0' fill='none'/>
-<g transform='translate(79.46776,0.0)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(74.56706,-11.67299)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-61.304213,-13.115338)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-61.304213' y='-13.115338' xlink:href='#tcd158787-g0-120'/>
-<use x='-55.61028' y='-16.730702' xlink:href='#tcd158787-g2-49'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 45.52455 34.1432 M 46.66246 34.1432 C 46.66246 34.77165 46.153 35.28111 45.52455 35.28111 C 44.8961 35.28111 44.38664 34.77165 44.38664 34.1432 C 44.38664 33.51476 44.8961 33.0053 45.52455 33.0053 C 46.153 33.0053 46.66246 33.51476 46.66246 34.1432 Z M 45.52455 34.1432' stroke='none'/>
-<g transform='translate(49.05753,40.17618)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-61.304213,-13.115338)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-61.304213' y='-13.115338' xlink:href='#tcd158787-g0-80'/>
-<use x='-53.524351' y='-13.115338' xlink:href='#tcd158787-g1-40'/>
-<use x='-49.649977' y='-13.115338' xlink:href='#tcd158787-g0-120'/>
-<use x='-43.956045' y='-16.730702' xlink:href='#tcd158787-g2-49'/>
-<use x='-39.486675' y='-13.115338' xlink:href='#tcd158787-g0-59'/>
-<use x='-35.058867' y='-13.115338' xlink:href='#tcd158787-g0-120'/>
-<use x='-29.364935' y='-16.730702' xlink:href='#tcd158787-g2-50'/>
-<use x='-24.895566' y='-13.115338' xlink:href='#tcd158787-g1-41'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 45.52455 34.1432' fill='none'/>
-<g transform='translate(7.6052,20.60478)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-61.304213,-13.115338)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-60.671165' y='-13.115338' xlink:href='#tcd158787-g1-22'/>
-<use x='-61.304213' y='-13.115338' xlink:href='#tcd158787-g0-120'/>
-<use x='-55.61028' y='-16.730702' xlink:href='#tcd158787-g2-49'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 14.22636 0.0 C 14.22636 3.089 13.22063 6.09488 11.3618 8.56174' fill='none'/>
-<g transform='translate(15.38531,1.62045)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-61.304213,-13.115338)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-60.671165' y='-13.115338' xlink:href='#tcd158787-g1-22'/>
-<use x='-61.304213' y='-13.115338' xlink:href='#tcd158787-g0-120'/>
-<use x='-55.61028' y='-16.730702' xlink:href='#tcd158787-g2-50'/>
-</g>
-</g>
-</g>
-</g>
-<g stroke-dasharray='3.0,3.0' stroke-dashoffset='0.0'>
-<path d='M 45.52455 34.1432 L 45.52455 0.0' fill='none'/>
-</g>
-<g transform='translate(50.47981,13.0018)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-61.304213,-13.115338)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-61.304213' y='-13.115338' xlink:href='#tcd158787-g0-120'/>
-<use x='-55.61028' y='-16.730702' xlink:href='#tcd158787-g2-50'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,-0.1) -- (0,2.0);
+  \draw[-&gt;] (-0.3,0) -- (2.8,0) node[below] {$x^1$};
+  \fill (1.6,1.2) circle (0.04); \node[above right] at (1.6,1.2) {$P(x^1,x^2)$};
+  \draw (0,0) -- (1.6,1.2);
+  \node[above left] at (0.75,0.6) {$\bar x^1$};
+  \draw (0.5,0) arc (0:37:0.5);
+  \node at (0.72,0.2) {$\bar x^2$};
+  \draw[dashed] (1.6,1.2) -- (1.6,0);
+  \node[right] at (1.65,0.6) {$x^2$};
+\end{tikzpicture}
 </pre>
 
 \[
@@ -3415,127 +2345,21 @@ x^2 &amp;= \bar x^1\sin(\bar x^2)
  (2) cylindrical coordinates :<br />
 </p>
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='124.285988pt' height='91.430466pt' viewBox='-70.007476 -70.007476 124.285988 91.430466'>
-<defs>
-<path id='tc98fd4ac-g2-49' d='m2.336239-4.435367c0-.188294-.013948-.195268-.209215-.195268c-.446326 .439352-1.080946 .446326-1.366874 .446326v.251059c.167372 0 .627646 0 1.011208-.195268v3.556663c0 .230137 0 .320797-.697385 .320797h-.265006v.251059c.125529-.006974 .983313-.027895 1.241345-.027895c.216189 0 1.094894 .020922 1.248319 .027895v-.251059h-.265006c-.697385 0-.697385-.09066-.697385-.320797v-3.863512z'/>
-<path id='tc98fd4ac-g2-50' d='m3.521793-1.26924h-.237111c-.020922 .153425-.09066 .564882-.18132 .63462c-.055791 .041843-.592777 .041843-.690411 .041843h-1.283188c.732254-.648568 .976339-.843836 1.39477-1.171606c.516065-.411457 .99726-.843836 .99726-1.506351c0-.843836-.739228-1.3599-1.63188-1.3599c-.864757 0-1.45056 .606725-1.45056 1.248319c0 .355666 .299875 .390535 .369614 .390535c.167372 0 .369614-.118555 .369614-.369614c0-.125529-.048817-.369614-.411457-.369614c.216189-.495143 .690411-.648568 1.018182-.648568c.697385 0 1.060025 .54396 1.060025 1.108842c0 .606725-.432379 1.08792-.655542 1.338979l-1.680697 1.659776c-.069738 .062765-.069738 .076712-.069738 .27198h2.873225l.209215-1.26924z'/>
-<path id='tc98fd4ac-g2-51' d='m1.903861-2.329265c.54396 0 .934496 .376588 .934496 1.12279c0 .864757-.502117 1.12279-.9066 1.12279c-.278954 0-.892653-.076712-1.185554-.488169c.327771-.013948 .404483-.244085 .404483-.390535c0-.223163-.167372-.383562-.383562-.383562c-.195268 0-.390535 .118555-.390535 .404483c0 .655542 .72528 1.080946 1.569116 1.080946c.969365 0 1.638854-.648568 1.638854-1.345953c0-.54396-.446326-1.08792-1.21345-1.248319c.732254-.265006 .99726-.788045 .99726-1.21345c0-.550934-.63462-.962391-1.408717-.962391s-1.366874 .376588-1.366874 .934496c0 .237111 .153425 .369614 .36264 .369614c.216189 0 .355666-.160399 .355666-.355666c0-.202242-.139477-.348692-.355666-.36264c.244085-.306849 .72528-.383562 .983313-.383562c.313823 0 .753176 .153425 .753176 .760149c0 .292902-.097634 .613699-.278954 .829888c-.230137 .265006-.425405 .278954-.774097 .299875c-.174346 .013948-.188294 .013948-.223163 .020922c-.013948 0-.069738 .013948-.069738 .09066c0 .097634 .062765 .097634 .18132 .097634h.376588z'/>
-<path id='tc98fd4ac-g1-22' d='m4.283935-5.569116v-.308842h-3.596513v.308842h3.596513z'/>
-<path id='tc98fd4ac-g1-40' d='m3.297634 2.391034c0-.029888 0-.049813-.169365-.219178c-1.24533-1.255293-1.564134-3.138232-1.564134-4.662516c0-1.733499 .37858-3.466999 1.603985-4.712329c.129514-.119552 .129514-.139477 .129514-.169365c0-.069738-.039851-.099626-.099626-.099626c-.099626 0-.996264 .67746-1.58406 1.942715c-.508095 1.09589-.627646 2.201743-.627646 3.038605c0 .777086 .109589 1.982565 .657534 3.108344c.597758 1.225405 1.454545 1.872976 1.554172 1.872976c.059776 0 .099626-.029888 .099626-.099626z'/>
-<path id='tc98fd4ac-g1-41' d='m2.879203-2.49066c0-.777086-.109589-1.982565-.657534-3.108344c-.597758-1.225405-1.454545-1.872976-1.554172-1.872976c-.059776 0-.099626 .039851-.099626 .099626c0 .029888 0 .049813 .18929 .229141c.976339 .986301 1.544209 2.570361 1.544209 4.652553c0 1.703611-.368618 3.457036-1.603985 4.712329c-.129514 .119552-.129514 .139477-.129514 .169365c0 .059776 .039851 .099626 .099626 .099626c.099626 0 .996264-.67746 1.58406-1.942715c.508095-1.09589 .627646-2.201743 .627646-3.038605z'/>
-<path id='tc98fd4ac-g0-59' d='m2.022416-.009963c0-.657534-.249066-1.046077-.637609-1.046077c-.328767 0-.52802 .249066-.52802 .52802c0 .268991 .199253 .52802 .52802 .52802c.119552 0 .249066-.039851 .348692-.129514c.029888-.019925 .039851-.029888 .049813-.029888s.019925 .009963 .019925 .14944c0 .737235-.348692 1.334994-.67746 1.663761c-.109589 .109589-.109589 .129514-.109589 .159402c0 .069738 .049813 .109589 .099626 .109589c.109589 0 .9066-.767123 .9066-1.932752z'/>
-<path id='tc98fd4ac-g0-80' d='m3.01868-3.148194h1.693649c1.414695 0 2.799502-1.036115 2.799502-2.15193c0-.767123-.657534-1.504359-1.96264-1.504359h-3.227895c-.18929 0-.298879 0-.298879 .18929c0 .119552 .089664 .119552 .288917 .119552c.129514 0 .308842 .009963 .428394 .019925c.159402 .019925 .219178 .049813 .219178 .159402c0 .039851-.009963 .069738-.039851 .18929l-1.334994 5.349938c-.099626 .388543-.119552 .468244-.9066 .468244c-.169365 0-.278954 0-.278954 .18929c0 .119552 .119552 .119552 .14944 .119552c.278954 0 .986301-.029888 1.265255-.029888c.209215 0 .428394 .009963 .637609 .009963c.219178 0 .438356 .019925 .647572 .019925c.069738 0 .199253 0 .199253-.199253c0-.109589-.089664-.109589-.278954-.109589c-.368618 0-.647572 0-.647572-.179328c0-.059776 .019925-.109589 .029888-.169365l.617684-2.49066zm.71731-2.968867c.089664-.348692 .109589-.37858 .537983-.37858h.956413c.826899 0 1.354919 .268991 1.354919 .956413c0 .388543-.199253 1.24533-.587796 1.603985c-.498132 .448319-1.09589 .52802-1.534247 .52802h-1.404732l.67746-2.709838z'/>
-<path id='tc98fd4ac-g0-120' d='m3.327522-3.008717c.059776-.259029 .288917-1.175592 .986301-1.175592c.049813 0 .288917 0 .498132 .129514c-.278954 .049813-.478207 .298879-.478207 .537983c0 .159402 .109589 .348692 .37858 .348692c.219178 0 .537983-.179328 .537983-.577833c0-.518057-.587796-.657534-.926526-.657534c-.577833 0-.926526 .52802-1.046077 .757161c-.249066-.657534-.787049-.757161-1.075965-.757161c-1.036115 0-1.603985 1.285181-1.603985 1.534247c0 .099626 .099626 .099626 .119552 .099626c.079701 0 .109589-.019925 .129514-.109589c.33873-1.05604 .996264-1.305106 1.334994-1.305106c.18929 0 .537983 .089664 .537983 .667497c0 .308842-.169365 .976339-.537983 2.371108c-.159402 .617684-.508095 1.036115-.946451 1.036115c-.059776 0-.288917 0-.498132-.129514c.249066-.049813 .468244-.259029 .468244-.537983c0-.268991-.219178-.348692-.368618-.348692c-.298879 0-.547945 .259029-.547945 .577833c0 .458281 .498132 .657534 .936488 .657534c.657534 0 1.016189-.697385 1.046077-.757161c.119552 .368618 .478207 .757161 1.075965 .757161c1.026152 0 1.594022-1.285181 1.594022-1.534247c0-.099626-.089664-.099626-.119552-.099626c-.089664 0-.109589 .039851-.129514 .109589c-.328767 1.066002-1.006227 1.305106-1.325031 1.305106c-.388543 0-.547945-.318804-.547945-.657534c0-.219178 .059776-.438356 .169365-.876712l.33873-1.364882z'/>
-</defs>
-<g id='tc98fd4ac-page1'>
-<g stroke-miterlimit='10' transform='translate(-38.617133,-7.446137)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<path d='M 0.0 -5.69046 L 0.0 62.19595' fill='none'/>
-<g transform='matrix(0.0,1.0,-1.0,0.0,0.0,62.39595)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<path d='M 0.0 0.0 L 82.11278 0.0' fill='none'/>
-<g transform='translate(82.31277,0.0)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<path d='M 0.0 0.0 L -31.00224 -28.1837' fill='none'/>
-<g transform='matrix(-0.7399,-0.67264,0.67264,-0.7399,-31.1502,-28.31822)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<path d='M 31.29819 42.67911 M 32.4361 42.67911 C 32.4361 43.30756 31.92664 43.81702 31.29819 43.81702 C 30.66974 43.81702 30.16028 43.30756 30.16028 42.67911 C 30.16028 42.05066 30.66974 41.5412 31.29819 41.5412 C 31.92664 41.5412 32.4361 42.05066 32.4361 42.67911 Z M 31.29819 42.67911' stroke='none'/>
-<g transform='translate(34.83116,48.71208)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-38.617133,-7.446137)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-38.617133' y='-7.446137' xlink:href='#tc98fd4ac-g0-80'/>
-<use x='-30.837272' y='-7.446137' xlink:href='#tc98fd4ac-g1-40'/>
-<use x='-26.962898' y='-7.446137' xlink:href='#tc98fd4ac-g0-120'/>
-<use x='-21.268966' y='-11.061501' xlink:href='#tc98fd4ac-g2-49'/>
-<use x='-16.799596' y='-7.446137' xlink:href='#tc98fd4ac-g0-59'/>
-<use x='-12.371788' y='-7.446137' xlink:href='#tc98fd4ac-g0-120'/>
-<use x='-6.677856' y='-11.061501' xlink:href='#tc98fd4ac-g2-50'/>
-<use x='-2.208486' y='-7.446137' xlink:href='#tc98fd4ac-g0-59'/>
-<use x='2.219322' y='-7.446137' xlink:href='#tc98fd4ac-g0-120'/>
-<use x='7.913254' y='-11.061501' xlink:href='#tc98fd4ac-g2-51'/>
-<use x='12.382623' y='-7.446137' xlink:href='#tc98fd4ac-g1-41'/>
-</g>
-</g>
-</g>
-</g>
-<g stroke-dasharray='3.0,3.0' stroke-dashoffset='0.0'>
-<path d='M 31.29819 42.67911 L 31.29819 0.0' fill='none'/>
-</g>
-<path d='M 0.0 0.0 L 31.29819 0.0' fill='none'/>
-<g transform='translate(16.23886,4.10214)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-38.617133,-7.446137)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-37.984086' y='-7.446137' xlink:href='#tc98fd4ac-g1-22'/>
-<use x='-38.617133' y='-7.446137' xlink:href='#tc98fd4ac-g0-120'/>
-<use x='-32.923201' y='-11.061501' xlink:href='#tc98fd4ac-g2-49'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M -4.26773 42.67911 M -4.26773 42.67911 C -3.06772 42.07913 -2.26773 40.67911 -2.26773 38.67911 L -2.26773 25.33955 C -2.26773 23.33955 -1.46774 21.93953 -0.26773 21.33955 C -1.46774 20.73958 -2.26773 19.33955 -2.26773 17.33955 L -2.26773 4.0 C -2.26773 2.0 -3.06772 0.59998 -4.26773 0.0' fill='none'/>
-<g transform='translate(-22.27026,17.26955)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-38.617133,-7.446137)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-37.984086' y='-7.446137' xlink:href='#tc98fd4ac-g1-22'/>
-<use x='-38.617133' y='-7.446137' xlink:href='#tc98fd4ac-g0-120'/>
-<use x='-32.923201' y='-11.061501' xlink:href='#tc98fd4ac-g2-51'/>
-</g>
-</g>
-</g>
-</g>
-<g transform='translate(10.5484,13.57054)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-38.617133,-7.446137)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-37.984086' y='-7.446137' xlink:href='#tc98fd4ac-g1-22'/>
-<use x='-38.617133' y='-7.446137' xlink:href='#tc98fd4ac-g0-120'/>
-<use x='-32.923201' y='-11.061501' xlink:href='#tc98fd4ac-g2-50'/>
-</g>
-</g>
-</g>
-</g>
-<g transform='translate(-26.44025,-25.40956)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-38.617133,-7.446137)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-37.984086' y='-7.446137' xlink:href='#tc98fd4ac-g1-22'/>
-<use x='-38.617133' y='-7.446137' xlink:href='#tc98fd4ac-g0-120'/>
-<use x='-32.923201' y='-11.061501' xlink:href='#tc98fd4ac-g2-50'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,-0.2) -- (0,2.2);
+  \draw[-&gt;] (0,0) -- (2.9,0);
+  \draw[-&gt;] (0,0) -- (-1.1,-1.0);
+  \fill (1.1,1.5) circle (0.04); \node[above right] at (1.1,1.5) {$P(x^1,x^2,x^3)$};
+  \draw[dashed] (1.1,1.5) -- (1.1,0.0);
+  \draw (0,0) -- (1.1,0.0);
+  \node[above] at (0.75,0.02) {$\bar x^1$};
+  \draw[decorate,decoration={brace,amplitude=4pt}] (-0.15,1.5) -- (-0.15,0.0);
+  \node[left] at (-0.3,0.75) {$\bar x^3$};
+  \node at (0.55,0.62) {$\bar x^2$};
+  \node at (-0.75,-0.75) {$\bar x^2$};
+\end{tikzpicture}
 </pre>
 
 \[
@@ -3563,124 +2387,22 @@ x^3 &amp;= \bar x^3
  (3) spherical coordinate system :-<br />
 </p>
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='129.968458pt' height='97.086545pt' viewBox='-70.007476 -70.007474 129.968458 97.086545'>
-<defs>
-<path id='tc51b4fa7-g2-49' d='m2.336239-4.435367c0-.188294-.013948-.195268-.209215-.195268c-.446326 .439352-1.080946 .446326-1.366874 .446326v.251059c.167372 0 .627646 0 1.011208-.195268v3.556663c0 .230137 0 .320797-.697385 .320797h-.265006v.251059c.125529-.006974 .983313-.027895 1.241345-.027895c.216189 0 1.094894 .020922 1.248319 .027895v-.251059h-.265006c-.697385 0-.697385-.09066-.697385-.320797v-3.863512z'/>
-<path id='tc51b4fa7-g2-50' d='m3.521793-1.26924h-.237111c-.020922 .153425-.09066 .564882-.18132 .63462c-.055791 .041843-.592777 .041843-.690411 .041843h-1.283188c.732254-.648568 .976339-.843836 1.39477-1.171606c.516065-.411457 .99726-.843836 .99726-1.506351c0-.843836-.739228-1.3599-1.63188-1.3599c-.864757 0-1.45056 .606725-1.45056 1.248319c0 .355666 .299875 .390535 .369614 .390535c.167372 0 .369614-.118555 .369614-.369614c0-.125529-.048817-.369614-.411457-.369614c.216189-.495143 .690411-.648568 1.018182-.648568c.697385 0 1.060025 .54396 1.060025 1.108842c0 .606725-.432379 1.08792-.655542 1.338979l-1.680697 1.659776c-.069738 .062765-.069738 .076712-.069738 .27198h2.873225l.209215-1.26924z'/>
-<path id='tc51b4fa7-g2-51' d='m1.903861-2.329265c.54396 0 .934496 .376588 .934496 1.12279c0 .864757-.502117 1.12279-.9066 1.12279c-.278954 0-.892653-.076712-1.185554-.488169c.327771-.013948 .404483-.244085 .404483-.390535c0-.223163-.167372-.383562-.383562-.383562c-.195268 0-.390535 .118555-.390535 .404483c0 .655542 .72528 1.080946 1.569116 1.080946c.969365 0 1.638854-.648568 1.638854-1.345953c0-.54396-.446326-1.08792-1.21345-1.248319c.732254-.265006 .99726-.788045 .99726-1.21345c0-.550934-.63462-.962391-1.408717-.962391s-1.366874 .376588-1.366874 .934496c0 .237111 .153425 .369614 .36264 .369614c.216189 0 .355666-.160399 .355666-.355666c0-.202242-.139477-.348692-.355666-.36264c.244085-.306849 .72528-.383562 .983313-.383562c.313823 0 .753176 .153425 .753176 .760149c0 .292902-.097634 .613699-.278954 .829888c-.230137 .265006-.425405 .278954-.774097 .299875c-.174346 .013948-.188294 .013948-.223163 .020922c-.013948 0-.069738 .013948-.069738 .09066c0 .097634 .062765 .097634 .18132 .097634h.376588z'/>
-<path id='tc51b4fa7-g1-22' d='m4.283935-5.569116v-.308842h-3.596513v.308842h3.596513z'/>
-<path id='tc51b4fa7-g1-40' d='m3.297634 2.391034c0-.029888 0-.049813-.169365-.219178c-1.24533-1.255293-1.564134-3.138232-1.564134-4.662516c0-1.733499 .37858-3.466999 1.603985-4.712329c.129514-.119552 .129514-.139477 .129514-.169365c0-.069738-.039851-.099626-.099626-.099626c-.099626 0-.996264 .67746-1.58406 1.942715c-.508095 1.09589-.627646 2.201743-.627646 3.038605c0 .777086 .109589 1.982565 .657534 3.108344c.597758 1.225405 1.454545 1.872976 1.554172 1.872976c.059776 0 .099626-.029888 .099626-.099626z'/>
-<path id='tc51b4fa7-g1-41' d='m2.879203-2.49066c0-.777086-.109589-1.982565-.657534-3.108344c-.597758-1.225405-1.454545-1.872976-1.554172-1.872976c-.059776 0-.099626 .039851-.099626 .099626c0 .029888 0 .049813 .18929 .229141c.976339 .986301 1.544209 2.570361 1.544209 4.652553c0 1.703611-.368618 3.457036-1.603985 4.712329c-.129514 .119552-.129514 .139477-.129514 .169365c0 .059776 .039851 .099626 .099626 .099626c.099626 0 .996264-.67746 1.58406-1.942715c.508095-1.09589 .627646-2.201743 .627646-3.038605z'/>
-<path id='tc51b4fa7-g0-59' d='m2.022416-.009963c0-.657534-.249066-1.046077-.637609-1.046077c-.328767 0-.52802 .249066-.52802 .52802c0 .268991 .199253 .52802 .52802 .52802c.119552 0 .249066-.039851 .348692-.129514c.029888-.019925 .039851-.029888 .049813-.029888s.019925 .009963 .019925 .14944c0 .737235-.348692 1.334994-.67746 1.663761c-.109589 .109589-.109589 .129514-.109589 .159402c0 .069738 .049813 .109589 .099626 .109589c.109589 0 .9066-.767123 .9066-1.932752z'/>
-<path id='tc51b4fa7-g0-80' d='m3.01868-3.148194h1.693649c1.414695 0 2.799502-1.036115 2.799502-2.15193c0-.767123-.657534-1.504359-1.96264-1.504359h-3.227895c-.18929 0-.298879 0-.298879 .18929c0 .119552 .089664 .119552 .288917 .119552c.129514 0 .308842 .009963 .428394 .019925c.159402 .019925 .219178 .049813 .219178 .159402c0 .039851-.009963 .069738-.039851 .18929l-1.334994 5.349938c-.099626 .388543-.119552 .468244-.9066 .468244c-.169365 0-.278954 0-.278954 .18929c0 .119552 .119552 .119552 .14944 .119552c.278954 0 .986301-.029888 1.265255-.029888c.209215 0 .428394 .009963 .637609 .009963c.219178 0 .438356 .019925 .647572 .019925c.069738 0 .199253 0 .199253-.199253c0-.109589-.089664-.109589-.278954-.109589c-.368618 0-.647572 0-.647572-.179328c0-.059776 .019925-.109589 .029888-.169365l.617684-2.49066zm.71731-2.968867c.089664-.348692 .109589-.37858 .537983-.37858h.956413c.826899 0 1.354919 .268991 1.354919 .956413c0 .388543-.199253 1.24533-.587796 1.603985c-.498132 .448319-1.09589 .52802-1.534247 .52802h-1.404732l.67746-2.709838z'/>
-<path id='tc51b4fa7-g0-120' d='m3.327522-3.008717c.059776-.259029 .288917-1.175592 .986301-1.175592c.049813 0 .288917 0 .498132 .129514c-.278954 .049813-.478207 .298879-.478207 .537983c0 .159402 .109589 .348692 .37858 .348692c.219178 0 .537983-.179328 .537983-.577833c0-.518057-.587796-.657534-.926526-.657534c-.577833 0-.926526 .52802-1.046077 .757161c-.249066-.657534-.787049-.757161-1.075965-.757161c-1.036115 0-1.603985 1.285181-1.603985 1.534247c0 .099626 .099626 .099626 .119552 .099626c.079701 0 .109589-.019925 .129514-.109589c.33873-1.05604 .996264-1.305106 1.334994-1.305106c.18929 0 .537983 .089664 .537983 .667497c0 .308842-.169365 .976339-.537983 2.371108c-.159402 .617684-.508095 1.036115-.946451 1.036115c-.059776 0-.288917 0-.498132-.129514c.249066-.049813 .468244-.259029 .468244-.537983c0-.268991-.219178-.348692-.368618-.348692c-.298879 0-.547945 .259029-.547945 .577833c0 .458281 .498132 .657534 .936488 .657534c.657534 0 1.016189-.697385 1.046077-.757161c.119552 .368618 .478207 .757161 1.075965 .757161c1.026152 0 1.594022-1.285181 1.594022-1.534247c0-.099626-.089664-.099626-.119552-.099626c-.089664 0-.109589 .039851-.129514 .109589c-.328767 1.066002-1.006227 1.305106-1.325031 1.305106c-.388543 0-.547945-.318804-.547945-.657534c0-.219178 .059776-.438356 .169365-.876712l.33873-1.364882z'/>
-</defs>
-<g id='tc51b4fa7-page1'>
-<g stroke-miterlimit='10' transform='translate(-35.769049,-4.611324)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<path d='M 0.0 -5.69046 L 0.0 65.0414' fill='none'/>
-<g transform='matrix(0.0,1.0,-1.0,0.0,0.0,65.2414)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<path d='M 0.0 0.0 L 84.95824 0.0' fill='none'/>
-<g transform='translate(85.15823,0.0)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<path d='M 0.0 0.0 L -33.84837 -31.02792' fill='none'/>
-<g transform='matrix(-0.7371,-0.67569,0.67569,-0.7371,-33.99579,-31.16306)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<path d='M 34.1432 45.52455 M 35.28111 45.52455 C 35.28111 46.153 34.77165 46.66246 34.1432 46.66246 C 33.51476 46.66246 33.0053 46.153 33.0053 45.52455 C 33.0053 44.8961 33.51476 44.38664 34.1432 44.38664 C 34.77165 44.38664 35.28111 44.8961 35.28111 45.52455 Z M 34.1432 45.52455' stroke='none'/>
-<g transform='translate(37.67618,51.55753)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-35.769049,-4.611324)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-35.769049' y='-4.611324' xlink:href='#tc51b4fa7-g0-80'/>
-<use x='-27.989187' y='-4.611324' xlink:href='#tc51b4fa7-g1-40'/>
-<use x='-24.114814' y='-4.611324' xlink:href='#tc51b4fa7-g0-120'/>
-<use x='-18.420881' y='-8.226688' xlink:href='#tc51b4fa7-g2-49'/>
-<use x='-13.951512' y='-4.611324' xlink:href='#tc51b4fa7-g0-59'/>
-<use x='-9.523704' y='-4.611324' xlink:href='#tc51b4fa7-g0-120'/>
-<use x='-3.829772' y='-8.226688' xlink:href='#tc51b4fa7-g2-50'/>
-<use x='.639598' y='-4.611324' xlink:href='#tc51b4fa7-g0-59'/>
-<use x='5.067406' y='-4.611324' xlink:href='#tc51b4fa7-g0-120'/>
-<use x='10.761338' y='-8.226688' xlink:href='#tc51b4fa7-g2-51'/>
-<use x='15.230708' y='-4.611324' xlink:href='#tc51b4fa7-g1-41'/>
-</g>
-</g>
-</g>
-</g>
-<g stroke-dasharray='3.0,3.0' stroke-dashoffset='0.0'>
-<path d='M 0.0 0.0 L 34.1432 45.52455' fill='none'/>
-</g>
-<g transform='translate(1.91473,24.38274)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-35.769049,-4.611324)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-35.136001' y='-4.611324' xlink:href='#tc51b4fa7-g1-22'/>
-<use x='-35.769049' y='-4.611324' xlink:href='#tc51b4fa7-g0-120'/>
-<use x='-30.075117' y='-8.226688' xlink:href='#tc51b4fa7-g2-49'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 19.91682 C 4.32458 19.91682 8.53279 18.5088 11.98637 15.90646' fill='none'/>
-<g transform='translate(2.86603,13.57054)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-35.769049,-4.611324)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-35.136001' y='-4.611324' xlink:href='#tc51b4fa7-g1-22'/>
-<use x='-35.769049' y='-4.611324' xlink:href='#tc51b4fa7-g0-120'/>
-<use x='-30.075117' y='-8.226688' xlink:href='#tc51b4fa7-g2-50'/>
-</g>
-</g>
-</g>
-</g>
-<g stroke-dasharray='3.0,3.0' stroke-dashoffset='0.0'>
-<path d='M 34.1432 45.52455 L 34.1432 -11.38092' fill='none'/>
-</g>
-<g stroke-dasharray='3.0,3.0' stroke-dashoffset='0.0'>
-<path d='M 0.0 0.0 L -19.91682 -18.4941' fill='none'/>
-</g>
-<g stroke-dasharray='3.0,3.0' stroke-dashoffset='0.0'>
-<path d='M -19.91682 -18.4941 L 34.1432 -11.38092' fill='none'/>
-</g>
-<g transform='translate(-23.693,-21.63162)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-35.769049,-4.611324)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-35.136001' y='-4.611324' xlink:href='#tc51b4fa7-g1-22'/>
-<use x='-35.769049' y='-4.611324' xlink:href='#tc51b4fa7-g0-120'/>
-<use x='-30.075117' y='-8.226688' xlink:href='#tc51b4fa7-g2-51'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,-0.2) -- (0,2.3);
+  \draw[-&gt;] (0,0) -- (3.0,0);
+  \draw[-&gt;] (0,0) -- (-1.2,-1.1);
+  \fill (1.2,1.6) circle (0.04); \node[above right] at (1.2,1.6) {$P(x^1,x^2,x^3)$};
+  \draw[dashed] (0,0) -- (1.2,1.6);
+  \node[left] at (0.55,1.0) {$\bar x^1$};
+  \draw (0,0.7) arc (90:53:0.7);
+  \node at (0.28,0.62) {$\bar x^2$};
+  \draw[dashed] (1.2,1.6) -- (1.2,-0.4);
+  \draw[dashed] (0,0) -- (-0.7,-0.65);
+  \draw[dashed] (-0.7,-0.65) -- (1.2,-0.4);
+  \node[below left] at (-0.35,-0.35) {$\bar x^3$};
+\end{tikzpicture}
 </pre>
 
 \[
@@ -3714,158 +2436,19 @@ A Tensor whose components change in contravarient/covariant manner is said to be
 <li>
 contravariant change :-
  suppose we have 2-D non-orthogonal coordinate system.
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='121.392887pt' height='100.277948pt' viewBox='-70.007476 -70.007475 121.392887 100.277948'>
-<defs>
-<path id='t79e6bb3a-g1-49' d='m2.336239-4.435367c0-.188294-.013948-.195268-.209215-.195268c-.446326 .439352-1.080946 .446326-1.366874 .446326v.251059c.167372 0 .627646 0 1.011208-.195268v3.556663c0 .230137 0 .320797-.697385 .320797h-.265006v.251059c.125529-.006974 .983313-.027895 1.241345-.027895c.216189 0 1.094894 .020922 1.248319 .027895v-.251059h-.265006c-.697385 0-.697385-.09066-.697385-.320797v-3.863512z'/>
-<path id='t79e6bb3a-g1-50' d='m3.521793-1.26924h-.237111c-.020922 .153425-.09066 .564882-.18132 .63462c-.055791 .041843-.592777 .041843-.690411 .041843h-1.283188c.732254-.648568 .976339-.843836 1.39477-1.171606c.516065-.411457 .99726-.843836 .99726-1.506351c0-.843836-.739228-1.3599-1.63188-1.3599c-.864757 0-1.45056 .606725-1.45056 1.248319c0 .355666 .299875 .390535 .369614 .390535c.167372 0 .369614-.118555 .369614-.369614c0-.125529-.048817-.369614-.411457-.369614c.216189-.495143 .690411-.648568 1.018182-.648568c.697385 0 1.060025 .54396 1.060025 1.108842c0 .606725-.432379 1.08792-.655542 1.338979l-1.680697 1.659776c-.069738 .062765-.069738 .076712-.069738 .27198h2.873225l.209215-1.26924z'/>
-<path id='t79e6bb3a-g0-97' d='m3.716065-3.765878c-.179328-.368618-.468244-.637609-.916563-.637609c-1.165629 0-2.400996 1.464508-2.400996 2.919054c0 .936488 .547945 1.594022 1.325031 1.594022c.199253 0 .697385-.039851 1.295143-.747198c.079701 .418431 .428394 .747198 .9066 .747198c.348692 0 .577833-.229141 .737235-.547945c.169365-.358655 .298879-.966376 .298879-.986301c0-.099626-.089664-.099626-.119552-.099626c-.099626 0-.109589 .039851-.139477 .179328c-.169365 .647572-.348692 1.235367-.757161 1.235367c-.268991 0-.298879-.259029-.298879-.458281c0-.219178 .019925-.298879 .129514-.737235c.109589-.418431 .129514-.518057 .219178-.896638l.358655-1.39477c.069738-.278954 .069738-.298879 .069738-.33873c0-.169365-.119552-.268991-.288917-.268991c-.239103 0-.388543 .219178-.418431 .438356zm-.647572 2.580324c-.049813 .179328-.049813 .199253-.199253 .368618c-.438356 .547945-.846824 .707347-1.125778 .707347c-.498132 0-.637609-.547945-.637609-.936488c0-.498132 .318804-1.723537 .547945-2.181818c.308842-.587796 .757161-.956413 1.155666-.956413c.647572 0 .787049 .816936 .787049 .876712s-.019925 .119552-.029888 .169365l-.498132 1.952677z'/>
-<path id='t79e6bb3a-g0-101' d='m1.863014-2.30137c.288917 0 1.026152-.019925 1.524284-.229141c.697385-.298879 .747198-.886675 .747198-1.026152c0-.438356-.37858-.846824-1.066002-.846824c-1.105853 0-2.610212 .966376-2.610212 2.709838c0 1.016189 .587796 1.803238 1.564134 1.803238c1.424658 0 2.261519-1.05604 2.261519-1.175592c0-.059776-.059776-.129514-.119552-.129514c-.049813 0-.069738 .019925-.129514 .099626c-.787049 .986301-1.872976 .986301-1.992528 .986301c-.777086 0-.86675-.836862-.86675-1.155666c0-.119552 .009963-.428394 .159402-1.036115h.52802zm-.468244-.219178c.388543-1.514321 1.414695-1.663761 1.673724-1.663761c.468244 0 .737235 .288917 .737235 .627646c0 1.036115-1.594022 1.036115-2.002491 1.036115h-.408468z'/>
-<path id='t79e6bb3a-g0-120' d='m3.327522-3.008717c.059776-.259029 .288917-1.175592 .986301-1.175592c.049813 0 .288917 0 .498132 .129514c-.278954 .049813-.478207 .298879-.478207 .537983c0 .159402 .109589 .348692 .37858 .348692c.219178 0 .537983-.179328 .537983-.577833c0-.518057-.587796-.657534-.926526-.657534c-.577833 0-.926526 .52802-1.046077 .757161c-.249066-.657534-.787049-.757161-1.075965-.757161c-1.036115 0-1.603985 1.285181-1.603985 1.534247c0 .099626 .099626 .099626 .119552 .099626c.079701 0 .109589-.019925 .129514-.109589c.33873-1.05604 .996264-1.305106 1.334994-1.305106c.18929 0 .537983 .089664 .537983 .667497c0 .308842-.169365 .976339-.537983 2.371108c-.159402 .617684-.508095 1.036115-.946451 1.036115c-.059776 0-.288917 0-.498132-.129514c.249066-.049813 .468244-.259029 .468244-.537983c0-.268991-.219178-.348692-.368618-.348692c-.298879 0-.547945 .259029-.547945 .577833c0 .458281 .498132 .657534 .936488 .657534c.657534 0 1.016189-.697385 1.046077-.757161c.119552 .368618 .478207 .757161 1.075965 .757161c1.026152 0 1.594022-1.285181 1.594022-1.534247c0-.099626-.089664-.099626-.119552-.099626c-.089664 0-.109589 .039851-.129514 .109589c-.328767 1.066002-1.006227 1.305106-1.325031 1.305106c-.388543 0-.547945-.318804-.547945-.657534c0-.219178 .059776-.438356 .169365-.876712l.33873-1.364882z'/>
-<path id='t79e6bb3a-g0-126' d='m5.349938-5.927771c-.139477 .129514-.468244 .408468-.468244 .587796c0 .099626 .099626 .199253 .199253 .199253c.089664 0 .139477-.069738 .18929-.129514c.119552-.14944 .348692-.428394 .787049-.647572c.069738-.039851 .169365-.089664 .169365-.209215c0-.099626-.069738-.14944-.139477-.199253c-.219178-.14944-.328767-.328767-.408468-.56787c-.019925-.089664-.059776-.219178-.199253-.219178s-.199253 .129514-.199253 .209215c0 .049813 .079701 .368618 .239103 .577833h-3.35741c-.169365 0-.348692 0-.348692 .199253s.179328 .199253 .348692 .199253h3.188045z'/>
-</defs>
-<g id='t79e6bb3a-page1'>
-<g stroke-miterlimit='10' transform='translate(-61.995894,-.27006)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<path d='M 0.0 0.0 L 96.33916 0.0' fill='none'/>
-<g transform='translate(96.53915,0.0)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(100.27213,-4.07)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-61.995894,-.27006)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-61.995894' y='-.27006' xlink:href='#t79e6bb3a-g0-120'/>
-<use x='-56.301962' y='-3.885424' xlink:href='#t79e6bb3a-g1-49'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 39.61894 62.25851' fill='none'/>
-<g transform='matrix(0.53685,0.84361,-0.84361,0.53685,39.72629,62.42723)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(43.36664,58.52594)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-61.995894,-.27006)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-61.995894' y='-.27006' xlink:href='#t79e6bb3a-g0-120'/>
-<use x='-56.301962' y='-3.885424' xlink:href='#t79e6bb3a-g1-50'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 7.752 12.18184' fill='none'/>
-<g transform='matrix(0.53683,0.84363,-0.84363,0.53683,7.85936,12.35054)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(-4.70865,9.69704)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-61.995894,-.27006)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-62.379845' y='-.27006' xlink:href='#t79e6bb3a-g0-126'/>
-<use x='-61.995894' y='-.27006' xlink:href='#t79e6bb3a-g0-101'/>
-<use x='-57.357022' y='1.224321' xlink:href='#t79e6bb3a-g1-50'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 22.36227 0.0' fill='none'/>
-<g transform='translate(22.56227,0.0)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(18.19107,-10.67741)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-61.995894,-.27006)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-62.379845' y='-.27006' xlink:href='#t79e6bb3a-g0-126'/>
-<use x='-61.995894' y='-.27006' xlink:href='#t79e6bb3a-g0-101'/>
-<use x='-57.357022' y='1.224321' xlink:href='#t79e6bb3a-g1-49'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 76.47823 45.32065' fill='none'/>
-<g transform='matrix(0.86024,0.50978,-0.50978,0.86024,76.65027,45.42259)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(80.35529,41.95233)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-61.995894,-.27006)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-62.619699' y='-.27006' xlink:href='#t79e6bb3a-g0-126'/>
-<use x='-61.995894' y='-.27006' xlink:href='#t79e6bb3a-g0-97'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 32.50514 50.87796' fill='none'/>
-<g transform='matrix(0.53836,0.84265,-0.84265,0.53836,32.61281,51.04648)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(15.6,28.65047)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-61.995894,-.27006)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-61.995894' y='-.27006' xlink:href='#t79e6bb3a-g0-97'/>
-<use x='-56.72974' y='-3.885424' xlink:href='#t79e6bb3a-g1-50'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 -12.80363 M 0.0 -12.80363 C 0.59998 -14.00365 2.0 -14.80363 4.0 -14.80363 L 28.72069 -14.80363 C 30.72069 -14.80363 32.12071 -15.60362 32.72069 -16.80363 C 33.32066 -15.60362 34.72069 -14.80363 36.72069 -14.80363 L 61.44139 -14.80363 C 63.44139 -14.80363 64.84142 -14.00365 65.44139 -12.80363' fill='none'/>
-<g transform='translate(26.41219,-27.32208)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-61.995894,-.27006)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-61.995894' y='-.27006' xlink:href='#t79e6bb3a-g0-97'/>
-<use x='-56.72974' y='-3.885424' xlink:href='#t79e6bb3a-g1-49'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,0) -- (3.4,0) node[right] {$x^1$};
+  \draw[-&gt;] (0,0) -- (1.4,2.2) node[right] {$x^2$};
+  \draw[-&gt;] (0,0) -- (0.28,0.44) node[left] {$\vec e_2$};
+  \draw[-&gt;] (0,0) -- (0.8,0) node[below] {$\vec e_1$};
+  \draw[-&gt;] (0,0) -- (2.7,1.6) node[right] {$\vec a$};
+  \draw[-&gt;] (0,0) -- (1.15,1.8);
+  \node at (0.72,1.15) {$a^2$};
+  \draw[decorate,decoration={brace,mirror,amplitude=4pt}] (0,-0.45) -- (2.3,-0.45);
+  \node[below] at (1.1,-0.55) {$a^1$};
+\end{tikzpicture}
 </pre>
 \[
 \vec a = a^1\vec e_1 + a^2\vec e_2
@@ -3882,128 +2465,15 @@ what happens to \(\vec a\) if \(\vec{e_1'} = \alpha\vec{e_1}\) &amp; \(\vec{e_2'
  \(\vec a\) does not change but its components will change<br />
 </p>
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='114.005112pt' height='83.728638pt' viewBox='-70.273371 -70.007478 114.005112 83.728638'>
-<defs>
-<path id='tc68d3944-g1-22' d='m4.283935-5.569116v-.308842h-3.596513v.308842h3.596513z'/>
-<path id='tc68d3944-g2-49' d='m2.336239-4.435367c0-.188294-.013948-.195268-.209215-.195268c-.446326 .439352-1.080946 .446326-1.366874 .446326v.251059c.167372 0 .627646 0 1.011208-.195268v3.556663c0 .230137 0 .320797-.697385 .320797h-.265006v.251059c.125529-.006974 .983313-.027895 1.241345-.027895c.216189 0 1.094894 .020922 1.248319 .027895v-.251059h-.265006c-.697385 0-.697385-.09066-.697385-.320797v-3.863512z'/>
-<path id='tc68d3944-g2-50' d='m3.521793-1.26924h-.237111c-.020922 .153425-.09066 .564882-.18132 .63462c-.055791 .041843-.592777 .041843-.690411 .041843h-1.283188c.732254-.648568 .976339-.843836 1.39477-1.171606c.516065-.411457 .99726-.843836 .99726-1.506351c0-.843836-.739228-1.3599-1.63188-1.3599c-.864757 0-1.45056 .606725-1.45056 1.248319c0 .355666 .299875 .390535 .369614 .390535c.167372 0 .369614-.118555 .369614-.369614c0-.125529-.048817-.369614-.411457-.369614c.216189-.495143 .690411-.648568 1.018182-.648568c.697385 0 1.060025 .54396 1.060025 1.108842c0 .606725-.432379 1.08792-.655542 1.338979l-1.680697 1.659776c-.069738 .062765-.069738 .076712-.069738 .27198h2.873225l.209215-1.26924z'/>
-<path id='tc68d3944-g0-97' d='m3.716065-3.765878c-.179328-.368618-.468244-.637609-.916563-.637609c-1.165629 0-2.400996 1.464508-2.400996 2.919054c0 .936488 .547945 1.594022 1.325031 1.594022c.199253 0 .697385-.039851 1.295143-.747198c.079701 .418431 .428394 .747198 .9066 .747198c.348692 0 .577833-.229141 .737235-.547945c.169365-.358655 .298879-.966376 .298879-.986301c0-.099626-.089664-.099626-.119552-.099626c-.099626 0-.109589 .039851-.139477 .179328c-.169365 .647572-.348692 1.235367-.757161 1.235367c-.268991 0-.298879-.259029-.298879-.458281c0-.219178 .019925-.298879 .129514-.737235c.109589-.418431 .129514-.518057 .219178-.896638l.358655-1.39477c.069738-.278954 .069738-.298879 .069738-.33873c0-.169365-.119552-.268991-.288917-.268991c-.239103 0-.388543 .219178-.418431 .438356zm-.647572 2.580324c-.049813 .179328-.049813 .199253-.199253 .368618c-.438356 .547945-.846824 .707347-1.125778 .707347c-.498132 0-.637609-.547945-.637609-.936488c0-.498132 .318804-1.723537 .547945-2.181818c.308842-.587796 .757161-.956413 1.155666-.956413c.647572 0 .787049 .816936 .787049 .876712s-.019925 .119552-.029888 .169365l-.498132 1.952677z'/>
-<path id='tc68d3944-g0-101' d='m1.863014-2.30137c.288917 0 1.026152-.019925 1.524284-.229141c.697385-.298879 .747198-.886675 .747198-1.026152c0-.438356-.37858-.846824-1.066002-.846824c-1.105853 0-2.610212 .966376-2.610212 2.709838c0 1.016189 .587796 1.803238 1.564134 1.803238c1.424658 0 2.261519-1.05604 2.261519-1.175592c0-.059776-.059776-.129514-.119552-.129514c-.049813 0-.069738 .019925-.129514 .099626c-.787049 .986301-1.872976 .986301-1.992528 .986301c-.777086 0-.86675-.836862-.86675-1.155666c0-.119552 .009963-.428394 .159402-1.036115h.52802zm-.468244-.219178c.388543-1.514321 1.414695-1.663761 1.673724-1.663761c.468244 0 .737235 .288917 .737235 .627646c0 1.036115-1.594022 1.036115-2.002491 1.036115h-.408468z'/>
-<path id='tc68d3944-g0-120' d='m3.327522-3.008717c.059776-.259029 .288917-1.175592 .986301-1.175592c.049813 0 .288917 0 .498132 .129514c-.278954 .049813-.478207 .298879-.478207 .537983c0 .159402 .109589 .348692 .37858 .348692c.219178 0 .537983-.179328 .537983-.577833c0-.518057-.587796-.657534-.926526-.657534c-.577833 0-.926526 .52802-1.046077 .757161c-.249066-.657534-.787049-.757161-1.075965-.757161c-1.036115 0-1.603985 1.285181-1.603985 1.534247c0 .099626 .099626 .099626 .119552 .099626c.079701 0 .109589-.019925 .129514-.109589c.33873-1.05604 .996264-1.305106 1.334994-1.305106c.18929 0 .537983 .089664 .537983 .667497c0 .308842-.169365 .976339-.537983 2.371108c-.159402 .617684-.508095 1.036115-.946451 1.036115c-.059776 0-.288917 0-.498132-.129514c.249066-.049813 .468244-.259029 .468244-.537983c0-.268991-.219178-.348692-.368618-.348692c-.298879 0-.547945 .259029-.547945 .577833c0 .458281 .498132 .657534 .936488 .657534c.657534 0 1.016189-.697385 1.046077-.757161c.119552 .368618 .478207 .757161 1.075965 .757161c1.026152 0 1.594022-1.285181 1.594022-1.534247c0-.099626-.089664-.099626-.119552-.099626c-.089664 0-.109589 .039851-.129514 .109589c-.328767 1.066002-1.006227 1.305106-1.325031 1.305106c-.388543 0-.547945-.318804-.547945-.657534c0-.219178 .059776-.438356 .169365-.876712l.33873-1.364882z'/>
-<path id='tc68d3944-g0-126' d='m5.349938-5.927771c-.139477 .129514-.468244 .408468-.468244 .587796c0 .099626 .099626 .199253 .199253 .199253c.089664 0 .139477-.069738 .18929-.129514c.119552-.14944 .348692-.428394 .787049-.647572c.069738-.039851 .169365-.089664 .169365-.209215c0-.099626-.069738-.14944-.139477-.199253c-.219178-.14944-.328767-.328767-.408468-.56787c-.019925-.089664-.059776-.219178-.199253-.219178s-.199253 .129514-.199253 .209215c0 .049813 .079701 .368618 .239103 .577833h-3.35741c-.169365 0-.348692 0-.348692 .199253s.179328 .199253 .348692 .199253h3.188045z'/>
-</defs>
-<g id='tc68d3944-page1'>
-<g stroke-miterlimit='10' transform='translate(-69.649565,-.27006)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<path d='M 0.0 0.0 L 96.33916 0.0' fill='none'/>
-<g transform='translate(96.53915,0.0)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(100.27213,-4.07)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.649565,-.27006)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.649565' y='-.27006' xlink:href='#tc68d3944-g0-120'/>
-<use x='-63.955633' y='-3.885424' xlink:href='#tc68d3944-g2-49'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 39.61894 62.25851' fill='none'/>
-<g transform='matrix(0.53685,0.84361,-0.84361,0.53685,39.72629,62.42723)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(43.36664,58.52594)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.649565,-.27006)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.649565' y='-.27006' xlink:href='#tc68d3944-g0-120'/>
-<use x='-63.955633' y='-3.885424' xlink:href='#tc68d3944-g2-50'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 15.43538 24.41566' fill='none'/>
-<g transform='matrix(0.53433,0.84521,-0.84521,0.53433,15.54224,24.58469)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(2.97372,22.66484)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.649565,-.27006)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.267301' y='-.27006' xlink:href='#tc68d3944-g1-22'/>
-<use x='-69.649565' y='-.27006' xlink:href='#tc68d3944-g0-101'/>
-<use x='-65.010694' y='1.224321' xlink:href='#tc68d3944-g2-50'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 45.12456 0.0' fill='none'/>
-<g transform='translate(45.32455,0.0)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(40.95335,-9.21074)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.649565,-.27006)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-69.267301' y='-.27006' xlink:href='#tc68d3944-g1-22'/>
-<use x='-69.649565' y='-.27006' xlink:href='#tc68d3944-g0-101'/>
-<use x='-65.010694' y='1.224321' xlink:href='#tc68d3944-g2-49'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 76.46724 39.64957' fill='none'/>
-<g transform='matrix(0.88771,0.46028,-0.46028,0.88771,76.64478,39.74161)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(80.35529,36.26144)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-69.649565,-.27006)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-70.273371' y='-.27006' xlink:href='#tc68d3944-g0-126'/>
-<use x='-69.649565' y='-.27006' xlink:href='#tc68d3944-g0-97'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,0) -- (3.4,0) node[right] {$x^1$};
+  \draw[-&gt;] (0,0) -- (1.4,2.2) node[right] {$x^2$};
+  \draw[-&gt;] (0,0) -- (0.55,0.87) node[left] {$\bar e_2$};
+  \draw[-&gt;] (0,0) -- (1.6,0) node[below] {$\bar e_1$};
+  \draw[-&gt;] (0,0) -- (2.7,1.4) node[right] {$\vec a$};
+\end{tikzpicture}
 </pre>
 
 \[
@@ -4025,175 +2495,23 @@ what happens to \(\vec a\) if \(\vec{e_1'} = \alpha\vec{e_1}\) &amp; \(\vec{e_2'
 <em>Covariant change :-</em><br />
 </p>
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='121.392887pt' height='108.518187pt' viewBox='-70.007476 -70.007481 121.392887 108.518187'>
-<defs>
-<path id='tf39e8c04-g1-49' d='m2.336239-4.435367c0-.188294-.013948-.195268-.209215-.195268c-.446326 .439352-1.080946 .446326-1.366874 .446326v.251059c.167372 0 .627646 0 1.011208-.195268v3.556663c0 .230137 0 .320797-.697385 .320797h-.265006v.251059c.125529-.006974 .983313-.027895 1.241345-.027895c.216189 0 1.094894 .020922 1.248319 .027895v-.251059h-.265006c-.697385 0-.697385-.09066-.697385-.320797v-3.863512z'/>
-<path id='tf39e8c04-g1-50' d='m3.521793-1.26924h-.237111c-.020922 .153425-.09066 .564882-.18132 .63462c-.055791 .041843-.592777 .041843-.690411 .041843h-1.283188c.732254-.648568 .976339-.843836 1.39477-1.171606c.516065-.411457 .99726-.843836 .99726-1.506351c0-.843836-.739228-1.3599-1.63188-1.3599c-.864757 0-1.45056 .606725-1.45056 1.248319c0 .355666 .299875 .390535 .369614 .390535c.167372 0 .369614-.118555 .369614-.369614c0-.125529-.048817-.369614-.411457-.369614c.216189-.495143 .690411-.648568 1.018182-.648568c.697385 0 1.060025 .54396 1.060025 1.108842c0 .606725-.432379 1.08792-.655542 1.338979l-1.680697 1.659776c-.069738 .062765-.069738 .076712-.069738 .27198h2.873225l.209215-1.26924z'/>
-<path id='tf39e8c04-g0-98' d='m2.381071-6.804483c0-.009963 0-.109589-.129514-.109589c-.229141 0-.956413 .079701-1.215442 .099626c-.079701 .009963-.18929 .019925-.18929 .199253c0 .119552 .089664 .119552 .239103 .119552c.478207 0 .498132 .069738 .498132 .169365c0 .069738-.089664 .408468-.139477 .617684l-.816936 3.247821c-.119552 .498132-.159402 .657534-.159402 1.006227c0 .946451 .52802 1.564134 1.265255 1.564134c1.175592 0 2.400996-1.484433 2.400996-2.919054c0-.9066-.52802-1.594022-1.325031-1.594022c-.458281 0-.86675 .288917-1.165629 .597758l.737235-2.998755zm-.936488 3.765878c.059776-.219178 .059776-.239103 .14944-.348692c.488169-.647572 .936488-.797011 1.195517-.797011c.358655 0 .627646 .298879 .627646 .936488c0 .587796-.328767 1.733499-.508095 2.11208c-.328767 .667497-.787049 1.026152-1.175592 1.026152c-.33873 0-.667497-.268991-.667497-1.006227c0-.18929 0-.37858 .159402-1.006227l.219178-.916563z'/>
-<path id='tf39e8c04-g0-101' d='m1.863014-2.30137c.288917 0 1.026152-.019925 1.524284-.229141c.697385-.298879 .747198-.886675 .747198-1.026152c0-.438356-.37858-.846824-1.066002-.846824c-1.105853 0-2.610212 .966376-2.610212 2.709838c0 1.016189 .587796 1.803238 1.564134 1.803238c1.424658 0 2.261519-1.05604 2.261519-1.175592c0-.059776-.059776-.129514-.119552-.129514c-.049813 0-.069738 .019925-.129514 .099626c-.787049 .986301-1.872976 .986301-1.992528 .986301c-.777086 0-.86675-.836862-.86675-1.155666c0-.119552 .009963-.428394 .159402-1.036115h.52802zm-.468244-.219178c.388543-1.514321 1.414695-1.663761 1.673724-1.663761c.468244 0 .737235 .288917 .737235 .627646c0 1.036115-1.594022 1.036115-2.002491 1.036115h-.408468z'/>
-<path id='tf39e8c04-g0-120' d='m3.327522-3.008717c.059776-.259029 .288917-1.175592 .986301-1.175592c.049813 0 .288917 0 .498132 .129514c-.278954 .049813-.478207 .298879-.478207 .537983c0 .159402 .109589 .348692 .37858 .348692c.219178 0 .537983-.179328 .537983-.577833c0-.518057-.587796-.657534-.926526-.657534c-.577833 0-.926526 .52802-1.046077 .757161c-.249066-.657534-.787049-.757161-1.075965-.757161c-1.036115 0-1.603985 1.285181-1.603985 1.534247c0 .099626 .099626 .099626 .119552 .099626c.079701 0 .109589-.019925 .129514-.109589c.33873-1.05604 .996264-1.305106 1.334994-1.305106c.18929 0 .537983 .089664 .537983 .667497c0 .308842-.169365 .976339-.537983 2.371108c-.159402 .617684-.508095 1.036115-.946451 1.036115c-.059776 0-.288917 0-.498132-.129514c.249066-.049813 .468244-.259029 .468244-.537983c0-.268991-.219178-.348692-.368618-.348692c-.298879 0-.547945 .259029-.547945 .577833c0 .458281 .498132 .657534 .936488 .657534c.657534 0 1.016189-.697385 1.046077-.757161c.119552 .368618 .478207 .757161 1.075965 .757161c1.026152 0 1.594022-1.285181 1.594022-1.534247c0-.099626-.089664-.099626-.119552-.099626c-.089664 0-.109589 .039851-.129514 .109589c-.328767 1.066002-1.006227 1.305106-1.325031 1.305106c-.388543 0-.547945-.318804-.547945-.657534c0-.219178 .059776-.438356 .169365-.876712l.33873-1.364882z'/>
-<path id='tf39e8c04-g0-126' d='m5.349938-5.927771c-.139477 .129514-.468244 .408468-.468244 .587796c0 .099626 .099626 .199253 .199253 .199253c.089664 0 .139477-.069738 .18929-.129514c.119552-.14944 .348692-.428394 .787049-.647572c.069738-.039851 .169365-.089664 .169365-.209215c0-.099626-.069738-.14944-.139477-.199253c-.219178-.14944-.328767-.328767-.408468-.56787c-.019925-.089664-.059776-.219178-.199253-.219178s-.199253 .129514-.199253 .209215c0 .049813 .079701 .368618 .239103 .577833h-3.35741c-.169365 0-.348692 0-.348692 .199253s.179328 .199253 .348692 .199253h3.188045z'/>
-</defs>
-<g id='tf39e8c04-page1'>
-<g stroke-miterlimit='10' transform='translate(-61.995894,-3.104447)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<path d='M 0.0 0.0 L 96.33916 0.0' fill='none'/>
-<g transform='translate(96.53915,0.0)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(100.27213,-4.07)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-61.995894,-3.104447)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-61.995894' y='-3.104447' xlink:href='#tf39e8c04-g0-120'/>
-<use x='-56.301962' y='-6.719811' xlink:href='#tf39e8c04-g1-49'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 36.77812 59.41084' fill='none'/>
-<g transform='matrix(0.52634,0.85023,-0.85023,0.52634,36.88338,59.58089)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(40.52162,55.68092)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-61.995894,-3.104447)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-61.995894' y='-3.104447' xlink:href='#tf39e8c04-g0-120'/>
-<use x='-56.301962' y='-6.719811' xlink:href='#tf39e8c04-g1-50'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 7.75542 12.46404' fill='none'/>
-<g transform='matrix(0.52827,0.84903,-0.84903,0.52827,7.86107,12.63382)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(-4.70865,9.9814)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-61.995894,-3.104447)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-62.379845' y='-3.104447' xlink:href='#tf39e8c04-g0-126'/>
-<use x='-61.995894' y='-3.104447' xlink:href='#tf39e8c04-g0-101'/>
-<use x='-57.357022' y='-1.610066' xlink:href='#tf39e8c04-g1-50'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 19.51683 0.0' fill='none'/>
-<g transform='translate(19.71683,0.0)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(15.34563,-10.67741)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-61.995894,-3.104447)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-62.379845' y='-3.104447' xlink:href='#tf39e8c04-g0-126'/>
-<use x='-61.995894' y='-3.104447' xlink:href='#tf39e8c04-g0-101'/>
-<use x='-57.357022' y='-1.610066' xlink:href='#tf39e8c04-g1-49'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 65.10637 42.46062' fill='none'/>
-<g transform='matrix(0.83757,0.54625,-0.54625,0.83757,65.27388,42.56987)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(68.97437,37.78745)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-61.995894,-3.104447)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-63.114958' y='-5.733489' xlink:href='#tf39e8c04-g0-126'/>
-<use x='-61.995894' y='-3.104447' xlink:href='#tf39e8c04-g0-98'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 0.0 L 28.24077 45.18536' fill='none'/>
-<g transform='matrix(0.52998,0.84799,-0.84799,0.52998,28.34674,45.35495)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linecap='round'>
- <g stroke-linejoin='round'>
- <path d=' M -2.07999 2.39998 C -1.69998 0.95998 -0.85318 0.28 0.0 0.0 C -0.85318 -0.28 -1.69998 -0.95998 -2.07999 -2.39998  ' fill='none'/>
- </g>
- </g>
- </g>
-</g>
-<g transform='translate(13.25166,24.38274)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-61.995894,-3.104447)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-61.995894' y='-3.104447' xlink:href='#tf39e8c04-g0-98'/>
-<use x='-57.720259' y='-6.719811' xlink:href='#tf39e8c04-g1-50'/>
-</g>
-</g>
-</g>
-</g>
-<g stroke-dasharray='3.0,3.0' stroke-dashoffset='0.0'>
-<path d='M 65.44139 42.67911 L 36.98865 0.0' fill='none'/>
-</g>
-<g stroke-dasharray='3.0,3.0' stroke-dashoffset='0.0'>
-<path d='M 65.44139 42.67911 L 65.44139 0.0' fill='none'/>
-</g>
-<path d='M 0.0 -7.96672 M 0.0 -7.96672 C 0.44998 -8.86673 1.5 -9.46672 3.0 -9.46672 L 15.49432 -9.46672 C 16.99432 -9.46672 18.04434 -10.06671 18.49432 -10.96672 C 18.9443 -10.06671 19.99432 -9.46672 21.49432 -9.46672 L 33.98865 -9.46672 C 35.48865 -9.46672 36.53867 -8.86673 36.98865 -7.96672' fill='none'/>
-<g transform='translate(14.10521,-21.91599)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-61.995894,-3.104447)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-61.995894' y='-3.104447' xlink:href='#tf39e8c04-g0-98'/>
-<use x='-57.720259' y='-6.719811' xlink:href='#tf39e8c04-g1-49'/>
-</g>
-</g>
-</g>
-</g>
-<path d='M 0.0 -24.185 M 0.0 -24.185 C 0.44998 -25.085 1.5 -25.685 3.0 -25.685 L 29.72069 -25.685 C 31.22069 -25.685 32.2707 -26.28499 32.72069 -27.185 C 33.17067 -26.28499 34.22069 -25.685 35.72069 -25.685 L 62.44139 -25.685 C 63.94139 -25.685 64.99141 -25.085 65.44139 -24.185' fill='none'/>
-<g transform='translate(28.33159,-36.93825)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-61.995894,-3.104447)scale(-1,-1)'>
-<g fill='#000'>
-<g stroke='none'>
-<use x='-61.995894' y='-3.104447' xlink:href='#tf39e8c04-g0-98'/>
-<use x='-57.720259' y='-1.610066' xlink:href='#tf39e8c04-g1-49'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.0]
+  \draw[-&gt;] (0,0) -- (3.4,0) node[right] {$x^1$};
+  \draw[-&gt;] (0,0) -- (1.3,2.1) node[right] {$x^2$};
+  \draw[-&gt;] (0,0) -- (0.28,0.45) node[left] {$\vec e_2$};
+  \draw[-&gt;] (0,0) -- (0.7,0) node[below] {$\vec e_1$};
+  \draw[-&gt;] (0,0) -- (2.3,1.5) node[right] {$\vec b$};
+  \draw[-&gt;] (0,0) -- (1.0,1.6);
+  \node at (0.62,1.0) {$b^2$};
+  \draw[dashed] (2.3,1.5) -- (1.3,0.0);
+  \draw[dashed] (2.3,1.5) -- (2.3,0.0);
+  \draw[decorate,decoration={brace,mirror,amplitude=3pt}] (0,-0.28) -- (1.3,-0.28);
+  \node[below] at (0.65,-0.36) {$b^1$};
+  \draw[decorate,decoration={brace,mirror,amplitude=3pt}] (0,-0.85) -- (2.3,-0.85);
+  \node[below] at (1.15,-0.93) {$b_1$};
+\end{tikzpicture}
 </pre>
 
 <p>
@@ -6140,6 +4458,10 @@ a_{ijk}\left(x_i + y_j\right)z_k \neq a_{ijk}x_i z_k + a_{ijk}y_j z_k
     (function () {
         var content = document.getElementById('content');
         if (!content) return;
+        // Tablets: a "hover" is a tap here, so previews would pop up on the
+        // way to following a link. The card is hidden by CSS on tablets as
+        // well; bailing out this early also skips the background fetches.
+        if (window.wikiIsTabletLayout && window.wikiIsTabletLayout()) return;
 
         var LOCAL_ANCHOR = '/vimwiki/';
         var WEB_ROOT = '/wiki/vimwiki_html/';
@@ -6284,7 +4606,14 @@ a_{ijk}\left(x_i + y_j\right)z_k \neq a_{ijk}x_i z_k + a_{ijk}y_j z_k
     <script>
     (function () {
         var DESKTOP_BREAKPOINT = 901; // must match the CSS media query below
-        if (window.innerWidth < DESKTOP_BREAKPOINT) return; // phones/narrow: leave the page 100% untouched, exactly as before this feature existed
+        // iPads in portrait (744-1032px) sit below that breakpoint but still
+        // have room for a real docked sidebar, so they run this script too and
+        // skip the phone panel further down. What gets built is byte-for-byte
+        // the same DOM either way — only the CSS differs (see the
+        // html.tablet-layout block in the stylesheet), which is what lets a
+        // rotating iPad move between the two layouts without a reload.
+        var TABLET = !!(window.wikiIsTabletLayout && window.wikiIsTabletLayout());
+        if (window.innerWidth < DESKTOP_BREAKPOINT && !TABLET) return; // phones/narrow: leave the page 100% untouched, exactly as before this feature existed
 
         var contentEl = document.getElementById('content');
         if (!contentEl) return;
@@ -6361,7 +4690,7 @@ a_{ijk}\left(x_i + y_j\right)z_k \neq a_{ijk}x_i z_k + a_{ijk}y_j z_k
         var label = document.createElement('div');
         label.className = 'toc-sidebar-title';
         label.textContent = tocLabel;
-        label.title = 'Drag to move';
+        label.title = TABLET ? '' : 'Drag to move'; // dragging is disabled on tablets — see below
         sidebar.appendChild(label);
         sidebar.appendChild(tocList);
 
@@ -6371,6 +4700,20 @@ a_{ijk}\left(x_i + y_j\right)z_k \neq a_{ijk}x_i z_k + a_{ijk}y_j z_k
         // a big strip elsewhere on the page. Works whether the box is
         // docked (flex-basis) or floating (width) — see applyWidth below.
         var MIN_SIDEBAR = 160, MAX_SIDEBAR = 480, DEFAULT_SIDEBAR = 240;
+        // Tablet portrait is far narrower than a desktop window, where a
+        // 240-480px Contents box would eat the article column (on an iPad mini
+        // that is over a third of the screen). Capped in JS rather than CSS so
+        // fitReservedWidth()/renderContentWidth() below stay in step with what
+        // is actually painted. localStorage is deliberately NOT rewritten: a
+        // width the reader chose on a desktop survives untouched and comes
+        // back the next time they are on one.
+        if (TABLET) {
+            MAX_SIDEBAR = 220;
+            // Two tiers, because "iPad portrait" spans 744px (mini) to 1032px
+            // (Pro 13"): a box that leaves the Pro a comfortable column would
+            // squeeze the mini's article down to about 44 characters a line.
+            DEFAULT_SIDEBAR = window.innerWidth < 900 ? 180 : 200;
+        }
         var WIDTH_KEY = 'wikiTocSidebarWidth';
 
         function clampWidth(w) { return Math.max(MIN_SIDEBAR, Math.min(MAX_SIDEBAR, w)); }
@@ -6451,8 +4794,12 @@ a_{ijk}\left(x_i + y_j\right)z_k \neq a_{ijk}x_i z_k + a_{ijk}y_j z_k
             });
             return h;
         }
-        makeSidebarHandle('corner');
-        makeSidebarHandle('edge');
+        // Hidden by CSS on tablets (display:none also makes them untappable),
+        // but there is no reason to build them there at all.
+        if (!TABLET) {
+            makeSidebarHandle('corner');
+            makeSidebarHandle('edge');
+        }
 
         // Put the sidebar OUTSIDE #content — as a sibling to its left inside
         // a shared wrapper — rather than nesting it inside the card's own
@@ -6580,15 +4927,22 @@ a_{ijk}\left(x_i + y_j\right)z_k \neq a_{ijk}x_i z_k + a_{ijk}y_j z_k
             sidebar.style.maxHeight = '';
             try { localStorage.removeItem(POS_KEY); } catch (e) {}
         }
-        try {
-            var savedPos = JSON.parse(localStorage.getItem(POS_KEY));
-            if (savedPos && typeof savedPos.left === 'number' && typeof savedPos.top === 'number') {
-                floatAt(savedPos.left, savedPos.top);
-            }
-        } catch (e) {}
+        // Not on tablets: the box can't be dragged there, so a position saved
+        // from a desktop session must not strand it floating with no way to
+        // put it back other than the top-right Contents toggle. The saved
+        // value is left in localStorage for when they're back on a desktop.
+        if (!TABLET) {
+            try {
+                var savedPos = JSON.parse(localStorage.getItem(POS_KEY));
+                if (savedPos && typeof savedPos.left === 'number' && typeof savedPos.top === 'number') {
+                    floatAt(savedPos.left, savedPos.top);
+                }
+            } catch (e) {}
+        }
 
         var draggingTitle = false, titleStartX = 0, titleStartY = 0, boxStartLeft = 0, boxStartTop = 0;
         label.addEventListener('pointerdown', function (e) {
+            if (TABLET) return; // a swipe starting on the title should scroll the page, not pick the box up
             draggingTitle = true;
             var rect = sidebar.getBoundingClientRect();
             titleStartX = e.clientX;
@@ -6699,10 +5053,13 @@ a_{ijk}\left(x_i + y_j\right)z_k \neq a_{ijk}x_i z_k + a_{ijk}y_j z_k
         // the Contents toggle, or floating, both take them out of the flow)
         // plus the content-resizer's own fixed-width handle.
         function fitReservedWidth() {
-            var w = 24; // content-resizer's own box, always present
+            // Tablets hide both gutter strips and use a plain 20px flex gap on
+            // #page-shell instead (see the html.tablet-layout CSS), so the
+            // reserved space has to be counted differently there.
+            var w = TABLET ? 0 : 24; // content-resizer's own box, always present on desktop
             var sidebarHidden = sidebar.style.display === 'none';
             if (!sidebarHidden && !sidebar.classList.contains('floating')) w += currentWidth;
-            if (!sidebarHidden) w += currentGap;
+            if (!sidebarHidden) w += TABLET ? 16 : currentGap;
             return w;
         }
 
@@ -6876,7 +5233,8 @@ a_{ijk}\left(x_i + y_j\right)z_k \neq a_{ijk}x_i z_k + a_{ijk}y_j z_k
     <script>
     (function () {
         var MOBILE_BREAKPOINT = 900; // must match the CSS media query above
-        if (window.innerWidth > MOBILE_BREAKPOINT) return; // desktop/tablet: the sidebar script above handles it instead
+        if (window.innerWidth > MOBILE_BREAKPOINT) return; // desktop: the sidebar script above handles it instead
+        if (window.wikiIsTabletLayout && window.wikiIsTabletLayout()) return; // iPad portrait: ditto — it gets the real docked sidebar, not this phone panel
 
         var contentEl = document.getElementById('content');
         if (!contentEl) return;
@@ -7024,32 +5382,16 @@ a_{ijk}\left(x_i + y_j\right)z_k \neq a_{ijk}x_i z_k + a_{ijk}y_j z_k
         sweep('img[src]', 'src');
     })();
     </script>
-    <!-- 1. TikZ diagrams are pre-rendered to inline SVG at build time by
-         tools/prerender_tikz.py. This only handles blocks that are *not* yet
-         pre-rendered (e.g. a page edited by hand since the last build): it
-         converts them for TikZJax and pulls TikZJax in on demand. When every
-         block is pre-rendered -- the normal case -- nothing below the first
-         line runs, and the page skips TikZJax's ~10.9 MB download. -->
+    <!-- 1. Turn vimwiki {{{class="tikz"}}} blocks into TikZJax script tags (must run BEFORE tikzjax.js) -->
     <script>
-        (function () {
-            var pending = document.querySelectorAll('pre.tikz:not([data-prerendered])');
-            if (!pending.length) return;
-            pending.forEach(function (pre) {
-                var s = document.createElement('script');
-                s.type = 'text/tikz';
-                s.textContent = pre.textContent; // browser decodes HTML entities here
-                pre.textContent = '';
-                pre.appendChild(s); // keep <pre class="tikz"> as the container so its
-                                    // text-align:center still applies to the SVG tikzjax inserts
-            });
-            var css = document.createElement('link');
-            css.rel = 'stylesheet';
-            css.href = 'https://tikzjax.com/v1/fonts.css';
-            document.head.appendChild(css);
-            var js = document.createElement('script');
-            js.src = 'https://tikzjax.com/v1/tikzjax.js';
-            document.body.appendChild(js);
-        })();
+        document.querySelectorAll('pre.tikz').forEach(function (pre) {
+            var s = document.createElement('script');
+            s.type = 'text/tikz';
+            s.textContent = pre.textContent; // browser decodes HTML entities here
+            pre.textContent = '';
+            pre.appendChild(s); // keep <pre class="tikz"> as the container so its
+                                 // text-align:center still applies to the SVG tikzjax inserts
+        });
     </script>
     <!-- 2. Syntax-highlight code blocks, but skip diagram blocks -->
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
@@ -7058,6 +5400,8 @@ a_{ijk}\left(x_i + y_j\right)z_k \neq a_{ijk}x_i z_k + a_{ijk}y_j z_k
             hljs.highlightBlock(block);
         });
     </script>
+    <!-- 3. TikZJax: renders <script type="text/tikz"> into SVG -->
+    <script src="https://tikzjax.com/v1/tikzjax.js"></script>
     <!-- 4. Mermaid: renders <pre class="mermaid"> into SVG -->
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
