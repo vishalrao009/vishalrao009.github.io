@@ -6,6 +6,8 @@
     <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
     <link id="hljs-theme-light" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css" />
     <link id="hljs-theme-dark" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" disabled />
+    <!-- TikZJax fonts (for browser-rendered TikZ diagrams) -->
+    <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
     <title>QFT2-sachin-Lecture-5</title>
     <meta property="og:type" content="article">
     <meta property="og:title" content="QFT2-sachin-Lecture-5">
@@ -47,6 +49,54 @@
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Tablet (iPad) layout flag.
+
+         iPads report CSS viewport widths of 744-1032px in PORTRAIT (mini 744,
+         iPad / Air 11" 820, Pro 11" 834, Air 13" / Pro 12.9" 1024, Pro 13" M4
+         1032) and 1133-1376px in LANDSCAPE. Landscape therefore already lands
+         in the normal desktop layout and is deliberately left alone; it's
+         portrait that had no home, falling between the 600px phone breakpoint
+         and the 901px desktop one — so it kept the desktop's 3cm page margin
+         (113px a side: ~28% of an 820px screen thrown away) while getting the
+         phone's floating Contents button, because the sidebar script needs
+         901px. This flag is what the tablet CSS and the scripts at the end of
+         the body key off to fix that.
+
+         Why a class and not a plain media query: width alone can't tell an
+         iPad in portrait from a desktop window that happens to be narrow, and
+         a CSS (hover: none)/(pointer: coarse) test isn't trustworthy either —
+         iPadOS Safari ships with "Request Desktop Website" ON by default,
+         which makes it claim a fine, hovering pointer. navigator.maxTouchPoints
+         is > 1 on iPad in BOTH modes and 0 on a real desktop, so it's the
+         reliable half of the test; it can only be read from JS.
+
+         Set here, in <head>, before any body content is parsed, so there is no
+         flash of the wrong layout. Re-evaluated on rotation: the DOM the
+         TOC-sidebar script builds is identical in tablet and desktop modes, so
+         adding/removing this one class is all it takes to move an iPad between
+         the two presentations when it's turned on its side.
+
+         Falls back to today's behaviour (no class) if JS is off. -->
+    <script>
+    (function () {
+        var TABLET_MIN = 601;   // just above the 600px phone breakpoint used throughout this file
+        var TABLET_MAX = 1032;  // widest iPad portrait viewport (iPad Pro 13" M4)
+        function isTablet() {
+            if (!((navigator.maxTouchPoints || 0) > 1)) return false; // real mouse-driven desktop: never
+            var w = window.innerWidth || document.documentElement.clientWidth || 0;
+            return w >= TABLET_MIN && w <= TABLET_MAX;
+        }
+        window.wikiIsTabletLayout = isTablet;
+        function sync() {
+            var on = isTablet();
+            var cl = document.documentElement.classList;
+            if (on) cl.add('tablet-layout'); else cl.remove('tablet-layout');
+        }
+        sync();
+        window.addEventListener('resize', sync);
+        window.addEventListener('orientationchange', sync);
+    })();
+    </script>
     <style>
         /* Theme variables. Light values live at :root; the dark theme
            (toggled by the theme button, script near the end of <body>)
@@ -397,6 +447,104 @@
                 height: 72px;
             }
         }
+        /* ===============================================================
+           iPad / tablet layout (portrait only).
+
+           Gated on html.tablet-layout, set by the flag script in <head> —
+           see the long comment there for what it detects and why it can't
+           be a plain media query. Phones (<=600px) and mouse-driven
+           desktops never get that class, so both of those layouts are
+           completely unchanged by everything below.
+
+           Every rule here is written as `html.tablet-layout <sel>`, which
+           outranks the plain `<sel>` rules in the (min-width: 901px) block
+           above on specificity alone. That matters for the two widest
+           iPads in portrait (1024px and 1032px), which match BOTH that
+           media query and this class — order in the file is irrelevant,
+           these win either way.
+           =============================================================== */
+        html.tablet-layout body {
+            /* Sides: 20px instead of the desktop's 3cm, which hands ~186px
+               of width back to the article on every iPad. Top: the
+               top-right icon row is fixed at top:16px with 48px buttons, so
+               it ends at 64px — 76px keeps the article card clear of it,
+               the same job the 68px phone value does. */
+            padding: 76px 20px 20px 20px;
+        }
+        /* --- Docked Contents sidebar, using the same #page-shell flex row
+               the desktop builds. The markup is identical in both modes, so
+               rotating the iPad just swaps which set of rules applies. --- */
+        html.tablet-layout #page-shell {
+            max-width: none;
+            margin: 0;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 16px;   /* the desktop's draggable gutter is hidden below, so this is a plain fixed gap */
+        }
+        html.tablet-layout body.has-toc-sidebar {
+            /* Undoes the desktop rule's 1cm: the tablet margin above is
+               already tight, so there is nothing left to reclaim here. */
+            padding-left: 20px;
+        }
+        html.tablet-layout #page-shell > #content {
+            margin: 0;
+            max-width: none;
+            flex: 1 1 auto;
+            min-width: 0;   /* let wide equations/code wrap instead of forcing the column wider */
+        }
+        html.tablet-layout #toc-sidebar {
+            /* Width comes from the inline flex-basis the sidebar script
+               sets (200px on tablets — see the MAX_SIDEBAR/DEFAULT_SIDEBAR
+               override there), so it stays the single source of truth that
+               the content-fitting maths also reads. Fixed here so the box
+               can't be squeezed: #content is always the column that gives
+               way, exactly as on desktop. */
+            flex-grow: 0;
+            flex-shrink: 0;
+            position: sticky;
+            top: 16px;
+            max-height: calc(100vh - 32px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 12px 10px;   /* tighter than desktop's 14px/16px: every px here comes out of the article */
+            font-size: 14px;
+        }
+        /* Roomier rows — these are tap targets here, not mouse targets. */
+        html.tablet-layout #toc-sidebar .toc-sidebar-list a { padding: 7px 8px; }
+        /* Drag-to-resize (the square handles + the two gutter strips) and
+           drag-to-move are mouse affordances. On a touch screen they carry
+           touch-action:none, so a swipe that happens to start on one drags
+           the box instead of scrolling the page. Hidden here; the matching
+           pointer handlers bail out on tablets too (see the sidebar script
+           near the end of the body), and fitReservedWidth() there accounts
+           for the strips being gone. */
+        html.tablet-layout #toc-sidebar .toc-resize-handle,
+        html.tablet-layout #toc-resizer,
+        html.tablet-layout #content-resizer {
+            display: none !important;
+        }
+        html.tablet-layout #toc-sidebar .toc-sidebar-title {
+            cursor: default;
+            touch-action: auto;   /* let a swipe here scroll the page */
+        }
+        /* Hover previews are a mouse feature: on a touch screen the "hover"
+           fires on tap and can leave a card stranded over the page. Off
+           here, exactly as it already is on phones. The script that fetches
+           them bails out on tablets too, so nothing is downloaded either. */
+        html.tablet-layout .link-preview-card { display: none !important; }
+        /* Wide display equations and code blocks scroll inside their own box
+           rather than stretching the page sideways — the same protection the
+           phone layout already has, and worth keeping now that the article
+           column here is narrower than a desktop one. */
+        html.tablet-layout mjx-container[display="true"] {
+            max-width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+        html.tablet-layout mjx-container { max-width: 100%; }
+        html.tablet-layout #content pre { overflow-x: auto; }
+
         /* Applied to <body> only while actively dragging the resizer, so the
            cursor/no-select behavior holds even if the pointer strays off the
            thin handle mid-drag. */
@@ -1146,310 +1294,39 @@ These are not features of QFT alone.<br />
 <em>ex</em> : <em>Electrostatics :</em><br />
 </p>
 
-<pre class="tikz" data-prerendered="1">
-<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='197.082979pt' height='132.678964pt' viewBox='-70.007476 -70.007473 197.082979 132.678964'>
-<defs>
-<path id='te63c340d-g3-112' d='m4.224159 11.556663c.308842 0 .318804-.009963 .418431-.199253l5.449564-11.377335c.069738-.129514 .069738-.14944 .069738-.179328c0-.109589-.079701-.199253-.199253-.199253c-.129514 0-.169365 .089664-.219178 .199253l-5.140722 10.719801l-2.122042-4.941469l-1.384807 1.066002l.14944 .159402l.707347-.537983l2.271482 5.290162z'/>
-<path id='te63c340d-g0-18' d='m4.533001-4.98132c0-.657534-.179328-2.042341-1.195517-2.042341c-1.384807 0-2.919054 2.809465-2.919054 5.090909c0 .936488 .288917 2.042341 1.195517 2.042341c1.404732 0 2.919054-2.859278 2.919054-5.090909zm-3.058531 1.364882c.169365-.637609 .368618-1.43462 .767123-2.141968c.268991-.488169 .637609-1.046077 1.085928-1.046077c.488169 0 .547945 .637609 .547945 1.205479c0 .488169-.079701 .996264-.318804 1.982565h-2.082192zm1.992528 .318804c-.109589 .458281-.318804 1.305106-.697385 2.022416c-.348692 .67746-.727273 1.165629-1.155666 1.165629c-.328767 0-.537983-.288917-.537983-1.215442c0-.418431 .059776-.996264 .318804-1.972603h2.072229z'/>
-<path id='te63c340d-g0-21' d='m3.556663-2.909091c.408468 1.046077 .886675 2.570361 1.046077 2.799502c.159402 .219178 .259029 .219178 .52802 .219178h.219178c.099626-.009963 .109589-.069738 .109589-.099626s-.019925-.049813-.049813-.089664c-.099626-.109589-.159402-.259029-.229141-.458281l-2.032379-5.668742c-.209215-.577833-.747198-.707347-1.215442-.707347c-.049813 0-.179328 0-.179328 .109589c0 .079701 .079701 .099626 .089664 .099626c.328767 .059776 .398506 .119552 .647572 .797011l.966376 2.709838l-2.749689 2.729763c-.119552 .119552-.179328 .179328-.179328 .308842c0 .169365 .139477 .288917 .298879 .288917s.249066-.109589 .328767-.209215l2.400996-2.82939z'/>
-<path id='te63c340d-g0-26' d='m.328767 1.723537c-.029888 .119552-.029888 .139477-.029888 .159402c0 .14944 .109589 .268991 .278954 .268991c.209215 0 .328767-.179328 .348692-.209215c.049813-.089664 .368618-1.424658 .637609-2.500623c.199253 .398506 .518057 .667497 .986301 .667497c1.165629 0 2.450809-1.404732 2.450809-2.889166c0-1.05604-.657534-1.62391-1.384807-1.62391c-.966376 0-2.012453 .996264-2.311333 2.211706l-.976339 3.915318zm2.211706-1.833126c-.697385 0-.856787-.797011-.856787-.886675c0-.039851 .049813-.239103 .079701-.368618c.278954-1.115816 .37858-1.474471 .597758-1.872976c.428394-.727273 .926526-.946451 1.235367-.946451c.368618 0 .687422 .288917 .687422 .976339c0 .547945-.288917 1.663761-.557908 2.15193c-.328767 .627646-.806974 .946451-1.185554 .946451z'/>
-<path id='te63c340d-g0-100' d='m5.140722-6.804483c0-.009963 0-.109589-.129514-.109589c-.14944 0-1.09589 .089664-1.265255 .109589c-.079701 .009963-.139477 .059776-.139477 .18929c0 .119552 .089664 .119552 .239103 .119552c.478207 0 .498132 .069738 .498132 .169365l-.029888 .199253l-.597758 2.361146c-.179328-.368618-.468244-.637609-.916563-.637609c-1.165629 0-2.400996 1.464508-2.400996 2.919054c0 .936488 .547945 1.594022 1.325031 1.594022c.199253 0 .697385-.039851 1.295143-.747198c.079701 .418431 .428394 .747198 .9066 .747198c.348692 0 .577833-.229141 .737235-.547945c.169365-.358655 .298879-.966376 .298879-.986301c0-.099626-.089664-.099626-.119552-.099626c-.099626 0-.109589 .039851-.139477 .179328c-.169365 .647572-.348692 1.235367-.757161 1.235367c-.268991 0-.298879-.259029-.298879-.458281c0-.239103 .019925-.308842 .059776-.478207l1.43462-5.758406zm-2.072229 5.618929c-.049813 .179328-.049813 .199253-.199253 .368618c-.438356 .547945-.846824 .707347-1.125778 .707347c-.498132 0-.637609-.547945-.637609-.936488c0-.498132 .318804-1.723537 .547945-2.181818c.308842-.587796 .757161-.956413 1.155666-.956413c.647572 0 .787049 .816936 .787049 .876712s-.019925 .119552-.029888 .169365l-.498132 1.952677z'/>
-<path id='te63c340d-g0-114' d='m.876712-.587796c-.029888 .14944-.089664 .37858-.089664 .428394c0 .179328 .139477 .268991 .288917 .268991c.119552 0 .298879-.079701 .368618-.278954c.019925-.039851 .358655-1.39477 .398506-1.574097c.079701-.328767 .259029-1.026152 .318804-1.295143c.039851-.129514 .318804-.597758 .557908-.816936c.079701-.069738 .368618-.328767 .797011-.328767c.259029 0 .408468 .119552 .418431 .119552c-.298879 .049813-.518057 .288917-.518057 .547945c0 .159402 .109589 .348692 .37858 .348692s.547945-.229141 .547945-.587796c0-.348692-.318804-.647572-.826899-.647572c-.647572 0-1.085928 .488169-1.275218 .767123c-.079701-.448319-.438356-.767123-.9066-.767123c-.458281 0-.647572 .388543-.737235 .56787c-.179328 .33873-.308842 .936488-.308842 .966376c0 .099626 .099626 .099626 .119552 .099626c.099626 0 .109589-.009963 .169365-.229141c.169365-.707347 .368618-1.185554 .727273-1.185554c.169365 0 .308842 .079701 .308842 .458281c0 .209215-.029888 .318804-.159402 .836862l-.577833 2.30137z'/>
-<path id='te63c340d-g0-120' d='m3.327522-3.008717c.059776-.259029 .288917-1.175592 .986301-1.175592c.049813 0 .288917 0 .498132 .129514c-.278954 .049813-.478207 .298879-.478207 .537983c0 .159402 .109589 .348692 .37858 .348692c.219178 0 .537983-.179328 .537983-.577833c0-.518057-.587796-.657534-.926526-.657534c-.577833 0-.926526 .52802-1.046077 .757161c-.249066-.657534-.787049-.757161-1.075965-.757161c-1.036115 0-1.603985 1.285181-1.603985 1.534247c0 .099626 .099626 .099626 .119552 .099626c.079701 0 .109589-.019925 .129514-.109589c.33873-1.05604 .996264-1.305106 1.334994-1.305106c.18929 0 .537983 .089664 .537983 .667497c0 .308842-.169365 .976339-.537983 2.371108c-.159402 .617684-.508095 1.036115-.946451 1.036115c-.059776 0-.288917 0-.498132-.129514c.249066-.049813 .468244-.259029 .468244-.537983c0-.268991-.219178-.348692-.368618-.348692c-.298879 0-.547945 .259029-.547945 .577833c0 .458281 .498132 .657534 .936488 .657534c.657534 0 1.016189-.697385 1.046077-.757161c.119552 .368618 .478207 .757161 1.075965 .757161c1.026152 0 1.594022-1.285181 1.594022-1.534247c0-.099626-.089664-.099626-.119552-.099626c-.089664 0-.109589 .039851-.129514 .109589c-.328767 1.066002-1.006227 1.305106-1.325031 1.305106c-.388543 0-.547945-.318804-.547945-.657534c0-.219178 .059776-.438356 .169365-.876712l.33873-1.364882z'/>
-<path id='te63c340d-g0-121' d='m4.841843-3.795766c.039851-.139477 .039851-.159402 .039851-.229141c0-.179328-.139477-.268991-.288917-.268991c-.099626 0-.259029 .059776-.348692 .209215c-.019925 .049813-.099626 .358655-.139477 .537983c-.069738 .259029-.139477 .52802-.199253 .797011l-.448319 1.793275c-.039851 .14944-.468244 .846824-1.125778 .846824c-.508095 0-.617684-.438356-.617684-.806974c0-.458281 .169365-1.075965 .508095-1.952677c.159402-.408468 .199253-.518057 .199253-.71731c0-.448319-.318804-.816936-.816936-.816936c-.946451 0-1.315068 1.444583-1.315068 1.534247c0 .099626 .099626 .099626 .119552 .099626c.099626 0 .109589-.019925 .159402-.179328c.268991-.936488 .667497-1.235367 1.006227-1.235367c.079701 0 .249066 0 .249066 .318804c0 .249066-.099626 .508095-.169365 .697385c-.398506 1.05604-.577833 1.62391-.577833 2.092154c0 .886675 .627646 1.185554 1.215442 1.185554c.388543 0 .727273-.169365 1.006227-.448319c-.129514 .518057-.249066 1.006227-.647572 1.534247c-.259029 .33873-.637609 .627646-1.09589 .627646c-.139477 0-.587796-.029888-.757161-.418431c.159402 0 .288917 0 .428394-.119552c.099626-.089664 .199253-.219178 .199253-.408468c0-.308842-.268991-.348692-.368618-.348692c-.229141 0-.557908 .159402-.557908 .647572c0 .498132 .438356 .86675 1.05604 .86675c1.026152 0 2.052304-.9066 2.331258-2.032379l.956413-3.805729z'/>
-<path id='te63c340d-g2-50' d='m3.521793-1.26924h-.237111c-.020922 .153425-.09066 .564882-.18132 .63462c-.055791 .041843-.592777 .041843-.690411 .041843h-1.283188c.732254-.648568 .976339-.843836 1.39477-1.171606c.516065-.411457 .99726-.843836 .99726-1.506351c0-.843836-.739228-1.3599-1.63188-1.3599c-.864757 0-1.45056 .606725-1.45056 1.248319c0 .355666 .299875 .390535 .369614 .390535c.167372 0 .369614-.118555 .369614-.369614c0-.125529-.048817-.369614-.411457-.369614c.216189-.495143 .690411-.648568 1.018182-.648568c.697385 0 1.060025 .54396 1.060025 1.108842c0 .606725-.432379 1.08792-.655542 1.338979l-1.680697 1.659776c-.069738 .062765-.069738 .076712-.069738 .27198h2.873225l.209215-1.26924z'/>
-<path id='te63c340d-g1-43' d='m4.07472-2.291407h2.779577c.139477 0 .328767 0 .328767-.199253s-.18929-.199253-.328767-.199253h-2.779577v-2.789539c0-.139477 0-.328767-.199253-.328767s-.199253 .18929-.199253 .328767v2.789539h-2.789539c-.139477 0-.328767 0-.328767 .199253s.18929 .199253 .328767 .199253h2.789539v2.789539c0 .139477 0 .328767 .199253 .328767s.199253-.18929 .199253-.328767v-2.789539z'/>
-<path id='te63c340d-g1-61' d='m6.844334-3.257783c.14944 0 .33873 0 .33873-.199253s-.18929-.199253-.328767-.199253h-5.967621c-.139477 0-.328767 0-.328767 .199253s.18929 .199253 .33873 .199253h5.947696zm.009963 1.932752c.139477 0 .328767 0 .328767-.199253s-.18929-.199253-.33873-.199253h-5.947696c-.14944 0-.33873 0-.33873 .199253s.18929 .199253 .328767 .199253h5.967621z'/>
-</defs>
-<g id='te63c340d-page1'>
-<g stroke-miterlimit='10' transform='translate(-7.672537,-4.553481)scale(0.996264,-0.996264)'>
-<g fill='#000' stroke='#000'>
-<g stroke-width='0.4'>
-<g fill='#a6a6a6' stroke='#a6a6a6'>
-<g stroke-width='0.8'>
-<path d='M -9.81622 -67.07707 L 9.81622 63.80482' fill='none'/>
-</g>
-</g>
-<g fill='#a6a6a6' stroke='#a6a6a6'>
-<g stroke-width='0.8'>
-<path d='M 0.0 0.0 L 110.39595 0.0' fill='none'/>
-<g transform='translate(107.92166,0.0)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linejoin='miter'>
- <path d=' M 5.4608 0.0 L 1.29181 1.57648 L 2.67429 0.0 L 1.29181 -1.57648 Z  '/>
- </g>
- </g>
-</g>
-</g>
-</g>
-<g fill='#a6a6a6' stroke='#a6a6a6'>
-<g stroke-width='0.8'>
-<path d='M 0.0 0.0 L -58.972 -48.10895' fill='none'/>
-<g transform='matrix(-0.77483,-0.63211,0.63211,-0.77483,-57.05486,-46.54492)'>
-<g stroke-dasharray='none' stroke-dashoffset='0.0'>
- <g stroke-linejoin='miter'>
- <path d=' M 5.4608 0.0 L 1.29181 1.57648 L 2.67429 0.0 L 1.29181 -1.57648 Z  '/>
- </g>
- </g>
-</g>
-</g>
-</g>
-<g fill='#00f' stroke='#00f'>
-<g stroke-width='0.8'>
-<path d='M 0.0 44.17284 M 27.81259 44.17284 C 27.81259 48.51003 15.36066 52.02592 0.0 52.02592 C -15.36066 52.02592 -27.81259 48.51003 -27.81259 44.17284 C -27.81259 39.83565 -15.36066 36.31975 0.0 36.31975 C 15.36066 36.31975 27.81259 39.83565 27.81259 44.17284 Z M 0.0 44.17284' fill='none'/>
-</g>
-</g>
-<g fill='#00f' stroke='#00f'>
-<g stroke-width='0.8'>
-<path d='M 0.0 6.54399 M 27.81259 6.54399 C 27.81259 10.88118 15.36066 14.39708 0.0 14.39708 C -15.36066 14.39708 -27.81259 10.88118 -27.81259 6.54399 C -27.81259 2.2068 -15.36066 -1.3091 0.0 -1.3091 C 15.36066 -1.3091 27.81259 2.2068 27.81259 6.54399 Z M 0.0 6.54399' fill='none'/>
-</g>
-</g>
-<g fill='#00f' stroke='#00f'>
-<g stroke-width='0.8'>
-<g stroke-dasharray='3.0,3.0' stroke-dashoffset='0.0'>
-<path d='M -27.81259 44.17284 L -27.81259 6.54399' fill='none'/>
-</g>
-</g>
-</g>
-<g fill='#00f' stroke='#00f'>
-<g stroke-width='0.8'>
-<path d='M 27.81259 44.17284 L 27.81259 6.54399' fill='none'/>
-</g>
-</g>
-<g fill='#00f' stroke='#00f'>
-<g fill='#00f' stroke='#00f'>
-</g>
-<g transform='matrix(0.7,0.0,0.0,0.7,2.51317,48.96686)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-7.672537,-4.553481)scale(-1,-1)'>
-<g fill='#00f'>
-<g stroke='none'>
-<g fill='#00f'>
-<use x='-7.672537' y='-4.553481' xlink:href='#te63c340d-g1-43'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-<g fill='#00f' stroke='#00f'>
-<g fill='#00f' stroke='#00f'>
-</g>
-<g transform='matrix(0.7,0.0,0.0,0.7,2.51317,22.79036)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-7.672537,-4.553481)scale(-1,-1)'>
-<g fill='#00f'>
-<g stroke='none'>
-<g fill='#00f'>
-<use x='-7.672537' y='-4.553481' xlink:href='#te63c340d-g1-43'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-<g fill='#00f' stroke='#00f'>
-<g fill='#00f' stroke='#00f'>
-</g>
-<g transform='matrix(0.7,0.0,0.0,0.7,2.51317,-6.65784)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-7.672537,-4.553481)scale(-1,-1)'>
-<g fill='#00f'>
-<g stroke='none'>
-<g fill='#00f'>
-<use x='-7.672537' y='-4.553481' xlink:href='#te63c340d-g1-43'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-<g fill='#00f' stroke='#00f'>
-<g fill='#00f' stroke='#00f'>
-</g>
-<g transform='matrix(0.7,0.0,0.0,0.7,2.51317,-29.56258)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-7.672537,-4.553481)scale(-1,-1)'>
-<g fill='#00f'>
-<g stroke='none'>
-<g fill='#00f'>
-<use x='-7.672537' y='-4.553481' xlink:href='#te63c340d-g1-43'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-<g fill='#00f' stroke='#00f'>
-<g fill='#00f' stroke='#00f'>
-</g>
-<g transform='matrix(0.7,0.0,0.0,0.7,2.51317,-52.46683)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-7.672537,-4.553481)scale(-1,-1)'>
-<g fill='#00f'>
-<g stroke='none'>
-<g fill='#00f'>
-<use x='-7.672537' y='-4.553481' xlink:href='#te63c340d-g1-43'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-<g fill='#808080' stroke='#808080'>
-<path d='M -1.63611 31.08435 L 17.99635 31.08435' fill='none'/>
-</g>
-<g fill='#808080' stroke='#808080'>
-<g fill='#808080' stroke='#808080'>
-</g>
-<g transform='matrix(0.75,0.0,0.0,0.75,5.89131,33.46317)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-7.672537,-4.553481)scale(-1,-1)'>
-<g fill='#808080'>
-<g stroke='none'>
-<g fill='#808080'>
-<use x='-7.672537' y='-4.553481' xlink:href='#te63c340d-g0-100'/>
-<use x='-2.487105' y='-4.553481' xlink:href='#te63c340d-g0-121'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-<g fill='#808080' stroke='#808080'>
-<path d='M 1.63611 6.54399 M 1.63611 6.54399 C 0.7361 6.99397 0.13611 8.04399 0.13611 9.54399 L 0.13611 17.45029 C 0.13611 18.95029 -0.46388 20.0003 -1.36389 20.45029 C -0.46388 20.90027 0.13611 21.95029 0.13611 23.45029 L 0.13611 31.35658 C 0.13611 32.85658 0.7361 33.9066 1.63611 34.35658' fill='none'/>
-</g>
-<g fill='#808080' stroke='#808080'>
-<g stroke-dasharray='3.0,3.0' stroke-dashoffset='0.0'>
-<path d='M 17.99635 31.08435 L 57.26083 31.08435' fill='none'/>
-</g>
-</g>
-<g fill='#808080' stroke='#808080'>
-<path d='M 57.26083 31.08435 L 83.43732 35.99272' fill='none'/>
-</g>
-<g fill='#808080' stroke='#808080'>
-<path d='M 76.89333 34.68362 M 78.15833 34.68362 C 78.15833 35.38226 77.59196 35.94862 76.89333 35.94862 C 76.19469 35.94862 75.62833 35.38226 75.62833 34.68362 C 75.62833 33.98499 76.19469 33.41862 76.89333 33.41862 C 77.59196 33.41862 78.15833 33.98499 78.15833 34.68362 Z M 76.89333 34.68362' stroke='none'/>
-</g>
-<g fill='#808080' stroke='#808080'>
-<g fill='#808080' stroke='#808080'>
-</g>
-<g transform='matrix(0.75,0.0,0.0,0.75,58.38985,36.34128)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-7.672537,-4.553481)scale(-1,-1)'>
-<g fill='#808080'>
-<g stroke='none'>
-<g fill='#808080'>
-<use x='-7.672537' y='-4.553481' xlink:href='#te63c340d-g0-120'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-<g fill='#808080' stroke='#808080'>
-<path d='M 50.71684 17.99635 C 49.5638 21.1647 47.54214 23.94672 44.88538 26.02243' fill='none'/>
-</g>
-<g fill='#808080' stroke='#808080'>
-<g fill='#808080' stroke='#808080'>
-</g>
-<g transform='matrix(0.75,0.0,0.0,0.75,50.48837,20.95462)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-7.672537,-4.553481)scale(-1,-1)'>
-<g fill='#808080'>
-<g stroke='none'>
-<g fill='#808080'>
-<use x='-7.672537' y='-4.553481' xlink:href='#te63c340d-g0-18'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-<g fill='#808080' stroke='#808080'>
-<path d='M 17.99635 53.007 C 31.08435 60.53307 31.08435 60.53307 40.90057 58.89694' fill='none'/>
-</g>
-<g fill='#808080' stroke='#808080'>
-<g fill='#808080' stroke='#808080'>
-</g>
-<g transform='matrix(0.8,0.0,0.0,0.8,42.66547,59.58862)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-7.672537,-4.553481)scale(-1,-1)'>
-<g fill='#808080'>
-<g stroke='none'>
-<g fill='#808080'>
-<use x='-7.672537' y='-4.553481' xlink:href='#te63c340d-g0-26'/>
-<use x='.245634' y='-4.553481' xlink:href='#te63c340d-g1-61'/>
-<use x='10.761714' y='-4.553481' xlink:href='#te63c340d-g0-120'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-<g fill='#808080' stroke='#808080'>
-<g fill='#808080' stroke='#808080'>
-</g>
-<g transform='matrix(0.8,0.0,0.0,0.8,-26.64499,-10.76067)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-7.672537,-4.553481)scale(-1,-1)'>
-<g fill='#808080'>
-<g stroke='none'>
-<g fill='#808080'>
-<use x='-7.672537' y='-4.553481' xlink:href='#te63c340d-g0-121'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-<g fill='#808080' stroke='#808080'>
-<path d='M -17.99635 -4.90785 C -6.54399 -1.63611 -6.54399 -1.63611 -1.63611 8.1801' fill='none'/>
-</g>
-<g fill='#00f' stroke='#00f'>
-<g fill='#00f' stroke='#00f'>
-</g>
-<g transform='matrix(0.9,0.0,0.0,0.9,21.91536,-42.38943)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-7.672537,-4.553481)scale(-1,-1)'>
-<g fill='#00f'>
-<g stroke='none'>
-<g fill='#00f'>
-<use x='-7.672537' y='-4.553481' xlink:href='#te63c340d-g0-21'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-<g fill='#808080' stroke='#808080'>
-<g fill='#808080' stroke='#808080'>
-</g>
-<g transform='matrix(0.85,0.0,0.0,0.85,34.45435,6.94513)'>
-<g stroke='none' transform='scale(-1.00375,1.00375)translate(-7.672537,-4.553481)scale(-1,-1)'>
-<g fill='#808080'>
-<g stroke='none'>
-<g fill='#808080'>
-<use x='-7.672537' y='-4.553481' xlink:href='#te63c340d-g0-114'/>
-<use x='-.133717' y='-4.553481' xlink:href='#te63c340d-g1-61'/>
-<use x='10.382363' y='-13.298519' xlink:href='#te63c340d-g3-112'/>
-</g>
-<rect x='20.345019' y='-13.697004' height='.398484' width='31.507989' fill='#808080'/>
-<g fill='#808080'>
-<use x='20.345019' y='-4.553481' xlink:href='#te63c340d-g0-26'/>
-<use x='25.495857' y='-7.431574' xlink:href='#te63c340d-g2-50'/>
-<use x='32.179093' y='-4.553481' xlink:href='#te63c340d-g1-43'/>
-<use x='42.141707' y='-4.553481' xlink:href='#te63c340d-g0-121'/>
-<use x='47.38365' y='-7.431574' xlink:href='#te63c340d-g2-50'/>
-<use x='54.62034' y='-4.553481' xlink:href='#te63c340d-g1-61'/>
-<use x='65.13642' y='-13.298519' xlink:href='#te63c340d-g3-112'/>
-</g>
-<rect x='75.099076' y='-13.697004' height='.398484' width='32.051073' fill='#808080'/>
-<g fill='#808080'>
-<use x='75.099076' y='-4.553481' xlink:href='#te63c340d-g0-120'/>
-<use x='80.793008' y='-7.431574' xlink:href='#te63c340d-g2-50'/>
-<use x='87.476243' y='-4.553481' xlink:href='#te63c340d-g1-43'/>
-<use x='97.438857' y='-4.553481' xlink:href='#te63c340d-g0-121'/>
-<use x='102.6808' y='-7.431574' xlink:href='#te63c340d-g2-50'/>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</g>
-</svg>
+<pre class="tikz">
+\usetikzlibrary{arrows.meta,decorations.pathreplacing,decorations.pathmorphing,calc,angles,quotes,positioning,patterns}
+\begin{tikzpicture}[scale=1.15,&gt;=Stealth]
+% axes (3-d perspective)
+\draw[gray!70,thick] (-0.30,-2.05) -- (0.30,1.95);
+\draw[gray!70,thick,-&gt;] (0,0) -- (3.5,0);
+\draw[gray!70,thick,-&gt;] (0,0) -- (-1.9,-1.55);
+% gaussian cylinder
+\draw[blue,thick] (0,1.35) ellipse (0.85 and 0.24);
+\draw[blue,thick] (0,0.20) ellipse (0.85 and 0.24);
+\draw[blue,thick,dashed] (-0.85,1.35) -- (-0.85,0.20);
+\draw[blue,thick] (0.85,1.35) -- (0.85,0.20);
+% + charges on the line
+\foreach \y in {1.55,0.75,-0.15,-0.85,-1.55} { \node[blue,scale=0.7] at (0.16,\y) {$+$}; }
+% dy element
+\draw[gray] (-0.05,0.95) -- (0.55,0.95);
+\node[gray,scale=0.75] at (0.30,1.08) {$dy$};
+\draw[gray,decorate,decoration={brace,amplitude=3pt}] (0.05,0.20) -- (0.05,1.05);
+% field point
+\draw[gray,dashed] (0.55,0.95) -- (1.75,0.95);
+\draw[gray] (1.75,0.95) -- (2.55,1.10);
+\fill[gray] (2.35,1.06) circle (1.1pt);
+\node[gray,scale=0.75] at (1.85,1.16) {$x$};
+\draw[gray] (1.55,0.55) arc (20:52:0.55);
+\node[gray,scale=0.75] at (1.60,0.72) {$\theta$};
+% labels
+\draw[gray] (0.55,1.62) .. controls (0.95,1.85) .. (1.25,1.80);
+\node[gray,scale=0.8] at (1.60,1.85) {$\rho = x$};
+\node[gray,scale=0.8] at (-0.75,-0.30) {$y$};
+\draw[gray] (-0.55,-0.15) .. controls (-0.20,-0.05) .. (-0.05,0.25);
+\node[blue,scale=0.9] at (0.75,-1.20) {$\lambda$};
+\node[gray,scale=0.85] at (2.55,0.30) {$r = \sqrt{\rho^2+y^2} = \sqrt{x^2+y^2}$};
+\end{tikzpicture}
 </pre>
 
 \[
@@ -2144,6 +2021,10 @@ I \;=\; \frac{\frac{1}{2}\,\Gamma\!\left(d/2\right)\,\Gamma\!\left(\frac{1-d}{2}
     (function () {
         var content = document.getElementById('content');
         if (!content) return;
+        // Tablets: a "hover" is a tap here, so previews would pop up on the
+        // way to following a link. The card is hidden by CSS on tablets as
+        // well; bailing out this early also skips the background fetches.
+        if (window.wikiIsTabletLayout && window.wikiIsTabletLayout()) return;
 
         var LOCAL_ANCHOR = '/vimwiki/';
         var WEB_ROOT = '/wiki/vimwiki_html/';
@@ -2288,7 +2169,14 @@ I \;=\; \frac{\frac{1}{2}\,\Gamma\!\left(d/2\right)\,\Gamma\!\left(\frac{1-d}{2}
     <script>
     (function () {
         var DESKTOP_BREAKPOINT = 901; // must match the CSS media query below
-        if (window.innerWidth < DESKTOP_BREAKPOINT) return; // phones/narrow: leave the page 100% untouched, exactly as before this feature existed
+        // iPads in portrait (744-1032px) sit below that breakpoint but still
+        // have room for a real docked sidebar, so they run this script too and
+        // skip the phone panel further down. What gets built is byte-for-byte
+        // the same DOM either way — only the CSS differs (see the
+        // html.tablet-layout block in the stylesheet), which is what lets a
+        // rotating iPad move between the two layouts without a reload.
+        var TABLET = !!(window.wikiIsTabletLayout && window.wikiIsTabletLayout());
+        if (window.innerWidth < DESKTOP_BREAKPOINT && !TABLET) return; // phones/narrow: leave the page 100% untouched, exactly as before this feature existed
 
         var contentEl = document.getElementById('content');
         if (!contentEl) return;
@@ -2365,7 +2253,7 @@ I \;=\; \frac{\frac{1}{2}\,\Gamma\!\left(d/2\right)\,\Gamma\!\left(\frac{1-d}{2}
         var label = document.createElement('div');
         label.className = 'toc-sidebar-title';
         label.textContent = tocLabel;
-        label.title = 'Drag to move';
+        label.title = TABLET ? '' : 'Drag to move'; // dragging is disabled on tablets — see below
         sidebar.appendChild(label);
         sidebar.appendChild(tocList);
 
@@ -2375,6 +2263,20 @@ I \;=\; \frac{\frac{1}{2}\,\Gamma\!\left(d/2\right)\,\Gamma\!\left(\frac{1-d}{2}
         // a big strip elsewhere on the page. Works whether the box is
         // docked (flex-basis) or floating (width) — see applyWidth below.
         var MIN_SIDEBAR = 160, MAX_SIDEBAR = 480, DEFAULT_SIDEBAR = 240;
+        // Tablet portrait is far narrower than a desktop window, where a
+        // 240-480px Contents box would eat the article column (on an iPad mini
+        // that is over a third of the screen). Capped in JS rather than CSS so
+        // fitReservedWidth()/renderContentWidth() below stay in step with what
+        // is actually painted. localStorage is deliberately NOT rewritten: a
+        // width the reader chose on a desktop survives untouched and comes
+        // back the next time they are on one.
+        if (TABLET) {
+            MAX_SIDEBAR = 220;
+            // Two tiers, because "iPad portrait" spans 744px (mini) to 1032px
+            // (Pro 13"): a box that leaves the Pro a comfortable column would
+            // squeeze the mini's article down to about 44 characters a line.
+            DEFAULT_SIDEBAR = window.innerWidth < 900 ? 180 : 200;
+        }
         var WIDTH_KEY = 'wikiTocSidebarWidth';
 
         function clampWidth(w) { return Math.max(MIN_SIDEBAR, Math.min(MAX_SIDEBAR, w)); }
@@ -2455,8 +2357,12 @@ I \;=\; \frac{\frac{1}{2}\,\Gamma\!\left(d/2\right)\,\Gamma\!\left(\frac{1-d}{2}
             });
             return h;
         }
-        makeSidebarHandle('corner');
-        makeSidebarHandle('edge');
+        // Hidden by CSS on tablets (display:none also makes them untappable),
+        // but there is no reason to build them there at all.
+        if (!TABLET) {
+            makeSidebarHandle('corner');
+            makeSidebarHandle('edge');
+        }
 
         // Put the sidebar OUTSIDE #content — as a sibling to its left inside
         // a shared wrapper — rather than nesting it inside the card's own
@@ -2584,15 +2490,22 @@ I \;=\; \frac{\frac{1}{2}\,\Gamma\!\left(d/2\right)\,\Gamma\!\left(\frac{1-d}{2}
             sidebar.style.maxHeight = '';
             try { localStorage.removeItem(POS_KEY); } catch (e) {}
         }
-        try {
-            var savedPos = JSON.parse(localStorage.getItem(POS_KEY));
-            if (savedPos && typeof savedPos.left === 'number' && typeof savedPos.top === 'number') {
-                floatAt(savedPos.left, savedPos.top);
-            }
-        } catch (e) {}
+        // Not on tablets: the box can't be dragged there, so a position saved
+        // from a desktop session must not strand it floating with no way to
+        // put it back other than the top-right Contents toggle. The saved
+        // value is left in localStorage for when they're back on a desktop.
+        if (!TABLET) {
+            try {
+                var savedPos = JSON.parse(localStorage.getItem(POS_KEY));
+                if (savedPos && typeof savedPos.left === 'number' && typeof savedPos.top === 'number') {
+                    floatAt(savedPos.left, savedPos.top);
+                }
+            } catch (e) {}
+        }
 
         var draggingTitle = false, titleStartX = 0, titleStartY = 0, boxStartLeft = 0, boxStartTop = 0;
         label.addEventListener('pointerdown', function (e) {
+            if (TABLET) return; // a swipe starting on the title should scroll the page, not pick the box up
             draggingTitle = true;
             var rect = sidebar.getBoundingClientRect();
             titleStartX = e.clientX;
@@ -2703,10 +2616,13 @@ I \;=\; \frac{\frac{1}{2}\,\Gamma\!\left(d/2\right)\,\Gamma\!\left(\frac{1-d}{2}
         // the Contents toggle, or floating, both take them out of the flow)
         // plus the content-resizer's own fixed-width handle.
         function fitReservedWidth() {
-            var w = 24; // content-resizer's own box, always present
+            // Tablets hide both gutter strips and use a plain 20px flex gap on
+            // #page-shell instead (see the html.tablet-layout CSS), so the
+            // reserved space has to be counted differently there.
+            var w = TABLET ? 0 : 24; // content-resizer's own box, always present on desktop
             var sidebarHidden = sidebar.style.display === 'none';
             if (!sidebarHidden && !sidebar.classList.contains('floating')) w += currentWidth;
-            if (!sidebarHidden) w += currentGap;
+            if (!sidebarHidden) w += TABLET ? 16 : currentGap;
             return w;
         }
 
@@ -2880,7 +2796,8 @@ I \;=\; \frac{\frac{1}{2}\,\Gamma\!\left(d/2\right)\,\Gamma\!\left(\frac{1-d}{2}
     <script>
     (function () {
         var MOBILE_BREAKPOINT = 900; // must match the CSS media query above
-        if (window.innerWidth > MOBILE_BREAKPOINT) return; // desktop/tablet: the sidebar script above handles it instead
+        if (window.innerWidth > MOBILE_BREAKPOINT) return; // desktop: the sidebar script above handles it instead
+        if (window.wikiIsTabletLayout && window.wikiIsTabletLayout()) return; // iPad portrait: ditto — it gets the real docked sidebar, not this phone panel
 
         var contentEl = document.getElementById('content');
         if (!contentEl) return;
@@ -3028,32 +2945,16 @@ I \;=\; \frac{\frac{1}{2}\,\Gamma\!\left(d/2\right)\,\Gamma\!\left(\frac{1-d}{2}
         sweep('img[src]', 'src');
     })();
     </script>
-    <!-- 1. TikZ diagrams are pre-rendered to inline SVG at build time by
-         tools/prerender_tikz.py. This only handles blocks that are *not* yet
-         pre-rendered (e.g. a page edited by hand since the last build): it
-         converts them for TikZJax and pulls TikZJax in on demand. When every
-         block is pre-rendered -- the normal case -- nothing below the first
-         line runs, and the page skips TikZJax's ~10.9 MB download. -->
+    <!-- 1. Turn vimwiki {{{class="tikz"}}} blocks into TikZJax script tags (must run BEFORE tikzjax.js) -->
     <script>
-        (function () {
-            var pending = document.querySelectorAll('pre.tikz:not([data-prerendered])');
-            if (!pending.length) return;
-            pending.forEach(function (pre) {
-                var s = document.createElement('script');
-                s.type = 'text/tikz';
-                s.textContent = pre.textContent; // browser decodes HTML entities here
-                pre.textContent = '';
-                pre.appendChild(s); // keep <pre class="tikz"> as the container so its
-                                    // text-align:center still applies to the SVG tikzjax inserts
-            });
-            var css = document.createElement('link');
-            css.rel = 'stylesheet';
-            css.href = 'https://tikzjax.com/v1/fonts.css';
-            document.head.appendChild(css);
-            var js = document.createElement('script');
-            js.src = 'https://tikzjax.com/v1/tikzjax.js';
-            document.body.appendChild(js);
-        })();
+        document.querySelectorAll('pre.tikz').forEach(function (pre) {
+            var s = document.createElement('script');
+            s.type = 'text/tikz';
+            s.textContent = pre.textContent; // browser decodes HTML entities here
+            pre.textContent = '';
+            pre.appendChild(s); // keep <pre class="tikz"> as the container so its
+                                 // text-align:center still applies to the SVG tikzjax inserts
+        });
     </script>
     <!-- 2. Syntax-highlight code blocks, but skip diagram blocks -->
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
@@ -3062,6 +2963,8 @@ I \;=\; \frac{\frac{1}{2}\,\Gamma\!\left(d/2\right)\,\Gamma\!\left(\frac{1-d}{2}
             hljs.highlightBlock(block);
         });
     </script>
+    <!-- 3. TikZJax: renders <script type="text/tikz"> into SVG -->
+    <script src="https://tikzjax.com/v1/tikzjax.js"></script>
     <!-- 4. Mermaid: renders <pre class="mermaid"> into SVG -->
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';

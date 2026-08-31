@@ -49,6 +49,54 @@
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Tablet (iPad) layout flag.
+
+         iPads report CSS viewport widths of 744-1032px in PORTRAIT (mini 744,
+         iPad / Air 11" 820, Pro 11" 834, Air 13" / Pro 12.9" 1024, Pro 13" M4
+         1032) and 1133-1376px in LANDSCAPE. Landscape therefore already lands
+         in the normal desktop layout and is deliberately left alone; it's
+         portrait that had no home, falling between the 600px phone breakpoint
+         and the 901px desktop one — so it kept the desktop's 3cm page margin
+         (113px a side: ~28% of an 820px screen thrown away) while getting the
+         phone's floating Contents button, because the sidebar script needs
+         901px. This flag is what the tablet CSS and the scripts at the end of
+         the body key off to fix that.
+
+         Why a class and not a plain media query: width alone can't tell an
+         iPad in portrait from a desktop window that happens to be narrow, and
+         a CSS (hover: none)/(pointer: coarse) test isn't trustworthy either —
+         iPadOS Safari ships with "Request Desktop Website" ON by default,
+         which makes it claim a fine, hovering pointer. navigator.maxTouchPoints
+         is > 1 on iPad in BOTH modes and 0 on a real desktop, so it's the
+         reliable half of the test; it can only be read from JS.
+
+         Set here, in <head>, before any body content is parsed, so there is no
+         flash of the wrong layout. Re-evaluated on rotation: the DOM the
+         TOC-sidebar script builds is identical in tablet and desktop modes, so
+         adding/removing this one class is all it takes to move an iPad between
+         the two presentations when it's turned on its side.
+
+         Falls back to today's behaviour (no class) if JS is off. -->
+    <script>
+    (function () {
+        var TABLET_MIN = 601;   // just above the 600px phone breakpoint used throughout this file
+        var TABLET_MAX = 1032;  // widest iPad portrait viewport (iPad Pro 13" M4)
+        function isTablet() {
+            if (!((navigator.maxTouchPoints || 0) > 1)) return false; // real mouse-driven desktop: never
+            var w = window.innerWidth || document.documentElement.clientWidth || 0;
+            return w >= TABLET_MIN && w <= TABLET_MAX;
+        }
+        window.wikiIsTabletLayout = isTablet;
+        function sync() {
+            var on = isTablet();
+            var cl = document.documentElement.classList;
+            if (on) cl.add('tablet-layout'); else cl.remove('tablet-layout');
+        }
+        sync();
+        window.addEventListener('resize', sync);
+        window.addEventListener('orientationchange', sync);
+    })();
+    </script>
     <style>
         /* Theme variables. Light values live at :root; the dark theme
            (toggled by the theme button, script near the end of <body>)
@@ -399,6 +447,104 @@
                 height: 72px;
             }
         }
+        /* ===============================================================
+           iPad / tablet layout (portrait only).
+
+           Gated on html.tablet-layout, set by the flag script in <head> —
+           see the long comment there for what it detects and why it can't
+           be a plain media query. Phones (<=600px) and mouse-driven
+           desktops never get that class, so both of those layouts are
+           completely unchanged by everything below.
+
+           Every rule here is written as `html.tablet-layout <sel>`, which
+           outranks the plain `<sel>` rules in the (min-width: 901px) block
+           above on specificity alone. That matters for the two widest
+           iPads in portrait (1024px and 1032px), which match BOTH that
+           media query and this class — order in the file is irrelevant,
+           these win either way.
+           =============================================================== */
+        html.tablet-layout body {
+            /* Sides: 20px instead of the desktop's 3cm, which hands ~186px
+               of width back to the article on every iPad. Top: the
+               top-right icon row is fixed at top:16px with 48px buttons, so
+               it ends at 64px — 76px keeps the article card clear of it,
+               the same job the 68px phone value does. */
+            padding: 76px 20px 20px 20px;
+        }
+        /* --- Docked Contents sidebar, using the same #page-shell flex row
+               the desktop builds. The markup is identical in both modes, so
+               rotating the iPad just swaps which set of rules applies. --- */
+        html.tablet-layout #page-shell {
+            max-width: none;
+            margin: 0;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 16px;   /* the desktop's draggable gutter is hidden below, so this is a plain fixed gap */
+        }
+        html.tablet-layout body.has-toc-sidebar {
+            /* Undoes the desktop rule's 1cm: the tablet margin above is
+               already tight, so there is nothing left to reclaim here. */
+            padding-left: 20px;
+        }
+        html.tablet-layout #page-shell > #content {
+            margin: 0;
+            max-width: none;
+            flex: 1 1 auto;
+            min-width: 0;   /* let wide equations/code wrap instead of forcing the column wider */
+        }
+        html.tablet-layout #toc-sidebar {
+            /* Width comes from the inline flex-basis the sidebar script
+               sets (200px on tablets — see the MAX_SIDEBAR/DEFAULT_SIDEBAR
+               override there), so it stays the single source of truth that
+               the content-fitting maths also reads. Fixed here so the box
+               can't be squeezed: #content is always the column that gives
+               way, exactly as on desktop. */
+            flex-grow: 0;
+            flex-shrink: 0;
+            position: sticky;
+            top: 16px;
+            max-height: calc(100vh - 32px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 12px 10px;   /* tighter than desktop's 14px/16px: every px here comes out of the article */
+            font-size: 14px;
+        }
+        /* Roomier rows — these are tap targets here, not mouse targets. */
+        html.tablet-layout #toc-sidebar .toc-sidebar-list a { padding: 7px 8px; }
+        /* Drag-to-resize (the square handles + the two gutter strips) and
+           drag-to-move are mouse affordances. On a touch screen they carry
+           touch-action:none, so a swipe that happens to start on one drags
+           the box instead of scrolling the page. Hidden here; the matching
+           pointer handlers bail out on tablets too (see the sidebar script
+           near the end of the body), and fitReservedWidth() there accounts
+           for the strips being gone. */
+        html.tablet-layout #toc-sidebar .toc-resize-handle,
+        html.tablet-layout #toc-resizer,
+        html.tablet-layout #content-resizer {
+            display: none !important;
+        }
+        html.tablet-layout #toc-sidebar .toc-sidebar-title {
+            cursor: default;
+            touch-action: auto;   /* let a swipe here scroll the page */
+        }
+        /* Hover previews are a mouse feature: on a touch screen the "hover"
+           fires on tap and can leave a card stranded over the page. Off
+           here, exactly as it already is on phones. The script that fetches
+           them bails out on tablets too, so nothing is downloaded either. */
+        html.tablet-layout .link-preview-card { display: none !important; }
+        /* Wide display equations and code blocks scroll inside their own box
+           rather than stretching the page sideways — the same protection the
+           phone layout already has, and worth keeping now that the article
+           column here is narrower than a desktop one. */
+        html.tablet-layout mjx-container[display="true"] {
+            max-width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+        html.tablet-layout mjx-container { max-width: 100%; }
+        html.tablet-layout #content pre { overflow-x: auto; }
+
         /* Applied to <body> only while actively dragging the resizer, so the
            cursor/no-select behavior holds even if the pointer strays off the
            thin handle mid-drag. */
@@ -1539,6 +1685,10 @@ __host__ __device__ SU3&lt;floatT&gt; inline hypThreeLinkStaple_third_level(SU3A
     (function () {
         var content = document.getElementById('content');
         if (!content) return;
+        // Tablets: a "hover" is a tap here, so previews would pop up on the
+        // way to following a link. The card is hidden by CSS on tablets as
+        // well; bailing out this early also skips the background fetches.
+        if (window.wikiIsTabletLayout && window.wikiIsTabletLayout()) return;
 
         var LOCAL_ANCHOR = '/vimwiki/';
         var WEB_ROOT = '/wiki/vimwiki_html/';
@@ -1683,7 +1833,14 @@ __host__ __device__ SU3&lt;floatT&gt; inline hypThreeLinkStaple_third_level(SU3A
     <script>
     (function () {
         var DESKTOP_BREAKPOINT = 901; // must match the CSS media query below
-        if (window.innerWidth < DESKTOP_BREAKPOINT) return; // phones/narrow: leave the page 100% untouched, exactly as before this feature existed
+        // iPads in portrait (744-1032px) sit below that breakpoint but still
+        // have room for a real docked sidebar, so they run this script too and
+        // skip the phone panel further down. What gets built is byte-for-byte
+        // the same DOM either way — only the CSS differs (see the
+        // html.tablet-layout block in the stylesheet), which is what lets a
+        // rotating iPad move between the two layouts without a reload.
+        var TABLET = !!(window.wikiIsTabletLayout && window.wikiIsTabletLayout());
+        if (window.innerWidth < DESKTOP_BREAKPOINT && !TABLET) return; // phones/narrow: leave the page 100% untouched, exactly as before this feature existed
 
         var contentEl = document.getElementById('content');
         if (!contentEl) return;
@@ -1760,7 +1917,7 @@ __host__ __device__ SU3&lt;floatT&gt; inline hypThreeLinkStaple_third_level(SU3A
         var label = document.createElement('div');
         label.className = 'toc-sidebar-title';
         label.textContent = tocLabel;
-        label.title = 'Drag to move';
+        label.title = TABLET ? '' : 'Drag to move'; // dragging is disabled on tablets — see below
         sidebar.appendChild(label);
         sidebar.appendChild(tocList);
 
@@ -1770,6 +1927,20 @@ __host__ __device__ SU3&lt;floatT&gt; inline hypThreeLinkStaple_third_level(SU3A
         // a big strip elsewhere on the page. Works whether the box is
         // docked (flex-basis) or floating (width) — see applyWidth below.
         var MIN_SIDEBAR = 160, MAX_SIDEBAR = 480, DEFAULT_SIDEBAR = 240;
+        // Tablet portrait is far narrower than a desktop window, where a
+        // 240-480px Contents box would eat the article column (on an iPad mini
+        // that is over a third of the screen). Capped in JS rather than CSS so
+        // fitReservedWidth()/renderContentWidth() below stay in step with what
+        // is actually painted. localStorage is deliberately NOT rewritten: a
+        // width the reader chose on a desktop survives untouched and comes
+        // back the next time they are on one.
+        if (TABLET) {
+            MAX_SIDEBAR = 220;
+            // Two tiers, because "iPad portrait" spans 744px (mini) to 1032px
+            // (Pro 13"): a box that leaves the Pro a comfortable column would
+            // squeeze the mini's article down to about 44 characters a line.
+            DEFAULT_SIDEBAR = window.innerWidth < 900 ? 180 : 200;
+        }
         var WIDTH_KEY = 'wikiTocSidebarWidth';
 
         function clampWidth(w) { return Math.max(MIN_SIDEBAR, Math.min(MAX_SIDEBAR, w)); }
@@ -1850,8 +2021,12 @@ __host__ __device__ SU3&lt;floatT&gt; inline hypThreeLinkStaple_third_level(SU3A
             });
             return h;
         }
-        makeSidebarHandle('corner');
-        makeSidebarHandle('edge');
+        // Hidden by CSS on tablets (display:none also makes them untappable),
+        // but there is no reason to build them there at all.
+        if (!TABLET) {
+            makeSidebarHandle('corner');
+            makeSidebarHandle('edge');
+        }
 
         // Put the sidebar OUTSIDE #content — as a sibling to its left inside
         // a shared wrapper — rather than nesting it inside the card's own
@@ -1979,15 +2154,22 @@ __host__ __device__ SU3&lt;floatT&gt; inline hypThreeLinkStaple_third_level(SU3A
             sidebar.style.maxHeight = '';
             try { localStorage.removeItem(POS_KEY); } catch (e) {}
         }
-        try {
-            var savedPos = JSON.parse(localStorage.getItem(POS_KEY));
-            if (savedPos && typeof savedPos.left === 'number' && typeof savedPos.top === 'number') {
-                floatAt(savedPos.left, savedPos.top);
-            }
-        } catch (e) {}
+        // Not on tablets: the box can't be dragged there, so a position saved
+        // from a desktop session must not strand it floating with no way to
+        // put it back other than the top-right Contents toggle. The saved
+        // value is left in localStorage for when they're back on a desktop.
+        if (!TABLET) {
+            try {
+                var savedPos = JSON.parse(localStorage.getItem(POS_KEY));
+                if (savedPos && typeof savedPos.left === 'number' && typeof savedPos.top === 'number') {
+                    floatAt(savedPos.left, savedPos.top);
+                }
+            } catch (e) {}
+        }
 
         var draggingTitle = false, titleStartX = 0, titleStartY = 0, boxStartLeft = 0, boxStartTop = 0;
         label.addEventListener('pointerdown', function (e) {
+            if (TABLET) return; // a swipe starting on the title should scroll the page, not pick the box up
             draggingTitle = true;
             var rect = sidebar.getBoundingClientRect();
             titleStartX = e.clientX;
@@ -2098,10 +2280,13 @@ __host__ __device__ SU3&lt;floatT&gt; inline hypThreeLinkStaple_third_level(SU3A
         // the Contents toggle, or floating, both take them out of the flow)
         // plus the content-resizer's own fixed-width handle.
         function fitReservedWidth() {
-            var w = 24; // content-resizer's own box, always present
+            // Tablets hide both gutter strips and use a plain 20px flex gap on
+            // #page-shell instead (see the html.tablet-layout CSS), so the
+            // reserved space has to be counted differently there.
+            var w = TABLET ? 0 : 24; // content-resizer's own box, always present on desktop
             var sidebarHidden = sidebar.style.display === 'none';
             if (!sidebarHidden && !sidebar.classList.contains('floating')) w += currentWidth;
-            if (!sidebarHidden) w += currentGap;
+            if (!sidebarHidden) w += TABLET ? 16 : currentGap;
             return w;
         }
 
@@ -2275,7 +2460,8 @@ __host__ __device__ SU3&lt;floatT&gt; inline hypThreeLinkStaple_third_level(SU3A
     <script>
     (function () {
         var MOBILE_BREAKPOINT = 900; // must match the CSS media query above
-        if (window.innerWidth > MOBILE_BREAKPOINT) return; // desktop/tablet: the sidebar script above handles it instead
+        if (window.innerWidth > MOBILE_BREAKPOINT) return; // desktop: the sidebar script above handles it instead
+        if (window.wikiIsTabletLayout && window.wikiIsTabletLayout()) return; // iPad portrait: ditto — it gets the real docked sidebar, not this phone panel
 
         var contentEl = document.getElementById('content');
         if (!contentEl) return;
