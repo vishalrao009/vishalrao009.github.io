@@ -1640,8 +1640,14 @@ function showTab(t){
   $("barTitle").textContent = titles[t];
 }
 document.querySelectorAll(".tabbtn").forEach(b =>
-  b.addEventListener("click", () => showTab(b.dataset.t)));
-$("avatar").addEventListener("click", () => showTab("you"));
+  b.addEventListener("click", () => { if(b.dataset.t !== "you") lastTab = b.dataset.t;
+                                      showTab(b.dataset.t); }));
+/* The avatar toggles: tap to see the profile, tap again to go back where you were. */
+let lastTab = "today";
+$("avatar").addEventListener("click", () => {
+  if(activeTab === "you") showTab(lastTab === "you" ? "today" : lastTab);
+  else { lastTab = activeTab; showTab("you"); }
+});
 $("goSetup").addEventListener("click", () => showTab("you"));
 
 document.querySelectorAll(".segbtn").forEach(b => b.addEventListener("click", () => {
@@ -2293,6 +2299,24 @@ function dayDiffs(usual){
   return out;
 }
 
+function clearBtnFront(){
+  const b = el("button","btn sm line","Clear today");
+  b.type = "button";
+  let armed = false, t = null;
+  b.addEventListener("click", () => {
+    if(!armed){
+      armed = true;
+      b.innerHTML = "Tap again to clear today";
+      clearTimeout(t);
+      t = setTimeout(() => { armed = false; b.innerHTML = "Clear today"; }, 4000);
+      return;
+    }
+    clearTimeout(t); armed = false;
+    clearToday();
+  });
+  return b;
+}
+
 function renderToday(){
   const u = activeUser(), body = $("diffBody"), acts = $("diffActs");
   $("diffDate").textContent = prettyDate();
@@ -2310,6 +2334,7 @@ function renderToday(){
     body.innerHTML = `<p class="lead">Log a typical day across the Food and Move tabs, then save it
       as ${db.active}'s usual day. From then on it loads itself and you only adjust what changed.</p>`;
     acts.appendChild(mkBtn("Save today as my usual day","primary",() => $("saveUsual").click()));
+    acts.appendChild(clearBtnFront());
     return;
   }
 
@@ -2317,6 +2342,7 @@ function renderToday(){
   const diffs = dayDiffs(u.usual);
   acts.appendChild(mkBtn("Back to my usual day","line",() => $("resetToday_").click()));
   acts.appendChild(mkBtn("Make today my new usual","line",() => $("makeUsual_").click()));
+  acts.appendChild(clearBtnFront());
 
   if(!diffs.length){
     body.innerHTML = `<p class="lead">This is ${db.active}'s usual day, loaded and ready. Change
@@ -3093,12 +3119,19 @@ $("createUser").addEventListener("click", () => {
   const name = $("newName").value.trim();
   if(!name) return;
   if(db.users[name]){ noteStore(`A profile called ${name} already exists.`); return; }
-  if(activeUser()) activeUser().days[todayKey()] = snapshot();
-  db.users[name] = {usual:null, days:{}};
+  if(activeUser()){ activeUser().days[todayKey()] = snapshot(); activeUser().body = bodySnapshot(); }
+  db.users[name] = {usual:null, days:{}, body:null};
   db.active = name; saveDb(); refreshUsers();
+  // a new person starts blank rather than inheriting the last profile
+  LOG_IDS.forEach(id => { const n = $(id); if(n) n.value = 0; });
+  BODY_IDS.forEach(id => { const n = $(id); if(n) n.value = ""; });
+  PINNED.clear();
+  $("dayDone").value = "0";
+  if(typeof drawTypes === "function") drawTypes();
   $("newRow").classList.add("hidden"); $("newName").value = "";
   update();
-  noteStore(`Created ${name}. Fill in the body details above, log a typical day, then save it as the usual day.`);
+  noteStore(`Created ${name}.`);
+  wizOpen();          // walk them straight through body details, food and training
 });
 $("userSel").addEventListener("change", () => {
   if(activeUser()){ activeUser().days[todayKey()] = snapshot(); activeUser().body = bodySnapshot(); }
@@ -3128,11 +3161,39 @@ $("delUser").addEventListener("click", () => {
   if(activeUser()) openToday(); else update();
   noteStore(`Removed ${gone}.`);
 });
-$("clearBtn").addEventListener("click", () => {
+/* Wipe what was logged today and nothing else: body details, settings and your
+   saved usual day all survive, so the day can simply be entered again. */
+function clearToday(){
   LOG_IDS.forEach(id => { const n = $(id); if(n) n.value = 0; });
-  update();
-  noteStore("Cleared today. Body details and settings kept.");
-});
+  PINNED.clear();                       // items added by hand today go too
+  $("dayDone").value = "0";
+  document.querySelectorAll(".bandchips .chip").forEach(c => c.classList.remove("on"));
+  Object.keys(ENTRY_COUNT).forEach(exId => {
+    for(let i = 1; i <= ENTRY_COUNT[exId]; i++){
+      const bn = $("eb_"+exId+"_"+i); if(bn) bn.value = "";
+    }
+  });
+  const u = activeUser();
+  if(u){ u.days[todayKey()] = snapshot(); saveDb(); }
+  update(); renderToday(); refreshVisibility();
+  histCache = null;
+}
+
+(function(){
+  const btn = $("clearBtn");
+  let armed = false, t = null;
+  btn.addEventListener("click", () => {
+    if(!armed){
+      armed = true; btn.innerHTML = "Tap again to clear";
+      clearTimeout(t);
+      t = setTimeout(() => { armed = false; btn.innerHTML = "Clear today"; }, 4000);
+      return;
+    }
+    clearTimeout(t); armed = false; btn.innerHTML = "Clear today";
+    clearToday();
+    noteStore("Today cleared. Body details, settings and your usual day are kept.");
+  });
+})();
 $("exportBtn").addEventListener("click", () => {
   if(activeUser()) activeUser().days[todayKey()] = snapshot();
   saveDb();
