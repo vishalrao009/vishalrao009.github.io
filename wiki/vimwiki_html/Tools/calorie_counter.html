@@ -214,7 +214,11 @@ h1,h2,h3{margin:0}
 .sheet .x{position:absolute;right:11px;top:19px;width:40px;height:40px;border:0;
   background:var(--card2);border-radius:50%;font-size:19px;line-height:1;padding:0}
 .sheet .sbody{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 18px
-  calc(20px + env(safe-area-inset-bottom))}
+  calc(20px + env(safe-area-inset-bottom));
+  /* min-height:0 is what actually lets a flex child scroll instead of growing
+     past its parent; overscroll-behavior stops the page behind the sheet from
+     scrolling once the sheet hits its end. */
+  flex:1 1 auto;min-height:0;overscroll-behavior:contain}
 .search{width:100%;padding:12px 14px;font-size:16px;border:0;border-radius:var(--r-sm);
   background:var(--card2);color:var(--ink);font-family:var(--sans);margin-bottom:6px}
 .pick{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;
@@ -411,7 +415,7 @@ input,select{scroll-margin:84px 0 180px}
 .wizfill{height:100%;background:var(--out);border-radius:2px;width:0;
   transition:width .3s cubic-bezier(.4,0,.2,1)}
 .wizbody{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 18px 20px;
-  max-width:620px;width:100%;margin:0 auto}
+  max-width:620px;width:100%;margin:0 auto;min-height:0;overscroll-behavior:contain}
 .wizfoot{flex:none;padding:12px 18px calc(14px + env(safe-area-inset-bottom));
   border-top:1px solid var(--line);background:var(--card);
   display:flex;gap:9px;max-width:620px;width:100%;margin:0 auto}
@@ -977,28 +981,58 @@ const CHORES = [
 
 /* Mental work, from the brain's power draw.
 
-   The adult brain runs at about 20 watts. That figure is not a guess: the brain
-   is roughly 2% of body mass but takes about 20% of resting energy, and a resting
-   adult burns on the order of 100 W, so 20 W is where the neuroenergetics
-   literature lands (Raichle and Gusnard's review of brain energy budgets is the
-   usual citation). Twenty joules a second for a whole day is
-   20 x 86,400 = 1,728,000 J, which is 1,728,000 / 4.184 = 413,000 calories, or
-   413 kcal a day, and that matches the ~20% of a 2,000 kcal resting rate it is
-   meant to be.
+   WHERE 20 W COMES FROM. Not from "2% of body mass, 20% of a 100 W body" — that
+   is circular, it assumes the answer. It is built from two independent bedside
+   measurements, which land on the same number:
 
-   The catch is that those 20 W run whether you are solving differential equations
-   or watching a wall. They are already inside the resting metabolism computed
-   further down, so adding them here would count the same energy twice. What is
-   genuinely extra when you concentrate is small: task-evoked increases in brain
-   metabolism measured by PET and fMRI are a few percent of baseline, not a
-   doubling. So the fourth field below is the rise above the 20 W baseline as a
-   fraction of it, and only that rise is added to your day. */
+     Oxygen.  Cerebral metabolic rate of oxygen in a resting, awake adult is
+       about 3.0-3.5 mL O2 per 100 g of brain per minute. A 1,400 g brain is
+       14 of those units, so ~45-49 mL O2/min = ~0.047 L/min. Burning substrate
+       with oxygen releases about 21 kJ per litre of O2, so
+       0.047 x 21,000 = ~990 J/min = ~16 W.
+
+     Glucose. Cerebral metabolic rate of glucose is about 31 umol per 100 g per
+       minute, so 31 x 14 = 434 umol/min = 0.434 mmol/min. At 180 g/mol that is
+       78 mg/min = ~112 g of glucose a day, the familiar "the brain eats ~120 g
+       of glucose daily" figure. Glucose yields 15.6 kJ/g, so
+       112 x 15.6 = ~1,750 kJ/day = ~20 W.
+
+   Sixteen to twenty watts from two different routes. 20 W is the round number
+   at the top of that range and is what the file uses. Over a day that is
+   20 x 86,400 = 1,728,000 J = 413 kcal.
+
+   WHY THOSE 413 kcal ARE NOT ADDED. They run whether you are solving
+   differential equations or staring at a wall, and they are already inside the
+   resting metabolism computed further down. Adding them here would charge the
+   same energy twice.
+
+   WHY THE EXTRA IS A PERCENTAGE. Because that is the form the measurement comes
+   in. Nobody reads watts off a thinking brain. PET and fMRI scan the same
+   person at rest and mid-task and report the difference as a fraction, because
+   absolute cerebral metabolic rate varies +/-20-25% between people and with
+   scanner calibration, while the task effect is a couple of percent. Subtracting
+   the person from themselves cancels the calibration out; an absolute figure
+   would bury a 1 W signal under 5 W of noise. A fraction also scales correctly
+   between a large and a small person, which a hard-coded "+1 W" would not.
+
+   THE SIZE OF THE EFFECT. Small, and measured repeatedly. Sokoloff's mental
+   arithmetic work found no significant change in whole-brain oxygen uptake at
+   all. Madsen's card-sorting study found blood flow up ~12% with oxygen uptake
+   flat. Locally a recruited region's blood flow jumps 30-50% while its oxygen
+   use rises only ~5%, and that region is a small share of the brain. Globally
+   the honest range is 0 to about 5%.
+
+   The fractions below sit inside that measured range: 1% / 3% / 5%. Which task
+   gets which number is an interpolation, not a finding — no study says
+   "debugging is 5%". The only claim being made is that the whole thing lands
+   under about 1 kcal an hour. */
 const BRAIN_W      = 20;        // watts, the awake resting brain
 const JOULE_CAL    = 4.184;     // joules per (small) calorie, by definition
+const BRAIN_SLEEP  = 0.17;      // brain runs ~17% below its awake rate, night average
 const MENTAL = [
-  ["m_light","Light mental work","email, admin, easy reading",0.05],
-  ["m_focus","Focused study or deep work","coding, writing, problem sets",0.10],
-  ["m_intense","Intense problem-solving","exams, hard maths, debugging",0.18],
+  ["m_light","Light mental work","email, admin, easy reading",0.01],
+  ["m_focus","Focused study or deep work","coding, writing, problem sets",0.03],
+  ["m_intense","Intense problem-solving","exams, hard maths, debugging",0.05],
 ];
 
 /* Atwater factors: 4 kcal a gram for protein and carbohydrate, 9 for fat. These
@@ -2146,7 +2180,7 @@ function readChores(weight){
    Credited: only the rise above 20 W while you are concentrating. Extra watts =
    20 x the effort fraction for the task; joules = extra watts x seconds; calories
    = joules / 4.184; kilocalories = calories / 1000. */
-function readMental(bmr){
+function readMental(){
   let kcal=0, minutes=0, joules=0, grossJ=0; const lines=[], burn={};
   const baseJ    = BRAIN_W*86400;                 // joules the brain uses in a day
   const baseKcal = baseJ/KCAL_J;                  // ~413 kcal/day, already in the RMR
@@ -2196,20 +2230,41 @@ function compute(){
   const rr = restingRate(weight, height, age, male, bodyFat);
   const bmr = rr.kcal;
   const neat = bmr*neatRate;
-  const mental = readMental(bmr);
+  const mental = readMental();
   const prog = dayProgress();
   const protShare = food.kcal>0 ? (food.p*4)/food.kcal : 0;
   const tefRate = 0.09 + 0.09*protShare;
   const tef = food.kcal*tefRate;
-  const sleepAdj = sleep<6 ? -0.02*bmr : 0;
+  /* Two separate sleep terms, kept apart because one is measured well and the
+     other is not.
+
+     brainSleep is solid. The resting rate above is an awake, lying-still
+     measurement, so it charges you the brain's full 20 W for all 24 hours. It
+     does not run at 20 W all night. Whole-brain metabolism falls ~10-15% in
+     light NREM and ~30-40% in slow-wave sleep, while REM matches waking or
+     edges just above it; weighted over a normal night that is about -17%. So
+     20 W x 0.17 = 3.4 W less than the resting rate assumed, for every hour
+     asleep. At 7.5 hours that is 3.4 x 27,000 s = 91,800 J = ~22 kcal back.
+     Small, but larger than everything the mental-work card adds all day.
+
+     sleepAdj is the weak one. Whether short sleep lowers resting rate is
+     genuinely contested - some work shows a small fall, some shows 24-hour
+     expenditure rising because you are awake longer. The 2% is a convention,
+     not a measurement. It is kept because removing it would change the model
+     more than asked, but it now ramps in from 6 h down to 4.5 h instead of
+     jumping 2% of your whole RMR the moment you log 5.9 hours. */
+  const brainSleep = -(BRAIN_W*BRAIN_SLEEP)*sleep*3600/KCAL_J;
+  const sleepShort = Math.max(0, Math.min(1, (6 - sleep)/1.5));
+  const sleepAdj   = -0.02*bmr*sleepShort;
   const activity = st.kcal + timed.kcal + cardio.kcal + chores.kcal + mental.kcal;
 
   /* Two honest totals. "So far" is what your body has actually spent by now and
      is the only fair comparison against the food logged so far. "Full day" is
      where it lands by midnight if nothing else is eaten or done, and is the only
      figure from which a tissue change can be worked out. */
-  const outSoFar = bmr*prog.rest + neat*prog.awake + tef + activity + sleepAdj;
-  const out = bmr + neat + tef + activity + sleepAdj;
+  const outSoFar = bmr*prog.rest + neat*prog.awake + tef + activity + sleepAdj
+                 + brainSleep*prog.rest;
+  const out = bmr + neat + tef + activity + sleepAdj + brainSleep;
   const balanceSoFar = food.kcal - outSoFar;
   const balance = food.kcal - out;
   const ppk = food.p/weight;
@@ -2258,7 +2313,7 @@ function compute(){
   const burn = Object.assign({}, st.burn, timed.burn, cardio.burn, chores.burn, mental.burn);
   return {ready,weight,height,age,male,bodyFat,rr,prog,outSoFar,balanceSoFar,
           food,st,timed,cardio,chores,mental,bmr,neat,tef,tefRate,protShare,
-          sleepAdj,activity,out,balance,fatKg,leanKg,capped,part,ppk,water,waterTarget,
+          sleepAdj,brainSleep,activity,out,balance,fatKg,leanKg,capped,part,ppk,water,waterTarget,
           sleep,level,lifted,neatRate,burn};
 }
 
@@ -2663,7 +2718,19 @@ function renderFlags(d, empty){
    ================================================================== */
 function usingSnapshot(snap, fn){
   const cur = snapshot();
-  allControls().forEach(n => { if(snap[n.id] !== undefined) n.value = snap[n.id]; });
+  /* A saved day only holds the controls that existed when it was saved. Set 2 of
+     an exercise you only added today is absent from it, and leaving such a
+     control at today's value made the usual day appear to already contain work
+     that was logged for the first time this morning — a brand-new set then came
+     out as having changed by exactly zero. Anything loggable the snapshot does
+     not mention was not logged that day, so it is zero. Settings are different:
+     a missing weight or pace is a gap in the record, not a setting of nothing,
+     so those keep their current value. */
+  const loggable = new Set(LOG_IDS);
+  allControls().forEach(n => {
+    if(snap[n.id] !== undefined) n.value = snap[n.id];
+    else if(loggable.has(n.id)) n.value = 0;
+  });
   let r;
   try { r = fn(); }
   finally { allControls().forEach(n => { if(cur[n.id] !== undefined) n.value = cur[n.id]; }); }
@@ -2704,9 +2771,16 @@ function dayDiffs(usual, before, after){
 
     const exName = (B && B.name) || (A && A.name)
                  || (LABELS[key] ? LABELS[key].name.replace(/ set \d+, reps$/,"") : exId);
-    const loadTxt = (nowW > 0 || wasW > 0)
-      ? (Math.abs(wasW-nowW) < 1e-9 ? ` at ${n1(nowW)} kg` : ` at ${n1(wasW)} \u2192 ${n1(nowW)} kg`)
-      : "";
+    /* Only call it a load change when the set was actually done at both loads.
+       A new set has no previous weight, so "0 → 15 kg" would be reporting a
+       change that never happened. */
+    let loadTxt = "";
+    if(wasR > 0 && nowR > 0 && Math.abs(wasW-nowW) > 1e-9){
+      loadTxt = ` at ${n1(wasW)} \u2192 ${n1(nowW)} kg`;
+    } else {
+      const shown = nowR > 0 ? nowW : wasW;
+      if(shown > 0) loadTxt = ` at ${n1(shown)} kg`;
+    }
 
     out.push({
       name: `${exName}, set ${idx}`,
@@ -2939,7 +3013,8 @@ function openFlowCalc(which){
       d.timed.lines.forEach(l => out.push({label:l.label, work:l.work, val:kc(l.kcal)+" kcal"}));
       d.chores.lines.forEach(l => out.push({label:l.label, work:l.work, val:n1(l.kcal)+" kcal"}));
       d.mental.lines.forEach(l => out.push({label:l.label, work:l.work, val:n1(l.kcal)+" kcal"}));
-      if(d.sleepAdj) out.push({label:"Short sleep", work:"2% off resting rate under 6 h", val:kc(d.sleepAdj)+" kcal"});
+      if(d.brainSleep) out.push({label:"Brain, asleep", work:`the resting rate charges 20 W of brain for all 24 h; it runs ~17% lower asleep &mdash; 3.4 W &times; ${n1(d.sleep)} h`, val:kc(d.brainSleep)+" kcal"});
+  if(d.sleepAdj) out.push({label:"Short sleep", work:"up to 2% off the resting rate, ramped in from 6 h down to 4.5 h", val:kc(d.sleepAdj)+" kcal"});
       h += tbl(out, "Spent so far", kc(d.outSoFar)+" kcal");
 
       h += `<h3>Your resting metabolism</h3>`;
@@ -3207,7 +3282,8 @@ function renderCalcInto(p, d){
   d.timed.lines.forEach(l => out.push({label:l.label, work:l.work, val:kc(l.kcal)+" kcal"}));
   d.chores.lines.forEach(l => out.push({label:l.label, work:l.work, val:n1(l.kcal)+" kcal"}));
   d.mental.lines.forEach(l => out.push({label:l.label, work:l.work, val:n1(l.kcal)+" kcal"}));
-  if(d.sleepAdj) out.push({label:"Short sleep", work:"2% off resting rate under 6 h", val:kc(d.sleepAdj)+" kcal"});
+  if(d.brainSleep) out.push({label:"Brain, asleep", work:`the resting rate charges 20 W of brain for all 24 h; it runs ~17% lower asleep &mdash; 3.4 W &times; ${n1(d.sleep)} h`, val:kc(d.brainSleep)+" kcal"});
+  if(d.sleepAdj) out.push({label:"Short sleep", work:"up to 2% off the resting rate, ramped in from 6 h down to 4.5 h", val:kc(d.sleepAdj)+" kcal"});
   h += tbl(out, "Used so far", kc(d.outSoFar)+" kcal");
   h += `<p class="formula">The whole-day figure is <b>${kc(d.out)} kcal</b>. The ledger compares your
     food against the <em>so far</em> number, because measuring a morning's eating against a full
@@ -3247,8 +3323,10 @@ function renderCalcInto(p, d){
   const mt = d.mental;
   h += tbl([
     {label:"The brain, running",
-     work:`about <b>${mt.baseW} W</b> awake &mdash; the brain is ~2% of body mass and takes `
-        + `~20% of resting energy, and a resting adult is on the order of 100 W`,
+     work:`about <b>${mt.baseW} W</b> awake, measured two ways. Oxygen: ~3.3 mL O&#8322; per `
+        + `100 g per min &times; 14 (a 1,400 g brain) = ~46 mL/min, &times; 21 kJ per litre `
+        + `of O&#8322; = ~16 W. Glucose: ~31 &micro;mol per 100 g per min = ~112 g of glucose `
+        + `a day &times; 15.6 kJ/g = ~20 W`,
      val:`${mt.baseW} J/s`},
     {label:"Over a whole day",
      work:`${mt.baseW} W &times; 86,400 s = ${kc(mt.baseJ)} J, &divide; 4.184 = `
@@ -3269,15 +3347,27 @@ function renderCalcInto(p, d){
       that would have been spent anyway, which is why only the
       ${n1(mt.kcal)} kcal of extra effort is added.</p>`;
   }
-  h += `<p class="formula">The effort fractions are 5% for light mental work, 10% for
-    focused study, 18% flat out. They are small on purpose. Task-evoked increases in brain
-    metabolism measured with PET and fMRI are a few percent above baseline, not a
-    doubling &mdash; the brain is close to fully lit before you start concentrating, and
-    hard thinking redistributes blood flow far more than it raises total consumption. An
-    hour of deep work is therefore worth roughly
-    <b>${n1(BRAIN_W*0.10*3600/KCAL_J)} kcal</b>, about a fifth of a banana. Anyone
-    quoting hundreds of calories for a chess tournament is counting the baseline your
-    resting rate has already charged you for.</p>`;
+  h += `<p class="formula">The effort fractions are 1% for light mental work, 3% for
+    focused study, 5% flat out. They are small because the measurements are small. Whole-brain
+    metabolism during a cognitive task rises somewhere between 0 and about 5% &mdash; mental
+    arithmetic has been measured with no detectable change in brain oxygen uptake at all, and
+    card-sorting raised blood flow ~12% with oxygen uptake flat. Locally a recruited region
+    takes 30&ndash;50% more blood but only ~5% more oxygen. The brain is close to fully lit
+    before you start concentrating; hard thinking redistributes supply far more than it raises
+    total consumption. An hour of deep work is therefore worth about
+    <b>${n1(BRAIN_W*0.03*3600/KCAL_J)} kcal</b> &mdash; a third of a raisin, which is
+    about 1.5 kcal &mdash; and an
+    hour flat out about <b>${n1(BRAIN_W*0.05*3600/KCAL_J)} kcal</b>. Which tier a given task
+    belongs to is an interpolation inside the measured range, not a published finding; the
+    claim being made is only that the total rounds to nothing. Anyone quoting hundreds of
+    calories for a chess tournament is counting the baseline your resting rate already
+    charged you for.</p>
+    <p class="formula">Sleep is the larger correction, and it runs the other way. Your resting
+    rate is an awake measurement, so it bills 20 W of brain for all 24 hours. Asleep the brain
+    draws ~10&ndash;15% less in light NREM and ~30&ndash;40% less in slow-wave sleep, with REM
+    back at waking levels &mdash; about &minus;17% averaged over a night. That is
+    <b>${n1(BRAIN_W*BRAIN_SLEEP*d.sleep*3600/KCAL_J)} kcal</b> credited back for your
+    ${n1(d.sleep)} hours, which is more than every minute of thinking above.</p>`;
 
   h += `<h3>The physics, precisely</h3>`;
   h += `<p class="formula"><b>What is exact.</b> Work is the line integral of force along the
