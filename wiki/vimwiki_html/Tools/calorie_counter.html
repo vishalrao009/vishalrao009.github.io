@@ -1319,7 +1319,7 @@ function fieldSel(host, id, label, opts, wide){
   let def = opts[0][0];
   opts.forEach(([v,t,sel]) => {
     const o = el("option",null,t); o.value = v;
-    if(sel){ o.selected = true; def = v; }
+    if(sel){ o.selected = true; o.defaultSelected = true; def = v; }
     s.appendChild(o);
   });
   s.value = def;                       // don't rely on the option flag alone
@@ -2753,6 +2753,7 @@ function bodyStep(q, sub, fieldId, ctlId, guard){
 const STEPS = [
   {
     q:"Let's set you up",
+    essential:true,        // skipping still creates the profile via next()
     sub:"A few questions, then you will see exactly what your day comes to. The food list is "
       + "vegetarian throughout, built around Indian home cooking. Nothing leaves this device, "
       + "and you can change any of it later.",
@@ -2762,7 +2763,7 @@ const STEPS = [
       f.appendChild(el("label",null,"What should I call you?")).setAttribute("for","wizName");
       const i = el("input"); i.type="text"; i.id="wizName"; i.placeholder="Your name";
       i.maxLength = 40;
-      i.value = db.active || "";
+      i.value = wiz.fresh ? "" : (db.active || "");
       f.appendChild(i); c.appendChild(f); b.appendChild(c);
       b.appendChild(el("p","tiny","This just labels your profile on this device. There are no "
         + "accounts and no passwords."));
@@ -3104,13 +3105,41 @@ function wizPrev(){
   if(i < 0) return;
   wiz.i = i; drawStep();
 }
-function wizOpen(){
+function wizOpen(fresh){
   pinStarters();              // so the first screen is never an empty box
   wiz.i = 0; wiz.ate = wiz.trained = wiz.moved = wiz.chores = null;
+  wiz.fresh = !!fresh;        // a brand-new profile starts every field blank
   wiz.open = true;
   $("wiz").hidden = false;
   document.body.style.overflow = "hidden";
   drawStep();
+}
+
+/* Start a new profile straight from the walkthrough: stash the current person's
+   day, wipe the controls, and open the wizard blank so the very first screen is
+   already asking for the new name. */
+function startNewProfile(){
+  if(activeUser()){
+    activeUser().days[todayKey()] = snapshot();
+    activeUser().body = bodySnapshot();
+    saveDb();
+  }
+  LOG_IDS.forEach(id => { const n = $(id); if(n) n.value = 0; });
+  BODY_IDS.forEach(id => { const n = $(id); if(n) n.value = ""; });
+  // dropdowns with a sensible default (day, wake, experience) return to it; the
+  // number fields and sex stay blank so they must be answered.
+  ["sex","job","wake","train"].forEach(id => {
+    const sel = $(id);
+    if(sel && sel.options){
+      const d = [...sel.options].find(o => o.defaultSelected);
+      if(d) sel.value = d.value;
+    }
+  });
+  PINNED.clear();
+  $("dayDone").value = "0";
+  if(typeof drawTypes === "function") drawTypes();
+  update();
+  wizOpen(true);
 }
 function wizClose(){
   giveBack(); restoreRows();
@@ -3392,8 +3421,8 @@ function openProfileSheet(){
     al.append(ap, el("span",null,"Add someone"));
     add.appendChild(al);
     add.addEventListener("click", () => {
-      closeSheet(); showTab("you");
-      $("newRow").classList.remove("hidden"); $("newName").focus();
+      closeSheet();
+      startNewProfile();          // straight into the walkthrough, asking the new name first
     });
     body.appendChild(add);
 
