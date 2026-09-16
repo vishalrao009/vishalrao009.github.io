@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Energy ledger</title>
-<meta name="description" content="Log food, lifting and housework. See what your body spent, and whether the difference becomes fat or muscle. All data stays in your browser.">
+<meta name="description" content="A vegetarian calorie and energy ledger. Log food, lifting and housework, and see whether the difference becomes fat or muscle. All data stays in your browser.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#EFF1EE" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#141917" media="(prefers-color-scheme: dark)">
@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Ledger">
 <meta name="mobile-web-app-capable" content="yes">
 <meta property="og:title" content="Energy ledger">
-<meta property="og:description" content="Log food, lifting and housework. See where a surplus or deficit actually goes.">
+<meta property="og:description" content="A vegetarian calorie ledger. Log food, lifting and housework, and see where a surplus or deficit actually goes.">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23141917'/%3E%3Crect x='6' y='9' width='20' height='4' rx='2' fill='%23E0A64A'/%3E%3Crect x='6' y='15' width='14' height='4' rx='2' fill='%234FB3A6'/%3E%3Crect x='6' y='21' width='8' height='4' rx='2' fill='%23D4788F'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -91,7 +91,9 @@ h1,h2,h3{margin:0}
 .hero .lbl{font-size:12.5px;color:var(--muted)}
 .hero .big{font-family:var(--serif);font-size:56px;font-weight:700;line-height:1;
   letter-spacing:-.03em;margin:5px 0 2px;display:block}
-.hero .cap{font-size:13.5px;color:var(--muted);max-width:30ch}
+.hero .cap{font-size:13.5px;color:var(--muted);max-width:42ch;display:block}
+.hero .proj{display:inline-block;margin-top:8px;font-size:12.5px;line-height:1.5}
+.hero .proj b{color:var(--ink);font-family:var(--serif);font-size:13.5px}
 .meter{margin-top:17px;display:grid;gap:7px}
 .mrow{display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:center;font-size:12.5px}
 .mrow .mlbl{color:var(--muted)}
@@ -105,6 +107,7 @@ h1,h2,h3{margin:0}
 .tile{background:var(--card);border-radius:var(--r-sm);padding:12px 11px;box-shadow:var(--shadow)}
 .tile .tl{font-size:11px;color:var(--muted);line-height:1.3}
 .tile .tv{font-family:var(--serif);font-size:20px;font-weight:600;margin-top:3px;letter-spacing:-.01em}
+.tile .tu{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.3}
 .c-fat{color:var(--fat)}.c-lean{color:var(--lean)}.c-in{color:var(--in)}.c-out{color:var(--out)}
 
 /* ---------------- rows & steppers ---------------- */
@@ -221,6 +224,20 @@ h1,h2,h3{margin:0}
 .tabbar button.on svg{stroke-width:2.1}
 
 /* ---------------- misc ---------------- */
+.quick{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:4px}
+.qbtn{border:0;background:var(--card2);border-radius:var(--r-sm);padding:15px 12px;
+  display:flex;align-items:center;gap:11px;min-height:58px;font-size:15px;font-weight:500;
+  text-align:left}
+.qbtn:active{background:var(--out-bg)}
+.qbtn svg{width:22px;height:22px;stroke:var(--out);fill:none;stroke-width:1.7;
+  stroke-linecap:round;stroke-linejoin:round;flex:none}
+@media(max-width:380px){ .quick{grid-template-columns:1fr} }
+.bignum{font-family:var(--serif);font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:1}
+.hchart{width:100%;height:auto;display:block;margin:12px 0 2px;overflow:visible}
+.hstats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:13px;
+  border-top:1px solid var(--line);padding-top:12px}
+.hstats div span{display:block;font-size:11px;color:var(--muted);line-height:1.3}
+.hstats div b{font-family:var(--serif);font-size:17px;font-weight:600}
 .gate{padding:13px 14px;background:var(--fat-bg);border-radius:var(--r-sm);font-size:13.5px;
   line-height:1.55;margin-bottom:13px}
 .fields{display:grid;grid-template-columns:1fr 1fr;gap:11px}
@@ -244,6 +261,106 @@ table.ctab tr.sum td{border-bottom:0;border-top:1.5px solid var(--line);font-wei
 .hidden{display:none!important}
 .tiny{font-size:11.5px;color:var(--muted);line-height:1.55}
 
+.live{position:fixed;left:0;top:50%;transform:translate(-105%,-50%);z-index:80;
+  background:var(--card);border:1px solid var(--line);border-left:0;
+  border-radius:0 14px 14px 0;padding:11px 13px 11px 11px;box-shadow:var(--shadow);
+  display:grid;gap:8px;transition:transform .25s cubic-bezier(.32,.72,0,1);min-width:78px}
+.live.on{transform:translate(0,-50%)}
+.live .lk span{font-size:9.5px;color:var(--muted);text-transform:lowercase;display:block;line-height:1.2}
+.live .lk b{font-family:var(--serif);font-size:15px;font-weight:600;line-height:1.15;display:block}
+.live .bal b{font-size:17px}
+@media(max-width:620px){
+  .live{top:auto;bottom:calc(var(--tabh) + env(safe-area-inset-bottom) + 12px);
+    transform:translate(-105%,0);border-radius:0 12px 12px 0;padding:9px 11px;min-width:70px}
+  .live.on{transform:translate(0,0)}
+}
+.types{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:11px}
+.type{border:0;background:var(--card2);border-radius:var(--r-sm);padding:13px 8px 12px;
+  display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;min-height:150px}
+.type svg{width:46px;height:74px;fill:var(--muted);stroke:none;display:block}
+.type.on svg{fill:var(--out)}
+.type .tn{font-family:var(--serif);font-size:13.5px;font-weight:600}
+.type .td{font-size:10.5px;color:var(--muted);line-height:1.3}
+.type.on{background:var(--out-bg);box-shadow:inset 0 0 0 1.5px var(--out)}
+
+.bfrow{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.bfinput{max-width:104px;padding:10px 12px;font-size:16px;border:0;border-radius:var(--r-sm);
+  background:var(--card2);color:var(--ink);font-family:var(--sans);min-height:44px;text-align:center}
+.entries{width:100%;display:grid;gap:9px}
+.entry{background:var(--card2);border-radius:var(--r-sm);padding:10px 11px}
+.entryhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+.entryhead .en{font-size:11.5px;color:var(--muted);font-weight:600;letter-spacing:.02em}
+.entryx{border:0;background:transparent;color:var(--muted);font-size:19px;line-height:1;
+  width:32px;height:32px;padding:0}
+.entryline{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.entryline .sl,.subpanel .sl{font-size:11px;color:var(--muted);width:100%;margin-bottom:-3px}
+.subpanel{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:9px}
+.subpanel.hidden{display:none}
+.chips.small{gap:6px;margin-bottom:9px}
+.chips.small .chip{padding:7px 13px;min-height:36px;font-size:13px}
+.addset{width:100%;margin-top:9px;color:var(--muted)}
+.modepanel{width:100%;display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+  padding:10px 0 2px;border-top:1px dashed var(--line);margin-top:4px}
+.modepanel.hidden{display:none}
+.modepanel .sl{width:100%;margin-bottom:-4px}
+.stage{margin-top:4px}
+.stage:empty{display:none}
+.stagehead{font-family:var(--serif);font-size:16px;font-weight:600;margin:14px 0 2px;
+  padding-top:13px;border-top:1px solid var(--line)}
+.stage .lrow{border-bottom:0}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.chip{border:0;background:var(--card2);border-radius:999px;padding:10px 17px;font-size:14px;
+  font-weight:500;color:var(--muted);min-height:42px}
+.chip.on{background:var(--out);color:#fff;font-weight:600}
+.bandchips .chip{padding-left:13px;position:relative}
+.bandchips .bk{opacity:.7;font-size:12px;font-weight:400;margin-left:3px}
+.bandchips .chip:before{content:"";display:inline-block;width:11px;height:11px;border-radius:3px;
+  margin-right:7px;vertical-align:-1px;border:1px solid rgba(0,0,0,.18)}
+.band-yellow:before{background:#F2CE3B}.band-red:before{background:#C6403A}
+.band-green:before{background:#2E8B4A}.band-blue:before{background:#2A4A9B}
+.band-black:before{background:#1E1E1E}.band-silver:before{background:#B9BDC0}
+.band-gold:before{background:#B08A3E}
+.chip:active{opacity:.75}
+
+/* ---------------- walkthrough ---------------- */
+.wiz{position:fixed;inset:0;z-index:70;background:var(--bg);display:flex;flex-direction:column}
+.wiz[hidden]{display:none}
+.wizbar{display:flex;align-items:center;gap:13px;flex:none;
+  padding:calc(12px + env(safe-area-inset-top)) 16px 12px}
+.wizback,.wizskip{border:0;background:transparent;color:var(--muted);padding:8px;min-height:40px;
+  font-size:14px}
+.wizback{font-size:26px;line-height:1;width:40px;padding:0}
+.wizback[disabled]{opacity:.25}
+.wizprog{flex:1;height:4px;border-radius:2px;background:var(--card2);overflow:hidden}
+.wizfill{height:100%;background:var(--out);border-radius:2px;width:0;
+  transition:width .3s cubic-bezier(.4,0,.2,1)}
+.wizbody{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 18px 20px;
+  max-width:620px;width:100%;margin:0 auto}
+.wizfoot{flex:none;padding:12px 18px calc(14px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--line);background:var(--card);
+  display:flex;gap:9px;max-width:620px;width:100%;margin:0 auto}
+.wizfoot .btn{flex:1}
+.wizq{font-family:var(--serif);font-size:27px;font-weight:600;letter-spacing:-.02em;
+  line-height:1.2;margin:14px 0 8px}
+.wizsub{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:20px;max-width:46ch}
+.yesno{display:grid;gap:11px;margin-top:6px}
+.yesno button{border:0;background:var(--card);border-radius:var(--r);padding:19px 18px;
+  text-align:left;font-size:17px;font-weight:600;box-shadow:var(--shadow);min-height:64px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;font-family:var(--serif)}
+.yesno button small{display:block;font-family:var(--sans);font-size:12.5px;font-weight:400;
+  color:var(--muted);margin-top:3px}
+.yesno button .ar{color:var(--out);font-size:21px;font-weight:400}
+.yesno button:active{background:var(--card2)}
+.wizcard{background:var(--card);border-radius:var(--r);padding:15px;box-shadow:var(--shadow);
+  margin-bottom:12px}
+.sumgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:4px 0 16px}
+.sumbox{background:var(--card);border-radius:var(--r);padding:15px;box-shadow:var(--shadow)}
+.sumbox .sl{font-size:11.5px;color:var(--muted);line-height:1.3}
+.sumbox .sv{font-family:var(--serif);font-size:27px;font-weight:700;letter-spacing:-.02em;
+  margin-top:4px;line-height:1.05}
+.sumbox .su{font-size:11px;color:var(--muted);margin-top:2px}
+.wizwarn{font-size:13px;color:var(--fat);margin-top:10px}
+
 @media(min-width:760px){
   body{padding-bottom:30px}
   .page{max-width:940px;padding-top:12px}
@@ -259,6 +376,10 @@ table.ctab tr.sum td{border-bottom:0;border-top:1.5px solid var(--line);font-wei
 </style>
 </head>
 <body>
+
+<div id="errbar" style="display:none;position:fixed;top:0;left:0;right:0;z-index:999;
+  background:#8A3A52;color:#fff;padding:12px 16px;font:13px/1.5 ui-monospace,monospace;
+  white-space:pre-wrap;max-height:45vh;overflow:auto"></div>
 
 <header class="appbar" id="appbar">
   <div class="ttl">
@@ -294,11 +415,33 @@ table.ctab tr.sum td{border-bottom:0;border-top:1.5px solid var(--line);font-wei
 
     <div class="tiles">
       <div class="tile"><div class="tl" id="tileFatL">Body fat</div>
-        <div class="tv c-fat" id="tileFat">&mdash;</div></div>
-      <div class="tile"><div class="tl">Muscle</div>
-        <div class="tv c-lean" id="tileLean">&mdash;</div></div>
+        <div class="tv c-fat" id="tileFat">&mdash;</div>
+        <div class="tu" id="tileFatU"></div></div>
+      <div class="tile"><div class="tl" id="tileLeanL">Muscle</div>
+        <div class="tv c-lean" id="tileLean">&mdash;</div>
+        <div class="tu" id="tileLeanU"></div></div>
       <div class="tile"><div class="tl">Protein</div>
-        <div class="tv" id="tileProt">&mdash;</div></div>
+        <div class="tv" id="tileProt">&mdash;</div>
+        <div class="tu" id="tileProtU"></div></div>
+    </div>
+
+    <div class="card" id="quickCard">
+      <div class="cardhead"><h2 id="quickTitle">Anything else today?</h2></div>
+      <div class="quick">
+        <button class="qbtn" id="qFood">
+          <svg viewBox="0 0 24 24"><path d="M4 12h16a8 8 0 0 1-16 0Z"/><path d="M6 8c0-2 1.5-3 3-3s2 .8 3 .8S13.5 5 15 5s3 1 3 3"/></svg>
+          <span>Ate more</span></button>
+        <button class="qbtn" id="qTrain">
+          <svg viewBox="0 0 24 24"><path d="M6.5 8v8M17.5 8v8M3.5 10v4M20.5 10v4M6.5 12h11"/></svg>
+          <span>Trained</span></button>
+        <button class="qbtn" id="qMove">
+          <svg viewBox="0 0 24 24"><circle cx="13" cy="4.5" r="2"/><path d="M11 21l2-6-3-3 1-5 4 3 3 1"/><path d="M8 13l2-5"/><path d="M6 21l3-5"/></svg>
+          <span>Walked</span></button>
+        <button class="qbtn" id="qChore">
+          <svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
+          <span>Housework</span></button>
+      </div>
+      <p class="tiny" id="quickNote"></p>
     </div>
 
     <div class="card" id="diffCard">
@@ -306,11 +449,18 @@ table.ctab tr.sum td{border-bottom:0;border-top:1.5px solid var(--line);font-wei
         <span class="sm" id="diffDate"></span></div>
       <div id="diffBody"></div>
       <div class="btnrow" id="diffActs" style="margin-top:12px"></div>
+      <input type="hidden" id="dayDone" value="0">
+      <div id="closeRow" style="margin-top:12px"></div>
     </div>
 
     <div class="card" id="flagCard">
       <div class="cardhead"><h2>Worth knowing</h2></div>
       <div id="flags"></div>
+    </div>
+
+    <div class="card" id="histCard">
+      <div class="cardhead"><h2>This month</h2></div>
+      <div id="histBody"></div>
     </div>
 
     <button class="btn full line" id="openCalc">Show every step of the arithmetic</button>
@@ -320,11 +470,14 @@ table.ctab tr.sum td{border-bottom:0;border-top:1.5px solid var(--line);font-wei
   <section class="tabpane" id="pane-food">
     <div class="card">
       <div class="cardhead"><h2>What you ate</h2><span class="sm" id="foodTot"></span></div>
-      <div class="rowlist" id="foodRows"></div>
+      <div id="slotFood"><div class="rowlist" id="foodRows"></div></div>
       <button class="btn add full" id="addFood"><span>+</span> Add something you ate</button>
     </div>
-    <p class="tiny">Only the foods in your usual day are shown. Anything else is one tap away
-       and stays out of the way until you need it.</p>
+    <p class="tiny"><b>The food list is vegetarian throughout</b> &mdash; lacto-vegetarian, so milk,
+       curd, paneer and ghee are in, and there are no eggs, meat or fish. It is built around Indian
+       home cooking: chapati, dal, sabji, katori portions.</p>
+    <p class="tiny" style="margin-top:8px">Only the foods you use are shown. Anything else is one tap
+       away and stays out of the way until you need it.</p>
   </section>
 
   <!-- ============ MOVE ============ -->
@@ -338,13 +491,13 @@ table.ctab tr.sum td{border-bottom:0;border-top:1.5px solid var(--line);font-wei
     <div id="m-strength">
       <div class="card">
         <div class="cardhead"><h2>Lifting</h2><span class="sm" id="repTot"></span></div>
-        <div class="rowlist" id="repRows"></div>
-        <div class="rowlist" id="bandRows"></div>
+        <div id="slotRep"><div id="strengthGroup"><div class="rowlist" id="repRows"></div>
+        <div class="rowlist" id="bandRows"></div></div></div>
         <button class="btn add full" id="addRep"><span>+</span> Add an exercise</button>
       </div>
       <div class="card">
         <div class="cardhead"><h2>How you trained</h2></div>
-        <div class="fields" id="trainSettings"></div>
+        <div id="slotTrain"><div class="fields" id="trainSettings"></div></div>
         <p class="note" id="workNote"></p>
       </div>
     </div>
@@ -352,12 +505,12 @@ table.ctab tr.sum td{border-bottom:0;border-top:1.5px solid var(--line);font-wei
     <div id="m-cardio" class="hidden">
       <div class="card">
         <div class="cardhead"><h2>Getting around</h2><span class="sm" id="moveTot"></span></div>
-        <div class="rowlist" id="cardioRows"></div>
+        <div id="slotCardio"><div class="rowlist" id="cardioRows"></div></div>
       </div>
       <div class="card">
         <div class="cardhead"><h2>Holds and conditioning</h2><span class="sm" id="condTot"></span></div>
-        <div class="rowlist" id="holdRows"></div>
-        <div class="rowlist" id="condRows"></div>
+        <div id="slotCond"><div id="condGroup"><div class="rowlist" id="holdRows"></div>
+        <div class="rowlist" id="condRows"></div></div></div>
         <button class="btn add full" id="addCond"><span>+</span> Add an activity</button>
       </div>
     </div>
@@ -365,7 +518,7 @@ table.ctab tr.sum td{border-bottom:0;border-top:1.5px solid var(--line);font-wei
     <div id="m-chores" class="hidden">
       <div class="card">
         <div class="cardhead"><h2>House and chores</h2><span class="sm" id="choreTot"></span></div>
-        <div class="rowlist" id="choreRows"></div>
+        <div id="slotChore"><div class="rowlist" id="choreRows"></div></div>
         <button class="btn add full" id="addChore"><span>+</span> Add a chore</button>
       </div>
       <p class="note" id="choreNote"></p>
@@ -376,12 +529,12 @@ table.ctab tr.sum td{border-bottom:0;border-top:1.5px solid var(--line);font-wei
   <section class="tabpane" id="pane-you">
     <div class="card">
       <div class="cardhead"><h2>Your body</h2><span class="sm" id="bmrTot"></span></div>
-      <div class="fields" id="bodyFields"></div>
+      <div id="slotBody"><div class="fields" id="bodyFields"></div></div>
     </div>
 
     <div class="card">
       <div class="cardhead"><h2>Sleep and water</h2></div>
-      <div class="rowlist" id="recovRows"></div>
+      <div id="slotRecov"><div class="rowlist" id="recovRows"></div></div>
     </div>
 
     <div class="card">
@@ -400,6 +553,8 @@ table.ctab tr.sum td{border-bottom:0;border-top:1.5px solid var(--line);font-wei
           <input type="file" id="importFile" accept=".json,application/json"
                  style="position:absolute;inset:0;opacity:0;width:100%"></label>
         <button class="btn sm line" id="delUser">Remove</button>
+        <button class="btn sm line" id="rerun">Walk me through it</button>
+        <button class="btn sm line" id="startFresh">Start fresh</button>
       </div>
       <div class="hidden" id="newRow" style="margin-top:11px">
         <div class="field"><label for="newName">Name for this profile</label>
@@ -414,7 +569,10 @@ table.ctab tr.sum td{border-bottom:0;border-top:1.5px solid var(--line);font-wei
 
     <div class="card">
       <div class="cardhead"><h2>About these numbers</h2></div>
-      <p class="tiny">Every figure is a population average fitted to your measurements. Resting
+      <p class="tiny"><b>This is a vegetarian tracker.</b> The food database is lacto-vegetarian
+        &mdash; dairy is included, eggs, meat and fish are not &mdash; and is built around Indian
+        home cooking. Everything else in the app works for anyone.</p>
+      <p class="tiny" style="margin-top:10px">Every figure is a population average fitted to your measurements. Resting
         metabolic rate varies by roughly 200 kcal either way between people of identical size,
         food values assume typical home portions, and the activity rates come from published MET
         tables describing averages rather than you. Weigh yourself the same way each morning for
@@ -446,6 +604,22 @@ table.ctab tr.sum td{border-bottom:0;border-top:1.5px solid var(--line);font-wei
   <button data-t="you" class="tabbtn"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.7"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg><span>You</span></button>
 </nav>
 
+<div class="wiz" id="wiz" hidden>
+  <header class="wizbar">
+    <button class="wizback" id="wizBack" aria-label="Back">&#8249;</button>
+    <div class="wizprog"><div class="wizfill" id="wizFill"></div></div>
+    <button class="wizskip" id="wizSkip">Skip</button>
+  </header>
+  <div class="wizbody" id="wizBody"></div>
+  <footer class="wizfoot" id="wizFoot"></footer>
+</div>
+
+<aside class="live" id="live" aria-live="polite">
+  <div class="lk"><span>in</span><b id="liveIn">0</b></div>
+  <div class="lk"><span>used</span><b id="liveOut">0</b></div>
+  <div class="lk bal"><span id="liveLbl">net</span><b id="liveBal">0</b></div>
+</aside>
+
 <div class="scrim" id="scrim"></div>
 <div class="sheet" id="sheet">
   <div class="sh">
@@ -456,6 +630,25 @@ table.ctab tr.sum td{border-bottom:0;border-top:1.5px solid var(--line);font-wei
   <div class="sbody" id="sheetBody"></div>
 </div>
 
+<script>
+/* If anything throws, say so on screen. A silent failure looks identical to
+   "the app is broken" and tells nobody anything. */
+(function(){
+  function show(msg){
+    var b = document.getElementById("errbar");
+    if(!b) return;
+    b.style.display = "block";
+    b.textContent = "Something went wrong, so the app stopped loading.\n\n" + msg +
+      "\n\nTry adding #reset to the end of the address and reloading. " +
+      "That erases stored profiles and starts clean.";
+  }
+  window.addEventListener("error", function(e){
+    show((e.message || "error") + "\n" + ((e.error && e.error.stack) || "").split("\n").slice(0,4).join("\n"));
+  });
+  window.addEventListener("unhandledrejection", function(e){ show(String(e.reason)); });
+  window.__ledgerError = show;
+})();
+</script>
 <script>
 "use strict";
 /* ==================================================================
@@ -633,8 +826,12 @@ const n1 = n => { const v = Math.round(n*10)/10; return (v % 1 === 0 ? v.toFixed
 const LOG_IDS = [];
 const LABELS  = {};
 const SETTING_IDS = ["weight","height","age","sex","job","train",
-                     "rest","intensity","band","perset","lower","water","sleep"];
+                     "rest","intensity","bandColor","bandLen","lower","water","sleep",
+                     "wake","dayDone"];
 const PINNED = new Set();     // things the user added this session
+/* Nothing is pinned by default. The profile is whatever the person searches
+   for and adds, and nothing else. */
+function pinStarters(){}
 const OWNER  = {};            // control id -> the row that holds it
 
 function mkStep(o){
@@ -683,9 +880,102 @@ function mkStep(o){
 
 /* Every loggable thing is registered so the Add sheets can list it and the
    visibility pass can decide whether its row is shown. */
+/* THERA-BAND Band Loop resistance levels, taken from the manufacturer's chart.
+   The figure is the pull in kilograms-force at 100% elongation, i.e. stretched
+   to double its resting length. Loops used together act as springs in parallel,
+   so their stiffnesses add. */
+const THERABAND = [
+  ["yellow","Yellow", 2.7, "Thin"],
+  ["red",   "Red",    3.4, "Medium"],
+  ["green", "Green",  4.2, "Heavy"],
+  ["blue",  "Blue",   5.3, "Extra heavy"],
+  ["black", "Black",  6.6, "Special heavy"],
+  ["silver","Silver", 9.2, "Super heavy"],
+  ["gold",  "Gold",  13.0, "Max"],
+];
+const BAND_F100 = {};
+const BAND_LABEL = {};
+THERABAND.forEach(([k,l,f,g]) => { BAND_F100[k] = f; BAND_LABEL[k] = l+", "+g; });
+function bandsChosen(){
+  return String($("bandColor").value || "").split(",").filter(c => BAND_F100[c]);
+}
+function bandTotalF100(){
+  return bandsChosen().reduce((s,c) => s + BAND_F100[c], 0);
+}
+/* Newtons at 100% elongation for whichever loops are selected on one exercise.
+   Loops act in parallel, so their forces add at any given stretch. */
+function bandForce(hiddenId){
+  const node = $(hiddenId);
+  const list = String((node && node.value) || "").split(",").filter(c => BAND_F100[c]);
+  return list.reduce((s,c) => s + BAND_F100[c], 0) * G;
+}
+
+/* Which split each movement belongs to, so the walkthrough can ask for the
+   day's split first and then only search within it. */
+const SPLIT = {
+  pushup:"push", dip:"push", bench:"push", ohp:"push", tri_ext:"push",
+  b_tri:"push", b_sho:"push",
+  pullup:"pull", row:"pull", pulldown:"pull", curl:"pull", deadlift:"pull",
+  b_row:"pull", b_curl:"pull",
+  squat:"legs", lunge:"legs", stepup:"legs", jsquat:"legs", glute:"legs",
+  calf:"legs", b_leg:"legs",
+  situp:"core", legraise:"core",
+  burpee:"full", other:"full",
+};
+const SPLIT_NAMES = {push:"Push", pull:"Pull", legs:"Legs", core:"Core", full:"Full body",
+                     cardio:"Cardio"};
+/* Movements where a band makes no sense: you cannot band a jump landing, and
+   distance work is not a resistance movement at all. */
+const NO_BAND = new Set(["jsquat","burpee","calf"]);
+
+/* Other names people actually type. Searching any of these finds the item. */
+/* What the serving words mean, so a portion is not a guess. A katori of 150 ml
+   is a hemisphere of radius 4.2 cm: V = (2/3)pi r^3, so r = cuberoot(3V/2pi). */
+const PORTION = {
+  katori:"150 g, a bowl 8.4 cm across (hemisphere, radius 4.2 cm)",
+  bowl:"150 g, about 8.4 cm across",
+  plate:"200 g",
+  piece:"",
+  tsp:"5 g, a level teaspoon",
+  cup:"150 ml",
+  scoop:"30 g",
+  slice:"",
+};
+
+const ALIAS = {
+  chapati:"roti phulka atta wheat bread", paratha:"parantha",
+  rice:"chawal bhat", poha:"flattened rice pohe",
+  dal:"daal lentils toor moong masoor", rajma:"chole chana kidney beans",
+  chana:"chickpea kabuli", sprouts:"ankurit moong",
+  soya:"soy nutrela chunks textured protein",
+  milk_cow:"doodh dudh", milk_buf:"doodh bhains buffalo", milk_toned:"doodh toned",
+  curd:"dahi yoghurt yogurt", curd_toned:"dahi yoghurt yogurt toned",
+  paneer:"cottage cheese chena",
+  ghee_cow:"clarified butter desi", ghee_buf:"clarified butter desi bhains",
+  sabji_dry:"sabzi subzi vegetable curry bhaji",
+  sabji_gravy:"sabzi subzi vegetable curry gravy",
+  salad:"kachumber raita cucumber", potato:"aloo alu",
+  banana:"kela", apple:"seb", mango:"aam", papaya:"papita", orange:"santra",
+  almond:"badam", cashew:"kaju", walnut:"akhrot", peanut:"moongphali groundnut mungfali",
+  raisin:"kishmish", date:"khajur khajoor",
+  jaggery:"gud gur", sugar:"cheeni shakkar", honey:"shahad", oil:"tel cooking",
+  chai:"tea cha", oats:"oatmeal daliya", bread:"pav slice", butter:"makhan",
+  whey:"protein powder shake",
+};
+
 const CATALOG = {food:[], rep:[], cond:[], chore:[]};
-function reg(kind, rowId, ctlIds, name, group, meta){
-  CATALOG[kind].push({rowId, ctlIds, name, group, meta:meta||""});
+const ROW_HOME = [];        // [container, [rows in their original order]]
+function noteHome(container, row){
+  let entry = ROW_HOME.find(e => e[0] === container);
+  if(!entry){ entry = [container, []]; ROW_HOME.push(entry); }
+  entry[1].push(row);
+}
+function restoreRows(){     // put every borrowed row back, in order
+  ROW_HOME.forEach(([container, rows]) => rows.forEach(r => container.appendChild(r)));
+}
+function reg(kind, rowId, ctlIds, name, group, meta, split, alias){
+  CATALOG[kind].push({rowId, ctlIds, name, group, meta:meta||"", split:split||"",
+                      alias:alias||""});
   ctlIds.forEach(id => { OWNER[id] = rowId; });
 }
 
@@ -695,17 +985,19 @@ GROUPS.forEach(g => {
   g.items.forEach(([id,name,unit,max,step,kcal,p,c,f,fib]) => {
     foodIndex[id] = {id,name,unit,kcal,p,c,f,fib,group:"tot_none"};
     const row = el("div","lrow hide"); row.id = "row_"+id;
+    const size = PORTION[unit] ? " \u00b7 " + PORTION[unit] : "";
     const per = unit==="kcal" ? "" :
-      `<small>${Math.round(kcal*(step>1?step:1))} kcal per ${step>1?step+" "+unit:unit}</small>`;
+      `<small>${Math.round(kcal*(step>1?step:1))} kcal per ${step>1?step+" "+unit:unit}${size}</small>`;
     row.appendChild(el("div","nm", name+per));
     row.appendChild(el("div","val amt",`<b>0</b> ${unit}`));
     const sub = el("div","subrow");
     sub.appendChild(mkStep({id:"f_"+id, min:0, max:max, step:step, value:0,
       unit:unit, aria:name+" in "+unit}));
     row.appendChild(sub);
-    $("foodRows").appendChild(row);
+    $("foodRows").appendChild(row); noteHome($("foodRows"), row);
     reg("food","row_"+id,["f_"+id],name,g.name,
-        unit==="kcal" ? "" : Math.round(kcal*(step>1?step:1))+" kcal per "+(step>1?step+" "+unit:unit));
+        unit==="kcal" ? "" : Math.round(kcal*(step>1?step:1))+" kcal per "+(step>1?step+" "+unit:unit),
+        "", ALIAS[id] || "");
   });
 });
 
@@ -717,45 +1009,170 @@ function repEntries(ex){
   ];
   return [{key:"rb_"+ex.id, label:"Reps", weighted:true}];
 }
-REPS.forEach(ex => {
-  const row = el("div","lrow hide"); row.id = "exrow_"+ex.id;
-  row.appendChild(el("div","nm", ex.name + (ex.hint?`<small>${ex.hint}</small>`:"")));
-  row.appendChild(el("div","val",`<b>0</b> reps`));
-  const sub = el("div","subrow");
-  const ids = [];
-  repEntries(ex).forEach(en => {
-    const w = el("div");
-    w.appendChild(el("div","sl",en.label));
-    w.appendChild(mkStep({id:en.key, min:0, max:ex.max, step:1, value:0, move:true,
-      unit:"reps", aria:ex.name+", "+en.label.toLowerCase()}));
-    sub.appendChild(w); ids.push(en.key);
-  });
-  if(ex.add){
-    const w = el("div");
-    w.appendChild(el("div","sl","Weight added"));
-    w.appendChild(mkStep({id:"l_"+ex.id, min:0, max:ex.add, step:1, value:0, move:true,
-      unit:"kg", aria:ex.name+", weight in kg"}));
-    sub.appendChild(w); ids.push("l_"+ex.id);
-  }
-  row.appendChild(sub);
-  $("repRows").appendChild(row);
-  const amt = el("span"); amt.id = "a_"+ex.id; amt.className="hidden";
-  row.appendChild(amt);
-  reg("rep","exrow_"+ex.id, ids, ex.name, "Lifting", ex.hint||"");
-});
+/* A movement is logged as a list of entries. Each entry is one load: 12 reps at
+   15 kg is a different amount of work from 8 reps at 20 kg, so they cannot be
+   added together as "20 reps". Every entry carries its own equipment and load. */
+const MAX_ENTRIES = 8;
+const ENTRY_COUNT = {};        // exercise id -> how many entries exist so far
+const EX_MODES = {};           // exercise id -> which equipment it allows
 
-BANDS.forEach(b => {
-  const row = el("div","lrow hide"); row.id = "row_"+b.id;
-  row.appendChild(el("div","nm", b.name+"<small>resistance band</small>"));
+function modesFor(ex, bandOnly){
+  if(bandOnly) return ["band"];
+  const m = [];
+  if(ex.bw) m.push("bw");
+  if(ex.add) m.push("wt");
+  if(!NO_BAND.has(ex.id)) m.push("band");
+  return m;
+}
+const MODE_LABEL = {bw:"Body weight", wt:"Added weight", band:"Band"};
+
+function bandPicker(host, id){
+  const hidden = el("input"); hidden.type="hidden"; hidden.id=id; hidden.value="";
+  host.appendChild(hidden);
+  const wrap = el("div","chips bandchips");
+  THERABAND.forEach(([k,label,kg,grade]) => {
+    const b = el("button","chip band-"+k, `${label} <span class="bk">${kg}</span>`);
+    b.type = "button";
+    b.setAttribute("aria-label", label+", "+grade+", "+kg+" kg at full stretch");
+    b.addEventListener("click", () => {
+      const set = new Set(String(hidden.value||"").split(",").filter(Boolean));
+      if(set.has(k)){ set.delete(k); b.classList.remove("on"); }
+      else { set.add(k); b.classList.add("on"); }
+      hidden.value = Array.from(set).join(",");
+      update(); rememberLast();
+    });
+    wrap.appendChild(b);
+  });
+  host.appendChild(wrap);
+  SETTING_IDS.push(id);
+  return hidden;
+}
+
+/* Build entry i for an exercise. Ids are deterministic so a saved day restores
+   straight into the right boxes. */
+function buildEntry(exId, ex, i, host, modes, catItem){
+  const wrap = el("div","entry"); wrap.id = "entry_"+exId+"_"+i;
+  const head = el("div","entryhead");
+  head.appendChild(el("span","en","Set "+i));
+  const del = el("button","entryx","\u00d7");
+  del.type = "button";
+  del.setAttribute("aria-label","clear set "+i);
+  del.addEventListener("click", () => {
+    $("er_"+exId+"_"+i).value = 0;
+    $("ew_"+exId+"_"+i).value = 0;
+    const bn = $("eb_"+exId+"_"+i); if(bn) bn.value = "";
+    wrap.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
+    update(); rememberLast();
+  });
+  head.appendChild(del);
+  wrap.appendChild(head);
+
+  const mode = el("input"); mode.type="hidden"; mode.id="em_"+exId+"_"+i;
+  mode.value = modes[0];
+  wrap.appendChild(mode);
+  SETTING_IDS.push(mode.id);
+
+  const wtPanel = el("div","subpanel hidden");
+  const bandPanel = el("div","subpanel hidden");
+
+  if(modes.length > 1){
+    const chips = el("div","chips small");
+    modes.forEach(mk => {
+      const c = el("button","chip"+(mk===modes[0]?" on":""), MODE_LABEL[mk]);
+      c.type = "button";
+      c.addEventListener("click", () => {
+        mode.value = mk;
+        chips.querySelectorAll(".chip").forEach(x => x.classList.remove("on"));
+        c.classList.add("on");
+        wtPanel.classList.toggle("hidden", mk !== "wt");
+        bandPanel.classList.toggle("hidden", mk !== "band");
+        update(); rememberLast();
+      });
+      chips.appendChild(c);
+    });
+    wrap.appendChild(chips);
+  }
+
+  const line = el("div","entryline");
+  line.appendChild(el("span","sl","Reps"));
+  line.appendChild(mkStep({id:"er_"+exId+"_"+i, min:0, max:ex.max||300, step:1, value:0,
+    move:true, unit:"reps", aria:ex.name+" set "+i+", reps"}));
+  wrap.appendChild(line);
+
+  wtPanel.appendChild(el("span","sl","Weight for this set"));
+  wtPanel.appendChild(mkStep({id:"ew_"+exId+"_"+i, min:0, max:ex.add||200, step:1, value:0,
+    move:true, unit:"kg", aria:ex.name+" set "+i+", weight in kg"}));
+  wrap.appendChild(wtPanel);
+
+  bandPanel.appendChild(el("span","sl","Loops for this set"));
+  bandPicker(bandPanel, "eb_"+exId+"_"+i);
+  bandPanel.appendChild(el("span","sl","Stretch already taken up"));
+  bandPanel.appendChild(mkStep({id:"ep_"+exId+"_"+i, min:0, max:200, step:5, value:30,
+    move:true, unit:"cm", aria:ex.name+" set "+i+", band pre-stretch", setting:true}));
+  SETTING_IDS.push("ep_"+exId+"_"+i);
+  wrap.appendChild(bandPanel);
+
+  if(modes[0] === "wt") wtPanel.classList.remove("hidden");
+  if(modes[0] === "band") bandPanel.classList.remove("hidden");
+
+  host.appendChild(wrap);
+  ENTRY_COUNT[exId] = i;
+  if(catItem) catItem.ctlIds.push("er_"+exId+"_"+i);
+  return wrap;
+}
+
+function ensureEntries(exId, n){
+  const ex = EX_MODES[exId];
+  if(!ex) return;
+  while((ENTRY_COUNT[exId]||0) < Math.min(n, MAX_ENTRIES)){
+    buildEntry(exId, ex.ex, (ENTRY_COUNT[exId]||0)+1, $("entries_"+exId), ex.modes, ex.item);
+  }
+}
+
+function buildExercise(ex, bandOnly){
+  const modes = modesFor(ex, bandOnly);
+  const row = el("div","lrow hide"); row.id = (bandOnly?"row_":"exrow_")+ex.id;
+  row.setAttribute("data-name", (ex.name+" "+(ex.hint||"")+(bandOnly?" band":"")).toLowerCase());
+  row.appendChild(el("div","nm", ex.name
+    + (ex.hint?`<small>${ex.hint}</small>`:(bandOnly?"<small>band only</small>":""))));
   row.appendChild(el("div","val",`<b>0</b> reps`));
+
   const sub = el("div","subrow");
-  sub.appendChild(mkStep({id:"rb_"+b.id, min:0, max:b.max, step:1, value:0, move:true,
-    unit:"reps", aria:b.name+", total reps"}));
+  const entries = el("div","entries"); entries.id = "entries_"+ex.id;
+  sub.appendChild(entries);
+
+  const add = el("button","btn sm line addset","+ Add a set at a different load");
+  add.type = "button";
+  add.addEventListener("click", () => {
+    const n = (ENTRY_COUNT[ex.id]||0) + 1;
+    if(n > MAX_ENTRIES){ add.disabled = true; return; }
+    const w = buildEntry(ex.id, ex, n, entries, modes, item);
+    const f = $("er_"+ex.id+"_"+n);
+    if(f && f.focus) setTimeout(() => f.focus(), 80);
+    if(n >= MAX_ENTRIES) add.disabled = true;
+    update();
+  });
+  sub.appendChild(add);
   row.appendChild(sub);
-  const amt = el("span"); amt.id="a_"+b.id; amt.className="hidden"; row.appendChild(amt);
-  $("bandRows").appendChild(row);
-  reg("rep","row_"+b.id,["rb_"+b.id], b.name, "Bands");
-});
+
+  const host = bandOnly ? $("bandRows") : $("repRows");
+  host.appendChild(row); noteHome(host, row);
+  const amt = el("span"); amt.id = "a_"+ex.id; amt.className = "hidden"; row.appendChild(amt);
+
+  const item = {rowId:row.id, ctlIds:[], name:ex.name,
+    group:(SPLIT_NAMES[SPLIT[ex.id]] || "Other") + (bandOnly ? ", band" : ""),
+    meta:ex.hint || (bandOnly ? "resistance band" : ""),
+    split:SPLIT[ex.id] || "full", alias:""};
+  CATALOG.rep.push(item);
+  EX_MODES[ex.id] = {ex, modes, item};
+  buildEntry(ex.id, ex, 1, entries, modes, item);
+  return item;
+}
+
+REPS.forEach(ex => buildExercise(ex, false));
+
+/* Movements that only exist with a band: pushdowns, pull-aparts and the like. */
+BANDS.forEach(b => buildExercise(b, true));
 
 /* ---------- holds, conditioning, cardio ---------- */
 function timedRows(host, list, group){
@@ -768,15 +1185,17 @@ function timedRows(host, list, group){
       unit:"min", aria:name+", minutes"}));
     row.appendChild(sub);
     const amt = el("span"); amt.id="a_"+id; amt.className="hidden"; row.appendChild(amt);
-    host.appendChild(row);
+    host.appendChild(row); noteHome(host, row);
     reg("cond","row_"+id,["t_"+id], name, group, met+" MET");
   });
 }
 timedRows($("holdRows"), HOLDS, "Holds");
 timedRows($("condRows"), COND, "Conditioning");
 
+const CARDIO_ALIAS = {walk:"walking steps stroll", run:"running jog jogging",
+                      cycle:"cycling bike bicycle riding"};
 CARDIO.forEach(([id,name,pmin,pmax,pdef,punit,dmax,dstep]) => {
-  const row = el("div","lrow"); row.id="row_"+id;      // always visible: only three
+  const row = el("div","lrow hide"); row.id="row_"+id;
   row.appendChild(el("div","nm", name));
   row.appendChild(el("div","val",`<b>0</b> km`));
   const sub = el("div","subrow");
@@ -788,7 +1207,9 @@ CARDIO.forEach(([id,name,pmin,pmax,pdef,punit,dmax,dstep]) => {
     unit:punit, aria:name+", pace", setting:true}));
   sub.append(dw, pw); row.appendChild(sub);
   const amt = el("span"); amt.id="a_"+id; amt.className="hidden"; row.appendChild(amt);
-  $("cardioRows").appendChild(row);
+  $("cardioRows").appendChild(row); noteHome($("cardioRows"), row);
+  reg("rep","row_"+id,["d_"+id], name, "Cardio", "distance and pace", "cardio",
+      CARDIO_ALIAS[id] || "");
 });
 
 /* ---------- chores ---------- */
@@ -802,11 +1223,21 @@ CHORES.forEach(([id,name,hint,mode,met,minPer,max,step,unit]) => {
     unit:unit, aria:name+", "+unit}));
   row.appendChild(sub);
   const amt = el("span"); amt.id="a_"+id; amt.className="hidden"; row.appendChild(amt);
-  $("choreRows").appendChild(row);
+  $("choreRows").appendChild(row); noteHome($("choreRows"), row);
   reg("chore","row_"+id,["h_"+id], name, "House", hint||"");
 });
 
 /* ---------- settings and body fields ---------- */
+function bandSummary(){
+  const on = bandsChosen();
+  if(!on.length) return "No bands selected. Pick the loops you actually use; "
+    + "doubling up adds their pull together.";
+  const total = bandTotalF100();
+  if(on.length === 1) return BAND_LABEL[on[0]] + " \u2014 " + n1(total) + " kg at full stretch.";
+  return on.map(c => BAND_LABEL[c].split(",")[0]).join(" + ") + " together pull like "
+    + n1(total) + " kg at full stretch, since loops in parallel add their stiffness.";
+}
+
 function fieldSel(host, id, label, opts, wide){
   const f = el("div","field"+(wide?" wide":""));
   f.appendChild(el("label",null,label)).setAttribute("for",id);
@@ -833,23 +1264,33 @@ fieldNum($("bodyFields"),"height","Height","cm",120,230,1);
 fieldNum($("bodyFields"),"age","Age","years",14,90,1);
 fieldSel($("bodyFields"),"sex","Sex for the formula",
   [["","Choose",1],["male","Male"],["female","Female"]]);
+$("sex").addEventListener("change", () => { drawTypes(); applyTypeFat(); update(); });
 fieldSel($("bodyFields"),"job","Rest of your day",
   [["0.18","Mostly sitting",1],["0.28","On my feet a fair bit"],
    ["0.42","Moving most of the day"],["0.60","Physical job"]],1);
+fieldSel($("bodyFields"),"wake","Usually wake at",
+  [["5","5 am"],["6","6 am"],["7","7 am",1],["8","8 am"],["9","9 am"],["10","10 am"]]);
 fieldSel($("bodyFields"),"train","Training experience",
   [["beginner","Under a year"],["intermediate","One to three years",1],
    ["advanced","Several years"]],1);
 
-fieldSel($("trainSettings"),"perset","Typical reps in a set",
-  [["6","About 6"],["8","About 8"],["10","About 10",1],["12","About 12"],["15","About 15"]]);
 fieldSel($("trainSettings"),"rest","Rest between sets",
   [["60","60 seconds"],["90","90 seconds",1],["120","2 minutes"],["180","3 minutes"]]);
 fieldSel($("trainSettings"),"lower","How you lower the weight",
   [["slow","Slowly, under control"],["normal","Normal tempo",1],["drop","Dropped or kipped"]],1);
 fieldSel($("trainSettings"),"intensity","How hard it felt",
   [["light","Easy, long rests"],["moderate","Moderate",1],["hard","Hard, barely resting"]],1);
-fieldSel($("trainSettings"),"band","Band strength",
-  [["8","Light, about 8 kg"],["14","Medium, about 14 kg",1],["20","Heavy, about 20 kg"]],1);
+(function(){   // colours now live on each exercise; only the loop length is global
+  const f = el("div","field wide");
+  const hidden = el("input"); hidden.type="hidden"; hidden.id="bandColor"; hidden.value="";
+  f.appendChild(hidden);
+  f.appendChild(el("p","tiny","Band colours are set on each exercise, because you rarely use the "
+    + "same loop for everything. THERA-BAND Band Loops: yellow 2.7, red 3.4, green 4.2, blue 5.3, "
+    + "black 6.6, silver 9.2, gold 13 kg at full stretch. Loops used together add up."));
+  $("trainSettings").appendChild(f);
+})();
+fieldNum($("trainSettings"),"bandLen","Band loop length, relaxed","cm",20,300,1);
+
 
 function simpleRow(host,id,name,unit,min,max,step,val){
   const row = el("div","lrow");
@@ -860,8 +1301,163 @@ function simpleRow(host,id,name,unit,min,max,step,val){
     unit:unit, aria:name, setting:true}));
   row.appendChild(sub); host.appendChild(row);
 }
+$("bandLen").value = 120;    // resting length of one loop
+
 simpleRow($("recovRows"),"sleep","Sleep last night","hours",3,11,0.5,7);
 simpleRow($("recovRows"),"water","Water drunk","ml",0,6000,100,3000);
+
+/* ==================================================================
+   BUILD: body type
+   ==================================================================
+   Somatotype is a rough 1940s typology, not a measurement, so it is used here
+   only to estimate body-fat percentage when you do not know your own. That
+   percentage is the figure that actually matters, because resting metabolism
+   tracks lean mass. Anyone who knows their real number should type it in and
+   overrule the picture. */
+/* The figures are drawn from proportions rather than pasted in as pictures, so
+   the file stays self-contained and works offline. Half-widths are in viewBox
+   units on a 60-wide canvas: shoulder, waist, hip and thigh. Male builds carry
+   the width at the shoulder, female builds at the hip, which is the honest
+   difference between the two sets. */
+const BUILD = {
+  male: {
+    ecto:{sh:10.5, wa:7.8,  hi:8.8,  th:4.5},
+    meso:{sh:14.0, wa:8.6,  hi:10.0, th:5.6},
+    endo:{sh:12.5, wa:12.6, hi:12.0, th:6.3},
+  },
+  female: {
+    ecto:{sh:9.2,  wa:7.0,  hi:10.0, th:4.9},
+    meso:{sh:11.4, wa:7.6,  hi:11.6, th:5.7},
+    endo:{sh:11.0, wa:11.4, hi:14.0, th:6.9},
+  },
+};
+
+/* One outline function describes the body; the SVG path is sampled straight from
+   it. That way the shape drawn is the shape defined, with nothing to drift. */
+function smooth(t){ return t*t*(3-2*t); }
+const FIG = {headR:6.2, headY:10.5, neckTop:16.5, shY:23, waY:45, hiY:58, ftY:95};
+
+function halfWidth(p, y){
+  const F = FIG;
+  if(y < F.shY) return 2.5;                                        // neck
+  if(y <= F.waY) return p.sh + (p.wa - p.sh)*smooth((y-F.shY)/(F.waY-F.shY));
+  if(y <= F.hiY) return p.wa + (p.hi - p.wa)*smooth((y-F.waY)/(F.hiY-F.waY));
+  return p.hi;
+}
+
+function figureSVG(p){
+  const F = FIG, c = 30, pts = [];
+  for(let y = F.neckTop; y <= F.hiY; y += 1.5) pts.push([y, halfWidth(p, y)]);
+  const left  = pts.map(([y,w]) => `${(c-w).toFixed(1)},${y.toFixed(1)}`);
+  const right = pts.slice().reverse().map(([y,w]) => `${(c+w).toFixed(1)},${y.toFixed(1)}`);
+  const torso = `<polygon points="${left.concat(right).join(" ")}"/>`;
+
+  // legs taper from the hip to the floor, with a gap between them
+  const gap = 1.0, tw = p.th;
+  const legs =
+    `<polygon points="${(c-p.hi).toFixed(1)},${F.hiY} ${(c-tw*1.5).toFixed(1)},${F.ftY} ` +
+    `${(c-tw*0.35).toFixed(1)},${F.ftY} ${(c-gap).toFixed(1)},${F.hiY}"/>` +
+    `<polygon points="${(c+p.hi).toFixed(1)},${F.hiY} ${(c+tw*1.5).toFixed(1)},${F.ftY} ` +
+    `${(c+tw*0.35).toFixed(1)},${F.ftY} ${(c+gap).toFixed(1)},${F.hiY}"/>`;
+
+  // arms hang outside the torso, so the waist stays visible between them
+  const aTop = p.sh, aBot = p.sh - 1.2, th = 3.1;
+  const arms =
+    `<polygon points="${(c-aTop-0.3).toFixed(1)},${F.shY} ${(c-aBot-0.3).toFixed(1)},${F.hiY-1} ` +
+    `${(c-aBot+th).toFixed(1)},${F.hiY-1} ${(c-aTop+th).toFixed(1)},${F.shY}"/>` +
+    `<polygon points="${(c+aTop+0.3).toFixed(1)},${F.shY} ${(c+aBot+0.3).toFixed(1)},${F.hiY-1} ` +
+    `${(c+aBot-th).toFixed(1)},${F.hiY-1} ${(c+aTop-th).toFixed(1)},${F.shY}"/>`;
+
+  return `<svg viewBox="0 0 60 100" aria-hidden="true">`
+       + `<circle cx="${c}" cy="${F.headY}" r="${F.headR}"/>`
+       + torso + legs + arms + `</svg>`;
+}
+
+const SOMATOTYPES = [
+  {k:"ecto", name:"Ectomorph", desc:"Narrow frame, lean, gains weight slowly",
+   fat:{male:12, female:20}},
+  {k:"meso", name:"Mesomorph", desc:"Broad shoulders, muscular, gains muscle easily",
+   fat:{male:18, female:25}},
+  {k:"endo", name:"Endomorph", desc:"Wider build, softer, gains weight easily",
+   fat:{male:26, female:33}},
+];
+
+(function(){
+  const card = el("div","field wide");
+  card.appendChild(el("label",null,"Build \u2014 used only to estimate body fat"))
+      .setAttribute("for","bodyType");
+  const hidden = el("input"); hidden.type="hidden"; hidden.id="bodyType"; hidden.value="";
+  card.appendChild(hidden);
+  SETTING_IDS.push("bodyType");
+
+  const prompt = el("p","tiny"); prompt.id = "typePrompt";
+  card.appendChild(prompt);
+  const grid = el("div","types"); grid.id = "typeGrid";
+  card.appendChild(grid);
+
+  SOMATOTYPES.forEach(t => {
+    const b = el("button","type"); b.id = "type_"+t.k;
+    b.type = "button";
+    b.addEventListener("click", () => {
+      const already = hidden.value === t.k;
+      hidden.value = already ? "" : t.k;
+      ["ecto","meso","endo"].forEach(k => $("type_"+k).classList.remove("on"));
+      if(!already) b.classList.add("on");
+      applyTypeFat();
+      update(); rememberLast();
+    });
+    grid.appendChild(b);
+  });
+
+  const row = el("div","bfrow");
+  const lab = el("label","tiny","Or your body fat, if you know it");
+  lab.setAttribute("for","bodyFat");
+  row.appendChild(lab);
+  const i = el("input"); i.type="number"; i.id="bodyFat"; i.placeholder="%";
+  i.min=3; i.max=60; i.step=0.5; i.value="";
+  i.setAttribute("inputmode","decimal");
+  i.className = "bfinput";
+  i.addEventListener("input", () => { update(); rememberLast(); });
+  row.appendChild(i);
+  card.appendChild(row);
+  const note = el("p","tiny"); note.id = "bodyNote";
+  card.appendChild(note);
+  $("bodyFields").appendChild(card);
+  SETTING_IDS.push("bodyFat");
+  /* Only now is the card in the document, so getElementById can see the grid.
+     Drawing before this point throws in a browser and kills the whole script. */
+  drawTypes();
+})();
+
+/* Redraw the three figures for whichever sex is selected. Nothing is shown
+   before that, because a build means different proportions for each. */
+function drawTypes(){
+  const sex = $("sex").value;
+  const grid = $("typeGrid"), prompt = $("typePrompt");
+  if(!sex){
+    grid.classList.add("hidden");
+    prompt.textContent = "Choose your sex above and the builds will appear here.";
+    return;
+  }
+  grid.classList.remove("hidden");
+  prompt.textContent = "";
+  SOMATOTYPES.forEach(t => {
+    const b = $("type_"+t.k);
+    b.innerHTML = figureSVG(BUILD[sex][t.k])
+      + `<span class="tn">${t.name}</span><span class="td">${t.desc}</span>`;
+    b.setAttribute("aria-label",
+      t.name+". "+t.desc+". Typically around "+t.fat[sex]+" per cent body fat.");
+  });
+}
+
+/* The picture only fills in a starting estimate; a typed figure always wins. */
+function applyTypeFat(){
+  const k = $("bodyType").value;
+  const t = SOMATOTYPES.find(x => x.k === k);
+  if(!t) return;
+  const male = $("sex").value !== "female";
+  $("bodyFat").value = t.fat[male ? "male" : "female"];
+}
 
 /* ==================================================================
    VISIBILITY.  A row appears if it holds a value, is part of your usual
@@ -895,54 +1491,140 @@ function openSheet(title, buildBody){
   sheetOpen = true;
 }
 function closeSheet(){
+  restoreRows();
   $("sheet").classList.remove("on"); $("scrim").classList.remove("on");
   sheetOpen = false;
+  update();
 }
 $("scrim").addEventListener("click", closeSheet);
 $("sheetX").addEventListener("click", closeSheet);
 document.addEventListener("keydown", ev => { if(ev.key === "Escape" && sheetOpen) closeSheet(); });
 
-function pickerSheet(kind, title, placeholder){
-  openSheet(title, body => {
-    const q = el("input","search"); q.type="search"; q.placeholder=placeholder;
-    q.setAttribute("aria-label", placeholder);
-    body.appendChild(q);
-    const list = el("div");
-    body.appendChild(list);
+function buildPicker(kind, body, placeholder, after, opts){
+  opts = opts || {};
+  const q = el("input","search"); q.type="search"; q.placeholder=placeholder;
+  q.setAttribute("aria-label", placeholder);
+  body.appendChild(q);
+  const list = el("div");
+  body.appendChild(list);
+  const stage = el("div","stage");       // the one thing you just picked
+  body.appendChild(stage);
+  let browsing = false;
 
-    function draw(filter){
-      list.innerHTML = "";
-      let group = null, shown = 0;
-      CATALOG[kind].forEach(item => {
-        if(filter && (item.name+" "+item.group+" "+item.meta).toLowerCase().indexOf(filter) < 0) return;
-        const already = !$(item.rowId).classList.contains("hide");
-        if(item.group !== group){ group = item.group; list.appendChild(el("div","pickgroup",group)); }
-        const b = el("button","pick");
-        b.type = "button";
-        b.innerHTML = `<span>${item.name}${item.meta?` <span class="pk">${item.meta}</span>`:""}</span>`
-                    + `<span class="plus">${already ? "\u2713" : "+"}</span>`;
-        b.addEventListener("click", () => {
-          item.ctlIds.forEach(id => PINNED.add(id));
-          refreshVisibility();
-          closeSheet();
-          const row = $(item.rowId);
-          row.scrollIntoView({block:"center", behavior:"smooth"});
-          const first = $(item.ctlIds[0]);
-          if(first) setTimeout(() => first.focus(), 340);
+  function openItem(item){
+    restoreRows();                       // whatever was staged before goes home
+    item.ctlIds.forEach(id => PINNED.add(id));
+    refreshVisibility();
+    stage.innerHTML = "";
+    const head = el("div","stagehead", item.name
+      + (item.meta ? ` <span class="pk">${item.meta}</span>` : ""));
+    stage.appendChild(head);
+    stage.appendChild($(item.rowId));    // the real row, moved here
+    const done = el("button","btn sm line","Done");
+    done.type = "button";
+    const finish = () => {
+      restoreRows(); stage.innerHTML = ""; update(); liveOff();
+      q.value = ""; browsing = false; draw("");
+      setTimeout(() => q.focus(), 60);
+    };
+    done.addEventListener("click", finish);
+    stage.appendChild(done);
+    // Enter on any of this item's numbers means "that's it, next"
+    item.ctlIds.forEach(id => {
+      const n = $(id);
+      if(n && !n.__entered){
+        n.__entered = true;
+        n.addEventListener("keydown", ev => {
+          if(ev.key === "Enter"){ ev.preventDefault(); finish(); }
         });
-        list.appendChild(b); shown++;
-      });
-      if(!shown) list.appendChild(el("p","tiny","Nothing matches that."));
+      }
+    });
+    liveOn();
+    update();
+    const first = $(item.ctlIds[0]);
+    if(first && first.focus) setTimeout(() => first.focus(), 120);
+  }
+
+  function pool(){
+    return CATALOG[kind].filter(it => !opts.filter || opts.filter(it));
+  }
+  function draw(filter){
+    list.innerHTML = "";
+    const avail = pool();
+    if(!filter && !browsing){
+      // Search first: a wall of a hundred options is not a menu, it is a haystack.
+      list.appendChild(el("p","tiny", opts.hint || "Start typing to find what you want."));
+      const br = el("button","btn sm line","Or browse all "+avail.length);
+      br.type = "button";
+      br.style.marginTop = "9px";
+      br.addEventListener("click", () => { browsing = true; draw(""); });
+      list.appendChild(br);
+      return;
     }
-    draw("");
-    q.addEventListener("input", () => draw(q.value.trim().toLowerCase()));
+    let group = null, shown = 0;
+    avail.forEach(item => {
+      if(filter && (item.name+" "+item.group+" "+item.meta+" "+(item.alias||""))
+          .toLowerCase().indexOf(filter) < 0) return;
+      const already = !$(item.rowId).classList.contains("hide");
+      if(item.group !== group){ group = item.group; list.appendChild(el("div","pickgroup",group)); }
+      const b = el("button","pick");
+      b.type = "button";
+      b.innerHTML = `<span>${item.name}${item.meta?` <span class="pk">${item.meta}</span>`:""}</span>`
+                  + `<span class="plus">${already ? "\u2713" : "+"}</span>`;
+      b.addEventListener("click", () => openItem(item));
+      list.appendChild(b); shown++;
+    });
+    if(!shown) list.appendChild(el("p","tiny","Nothing matches that."));
+  }
+  draw("");
+  q.addEventListener("input", () => { browsing = false; draw(q.value.trim().toLowerCase()); });
+  q.redraw = () => { browsing = false; draw(q.value.trim().toLowerCase()); };
+  return q;
+}
+
+/* Push / pull / legs / core, multi-select. Returns a live Set. */
+function splitChips(host, onChange, keys){
+  const chosen = new Set();
+  const wrap = el("div","chips");
+  (keys || ["push","pull","legs","core","cardio"]).forEach(k => {
+    const b = el("button","chip", SPLIT_NAMES[k]);
+    b.type = "button";
+    b.addEventListener("click", () => {
+      if(chosen.has(k)){ chosen.delete(k); b.classList.remove("on"); }
+      else { chosen.add(k); b.classList.add("on"); }
+      onChange(chosen);
+    });
+    wrap.appendChild(b);
+  });
+  host.appendChild(wrap);
+  return chosen;
+}
+
+function pickerSheet(kind, title, placeholder, opts){
+  openSheet(title, body => {
+    const q = buildPicker(kind, body, placeholder, null, opts);
     setTimeout(() => q.focus(), 120);
   });
 }
 $("addFood").addEventListener("click", () => pickerSheet("food","Add something you ate","Search foods"));
-$("addRep").addEventListener("click", () => pickerSheet("rep","Add an exercise","Search exercises"));
+$("addRep").addEventListener("click", () => {
+  openSheet("Add an exercise", body => {
+    let q;
+    const chosen = splitChips(body, () => { if(q && q.redraw) q.redraw(); });
+    q = buildPicker("rep", body, "Search exercises", null, {
+      filter: it => !chosen.size || chosen.has(it.split),
+      hint: "Pick a split above, or just type the movement."
+    });
+    setTimeout(() => q.focus(), 120);
+  });
+});
 $("addCond").addEventListener("click", () => pickerSheet("cond","Add an activity","Search activities"));
 $("addChore").addEventListener("click", () => pickerSheet("chore","Add a chore","Search chores"));
+
+/* A small live readout while you are entering something, so the effect of the
+   number you are typing is visible without leaving the field. */
+function liveOn(){ $("live").classList.add("on"); update(); }
+function liveOff(){ $("live").classList.remove("on"); }
 
 /* ==================================================================
    TABS
@@ -974,6 +1656,35 @@ window.addEventListener("scroll", () => {
 
 function metKcal(met, minutes, weight){ return (met-1)*3.5*weight/200*minutes; }
 
+/* How much of the day has actually happened. Resting metabolism ticks through
+   the night as well, so it accrues against the clock; everything else only
+   accrues while you are awake. Comparing a full day's burn against a half day's
+   food is what made a normal morning look like a large deficit. */
+function dayProgress(){
+  const now = new Date();
+  const hours = now.getHours() + now.getMinutes()/60;
+  const wake = +($("wake")||{}).value || 7;
+  const sleep = +($("sleep")||{}).value || 7;
+  const awakeWindow = Math.max(8, 24 - sleep);
+  return {
+    hours,
+    rest: Math.min(1, Math.max(0.02, hours/24)),
+    awake: Math.min(1, Math.max(0, (hours - wake)/awakeWindow)),
+  };
+}
+
+/* Resting rate. With a body-fat figure the Katch-McArdle equation is the better
+   one, because it works from lean mass, which is what actually burns the energy.
+   Without one, Mifflin-St Jeor from height, weight, age and sex. */
+function restingRate(weight, height, age, male, bodyFat){
+  const mifflin = 10*weight + 6.25*height - 5*age + (male ? 5 : -161);
+  if(bodyFat > 0){
+    const lean = weight * (1 - bodyFat/100);
+    return {kcal: 370 + 21.6*lean, method:"katch", lean, mifflin};
+  }
+  return {kcal: mifflin, method:"mifflin", lean:null, mifflin};
+}
+
 function readFood(){
   let kcal=0,p=0,c=0,f=0,fib=0; const groupTot={}, lines=[];
   for(const id in foodIndex){
@@ -992,53 +1703,54 @@ function readFood(){
 }
 
 function readStrength(weight, heightCm){
-  const rest=+$("rest").value || 90, perSet=+$("perset").value || 10,
+  const rest=+$("rest").value || 90,
         metOh=MET_OVERHEAD[$("intensity").value] || MET_OVERHEAD.moderate,
-        bandKg=+$("band").value || 14,
+        bandL0 = Math.max(0.10, (+$("bandLen").value || 120)/100),            // metres
         ecc=LOWERING[$("lower").value] !== undefined ? LOWERING[$("lower").value] : LOWERING.normal,
         A=anthro(heightCm);
   let sets=0, seconds=0, reps=0, upJ=0; const lines=[];
 
-  REPS.forEach(ex => {
-    const h = ex.h(A), added = ex.add ? +$("l_"+ex.id).value : 0;
-    let rowReps=0, rowJ=0, parts=[];
-    repEntries(ex).forEach(en => {
-      const n = +$(en.key).value;
-      $(en.key).classList.toggle("hot", n>0);
-      if(!n) return;
-      const load = en.weighted ? added : 0;
-      const J = G*h*(ex.mb*weight + ex.lf*load);
-      const effKg = J/(G*h);
-      rowJ += J*n; rowReps += n; upJ += J*n; reps += n;
-      const s = Math.max(1, Math.round(n/perSet));
-      sets += s; seconds += n*3 + s*rest;
-      parts.push(`${n} &times; ${Math.round(effKg)} kg lifted ${(h*100).toFixed(0)} cm`);
-      lines.push({label:ex.name+(en.weighted&&added?` (+${added} kg)`:""),
-        work:`${n} reps &times; ${Math.round(effKg)} kg &times; 9.81 &times; ${h.toFixed(2)} m`,
-        J:J*n});
-    });
-    if(ex.add) $("l_"+ex.id).classList.toggle("hot", added>0);
+  function runExercise(ex, bandOnly){
+    const h = ex.h(A);
+    let rowReps = 0, rowJ = 0, parts = [];
+    const n = ENTRY_COUNT[ex.id] || 0;
+    for(let i = 1; i <= n; i++){
+      const r = +($("er_"+ex.id+"_"+i)||{}).value || 0;
+      if(!r) continue;
+      const mode = ((($("em_"+ex.id+"_"+i)||{}).value) || (bandOnly ? "band" : "bw"));
+      let J = 0, note = "";
+      if(mode === "bw"){
+        J = G*h*ex.mb*weight;
+        note = `${r} at body weight, ${n1(ex.mb*weight)} kg through ${(h*100).toFixed(0)} cm`;
+      } else if(mode === "wt"){
+        const kg = +($("ew_"+ex.id+"_"+i)||{}).value || 0;
+        J = G*h*(ex.mb*weight + ex.lf*kg);
+        note = `${r} with ${kg} kg`;
+      } else {
+        const F = bandForce("eb_"+ex.id+"_"+i);
+        const pre = (+($("ep_"+ex.id+"_"+i)||{}).value || 0)/100;
+        const k = F / bandL0;
+        J = k*(pre*h + h*h/2);
+        note = `${r} on bands, ${n1(k*(pre+h/2)/G)} kg average pull`;
+      }
+      rowJ += J*r; rowReps += r; upJ += J*r; reps += r;
+      /* Each logged entry is one set, so the count is exact rather than
+         estimated from a typical set length. */
+      sets += 1; seconds += r*3 + rest;
+      parts.push(note);
+      lines.push({label:ex.name+", set "+i,
+        work:`${r} reps &times; ${n1(J/(G*h))} kg-equivalent &times; 9.81 &times; ${h.toFixed(2)} m`,
+        J:J*r});
+    }
     $("a_"+ex.id).innerHTML = rowReps>0
       ? `<b>${rowReps}</b> reps<br>${parts.join("<br>")}<br>${n1(rowJ*(1+ecc)/EFFICIENCY/KCAL_J)} kcal`
       : `<b>0</b> reps`;
-    $("exrow_"+ex.id).classList.toggle("zero", rowReps===0);
-  });
+    const row = $((bandOnly?"row_":"exrow_")+ex.id);
+    if(row) row.classList.toggle("zero", rowReps===0);
+  }
 
-  BANDS.forEach(b => {
-    const n = +$("rb_"+b.id).value, h = b.h(A), F = bandKg*G*0.75, J = F*h;
-    $("rb_"+b.id).classList.toggle("hot", n>0);
-    const row = $("row_"+b.id);
-    row.classList.toggle("zero", n===0); row.classList.toggle("on", n>0); row.classList.toggle("mv", n>0);
-    $("a_"+b.id).innerHTML = n>0
-      ? `<b>${n}</b> reps<br>${n1(J*n*(1+ecc)/EFFICIENCY/KCAL_J)} kcal` : `<b>0</b> reps`;
-    if(!n) return;
-    upJ += J*n; reps += n;
-    const s = Math.max(1, Math.round(n/perSet));
-    sets += s; seconds += n*3 + s*rest;
-    lines.push({label:b.name,
-      work:`${n} reps &times; ${(bandKg*0.75).toFixed(1)} kg tension &times; 9.81 &times; ${h.toFixed(2)} m`,
-      J:J*n});
-  });
+  REPS.forEach(ex => runExercise(ex, false));
+  BANDS.forEach(b => runExercise(b, true));
 
   const minutes = seconds/60;
   const liftKcal = upJ/EFFICIENCY/KCAL_J;
@@ -1128,14 +1840,24 @@ function compute(){
   const food = readFood(), st = readStrength(weight,height),
         timed = readTimed(weight), cardio = readCardio(weight), chores = readChores(weight);
 
-  const bmr = 10*weight + 6.25*height - 5*age + (male?5:-161);
+  const bodyFat = +$("bodyFat").value || 0;
+  const rr = restingRate(weight, height, age, male, bodyFat);
+  const bmr = rr.kcal;
   const neat = bmr*neatRate;
+  const prog = dayProgress();
   const protShare = food.kcal>0 ? (food.p*4)/food.kcal : 0;
   const tefRate = 0.09 + 0.09*protShare;
   const tef = food.kcal*tefRate;
   const sleepAdj = sleep<6 ? -0.02*bmr : 0;
   const activity = st.kcal + timed.kcal + cardio.kcal + chores.kcal;
+
+  /* Two honest totals. "So far" is what your body has actually spent by now and
+     is the only fair comparison against the food logged so far. "Full day" is
+     where it lands by midnight if nothing else is eaten or done, and is the only
+     figure from which a tissue change can be worked out. */
+  const outSoFar = bmr*prog.rest + neat*prog.awake + tef + activity + sleepAdj;
   const out = bmr + neat + tef + activity + sleepAdj;
+  const balanceSoFar = food.kcal - outSoFar;
   const balance = food.kcal - out;
   const ppk = food.p/weight;
   const lifted = st.reps>0;
@@ -1172,7 +1894,8 @@ function compute(){
   }
 
   const waterTarget = 35*weight + 600*((st.minutes+timed.minutes)/60) + 400*(chores.minutes/120);
-  return {ready,weight,height,age,male,food,st,timed,cardio,chores,bmr,neat,tef,tefRate,protShare,
+  return {ready,weight,height,age,male,bodyFat,rr,prog,outSoFar,balanceSoFar,
+          food,st,timed,cardio,chores,bmr,neat,tef,tefRate,protShare,
           sleepAdj,activity,out,balance,fatKg,leanKg,capped,part,ppk,water,waterTarget,
           sleep,level,lifted,neatRate};
 }
@@ -1186,7 +1909,9 @@ let lastD = null, inDiff = false;
 function update(){
   const d = compute();
   const ready = d.ready;
-  const inK = d.food.kcal, outK = ready ? d.out : 0, bal = d.balance;
+  const inK = d.food.kcal;
+  const outK = ready ? d.outSoFar : 0;      // spent by now, not by midnight
+  const bal = d.balanceSoFar;
   const empty = !ready || inK === 0;
 
   $("gate").classList.toggle("hidden", ready);
@@ -1195,10 +1920,19 @@ function update(){
   const sign = v => (v>=0?"+":"\u2212")+kc(Math.abs(v));
   $("heroBig").textContent  = empty ? "\u2014" : sign(bal);
   $("heroBig").style.color  = empty ? "var(--muted)" : (bal>=0 ? "var(--fat)" : "var(--out)");
-  $("heroLbl").textContent  = empty ? "Balance" : (bal>=0 ? "Surplus today" : "Deficit today");
-  $("heroCap").textContent  = !ready ? "Waiting on your details"
+  const clock = d.prog ? d.prog.hours : 12;
+  const hh = String(Math.floor(clock)).padStart(2,"0")+":"+String(Math.floor((clock%1)*60)).padStart(2,"0");
+  $("heroLbl").textContent  = empty ? "Balance"
+    : (bal>=0 ? "Ahead so far, by " + hh : "Behind so far, by " + hh);
+  $("heroCap").innerHTML = !ready ? "Waiting on your details"
     : (inK===0 ? "Nothing logged yet"
-    : (bal>=0 ? "kcal more than your body spent" : "kcal short, so the gap comes off you"));
+    : (bal>=0 ? "kcal more than your body has spent so far today"
+              : "kcal less than your body has spent so far today")
+      + ($("dayDone").value === "1"
+          ? `<br><span class="proj">Day closed. Full day: <b>${(d.balance>=0?"+":"\u2212")
+             + kc(Math.abs(d.balance))}</b> kcal.</span>`
+          : `<br><span class="proj">Your body will spend about <b>${kc(d.out - d.outSoFar)}</b> more `
+            + `kcal before midnight, whatever else you eat.</span>`));
 
   const scale = Math.max(inK, outK, 1) * 1.02;
   $("barIn").style.width  = (ready ? inK/scale*100 : 0)+"%";
@@ -1207,12 +1941,60 @@ function update(){
   $("valOut").textContent = ready ? kc(outK) : "\u2014";
 
   // ---- tiles ----
+  /* A gram of tissue is a claim about a finished day. Until the day is closed the
+     person may well eat three more meals, so no fat or muscle figure is shown;
+     the tiles carry something useful instead. And even for a closed day the
+     honest unit is a rate, not an event: muscle does not measurably move in
+     twenty-four hours, it moves over weeks of days like this one. */
+  const done = $("dayDone").value === "1";
   const fatG = empty ? 0 : d.fatKg*1000, leanG = empty ? 0 : d.leanKg*1000;
-  $("tileFatL").textContent = empty ? "Body fat" : (fatG>=0 ? "Fat stored" : "Fat burned");
-  $("tileFat").textContent  = empty ? "\u2014" : Math.abs(fatG).toFixed(0)+" g";
-  $("tileLean").textContent = empty ? "\u2014"
-    : (leanG>=0?"+":"\u2212")+Math.abs(leanG).toFixed(0)+" g";
+  const u = activeUser();
+  const usualIn = (u && u.usual) ? usualIntake(u.usual) : 0;
+
+  if(!ready || !done){
+    $("tileFatL").textContent = usualIn > 0 ? "Still to eat" : "Taken so far";
+    $("tileFat").textContent  = !ready ? "\u2014"
+      : (usualIn > 0 ? kc(Math.max(0, usualIn - inK)) : kc(inK));
+    $("tileFatU").textContent = usualIn > 0 ? "to reach your usual day" : "kcal";
+    $("tileLeanL").textContent = "Spent so far";
+    $("tileLean").textContent  = ready ? kc(outK) : "\u2014";
+    $("tileLeanU").textContent = "of " + (ready ? kc(d.out) : "\u2014") + " by midnight";
+  } else {
+    $("tileFatL").textContent = fatG >= 0 ? "Fat, if repeated" : "Fat, if repeated";
+    $("tileFat").textContent  = (fatG>=0?"+":"\u2212")+Math.abs(d.fatKg*7).toFixed(2)+" kg";
+    $("tileFatU").textContent = "per week of days like this";
+    $("tileLeanL").textContent = "Muscle, if repeated";
+    $("tileLean").textContent  = (leanG>=0?"+":"\u2212")+Math.abs(d.leanKg*7).toFixed(2)+" kg";
+    $("tileLeanU").textContent = "per week of days like this";
+  }
   $("tileProt").textContent = ready && inK>0 ? d.ppk.toFixed(1)+" g/kg" : "\u2014";
+  $("tileProtU").textContent = ready && inK>0 ? Math.round(d.food.p)+" g today" : "";
+
+  renderCloseRow(ready, done, d, usualIn, inK);
+
+  /* A short line so the front page says what is already logged, without
+     needing a trip to the other tabs. */
+  if($("quickNote")){
+    const foods = Object.keys(foodIndex).filter(id => (+$("f_"+id).value) > 0).length;
+    const moves = CATALOG.rep.filter(it =>
+      it.ctlIds.some(id => (+($(id)||{}).value) > 0)).length;
+    const chores = CATALOG.chore.filter(it =>
+      it.ctlIds.some(id => (+($(id)||{}).value) > 0)).length;
+    const bits = [];
+    if(foods)  bits.push(foods + (foods===1?" food":" foods"));
+    if(moves)  bits.push(moves + (moves===1?" exercise":" exercises"));
+    if(chores) bits.push(chores + (chores===1?" chore":" chores"));
+    $("quickNote").textContent = bits.length
+      ? "On today's list: " + bits.join(", ") + "."
+      : "Nothing logged yet today.";
+  }
+
+  // ---- live readout, shown while an item is being entered ----
+  $("liveIn").textContent  = ready ? kc(inK) : "\u2014";
+  $("liveOut").textContent = ready ? kc(outK) : "\u2014";
+  $("liveBal").textContent = empty ? "\u2014" : sign(bal);
+  $("liveBal").style.color = empty ? "" : (bal>=0 ? "var(--fat)" : "var(--out)");
+  $("liveLbl").textContent = empty ? "net" : (bal>=0 ? "storing" : "burning");
 
   // ---- status strip ----
   $("sIn").textContent  = ready ? kc(inK) : "\u2014";
@@ -1231,6 +2013,16 @@ function update(){
   $("choreTot").textContent = !ready ? "" : (d.chores.kcal>0
     ? `${Math.round(d.chores.minutes)} min, ${kc(d.chores.kcal)} kcal` : "");
   $("bmrTot").textContent   = ready ? kc(d.bmr)+" kcal at rest" : "details needed";
+  if($("bodyNote")){
+    const bf = d.bodyFat;
+    $("bodyNote").innerHTML = bf > 0
+      ? `At ${n1(bf)}% fat you carry about <b>${n1(d.weight*(1-bf/100))} kg</b> of lean mass, so `
+        + `resting metabolism is worked out with Katch-McArdle `
+        + `(370 + 21.6 &times; lean kg) = <b>${kc(d.bmr)}</b> kcal, rather than from height and age.`
+      : `Without a body-fat figure, resting metabolism uses Mifflin-St Jeor from your height, `
+        + `weight, age and sex. Picking a build above fills in a rough estimate; a measured `
+        + `percentage is far better, since lean mass is what actually burns the energy.`;
+  }
   $("amt_water").innerHTML  = `<b>${$("water").value}</b> ml`;
   $("amt_sleep").innerHTML  = `<b>${$("sleep").value}</b> hours`;
 
@@ -1263,6 +2055,7 @@ function update(){
 
   renderFlags(d, empty);
   lastD = d;
+  if(activeTab === "today") renderHistory();
   refreshVisibility();
 
   if(!inDiff && activeUser() && activeUser().usual){
@@ -1294,6 +2087,164 @@ function syncRowValues(){
   HOLDS.concat(COND).forEach(([id]) => mirror("a_"+id, "row_"+id));
   CARDIO.forEach(([id]) => mirror("a_"+id, "row_"+id));
   CHORES.forEach(([id]) => mirror("a_"+id, "row_"+id));
+}
+
+/* ==================================================================
+   HISTORY.  Every day you log is kept, so the month can be replayed and
+   the fat figures added up into something the scale can be checked against.
+   ================================================================== */
+let histCache = null, histAt = 0;
+
+function monthHistory(force){
+  const u = activeUser();
+  if(!u || !u.days) return null;
+  const now = Date.now();
+  if(!force && histCache && now - histAt < 1500) return histCache;
+
+  const today = todayKey();
+  const keys = Object.keys(u.days).sort().slice(-31);
+  const rows = [];
+  keys.forEach(k => {
+    const snap = u.days[k];
+    const res = usingSnapshot(snap, compute);
+    if(!res.ready) return;
+    const closed = String(snap.dayDone || "0") === "1";
+    if(res.food.kcal <= 0) return;                 // a day with no food is a day not logged
+    rows.push({date:k, today:k === today, closed,
+               inK:res.food.kcal, out:res.out, bal:res.balance,
+               fat:res.fatKg, lean:res.leanKg, prot:res.food.p, weight:res.weight});
+  });
+  compute();                                       // repaint the live day
+  histCache = rows; histAt = now;
+  return rows;
+}
+
+/* A small bar chart of daily balance with the running fat total drawn over it.
+   Inline SVG, so it costs nothing and prints. */
+function historySVG(rows){
+  const W = 320, H = 132, pad = 4;
+  const mid = 66;
+  const maxBal = Math.max(600, ...rows.map(r => Math.abs(r.bal)));
+  const bw = Math.max(3, Math.min(14, (W - pad*2) / Math.max(rows.length,1) - 2));
+  const step = (W - pad*2) / Math.max(rows.length,1);
+  let bars = "", line = [], cum = 0;
+  const cumVals = rows.map(r => { cum += r.fat; return cum; });
+  const maxCum = Math.max(0.15, ...cumVals.map(Math.abs));
+
+  rows.forEach((r,i) => {
+    const x = pad + i*step + (step-bw)/2;
+    const h = Math.abs(r.bal)/maxBal * (mid - 10);
+    const y = r.bal >= 0 ? mid - h : mid;
+    const fill = r.bal >= 0 ? "var(--fat)" : "var(--out)";
+    bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" `
+          + `height="${Math.max(1.5,h).toFixed(1)}" rx="1.5" fill="${fill}" `
+          + `opacity="${r.today ? 0.45 : 0.85}"><title>${r.date}: `
+          + `${r.bal>=0?"+":"\u2212"}${Math.abs(Math.round(r.bal))} kcal</title></rect>`;
+    const ly = H - 12 - (cumVals[i]/maxCum) * 0.5 * (H - 30);
+    line.push(`${(pad + i*step + step/2).toFixed(1)},${Math.max(6,Math.min(H-6,ly)).toFixed(1)}`);
+  });
+
+  return `<svg viewBox="0 0 ${W} ${H}" class="hchart" role="img" `
+       + `aria-label="Daily energy balance across ${rows.length} logged days">`
+       + `<line x1="${pad}" y1="${mid}" x2="${W-pad}" y2="${mid}" stroke="var(--line)" stroke-width="1"/>`
+       + bars
+       + (line.length > 1 ? `<polyline points="${line.join(" ")}" fill="none" `
+           + `stroke="var(--lean)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` : "")
+       + `</svg>`;
+}
+
+function renderHistory(){
+  const host = $("histBody");
+  if(!host) return;
+  const rows = monthHistory();
+  if(!rows || rows.length < 2){
+    host.innerHTML = `<p class="lead">Once you have logged a couple of days this will show the
+      month: a bar for each day's balance, the running fat total over the top, and what it all
+      averages out to.</p>`;
+    return;
+  }
+  const n = rows.length;
+  const sum = f => rows.reduce((s,r) => s + f(r), 0);
+  const fatKg = sum(r => r.fat), leanKg = sum(r => r.lean);
+  const avgIn = sum(r => r.inK)/n, avgOut = sum(r => r.out)/n, avgProt = sum(r => r.prot)/n;
+  const w0 = rows[0].weight, w1 = rows[n-1].weight;
+  const open = rows.filter(r => !r.closed && !r.today).length;
+
+  let h = `<div class="bignum ${fatKg>=0?"c-fat":"c-out"}">`
+        + `${fatKg>=0?"+":"\u2212"}${Math.abs(fatKg).toFixed(2)} kg</div>`
+        + `<p class="lead" style="margin-top:2px">of body fat ${fatKg>=0?"gained":"burned"} across `
+        + `${n} logged day${n>1?"s":""}, adding up each day's balance.</p>`;
+  h += historySVG(rows);
+  h += `<p class="tiny" style="margin-top:4px">Each bar is one day: plum above the line for a surplus,
+        teal below for a deficit. The green line is the running fat total. Today's bar is faded,
+        since it is not finished.</p>`;
+  h += `<div class="hstats">
+          <div><span>Average in</span><b>${kc(avgIn)}</b></div>
+          <div><span>Average used</span><b>${kc(avgOut)}</b></div>
+          <div><span>Average protein</span><b>${Math.round(avgProt)} g</b></div>
+          <div><span>Muscle, modelled</span><b>${leanKg>=0?"+":"\u2212"}${Math.abs(leanKg).toFixed(2)} kg</b></div>
+        </div>`;
+  if(w0 && w1 && Math.abs(w1-w0) > 0.05){
+    const actual = w1 - w0, predicted = fatKg + leanKg;
+    const gap = actual - predicted;
+    h += `<p class="tiny" style="margin-top:10px">Your logged weight went ${n1(w0)} &rarr; ${n1(w1)} kg,
+      a change of <b>${actual>=0?"+":"\u2212"}${Math.abs(actual).toFixed(2)} kg</b>, against
+      ${predicted>=0?"+":"\u2212"}${Math.abs(predicted).toFixed(2)} kg modelled.`;
+    if(Math.abs(gap) > 0.5 && n >= 10){
+      h += ` That is ${Math.abs(gap).toFixed(2)} kg apart, which suggests your real maintenance is
+        about ${Math.round(Math.abs(gap)*7700/n)} kcal ${gap > 0 ? "higher" : "lower"} than the
+        estimate. Trust the scale.`;
+    } else if(n < 10){
+      h += ` Too few days to read anything into the difference yet.`;
+    }
+    h += `</p>`;
+  }
+  if(open > 0){
+    h += `<p class="tiny" style="margin-top:8px">${open} of these day${open>1?"s were":" was"} never
+      closed, so ${open>1?"they":"it"} may be missing an evening meal.</p>`;
+  }
+  host.innerHTML = h;
+}
+
+/* What a saved usual day adds up to, so "still to eat" means something. */
+function usualIntake(snap){
+  let k = 0;
+  for(const id in foodIndex){
+    const v = parseFloat(snap["f_"+id] || 0) || 0;
+    k += v * foodIndex[id].kcal;
+  }
+  return k;
+}
+
+function renderCloseRow(ready, done, d, usualIn, inK){
+  const host = $("closeRow");
+  host.innerHTML = "";
+  if(!ready) return;
+  if(!done){
+    const left = usualIn > 0 ? Math.max(0, usualIn - inK) : 0;
+    const p = el("p","tiny", left > 0
+      ? `Fat and muscle figures appear once you close the day. You are about ${kc(left)} kcal `
+        + `short of your usual intake, so there is probably more eating to come.`
+      : `Fat and muscle figures appear once you close the day, since what you eat this evening `
+        + `changes them completely.`);
+    host.appendChild(p);
+    const b = el("button","btn sm primary","That is everything for today");
+    b.type = "button";
+    b.addEventListener("click", () => {
+      $("dayDone").value = "1"; update(); rememberLast();
+    });
+    host.appendChild(b);
+  } else {
+    const b = el("button","btn sm line","Reopen the day");
+    b.type = "button";
+    b.addEventListener("click", () => {
+      $("dayDone").value = "0"; update(); rememberLast();
+    });
+    host.appendChild(b);
+    host.appendChild(el("p","tiny","Day closed. The figures above are rates: what a week of days "
+      + "like this one would do, not something that happened in the last twenty-four hours. "
+      + "Muscle and fat move slowly enough that only the scale over a fortnight can confirm them."));
+  }
 }
 
 function renderFlags(d, empty){
@@ -1425,12 +2376,23 @@ function renderCalcInto(p, d){
 
   h += `<h3>What your body spent</h3>`;
   const out = [];
-  out.push({label:"Resting metabolism",
-    work:`Mifflin&ndash;St Jeor: 10 &times; ${d.weight} + 6.25 &times; ${d.height} &minus; 5 &times; ${d.age} ${d.male?"+ 5":"&minus; 161"}`,
+  out.push({label:"Resting metabolism, whole day",
+    work: d.rr.method === "katch"
+      ? `Katch&ndash;McArdle: 370 + 21.6 &times; ${n1(d.rr.lean)} kg lean `
+        + `(${d.weight} kg at ${n1(d.bodyFat)}% fat). Mifflin&ndash;St Jeor would say ${kc(d.rr.mifflin)}.`
+      : `Mifflin&ndash;St Jeor: 10 &times; ${d.weight} + 6.25 &times; ${d.height} &minus; 5 &times; ${d.age} ${d.male?"+ 5":"&minus; 161"}`,
     val:kc(d.bmr)+" kcal"});
-  out.push({label:"Everyday moving",
+  out.push({label:"Resting, accrued by now",
+    work:`${kc(d.bmr)} &times; ${(d.prog.rest*100).toFixed(0)}% of the clock elapsed &mdash; `
+       + `resting burn ticks through the night too, so it runs against the 24-hour day`,
+    val:kc(d.bmr*d.prog.rest)+" kcal"});
+  out.push({label:"Everyday moving, whole day",
     work:`${kc(d.bmr)} &times; ${d.neatRate} for the part of your day you did not log`,
     val:kc(d.neat)+" kcal"});
+  out.push({label:"Moving, accrued by now",
+    work:`${kc(d.neat)} &times; ${(d.prog.awake*100).toFixed(0)}% of your waking hours gone &mdash; `
+       + `this one only accrues while you are up`,
+    val:kc(d.neat*d.prog.awake)+" kcal"});
   out.push({label:"Digesting the food",
     work:`${kc(d.food.kcal)} &times; ${(d.tefRate*100).toFixed(1)}%, the rate rising with protein share`,
     val:kc(d.tef)+" kcal"});
@@ -1450,7 +2412,11 @@ function renderCalcInto(p, d){
   d.timed.lines.forEach(l => out.push({label:l.label, work:l.work, val:kc(l.kcal)+" kcal"}));
   d.chores.lines.forEach(l => out.push({label:l.label, work:l.work, val:n1(l.kcal)+" kcal"}));
   if(d.sleepAdj) out.push({label:"Short sleep", work:"2% off resting rate under 6 h", val:kc(d.sleepAdj)+" kcal"});
-  h += tbl(out, "Used", kc(d.out)+" kcal");
+  h += tbl(out, "Used so far", kc(d.outSoFar)+" kcal");
+  h += `<p class="formula">The whole-day figure is <b>${kc(d.out)} kcal</b>. The ledger compares your
+    food against the <em>so far</em> number, because measuring a morning's eating against a full
+    day's burning would show a deficit on every normal day before lunch. The tissue figures below
+    use the whole-day number, since a gram of fat is a statement about a complete day.</p>`;
 
   if(d.st.lines.length){
     h += `<h3>Every rep, as m g h</h3>`;
@@ -1488,6 +2454,16 @@ function renderCalcInto(p, d){
     figure is the cost <em>above</em> lying still &mdash; though that subtraction assumes your
     resting rate is exactly 3.5 ml/kg/min, which for most adults is an overestimate.</p>`;
 
+  h += `<p class="formula"><b>Bands are springs, not weights.</b> A dumbbell pulls with the same
+    force everywhere in the rep; a band pulls harder the further it is stretched, so its work is
+    the integral of a rising force, W = &int;F dx = (F&#8321;&#8320;&#8320;/L&#8320;)(pre&middot;h +
+    h&sup2;/2), where L&#8320; is the relaxed length and <em>pre</em> is the stretch already taken up
+    before the rep begins. That pre-stretch, not the colour, is usually what decides how heavy a
+    band feels &mdash; the same red band is three times the average pull at 60 cm of pre-stretch as
+    at 20 cm. Thera-Band colours are quoted at 100% elongation and the force is treated as linear in
+    stretch, which holds reasonably to about double length and understates a band pulled much
+    further than that.</p>`;
+
   h += `<p class="formula"><b>What is assumed, and could be argued with.</b> A single MET value
     for resistance training (the standard tables say 5.0) would bundle the lifting and the standing
     about together, and would not respond to load at all. This ledger splits them: mechanical work
@@ -1510,7 +2486,9 @@ function renderCalcInto(p, d){
 
   h += `<h3>Where the difference went</h3>`;
   const bal = d.balance;
-  const bl = [{label:"Balance", work:`${kc(d.food.kcal)} taken in &minus; ${kc(d.out)} used`,
+  const bl = [{label:"Balance so far", work:`${kc(d.food.kcal)} taken in &minus; ${kc(d.outSoFar)} spent by now`,
+               val:(d.balanceSoFar>=0?"+":"\u2212")+kc(Math.abs(d.balanceSoFar))+" kcal"},
+              {label:"Balance, whole day", work:`${kc(d.food.kcal)} taken in &minus; ${kc(d.out)} used`,
                val:(bal>=0?"+":"\u2212")+kc(Math.abs(bal))+" kcal"}];
   if(bal>=0){
     bl.push({label:"Split toward muscle", work:d.part.why.join(", "), val:(d.part.ratio*100).toFixed(0)+"%"});
@@ -1538,8 +2516,410 @@ function renderCalcInto(p, d){
 
 
 /* ==================================================================
+   WALKTHROUGH.  Shown when there is nothing stored yet: asks for the
+   four figures the maths cannot work without, then walks through the
+   day one question at a time, and ends on the four numbers.
+   ================================================================== */
+const WIZ_HOME = {
+  bodyFields:"slotBody", foodRows:"slotFood", strengthGroup:"slotRep",
+  trainSettings:"slotTrain", cardioRows:"slotCardio", condGroup:"slotCond",
+  choreRows:"slotChore", recovRows:"slotRecov",
+};
+function lend(id, host){ host.appendChild($(id)); }      // borrow a real block
+function giveBack(){                                      // and put it home again
+  for(const id in WIZ_HOME){
+    const node = $(id), home = $(WIZ_HOME[id]);
+    if(node && home) home.appendChild(node);
+  }
+}
+
+const wiz = {i:0, ate:null, trained:null, moved:null, chores:null, open:false};
+
+function bodyReady(){
+  return (+$("weight").value > 0) && (+$("height").value > 0)
+      && (+$("age").value > 0) && $("sex").value !== "";
+}
+
+const STEPS = [
+  {
+    q:"Let's set you up",
+    sub:"A few questions, then you will see exactly what your day comes to. The food list is "
+      + "vegetarian throughout, built around Indian home cooking. Nothing leaves this device, "
+      + "and you can change any of it later.",
+    build(b){
+      const c = el("div","wizcard");
+      const f = el("div","field");
+      f.appendChild(el("label",null,"What should I call you?")).setAttribute("for","wizName");
+      const i = el("input"); i.type="text"; i.id="wizName"; i.placeholder="Your name";
+      i.maxLength = 40;
+      i.value = db.active || "";
+      f.appendChild(i); c.appendChild(f); b.appendChild(c);
+      b.appendChild(el("p","tiny","This just labels your profile on this device. There are no "
+        + "accounts and no passwords."));
+      i.addEventListener("keydown", ev => { if(ev.key === "Enter"){ ev.preventDefault(); wizNext(); } });
+      setTimeout(() => i.focus(), 90);
+    },
+    next(){
+      const name = ($("wizName").value || "").trim() || "Me";
+      if(!db.users[name]) db.users[name] = {usual:null, days:{}};
+      db.active = name; saveDb(); refreshUsers();
+      return true;
+    },
+    cta:"Start"
+  },
+  {
+    q:"Your body",
+    sub:"Resting metabolism is the largest single number in your day, and it is built entirely "
+      + "from these four. Nothing can be estimated until they are filled in.",
+    build(b){
+      lend("bodyFields", b);
+      focusChain(["weight","height","age","sex","job","train"]);
+    },
+    guard(){ return bodyReady() ? null
+      : "Weight, height, age and sex are all needed before anything can be worked out."; },
+    cta:"Next"
+  },
+  {
+    q:"Have you eaten today?",
+    sub:"Log everything you have had so far. You can always come back and add more later.",
+    build(b){
+      b.appendChild(yesNo(
+        ["Yes, let me log it","Add what you ate and drank"],
+        ["Not yet","Skip straight past food"],
+        v => { wiz.ate = v; wizNext(); }));
+    },
+    bare:true
+  },
+  {
+    q:"What did you eat?",
+    sub:"Set the amount for anything you had. The food list is vegetarian throughout \u2014 milk and "
+      + "curd included, no eggs or meat. Search below to add anything that is missing.",
+    when(){ return wiz.ate; },
+    build(b){
+      const p = el("div","wizcard");
+      p.appendChild(el("h2",null,"Add what you ate"));
+      buildPicker("food", p, "Search vegetarian foods", () => {}, {
+        hint:"Type what you ate \u2014 chapati, dal, curd, ghee, banana. Everything you add stays "
+           + "on your list for next time."
+      });
+      b.appendChild(p);
+      const c = el("div","wizcard");
+      c.appendChild(el("h2",null,"Your day so far"));
+      lend("foodRows", c);
+      b.appendChild(c);
+    },
+    cta:"Next"
+  },
+  {
+    q:"Did you train today?",
+    sub:"Lifting, body-weight work, bands — anything you counted in reps.",
+    build(b){
+      b.appendChild(yesNo(
+        ["Yes","Log sets, reps and any weight"],
+        ["No training today","Skip it"],
+        v => { wiz.trained = v; wizNext(); }));
+    },
+    bare:true
+  },
+  {
+    q:"What did you train?",
+    sub:"Pick the split, then search for the movements. Reps are a daily total, and body-weight "
+      + "and weighted reps count separately because they are not the same work.",
+    when(){ return wiz.trained; },
+    build(b){
+      const p = el("div","wizcard");
+      p.appendChild(el("h2",null,"Today's split"));
+      p.appendChild(el("p","tiny","Choose one or more. Leave them all off to search everything."));
+      let q;
+      const chosen = splitChips(p, () => { if(q && q.redraw) q.redraw(); });
+      wiz.splits = chosen;
+      q = buildPicker("rep", p, "Search exercises", () => {}, {
+        filter: it => !chosen.size || chosen.has(it.split),
+        hint: "Pick a split above, or type the movement you did."
+      });
+      b.appendChild(p);
+      const c = el("div","wizcard");
+      c.appendChild(el("h2",null,"Your exercises"));
+      lend("strengthGroup", c);
+      b.appendChild(c);
+      const c2 = el("div","wizcard");
+      c2.appendChild(el("h2",null,"How you trained"));
+      c2.appendChild(el("p","tiny","If you use resistance bands, the colour sets the force and the "
+        + "stretch you take up before the rep decides how heavy it feels. Thera-Band colours run "
+        + "tan, yellow, red, green, blue, black, silver, gold from lightest to heaviest."));
+      lend("trainSettings", c2);
+      b.appendChild(c2);
+      focusChain(["rest","lower","intensity","bandLen"]);
+    },
+    cta:"Next"
+  },
+  {
+    q:"Did you walk, run or cycle?",
+    sub:"Distance and pace, rather than time, because pace changes the cost per kilometre.",
+    build(b){
+      b.appendChild(yesNo(
+        ["Yes","Log distance and pace"],
+        ["No","Skip it"],
+        v => { wiz.moved = v; wizNext(); }));
+    },
+    bare:true
+  },
+  {
+    q:"How far did you go?",
+    when(){ return wiz.moved; },
+    build(b){
+      const c = el("div","wizcard"); lend("cardioRows", c); b.appendChild(c);
+      const c2 = el("div","wizcard");
+      c2.appendChild(el("h2",null,"Holds and conditioning"));
+      lend("condGroup", c2);
+      buildPicker("cond", c2, "Search activities", () => {},
+        {hint:"Type an activity \u2014 skipping, plank, yoga, circuit."});
+      b.appendChild(c2);
+    },
+    cta:"Next"
+  },
+  {
+    q:"Any work around the house?",
+    sub:"Cooking, chapatis, utensils, sweeping, stairs. It is real expenditure and most trackers "
+      + "throw it away.",
+    build(b){
+      b.appendChild(yesNo(
+        ["Yes","Log the chores"],
+        ["No","Skip it"],
+        v => { wiz.chores = v; wizNext(); }));
+    },
+    bare:true
+  },
+  {
+    q:"What did you do?",
+    when(){ return wiz.chores; },
+    build(b){
+      const c = el("div","wizcard");
+      c.appendChild(el("h2",null,"Your chores"));
+      lend("choreRows", c);
+      buildPicker("chore", c, "Search chores", () => {},
+        {hint:"Type a chore \u2014 cooking, chapatis, utensils, sweeping, stairs."});
+      b.appendChild(c);
+    },
+    cta:"Next"
+  },
+  {
+    q:"Sleep and water",
+    sub:"Sleep is the one input that changes how much of a surplus can become muscle rather than "
+      + "fat, so it is worth being honest about.",
+    build(b){ const c = el("div","wizcard"); lend("recovRows", c); b.appendChild(c); },
+    cta:"See my day"
+  },
+  {
+    q:"Your day",
+    build(b){ buildSummary(b); },
+    cta:"Finish",
+    last:true
+  },
+];
+
+/* Move the cursor along without the user reaching for it. A field auto-advances
+   only when another digit could not produce a valid entry -- height 180 cannot
+   become 1800, so it is finished; weight 66 could still become 66.5, so it is
+   left alone. Enter always advances. */
+function focusChain(ids){
+  const fields = ids.map(id => $(id)).filter(Boolean);
+  const goNext = from => {
+    for(let i = from+1; i < fields.length; i++){
+      if(!String(fields[i].value || "").trim()){ fields[i].focus(); return; }
+    }
+    for(let i = from+1; i < fields.length; i++){ fields[i].focus(); return; }
+    const btn = $("wizFoot").children[0];
+    if(btn && btn.focus) btn.focus();
+  };
+  fields.forEach((n,i) => {
+    if(n.__chained) return;
+    n.__chained = true;
+    n.addEventListener("keydown", ev => {
+      if(ev.key === "Enter"){ ev.preventDefault(); goNext(i); }
+    });
+    if(n.type === "number"){
+      n.addEventListener("input", () => {
+        const v = parseFloat(n.value), max = parseFloat(n.max), min = parseFloat(n.min);
+        const decimals = String(n.step).includes(".");
+        if(decimals || isNaN(v) || v < min) return;
+        if(v*10 > max) goNext(i);            // one more digit would overshoot
+      });
+    } else {
+      n.addEventListener("change", () => { if(n.value) goNext(i); });
+    }
+  });
+  const first = fields.find(n => !String(n.value || "").trim()) || fields[0];
+  if(first && first.focus) setTimeout(() => first.focus(), 90);
+}
+
+function yesNo(yes, no, cb){
+  const wrap = el("div","yesno");
+  [[yes,true],[no,false]].forEach(([txt,val]) => {
+    const btn = el("button", null,
+      `<span>${txt[0]}<small>${txt[1]}</small></span><span class="ar">&rsaquo;</span>`);
+    btn.type = "button";
+    btn.addEventListener("click", () => cb(val));
+    wrap.appendChild(btn);
+  });
+  return wrap;
+}
+
+function buildSummary(b){
+  const d = compute();
+  const noFood = d.food.kcal === 0;
+  const grid = el("div","sumgrid");
+  const box = (label, value, unit, cls) => {
+    const x = el("div","sumbox");
+    x.appendChild(el("div","sl",label));
+    x.appendChild(el("div","sv"+(cls?" "+cls:""), value));
+    if(unit) x.appendChild(el("div","su",unit));
+    grid.appendChild(x);
+  };
+  const clock = d.prog.hours;
+  const hh = String(Math.floor(clock)).padStart(2,"0")+":"+String(Math.floor((clock%1)*60)).padStart(2,"0");
+
+  /* Everything here is the day up to now. Comparing what you have eaten so far
+     against a whole day of burning would invent a deficit out of the clock. */
+  box("Taken in so far", noFood ? "\u2014" : kc(d.food.kcal),
+      noFood ? "nothing logged" : "kcal of food", "c-in");
+  box("Used so far", kc(d.outSoFar), "by " + hh, "c-out");
+  if(noFood){
+    box("Balance", "\u2014", "needs your food", "");
+    box("Fat", "\u2014", "needs your food", "");
+  } else {
+    box("Balance so far", (d.balanceSoFar>=0?"+":"\u2212")+kc(Math.abs(d.balanceSoFar)), "kcal",
+        d.balanceSoFar>=0 ? "c-fat" : "c-out");
+    box("Fat, if repeated", (d.fatKg>=0?"+":"\u2212")+Math.abs(d.fatKg*7).toFixed(2),
+        "kg per week of days like this", "c-fat");
+  }
+  b.appendChild(grid);
+
+  const c = el("div","wizcard");
+  c.innerHTML = noFood
+    ? `<p style="margin:0;font-size:14px;line-height:1.65">By ${hh} your body has spent about
+       <b>${kc(d.outSoFar)}</b> kcal, of which ${kc(d.bmr*d.prog.rest)} is simply staying alive.
+       Add what you have eaten and this will show where the balance sits.</p>`
+    : `<p style="margin:0;font-size:14px;line-height:1.65">By ${hh} you have taken in
+       <b>${kc(d.food.kcal)}</b> kcal and your body has spent <b>${kc(d.outSoFar)}</b>, leaving
+       <b>${(d.balanceSoFar>=0?"+":"\u2212")+kc(Math.abs(d.balanceSoFar))}</b>. It will spend roughly
+       <b>${kc(d.out - d.outSoFar)}</b> more before midnight whatever else you do, so the fat figure
+       is a rate for a repeated day rather than something already banked.</p>`;
+  b.appendChild(c);
+
+  const of = el("div","wizcard");
+  of.innerHTML = `<h2 style="margin-bottom:6px">Make this your usual day?</h2>
+    <p class="tiny" style="margin:0 0 11px">Save it and the app opens with today already filled in
+    from tomorrow onwards. You then change only what was different.</p>`;
+  const bt = el("button","btn primary full","Save as my usual day");
+  bt.type = "button";
+  bt.addEventListener("click", () => {
+    if(activeUser()){ activeUser().usual = snapshot(); saveDb(); }
+    bt.textContent = "Saved \u2713"; bt.disabled = true;
+  });
+  of.appendChild(bt); b.appendChild(of);
+  b.appendChild(el("p","tiny","Every figure is a population average fitted to your measurements. "
+    + "Weigh yourself the same way each morning for two or three weeks; where the scale disagrees "
+    + "with this, the scale is right."));
+}
+
+function stepLive(i){
+  const s = STEPS[i];
+  return s && (!s.when || s.when());
+}
+function drawStep(){
+  const s = STEPS[wiz.i];
+  const body = $("wizBody"), foot = $("wizFoot");
+  giveBack(); restoreRows();        // return anything the previous step borrowed
+  body.innerHTML = ""; foot.innerHTML = "";
+
+  body.appendChild(el("h2","wizq",s.q));
+  if(s.sub) body.appendChild(el("p","wizsub",s.sub));
+  s.build(body);
+
+  const done = STEPS.slice(0, wiz.i).filter((_,i) => stepLive(i)).length;
+  const total = STEPS.filter((_,i) => stepLive(i)).length;
+  $("wizFill").style.width = Math.round(done/(total-1)*100)+"%";
+  $("wizBack").disabled = wiz.i === 0;
+  $("wizSkip").classList.toggle("hidden", !!s.last);
+
+  if(!s.bare){
+    const warn = el("p","wizwarn"); warn.id = "wizWarn"; warn.style.display = "none";
+    body.appendChild(warn);
+    const btn = el("button","btn primary full", s.cta || "Next");
+    btn.type = "button";
+    btn.addEventListener("click", () => wizNext());
+    foot.appendChild(btn);
+  }
+  body.scrollTop = 0;
+  update();
+}
+function wizNext(){
+  const s = STEPS[wiz.i];
+  if(s.guard){
+    const problem = s.guard();
+    if(problem){
+      const w = $("wizWarn");
+      if(w){ w.textContent = problem; w.style.display = "block"; }
+      return;
+    }
+  }
+  if(s.next && s.next() === false) return;
+  if(s.last){ wizClose(); return; }
+  let i = wiz.i + 1;
+  while(i < STEPS.length && !stepLive(i)) i++;
+  if(i >= STEPS.length){ wizClose(); return; }
+  wiz.i = i; drawStep();
+}
+function wizPrev(){
+  let i = wiz.i - 1;
+  while(i > 0 && !stepLive(i)) i--;
+  if(i < 0) return;
+  wiz.i = i; drawStep();
+}
+function wizOpen(){
+  pinStarters();              // so the first screen is never an empty box
+  wiz.i = 0; wiz.ate = wiz.trained = wiz.moved = wiz.chores = null;
+  wiz.open = true;
+  $("wiz").hidden = false;
+  document.body.style.overflow = "hidden";
+  drawStep();
+}
+function wizClose(){
+  giveBack(); restoreRows();
+  wiz.open = false;
+  $("wiz").hidden = true;
+  document.body.style.overflow = "";
+  refreshUsers(); update(); renderToday(); refreshVisibility();
+  showTab("today");
+}
+$("wizBack").addEventListener("click", wizPrev);
+$("wizSkip").addEventListener("click", () => {
+  if(wiz.i === 1 && !bodyReady()){ wizNext(); return; }   // body details are not skippable
+  let i = wiz.i + 1;
+  while(i < STEPS.length && !stepLive(i)) i++;
+  if(i >= STEPS.length){ wizClose(); return; }
+  wiz.i = i; drawStep();
+});
+$("rerun").addEventListener("click", wizOpen);
+
+function maybeWizard(){
+  if(!Object.keys(db.users).length) wizOpen();
+}
+
+/* ==================================================================
    PROFILES.  Saved in this browser, on this device. Not accounts.
    ================================================================== */
+/* #reset in the address wipes everything before a single line of state is read.
+   An app you cannot get out of is worse than an app with no memory. */
+if(location.hash === "#reset"){
+  try{
+    localStorage.removeItem("energyLedger.v3");
+    localStorage.removeItem("energyLedger.v2");
+  }catch(e){}
+  try{ history.replaceState(null,"",location.pathname); }catch(e){}
+}
+
 const STORE = "energyLedger.v3";
 const OLD_STORE = "energyLedger.v2";
 let db = {users:{}, active:null};
@@ -1555,12 +2935,68 @@ function prettyDate(){
   try{ return new Date().toLocaleDateString(undefined,{weekday:"short", day:"numeric", month:"short"}); }
   catch(e){ return todayKey(); }
 }
+/* Who you are, as opposed to what you did today. These belong to the profile,
+   not to any one day, and a day must never be able to blank them. */
+const BODY_IDS = ["weight","height","age","sex","bodyType","bodyFat","job","train","wake"];
+
 function allControls(){ return LOG_IDS.concat(SETTING_IDS).map(id => $(id)).filter(Boolean); }
+function bodySnapshot(){
+  const s = {};
+  BODY_IDS.forEach(id => { const n = $(id); if(n) s[id] = n.value; });
+  return s;
+}
+function applyBody(s){
+  if(!s) return;
+  BODY_IDS.forEach(id => {
+    const n = $(id);
+    if(n && s[id] !== undefined && String(s[id]).trim() !== "") n.value = s[id];
+  });
+  if(typeof drawTypes === "function") drawTypes();
+}
 function snapshot(){ const s = {}; allControls().forEach(n => { s[n.id] = n.value; }); return s; }
 function restore(s){
   if(!s) return;
-  allControls().forEach(n => { if(s[n.id] !== undefined) n.value = s[n.id]; });
+  materialiseEntries(s);        // recreate any sets the saved day contains
+  allControls().forEach(n => {
+    if(s[n.id] === undefined) return;
+    // A blank in a saved day must never wipe a body detail. Days come and go;
+    // your height does not.
+    if(BODY_IDS.indexOf(n.id) > -1 && String(s[n.id]).trim() === "") return;
+    n.value = s[n.id];
+  });
+  syncEntryChips();
   update();
+}
+
+/* A saved day may hold "set 3" for an exercise that currently shows one set.
+   Build the missing ones before pouring the values in. */
+function materialiseEntries(s){
+  const want = {};
+  Object.keys(s).forEach(k => {
+    const m = k.match(/^er_(.+)_(\d+)$/);
+    if(m) want[m[1]] = Math.max(want[m[1]] || 0, +m[2]);
+  });
+  Object.keys(want).forEach(exId => ensureEntries(exId, want[exId]));
+}
+
+/* Hidden inputs carry the mode and the band colours; make the chips match. */
+function syncEntryChips(){
+  Object.keys(ENTRY_COUNT).forEach(exId => {
+    for(let i = 1; i <= ENTRY_COUNT[exId]; i++){
+      const wrap = $("entry_"+exId+"_"+i);
+      if(!wrap) continue;
+      const mode = ($("em_"+exId+"_"+i) || {}).value;
+      wrap.querySelectorAll(".chips.small .chip").forEach(c =>
+        c.classList.toggle("on", c.innerHTML === MODE_LABEL[mode]));
+      wrap.querySelectorAll(".subpanel").forEach((p,idx) =>
+        p.classList.toggle("hidden", (idx === 0 ? mode !== "wt" : mode !== "band")));
+      const picked = String((($("eb_"+exId+"_"+i)||{}).value) || "").split(",").filter(Boolean);
+      wrap.querySelectorAll(".bandchips .chip").forEach(c => {
+        const k = (c.className.match(/band-(\w+)/) || [])[1];
+        c.classList.toggle("on", picked.indexOf(k) > -1);
+      });
+    }
+  });
 }
 function loadDb(){
   if(!canStore) return;
@@ -1580,7 +3016,24 @@ function loadDb(){
       }
     }
   }catch(e){ db = {users:{}, active:null}; }
-  Object.values(db.users||{}).forEach(u => { if(!u.days) u.days = {}; });
+  Object.values(db.users||{}).forEach(u => {
+    if(!u.days) u.days = {};
+    /* Repair: earlier versions stored body details inside each day, so a day
+       saved before they were filled in could blank them on every reload. Lift
+       them back out of whichever day or usual actually has them. */
+    if(!u.body || !Object.keys(u.body).length || !String(u.body.weight||"").trim()){
+      const sources = [u.usual].concat(Object.keys(u.days).sort().reverse().map(k => u.days[k]));
+      for(const s of sources){
+        if(s && String(s.weight||"").trim() && String(s.height||"").trim()){
+          u.body = {};
+          ["weight","height","age","sex","bodyType","bodyFat","job","train","wake"]
+            .forEach(id => { if(s[id] !== undefined) u.body[id] = s[id]; });
+          break;
+        }
+      }
+    }
+  });
+  saveDb();     // keep the repair, don't redo it on every load
 }
 function saveDb(){
   if(!canStore) return;
@@ -1611,6 +3064,9 @@ function openToday(){
   const u = activeUser();
   if(!u) return;
   restore(u.days[todayKey()] || u.usual || null);
+  applyBody(u.body);            // the profile's own details always win
+  if(!bodyReady() && u.usual) applyBody(u.usual);   // fall back to an older day
+  update();
   renderToday();
 }
 
@@ -1620,6 +3076,8 @@ function rememberLast(){
   if(!u) return;
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
+    const body = bodySnapshot();
+    if(Object.keys(body).some(k => String(body[k]).trim() !== "")) u.body = body;
     u.days[todayKey()] = snapshot();
     const keys = Object.keys(u.days).sort();
     while(keys.length > 90) delete u.days[keys.shift()];
@@ -1643,7 +3101,7 @@ $("createUser").addEventListener("click", () => {
   noteStore(`Created ${name}. Fill in the body details above, log a typical day, then save it as the usual day.`);
 });
 $("userSel").addEventListener("change", () => {
-  if(activeUser()) activeUser().days[todayKey()] = snapshot();
+  if(activeUser()){ activeUser().days[todayKey()] = snapshot(); activeUser().body = bodySnapshot(); }
   db.active = $("userSel").value;
   saveDb(); refreshUsers(); openToday();
   noteStore(`Switched to ${db.active}.`);
@@ -1723,6 +3181,33 @@ mu.addEventListener("click", () => {
 });
 document.body.append(rt, mu);
 
+/* Log from the front page. Each opens the same search sheet, which stages the
+   item with its number box focused, so nothing needs another tab. */
+$("qFood").addEventListener("click", () =>
+  pickerSheet("food","Add what you ate","Search vegetarian foods",
+    {hint:"Type what you ate \u2014 chapati, dal, curd, ghee, banana."}));
+
+$("qTrain").addEventListener("click", () => {
+  openSheet("Add an exercise", body => {
+    let q;
+    const chosen = splitChips(body, () => { if(q && q.redraw) q.redraw(); },
+      ["push","pull","legs","core"]);          // cardio has its own button
+    q = buildPicker("rep", body, "Search exercises", null, {
+      filter: it => it.split !== "cardio" && (!chosen.size || chosen.has(it.split)),
+      hint: "Pick a split above, or type the movement you did."
+    });
+    setTimeout(() => q.focus(), 120);
+  });
+});
+
+$("qMove").addEventListener("click", () =>
+  pickerSheet("rep","Walking, running, cycling","Search",
+    {filter: it => it.split === "cardio", hint:"Distance and pace for each."}));
+
+$("qChore").addEventListener("click", () =>
+  pickerSheet("chore","Add housework","Search chores",
+    {hint:"Cooking, chapatis, utensils, sweeping, stairs."}));
+
 /* the arithmetic, in a sheet */
 $("openCalc").addEventListener("click", () => {
   openSheet("The arithmetic", body => {
@@ -1741,9 +3226,16 @@ allControls().forEach(n => n.addEventListener("input", rememberLast));
 SETTING_IDS.forEach(id => { const n = $(id); if(n){ n.addEventListener("input", update);
                                                     n.addEventListener("change", update); } });
 
-loadDb(); refreshUsers(); noteStore();
-if(activeUser()) openToday();
-update();
+try{
+  loadDb(); refreshUsers(); noteStore();
+  if(activeUser()) openToday();
+  update();
+  maybeWizard();
+}catch(e){
+  if(window.__ledgerError) window.__ledgerError((e && e.message) + "\n" +
+    ((e && e.stack) || "").split("\n").slice(0,4).join("\n"));
+  throw e;
+}
 
 </script>
 </body>
