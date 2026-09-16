@@ -24,6 +24,7 @@
   --bg:#EFF1EE; --card:#FAFBF9; --card2:#F2F4F1;
   --ink:#16201C; --muted:#6B7570; --line:#E933E7; --line:#E2E7E1;
   --in:#A96E15; --out:#1B665E; --fat:#8A3A52; --lean:#66743A;
+  --spend:#C0453C; --store:#3E9B57;
   --in-bg:rgba(169,110,21,.10); --out-bg:rgba(27,102,94,.10); --fat-bg:rgba(138,58,82,.10);
   --shadow:0 1px 2px rgba(22,32,28,.05), 0 6px 18px rgba(22,32,28,.05);
   --shadow-lg:0 -2px 30px rgba(22,32,28,.14);
@@ -37,6 +38,7 @@
     --bg:#121715; --card:#1B221F; --card2:#232B27;
     --ink:#E7EBE7; --muted:#96A09A; --line:#2B332F;
     --in:#E0A64A; --out:#4FB3A6; --fat:#D4788F; --lean:#A8B86A;
+    --spend:#E0736B; --store:#68C486;
     --in-bg:rgba(224,166,74,.13); --out-bg:rgba(79,179,166,.13); --fat-bg:rgba(212,120,143,.13);
     --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.22);
     --shadow-lg:0 -2px 30px rgba(0,0,0,.45);
@@ -260,6 +262,33 @@ table.ctab tr.sum td{border-bottom:0;border-top:1.5px solid var(--line);font-wei
 .formula b{color:var(--ink)}
 .hidden{display:none!important}
 .tiny{font-size:11.5px;color:var(--muted);line-height:1.55}
+
+/* ---------------- day-so-far donut ---------------- */
+.daycard{cursor:pointer}
+.daycard:active{background:var(--card2)}
+.dayflex{display:flex;align-items:center;gap:16px}
+.donutwrap{position:relative;width:132px;height:132px;flex:none}
+.donutwrap svg{width:100%;height:100%;display:block;transform:none}
+.donutc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;pointer-events:none}
+.donutc b{font-family:var(--serif);font-size:23px;font-weight:700;line-height:1;letter-spacing:-.02em}
+.donutc span{font-size:10.5px;color:var(--muted);margin-top:3px}
+.daystats{flex:1;min-width:0;display:grid;gap:9px}
+.daystat{display:grid;grid-template-columns:14px 1fr auto;gap:9px;align-items:baseline;font-size:13px}
+.daystat i{width:11px;height:11px;border-radius:3px;align-self:center}
+.daystat span{color:var(--muted)}
+.daystat b{font-family:var(--serif);font-size:15px;font-weight:600}
+.daystat.sub{grid-template-columns:14px 1fr auto;font-size:11.5px;padding-left:0}
+.daystat.sub span,.daystat.sub b{color:var(--muted);font-size:11.5px}
+.daystat.sub b{font-family:var(--serif)}
+.dayedit{display:flex;align-items:center;gap:6px;margin-top:13px;color:var(--out);
+  font-size:12.5px;font-weight:600}
+.dayedit svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;
+  stroke-linecap:round;stroke-linejoin:round}
+.daysum{background:var(--card2);border-radius:var(--r-sm);padding:12px 14px;font-size:13.5px;
+  line-height:1.6;margin-bottom:6px}
+.daysum b{font-family:var(--serif)}
+.dayhead{font-family:var(--serif);font-size:15px;font-weight:600;margin:16px 0 2px}
 .privacy{display:flex;align-items:center;justify-content:center;gap:8px;margin:18px 4px 4px;
   padding:11px 13px;background:var(--card2);border-radius:var(--r-sm);
   font-size:11.5px;color:var(--muted);line-height:1.5;text-align:left}
@@ -446,6 +475,20 @@ input,select{scroll-margin:84px 0 180px}
       <div class="tile"><div class="tl">Protein</div>
         <div class="tv" id="tileProt">&mdash;</div>
         <div class="tu" id="tileProtU"></div></div>
+    </div>
+
+    <div class="card daycard hidden" id="dayCard" role="button" tabindex="0"
+         aria-label="Your day so far — tap to see and edit everything logged">
+      <div class="cardhead"><h2>Your day so far</h2>
+        <span class="sm">tap to edit</span></div>
+      <div class="dayflex">
+        <div class="donutwrap" id="dayDonut"></div>
+        <div class="daystats" id="dayStats"></div>
+      </div>
+      <div class="dayedit">
+        <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        <span id="dayEditLbl">Tap to see and edit what you ate and did</span>
+      </div>
     </div>
 
     <div class="card" id="quickCard">
@@ -2152,6 +2195,7 @@ function update(){
   $("tileProt").textContent = ready && inK>0 ? d.ppk.toFixed(1)+" g/kg" : "\u2014";
   $("tileProtU").textContent = ready && inK>0 ? Math.round(d.food.p)+" g today" : "";
 
+  renderDaySoFar(d);
   renderCloseRow(ready, done, d, usualIn, inK);
 
   /* A short line so the front page says what is already logged, without
@@ -2478,10 +2522,9 @@ function dayDiffs(usual, before, after){
     const fid = id.startsWith("f_") ? id.slice(2) : null;
     if(fid && foodIndex[fid]){
       kcal = (b-a)*foodIndex[fid].kcal;         // food: energy taken in (+)
-    } else if(before && after && before.burn && after.burn){
-      // activities: the extra energy this change spent, so it lowers the balance
-      const spent = (after.burn[id]||0) - (before.burn[id]||0);
-      if(Math.abs(spent) > 0.5) kcal = -spent;
+    } else if(after && after.burn && after.burn[id] > 0.5){
+      // activities: what this exercise actually burned today, shown as spent (−)
+      kcal = -after.burn[id];
     }
     out.push({name:L.name.replace(/ in [a-z]+$/,""), unit:L.unit, was:a, now:b, kcal});
   });
@@ -2505,6 +2548,119 @@ function clearBtnFront(){
   });
   return b;
 }
+
+/* ==================================================================
+   DAY SO FAR: a donut of where the day's energy is going, tap to edit
+   ================================================================== */
+function donutSVG(segs){
+  const r=40, cx=50, cy=50, C=2*Math.PI*r, sw=15;
+  let off=0, arcs="";
+  segs.forEach(s => {
+    if(s.frac <= 0) return;
+    const len = Math.min(1, s.frac) * C;
+    arcs += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${s.color}" `
+          + `stroke-width="${sw}" stroke-linecap="butt" `
+          + `stroke-dasharray="${len.toFixed(2)} ${(C-len).toFixed(2)}" `
+          + `stroke-dashoffset="${(-off).toFixed(2)}"/>`;
+    off += len;
+  });
+  return `<svg viewBox="0 0 100 100" role="img" aria-hidden="true">`
+       + `<g transform="rotate(-90 ${cx} ${cy})">`
+       + `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--card2)" stroke-width="${sw}"/>`
+       + arcs + `</g></svg>`;
+}
+
+function renderDaySoFar(d){
+  const card = $("dayCard");
+  if(!card) return;
+  const logged = d && d.ready && (d.food.kcal > 0 || d.activity > 0);
+  card.classList.toggle("hidden", !logged);
+  if(!logged) return;
+
+  const intake = d.food.kcal, exp = d.outSoFar, bal = d.balanceSoFar;
+  const exerciseBurn = d.st.kcal + d.cardio.kcal + d.timed.kcal + d.chores.kcal + d.mental.kcal;
+
+  let segs, centerVal, centerLbl;
+  if(bal >= 0){
+    // a surplus so far: the food powered your day, the rest is being stored
+    const total = Math.max(intake, 1);
+    segs = [{frac:exp/total, color:"var(--spend)"}, {frac:bal/total, color:"var(--store)"}];
+    centerVal = "+" + kc(bal); centerLbl = "to store";
+  } else {
+    // a deficit so far: your day cost more than you ate, the gap comes from reserves
+    const total = Math.max(exp, 1);
+    segs = [{frac:intake/total, color:"var(--spend)"}, {frac:(-bal)/total, color:"var(--store)"}];
+    centerVal = "−" + kc(-bal); centerLbl = "from reserves";
+  }
+  $("dayDonut").innerHTML = donutSVG(segs)
+    + `<div class="donutc"><b style="color:${bal>=0?"var(--store)":"var(--spend)"}">${centerVal}</b>`
+    + `<span>${centerLbl}</span></div>`;
+
+  $("dayStats").innerHTML =
+      `<div class="daystat"><i style="background:var(--store)"></i><span>Eaten</span><b>${kc(intake)}</b></div>`
+    + `<div class="daystat"><i style="background:var(--spend)"></i><span>Burned</span><b>${kc(exp)}</b></div>`
+    + `<div class="daystat sub"><i style="background:transparent"></i><span>of that, exercise</span><b>${kc(exerciseBurn)}</b></div>`;
+
+  $("dayEditLbl").textContent = "Tap to see and edit what you ate and did";
+}
+
+/* Everything logged today, grouped and editable in place: change any stepper and
+   the day updates; close and the rows go back to their tabs. */
+function loggedRowIds(kind){
+  return CATALOG[kind].filter(it => it.ctlIds.some(id => (+($(id)||{}).value) > 0))
+                      .map(it => it.rowId);
+}
+function daySection(body, title, rowIds){
+  if(!rowIds.length) return;
+  body.appendChild(el("div","dayhead", title));
+  const list = el("div","rowlist");
+  rowIds.forEach(rid => { const r = $(rid); if(r) list.appendChild(r); });
+  body.appendChild(list);
+}
+function openDayReview(){
+  openSheet("Your day so far", body => {
+    const d = compute();
+    if(!d.ready){
+      body.appendChild(el("p","tiny","Add your height, weight, age and sex first, on the You tab."));
+      const done = el("button","btn primary full","OK"); done.type="button";
+      done.style.marginTop="12px"; done.addEventListener("click", closeSheet);
+      body.appendChild(done);
+      return;
+    }
+    const bal = d.balanceSoFar;
+    const sum = el("div","daysum");
+    sum.innerHTML = `So far you have eaten <b>${kc(d.food.kcal)}</b> kcal and your body has spent `
+      + `<b>${kc(d.outSoFar)}</b> &mdash; a ${bal>=0?"surplus":"deficit"} of `
+      + `<b>${bal>=0?"+":"−"}${kc(Math.abs(bal))}</b> kcal. Change any number below and it updates.`;
+    body.appendChild(sum);
+
+    const foods = loggedRowIds("food");
+    // activity: strength + cardio live in "rep"; holds/conditioning in "cond"; chores; mental
+    const acts = loggedRowIds("rep").concat(loggedRowIds("cond"), loggedRowIds("chore"));
+    MENTAL.forEach(([id]) => { if((+($("mw_"+id)||{}).value) > 0) acts.push("row_"+id); });
+
+    daySection(body, "What you ate", foods);
+    daySection(body, "What you did", acts);
+
+    if(!foods.length && !acts.length){
+      body.appendChild(el("p","tiny","Nothing logged yet today. Use the buttons on the Today "
+        + "screen, or the Food and Move tabs, to add something."));
+    }
+
+    const done = el("button","btn primary full","Done");
+    done.type = "button"; done.style.marginTop = "16px";
+    done.addEventListener("click", closeSheet);
+    body.appendChild(done);
+  });
+}
+(function(){
+  const card = $("dayCard");
+  if(!card) return;
+  card.addEventListener("click", openDayReview);
+  card.addEventListener("keydown", ev => {
+    if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); openDayReview(); }
+  });
+})();
 
 function renderToday(){
   const u = activeUser(), body = $("diffBody"), acts = $("diffActs");
