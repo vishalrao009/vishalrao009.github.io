@@ -269,12 +269,17 @@ table.ctab tr.sum td{border-bottom:0;border-top:1.5px solid var(--line);font-wei
 .dayflex{display:flex;align-items:center;gap:16px}
 .donutwrap{position:relative;width:132px;height:132px;flex:none}
 .donutwrap svg{width:100%;height:100%;display:block;transform:none}
-.donutc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;text-align:center;pointer-events:none}
-.donutc b{font-family:var(--serif);font-size:23px;font-weight:700;line-height:1;letter-spacing:-.02em}
-.donutc span{font-size:10.5px;color:var(--muted);margin-top:3px}
+.seg{cursor:pointer;transition:opacity .15s}
+.seg:active{opacity:.7}
+.donutc{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  display:flex;flex-direction:column;align-items:center;text-align:center;cursor:pointer;
+  width:64px}
+.donutc b{font-family:var(--serif);font-size:22px;font-weight:700;line-height:1;letter-spacing:-.02em}
+.donutc span{font-size:10px;color:var(--muted);margin-top:3px}
 .daystats{flex:1;min-width:0;display:grid;gap:9px}
 .daystat{display:grid;grid-template-columns:14px 1fr auto;gap:9px;align-items:baseline;font-size:13px}
+.daystat[data-flow]{cursor:pointer}
+.daystat[data-flow]:active{opacity:.6}
 .daystat i{width:11px;height:11px;border-radius:3px;align-self:center}
 .daystat span{color:var(--muted)}
 .daystat b{font-family:var(--serif);font-size:15px;font-weight:600}
@@ -480,7 +485,7 @@ input,select{scroll-margin:84px 0 180px}
     <div class="card daycard hidden" id="dayCard" role="button" tabindex="0"
          aria-label="Your day so far — tap to see and edit everything logged">
       <div class="cardhead"><h2>Your day so far</h2>
-        <span class="sm">tap to edit</span></div>
+        <span class="sm">tap a slice for the maths</span></div>
       <div class="dayflex">
         <div class="donutwrap" id="dayDonut"></div>
         <div class="daystats" id="dayStats"></div>
@@ -2558,16 +2563,19 @@ function donutSVG(segs){
   segs.forEach(s => {
     if(s.frac <= 0) return;
     const len = Math.min(1, s.frac) * C;
-    arcs += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${s.color}" `
-          + `stroke-width="${sw}" stroke-linecap="butt" `
+    arcs += `<circle class="seg" data-flow="${s.flow}" cx="${cx}" cy="${cy}" r="${r}" fill="none" `
+          + `stroke="${s.color}" stroke-width="${sw}" stroke-linecap="butt" `
           + `stroke-dasharray="${len.toFixed(2)} ${(C-len).toFixed(2)}" `
           + `stroke-dashoffset="${(-off).toFixed(2)}"/>`;
     off += len;
   });
-  return `<svg viewBox="0 0 100 100" role="img" aria-hidden="true">`
+  return `<svg viewBox="0 0 100 100" role="img" aria-label="Day so far">`
        + `<g transform="rotate(-90 ${cx} ${cy})">`
        + `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--card2)" stroke-width="${sw}"/>`
        + arcs + `</g></svg>`;
+}
+function clockHM(h){
+  return String(Math.floor(h)).padStart(2,"0")+":"+String(Math.floor((h%1)*60)).padStart(2,"0");
 }
 
 function renderDaySoFar(d){
@@ -2584,24 +2592,26 @@ function renderDaySoFar(d){
   if(bal >= 0){
     // a surplus so far: the food powered your day, the rest is being stored
     const total = Math.max(intake, 1);
-    segs = [{frac:exp/total, color:"var(--spend)"}, {frac:bal/total, color:"var(--store)"}];
+    segs = [{frac:exp/total, color:"var(--spend)", flow:"burned"},
+            {frac:bal/total, color:"var(--store)", flow:"stored"}];
     centerVal = "+" + kc(bal); centerLbl = "to store";
   } else {
     // a deficit so far: your day cost more than you ate, the gap comes from reserves
     const total = Math.max(exp, 1);
-    segs = [{frac:intake/total, color:"var(--spend)"}, {frac:(-bal)/total, color:"var(--store)"}];
+    segs = [{frac:intake/total, color:"var(--spend)", flow:"burned"},
+            {frac:(-bal)/total, color:"var(--store)", flow:"stored"}];
     centerVal = "−" + kc(-bal); centerLbl = "from reserves";
   }
   $("dayDonut").innerHTML = donutSVG(segs)
-    + `<div class="donutc"><b style="color:${bal>=0?"var(--store)":"var(--spend)"}">${centerVal}</b>`
+    + `<div class="donutc" data-flow="stored"><b style="color:${bal>=0?"var(--store)":"var(--spend)"}">${centerVal}</b>`
     + `<span>${centerLbl}</span></div>`;
 
   $("dayStats").innerHTML =
-      `<div class="daystat"><i style="background:var(--store)"></i><span>Eaten</span><b>${kc(intake)}</b></div>`
-    + `<div class="daystat"><i style="background:var(--spend)"></i><span>Burned</span><b>${kc(exp)}</b></div>`
-    + `<div class="daystat sub"><i style="background:transparent"></i><span>of that, exercise</span><b>${kc(exerciseBurn)}</b></div>`;
+      `<div class="daystat" data-flow="eaten"><i style="background:var(--store)"></i><span>Eaten</span><b>${kc(intake)}</b></div>`
+    + `<div class="daystat" data-flow="burned"><i style="background:var(--spend)"></i><span>Burned</span><b>${kc(exp)}</b></div>`
+    + `<div class="daystat sub" data-flow="burned"><i style="background:transparent"></i><span>of that, exercise</span><b>${kc(exerciseBurn)}</b></div>`;
 
-  $("dayEditLbl").textContent = "Tap to see and edit what you ate and did";
+  $("dayEditLbl").textContent = "Edit what you ate and did";
 }
 
 /* Everything logged today, grouped and editable in place: change any stepper and
@@ -2653,10 +2663,137 @@ function openDayReview(){
     body.appendChild(done);
   });
 }
+/* The arithmetic behind one slice of the donut: the food you ate, the energy you
+   have spent so far (resting metabolism included), or where the balance is going. */
+function openFlowCalc(which){
+  const d = compute();
+  const title = which === "eaten"  ? "What you've eaten"
+              : which === "burned" ? "What you've spent so far"
+              :                      "Where the balance is going";
+  openSheet(title, body => {
+    const wrap = el("div","calc"); body.appendChild(wrap);
+    const done = () => {
+      const b = el("button","btn primary full","Done"); b.type="button";
+      b.style.marginTop="14px"; b.addEventListener("click", closeSheet); body.appendChild(b);
+    };
+    if(!d.ready){
+      wrap.innerHTML = `<p class="formula">Enter your height, weight, age and sex first, on the You tab.</p>`;
+      done(); return;
+    }
+    let h = "";
+
+    if(which === "eaten"){
+      if(d.food.kcal <= 0){
+        h += `<p class="formula">Nothing eaten yet today.</p>`;
+      } else {
+        h += tbl(d.food.lines.map(l => ({label:l.label, work:l.work, val:kc(l.kcal)+" kcal"})),
+                 "Eaten so far", kc(d.food.kcal)+" kcal");
+        h += `<p class="formula">Protein ${n1(d.food.p)} g, carbs ${n1(d.food.c)} g, fat ${n1(d.food.f)} g,
+              fibre ${n1(d.food.fib)} g. Protein is ${(d.protShare*100).toFixed(0)}% of your calories, which
+              sets the digestion cost on the spent side.</p>`;
+      }
+    }
+
+    else if(which === "burned"){
+      const out = [];
+      out.push({label:"Resting metabolism, so far",
+        work:`${kc(d.bmr)} kcal a day &times; ${(d.prog.rest*100).toFixed(0)}% of the 24-hour day gone by `
+           + `${clockHM(d.prog.hours)} &mdash; resting burn ticks through the night as well`,
+        val:kc(d.bmr*d.prog.rest)+" kcal"});
+      out.push({label:"Everyday moving, so far",
+        work:`${kc(d.neat)} kcal a day &times; ${(d.prog.awake*100).toFixed(0)}% of your waking hours gone `
+           + `&mdash; this only accrues while you are up`,
+        val:kc(d.neat*d.prog.awake)+" kcal"});
+      out.push({label:"Digesting the food",
+        work:`${kc(d.food.kcal)} &times; ${(d.tefRate*100).toFixed(1)}%, the rate rising with protein share`,
+        val:kc(d.tef)+" kcal"});
+      if(d.cardio.kcal>0) d.cardio.lines.forEach(l => out.push({label:l.label, work:l.work, val:kc(l.kcal)+" kcal"}));
+      if(d.st.kcal>0){
+        out.push({label:"Lifting, the way up",
+          work:`${Math.round(d.st.upJ)} J of work &divide; 0.20 efficiency &divide; 4184 J per kcal`,
+          val:n1(d.st.liftKcal)+" kcal"});
+        out.push({label:"Lifting, the way down",
+          work:`${Math.round(d.st.ecc*100)}% of the lifting cost, paid metabolically`,
+          val:n1(d.st.lowerKcal)+" kcal"});
+        out.push({label:"Being in the session",
+          work:`(${d.st.metOh} &minus; 1) MET &times; 3.5 &times; ${d.weight} / 200 &times; ${Math.round(d.st.minutes)} min`,
+          val:kc(d.st.overhead)+" kcal"});
+        out.push({label:"Afterburn", work:"6% of the three rows above", val:n1(d.st.epoc)+" kcal"});
+      }
+      d.timed.lines.forEach(l => out.push({label:l.label, work:l.work, val:kc(l.kcal)+" kcal"}));
+      d.chores.lines.forEach(l => out.push({label:l.label, work:l.work, val:n1(l.kcal)+" kcal"}));
+      d.mental.lines.forEach(l => out.push({label:l.label, work:l.work, val:n1(l.kcal)+" kcal"}));
+      if(d.sleepAdj) out.push({label:"Short sleep", work:"2% off resting rate under 6 h", val:kc(d.sleepAdj)+" kcal"});
+      h += tbl(out, "Spent so far", kc(d.outSoFar)+" kcal");
+
+      h += `<h3>Your resting metabolism</h3>`;
+      h += `<p class="formula">${d.rr.method === "katch"
+        ? `From your lean mass (Katch&ndash;McArdle): 370 + 21.6 &times; ${n1(d.rr.lean)} kg lean `
+          + `= <b>${kc(d.bmr)}</b> kcal a day.`
+        : `Mifflin&ndash;St Jeor: 10 &times; ${d.weight} + 6.25 &times; ${d.height} &minus; 5 &times; ${d.age} `
+          + `${d.male?"+ 5":"&minus; 161"} = <b>${kc(d.bmr)}</b> kcal a day.`}
+        It runs against the clock, so by ${clockHM(d.prog.hours)} &mdash; ${(d.prog.rest*100).toFixed(0)}% of the
+        24 hours &mdash; about <b>${kc(d.bmr*d.prog.rest)}</b> kcal of it has been spent, whether you moved or not.
+        This is the single largest number in your day. Left to run to midnight it reaches the full ${kc(d.bmr)} kcal,
+        and the whole day's spending lands near <b>${kc(d.out)}</b> kcal.</p>`;
+    }
+
+    else { // stored
+      const bal = d.balanceSoFar;
+      h += tbl([
+        {label:"Eaten so far", work:"everything on the food list", val:kc(d.food.kcal)+" kcal"},
+        {label:"Spent so far", work:"resting + moving + digesting + activity", val:"−"+kc(d.outSoFar)+" kcal"},
+        {label:bal>=0?"Surplus so far":"Deficit so far", work:"what is left over right now",
+         val:(bal>=0?"+":"−")+kc(Math.abs(bal))+" kcal"},
+      ], null);
+      h += `<p class="formula">The donut compares food against what your body has spent <em>by now</em>. A
+        gram of fat or muscle, though, is a claim about the whole finished day, so the split below uses the
+        whole-day balance of <b>${(d.balance>=0?"+":"−")+kc(Math.abs(d.balance))}</b> kcal
+        (food &minus; the ${kc(d.out)} kcal your body will spend by midnight).</p>`;
+      const pt = d.part;
+      if(d.balance>=0 && pt.surplus){
+        h += `<h3>If the day ended here</h3>`;
+        h += tbl([
+          {label:"Muscle the signal allows",
+           work:`${pt.capG} g ceiling &times; ${(pt.sigS*100).toFixed(0)}% training signal `
+             + `&times; ${(pt.sigP*100).toFixed(0)}% protein &times; ${(pt.sigZ*100).toFixed(0)}% sleep`,
+           val:n1(pt.potentialG)+" g"},
+          {label:"To muscle",
+           work: pt.energyLimited ? `held to the ${kc(d.balance)} kcal surplus &divide; 5000 kcal/kg`
+                                   : `${n1(pt.potentialG)} g &times; 5000 kcal/kg = ${kc(pt.muscleKcal)} kcal`,
+           val:n1(d.leanKg*1000)+" g"},
+          {label:"To fat", work:`the surplus left over, ${kc(pt.fatKcal)} kcal &divide; 7700 kcal/kg`,
+           val:n1(d.fatKg*1000)+" g"},
+        ]);
+        h += `<p class="formula">Muscle needs all three at once &mdash; a training signal, protein and sleep &mdash;
+          so whatever the surplus cannot put into muscle is stored as fat.</p>`;
+      } else if(d.balance<0){
+        h += `<h3>If the day ended here</h3>`;
+        h += tbl([
+          {label:"Total tissue lost",
+           work:`${kc(-d.balance)} &divide; (7700 &times; ${(1-pt.ratio).toFixed(2)} + 1800 &times; ${pt.ratio.toFixed(2)})`,
+           val:n1(pt.mass*1000)+" g"},
+          {label:"Of which fat", work:`&times; ${(1-pt.ratio).toFixed(2)}`, val:n1(-d.fatKg*1000)+" g"},
+          {label:"Of which lean", work:`&times; ${pt.ratio.toFixed(2)}`, val:n1(-d.leanKg*1000)+" g"},
+        ]);
+        h += `<p class="formula">In a deficit the body draws on its reserves. Lifting and protein steer more of the
+          loss away from muscle and toward fat.</p>`;
+      }
+    }
+
+    wrap.innerHTML = h;
+    done();
+  });
+}
+
 (function(){
   const card = $("dayCard");
   if(!card) return;
-  card.addEventListener("click", openDayReview);
+  card.addEventListener("click", ev => {
+    const seg = ev.target.closest("[data-flow]");
+    if(seg){ openFlowCalc(seg.getAttribute("data-flow")); return; }
+    openDayReview();                       // anywhere else (incl. the edit line) opens the editor
+  });
   card.addEventListener("keydown", ev => {
     if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); openDayReview(); }
   });
