@@ -3,495 +3,461 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Energy ledger</title>
+<meta name="description" content="Log food, lifting and housework. See what your body spent, and whether the difference becomes fat or muscle. All data stays in your browser.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#EFF1EE" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141917" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Ledger">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23EDEFEC'/%3E%3Crect x='5' y='8' width='22' height='4' fill='%23B0761A'/%3E%3Crect x='5' y='14' width='16' height='4' fill='%231F6B63'/%3E%3Crect x='5' y='20' width='10' height='4' fill='%238A3A52'/%3E%3C/svg%3E">
-<title>Energy ledger — daily calorie and energy balance</title>
-<meta name="description" content="A single-file calorie and energy balance tracker. Log food, lifting, cardio and household work, and see where a surplus or deficit actually goes. All data stays in your browser.">
-<meta name="color-scheme" content="light">
-<meta name="theme-color" content="#EDEFEC">
 <meta property="og:title" content="Energy ledger">
-<meta property="og:description" content="Log food, lifting and housework. See what your body spent, and whether the difference becomes fat or muscle.">
+<meta property="og:description" content="Log food, lifting and housework. See where a surplus or deficit actually goes.">
 <meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23141917'/%3E%3Crect x='6' y='9' width='20' height='4' rx='2' fill='%23E0A64A'/%3E%3Crect x='6' y='15' width='14' height='4' rx='2' fill='%234FB3A6'/%3E%3Crect x='6' y='21' width='8' height='4' rx='2' fill='%23D4788F'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --paper:#EDEFEC; --panel:#F6F7F4; --ink:#1A2420; --muted:#6C7670;
-  --rule:#CBD2CA; --rule-soft:#DEE3DC;
-  --in:#B0761A; --out:#1F6B63; --fat:#8A3A52; --lean:#6E7B3F;
+  --bg:#EFF1EE; --card:#FAFBF9; --card2:#F2F4F1;
+  --ink:#16201C; --muted:#6B7570; --line:#E933E7; --line:#E2E7E1;
+  --in:#A96E15; --out:#1B665E; --fat:#8A3A52; --lean:#66743A;
+  --in-bg:rgba(169,110,21,.10); --out-bg:rgba(27,102,94,.10); --fat-bg:rgba(138,58,82,.10);
+  --shadow:0 1px 2px rgba(22,32,28,.05), 0 6px 18px rgba(22,32,28,.05);
+  --shadow-lg:0 -2px 30px rgba(22,32,28,.14);
+  --r:16px; --r-sm:11px;
   --sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   --serif:"Fraunces",Georgia,"Times New Roman",serif;
+  --tabh:58px;
 }
-*{box-sizing:border-box}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#121715; --card:#1B221F; --card2:#232B27;
+    --ink:#E7EBE7; --muted:#96A09A; --line:#2B332F;
+    --in:#E0A64A; --out:#4FB3A6; --fat:#D4788F; --lean:#A8B86A;
+    --in-bg:rgba(224,166,74,.13); --out-bg:rgba(79,179,166,.13); --fat-bg:rgba(212,120,143,.13);
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.22);
+    --shadow-lg:0 -2px 30px rgba(0,0,0,.45);
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
-  font-size:15px;line-height:1.5;font-variant-numeric:tabular-nums lining-nums}
-.wrap{max-width:1180px;margin:0 auto;padding:0 20px 140px}
-
-.masthead{padding:34px 0 18px;border-bottom:1px solid var(--rule)}
-.masthead h1{font-family:var(--serif);font-weight:600;font-size:38px;line-height:1.05;
-  margin:0 0 6px;letter-spacing:-.015em}
-.masthead p{margin:0;color:var(--muted);max-width:62ch}
-
-button{font-family:var(--sans);font-size:14px;cursor:pointer}
-.btn{background:transparent;border:1px solid var(--ink);color:var(--ink);
-  padding:7px 14px;border-radius:2px;font-weight:500}
-.btn:hover{background:var(--ink);color:var(--paper)}
-.btn.ghost{border-color:var(--rule);color:var(--muted)}
-.btn.ghost:hover{background:transparent;border-color:var(--ink);color:var(--ink)}
-.btn.sm{padding:5px 10px;font-size:13px}
+body{
+  margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:15px;line-height:1.5;font-variant-numeric:tabular-nums lining-nums;
+  overscroll-behavior-y:none;touch-action:manipulation;
+  padding-bottom:calc(var(--tabh) + 46px + env(safe-area-inset-bottom));
+}
+button{font-family:var(--sans);font-size:15px;cursor:pointer;color:inherit}
 :focus-visible{outline:2px solid var(--out);outline-offset:2px}
+h1,h2,h3{margin:0}
 
-/* user bar */
-.userbar{border-bottom:1px solid var(--rule);padding:14px 0;display:flex;
-  flex-wrap:wrap;gap:12px;align-items:center}
-.userbar .who{display:flex;align-items:center;gap:9px}
-.userbar .who label{font-size:12.5px;color:var(--muted)}
-.userbar select{width:auto;min-width:150px}
-.uacts{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
-.newrow{display:none;gap:8px;align-items:center;width:100%;padding-top:4px}
-.newrow.show{display:flex}
-.newrow input{width:auto;flex:0 1 240px}
-.filebtn{position:relative;overflow:hidden;display:inline-block}
-.filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
-.storeNote{width:100%;margin:2px 0 0;font-size:12.5px;color:var(--muted)}
-
-.cols{display:grid;grid-template-columns:1fr 400px;gap:44px;align-items:start}
-@media(max-width:940px){.cols{grid-template-columns:1fr;gap:0}}
-
-/* ledger */
-.ledger{position:sticky;top:20px;margin-top:28px}
-.ledger-inner{background:var(--panel);border:1px solid var(--rule);padding:22px 20px 18px}
-.balance-line{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
-.balance-num{font-family:var(--serif);font-size:46px;font-weight:600;line-height:1;letter-spacing:-.02em}
-.balance-word{font-size:13px;color:var(--muted);text-align:right;max-width:13ch;line-height:1.35}
-.bars{margin:22px 0 4px}
-.bar-row{margin-bottom:14px}
-.bar-head{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;margin-bottom:5px}
-.bar-head b{font-weight:600;font-size:15px;font-family:var(--serif)}
-.bar-track{height:15px;background:#E3E7E1;position:relative;overflow:hidden;display:flex}
-.seg{height:100%;transition:width .18s ease}
-.seg.in{background:var(--in)}
-.seg.o1{background:#1F6B63}.seg.o2{background:#2E7F76}.seg.o3{background:#43948A}
-.seg.o4{background:#5EA79E}.seg.o5{background:#7CBAB2}.seg.o6{background:#96C8C1}
-.fat-track{height:24px;background:#E3E7E1;position:relative;overflow:hidden}
-.fat-zero{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--ink);opacity:.5;z-index:2}
-.fat-fill{position:absolute;top:0;bottom:0;transition:width .18s ease,left .18s ease;background:var(--fat)}
-.fat-fill.burn{background:repeating-linear-gradient(-45deg,var(--fat) 0 3px,#E3E7E1 3px 7px);
-  border:1px solid var(--fat)}
-.fat-scale{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-top:4px}
-.outcome{border-top:1px solid var(--rule-soft);margin-top:16px;padding-top:14px;display:grid;gap:9px}
-.o-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:14px}
-.o-row .v{font-family:var(--serif);font-size:19px;font-weight:600}
-.o-row.dim{color:var(--muted);font-size:13px}
-.o-row.dim .v{font-size:15px}
-.swatch{display:inline-block;width:9px;height:9px;margin-right:7px;vertical-align:1px}
-.sw-fat{background:var(--fat)}.sw-lean{background:var(--lean)}
-.flags{border-top:1px solid var(--rule-soft);margin-top:14px;padding-top:12px;display:grid;gap:8px}
-.flag{font-size:13px;line-height:1.45;padding-left:14px;position:relative}
-.flag:before{content:"";position:absolute;left:0;top:7px;width:6px;height:6px;background:var(--fat)}
-.flag.ok:before{background:var(--out)}
-
-/* sections */
-section{margin-top:34px}
-.sec-head{display:flex;justify-content:space-between;align-items:baseline;
-  border-bottom:1px solid var(--rule);padding-bottom:7px;margin-bottom:4px}
-.sec-head h2{font-family:var(--serif);font-size:21px;font-weight:600;margin:0;letter-spacing:-.01em}
-.sec-head .tot{font-size:13px;color:var(--muted);text-align:right}
-.subhead{font-size:12.5px;color:var(--muted);margin:16px 0 2px;padding-bottom:4px;
-  border-bottom:1px solid var(--rule-soft)}
-
-.row{display:grid;grid-template-columns:1fr auto 104px;gap:12px;align-items:center;
-  padding:9px 0;border-bottom:1px solid var(--rule-soft)}
-.row:last-child{border-bottom:0}
-.row.on{background:linear-gradient(90deg,rgba(176,118,26,.07),transparent 65%)}
-.row.on.mv{background:linear-gradient(90deg,rgba(31,107,99,.08),transparent 65%)}
-.row .nm{font-size:14px;line-height:1.25}
-.row .nm small{display:block;color:var(--muted);font-size:11.5px}
-.row .amt{text-align:right;font-size:12.5px;color:var(--muted);white-space:nowrap;line-height:1.35}
-.row .amt b{font-family:var(--serif);font-size:15px;color:var(--ink);font-weight:600}
-.row.zero .nm,.row.zero .amt{opacity:.5}
-@media(max-width:620px){
-  .row{grid-template-columns:1fr auto;gap:7px 10px;padding:11px 0}
-  .row .nm{grid-column:1/3}
-  .row .ctl{grid-column:1}
-  .row .amt{grid-column:2;text-align:right;align-self:center}
+/* ---------------- app bar ---------------- */
+.appbar{
+  position:sticky;top:0;z-index:30;background:var(--bg);
+  padding:calc(12px + env(safe-area-inset-top)) 18px 10px;
+  display:flex;align-items:center;gap:12px;border-bottom:1px solid transparent;
+  transition:border-color .2s, background .2s;
 }
-/* iPad portrait and up: two columns of rows, less scrolling */
-@media(min-width:700px){
-  .rows2{display:grid;grid-template-columns:1fr 1fr;gap:0 30px}
-  .rows2 .ex-row{grid-column:1/3}
-  .rows2 .row:nth-last-child(2):nth-child(odd){border-bottom:0}
-}
-.ex-row{display:grid;grid-template-columns:1fr auto auto 112px;gap:12px;align-items:center;
-  padding:12px 0;border-bottom:1px solid var(--rule-soft)}
-.ex-row .grp{display:flex;flex-direction:column;gap:3px}
-.ex-row .lbl{font-size:11.5px;color:var(--muted);margin-bottom:-4px}
-.ex-row .nm{font-size:14px;line-height:1.25}
-.ex-row .nm small{display:block;color:var(--muted);font-size:11.5px}
-.ex-row .amt{text-align:right;font-size:12px;color:var(--muted);line-height:1.4}
-.ex-row .amt b{font-family:var(--serif);font-size:15px;color:var(--ink);font-weight:600}
-@media(max-width:900px){
-  .ex-row{grid-template-columns:1fr;gap:9px;padding:14px 0}
-  .ex-row .nm,.ex-row .amt{grid-column:1}
-  .ex-row .amt{text-align:left}
-  .ex-row .grp{flex-direction:row;flex-wrap:wrap;gap:8px;align-items:center}
-}
+.appbar.stuck{border-bottom-color:var(--line)}
+.appbar .ttl{flex:1;min-width:0}
+.appbar h1{font-family:var(--serif);font-size:20px;font-weight:600;letter-spacing:-.01em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.appbar .sub{font-size:12.5px;color:var(--muted);margin-top:1px}
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--card);border:1px solid var(--line);
+  font-family:var(--serif);font-weight:600;font-size:16px;display:flex;align-items:center;
+  justify-content:center;flex:none;padding:0}
 
-/* ---- stepper: the control that replaced the sliders ---- */
-.ctl{display:inline-flex;align-items:stretch;border:1px solid var(--rule);border-radius:4px;
-  background:var(--panel);overflow:hidden;width:max-content;max-width:100%}
-.ctl.on{border-color:var(--in);box-shadow:inset 0 0 0 1px rgba(176,118,26,.25)}
-.ctl.mv.on{border-color:var(--out);box-shadow:inset 0 0 0 1px rgba(31,107,99,.25)}
-.pm{width:46px;min-height:46px;border:0;background:transparent;color:var(--ink);
-  font-size:21px;line-height:1;font-family:var(--sans);padding:0;
-  touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none}
-.pm:hover{background:rgba(26,36,32,.05)}
-.pm:active{background:rgba(31,107,99,.16)}
-.pm[disabled]{opacity:.28;cursor:default}
-.num{width:74px;min-height:46px;border:0;border-left:1px solid var(--rule-soft);
-  border-right:1px solid var(--rule-soft);text-align:center;background:transparent;
-  font-family:var(--serif);font-size:16px;font-weight:600;color:var(--ink);
-  padding:0 2px;-moz-appearance:textfield;border-radius:0}
+/* ---------------- layout ---------------- */
+.page{max-width:620px;margin:0 auto;padding:4px 16px 26px}
+.tabpane{display:none}
+.tabpane.on{display:block;animation:fade .2s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.card{background:var(--card);border-radius:var(--r);padding:16px;margin-bottom:13px;
+  box-shadow:var(--shadow)}
+.card.flat{box-shadow:none;border:1px solid var(--line)}
+.card h2{font-family:var(--serif);font-size:16.5px;font-weight:600;letter-spacing:-.01em}
+.card .cardhead{display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+  margin-bottom:4px}
+.card .cardhead .sm{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.lead{font-size:13.5px;color:var(--muted);line-height:1.55}
+
+/* ---------------- hero ---------------- */
+.hero{background:var(--card);border-radius:20px;padding:20px 18px 18px;margin-bottom:13px;
+  box-shadow:var(--shadow);position:relative;overflow:hidden}
+.hero .lbl{font-size:12.5px;color:var(--muted)}
+.hero .big{font-family:var(--serif);font-size:56px;font-weight:700;line-height:1;
+  letter-spacing:-.03em;margin:5px 0 2px;display:block}
+.hero .cap{font-size:13.5px;color:var(--muted);max-width:30ch}
+.meter{margin-top:17px;display:grid;gap:7px}
+.mrow{display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:center;font-size:12.5px}
+.mrow .mlbl{color:var(--muted)}
+.mrow .mval{font-family:var(--serif);font-weight:600;font-size:14px}
+.track{height:10px;border-radius:5px;background:var(--card2);overflow:hidden;display:flex}
+.fill{height:100%;border-radius:5px;transition:width .25s cubic-bezier(.4,0,.2,1)}
+.fill.a{background:var(--in)}
+.fill.b{background:var(--out)}
+
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:13px}
+.tile{background:var(--card);border-radius:var(--r-sm);padding:12px 11px;box-shadow:var(--shadow)}
+.tile .tl{font-size:11px;color:var(--muted);line-height:1.3}
+.tile .tv{font-family:var(--serif);font-size:20px;font-weight:600;margin-top:3px;letter-spacing:-.01em}
+.c-fat{color:var(--fat)}.c-lean{color:var(--lean)}.c-in{color:var(--in)}.c-out{color:var(--out)}
+
+/* ---------------- rows & steppers ---------------- */
+.rowlist{margin:0 -4px}
+.lrow{display:grid;grid-template-columns:1fr auto;gap:10px 12px;align-items:center;
+  padding:11px 4px;border-bottom:1px solid var(--line)}
+.lrow:last-child{border-bottom:0}
+.lrow.hide{display:none}
+.lrow .nm{font-size:14.5px;line-height:1.3;min-width:0}
+.lrow .nm small{display:block;color:var(--muted);font-size:11.5px;margin-top:1px}
+.lrow .val{font-size:11.5px;color:var(--muted);text-align:right;grid-column:2}
+.lrow .val b{font-family:var(--serif);font-size:13.5px;color:var(--ink);font-weight:600}
+.lrow.dim .nm,.lrow.dim .val{opacity:.55}
+.subrow{grid-column:1/3;display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+.subrow .sl{font-size:11px;color:var(--muted);width:100%;margin-bottom:-4px}
+
+.ctl{display:inline-flex;align-items:stretch;background:var(--card2);border-radius:var(--r-sm);
+  overflow:hidden;flex:none}
+.ctl.on{background:var(--in-bg);box-shadow:inset 0 0 0 1.5px var(--in)}
+.ctl.mv.on{background:var(--out-bg);box-shadow:inset 0 0 0 1.5px var(--out)}
+.pm{width:44px;min-height:44px;border:0;background:transparent;font-size:20px;line-height:1;
+  padding:0;user-select:none;font-weight:500}
+.pm:active{background:rgba(127,127,127,.18)}
+.num{width:60px;min-height:44px;border:0;background:transparent;text-align:center;
+  font-family:var(--serif);font-size:16px;font-weight:600;color:var(--ink);padding:0;
+  -moz-appearance:textfield;border-radius:0}
 .num::-webkit-outer-spin-button,.num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-.num:focus{outline:none;background:rgba(31,107,99,.07)}
-.un{display:flex;align-items:center;padding:0 11px;font-size:12.5px;color:var(--muted);
-  white-space:nowrap;background:rgba(26,36,32,.03)}
+.num:focus{outline:none;background:rgba(127,127,127,.12)}
+.un{display:flex;align-items:center;padding-right:12px;padding-left:2px;font-size:11.5px;
+  color:var(--muted);white-space:nowrap}
 
-/* ---- accordions ---- */
-details.acc{border-bottom:1px solid var(--rule-soft)}
-details.acc[open]{padding-bottom:10px}
-summary.accsum{list-style:none;cursor:pointer;display:flex;align-items:baseline;gap:10px;
-  padding:15px 2px;min-height:46px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-summary.accsum::-webkit-details-marker{display:none}
-summary.accsum h2{font-family:var(--serif);font-size:19px;font-weight:600;margin:0;
-  letter-spacing:-.01em;flex:1}
-summary.accsum .tot{font-size:12.5px;color:var(--muted);text-align:right}
-summary.accsum:after{content:"";width:8px;height:8px;border-right:1.5px solid var(--muted);
-  border-bottom:1.5px solid var(--muted);transform:rotate(45deg) translateY(-3px);
-  transition:transform .18s ease;flex:none}
-details[open] > summary.accsum:after{transform:rotate(225deg) translateY(-1px)}
-summary.accsum:hover h2{color:var(--out)}
+/* ---------------- buttons ---------------- */
+.btn{background:var(--card2);border:0;border-radius:var(--r-sm);padding:12px 16px;
+  font-weight:500;font-size:14.5px;min-height:44px}
+.btn:active{opacity:.7}
+.btn.full{width:100%;display:block}
+.btn.primary{background:var(--out);color:#fff}
+.btn.sm{padding:9px 13px;min-height:38px;font-size:13.5px}
+.btn.line{background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap}
+.add{display:flex;align-items:center;justify-content:center;gap:7px;margin-top:12px;
+  background:transparent;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--muted)}
+.add:active{background:var(--card2)}
 
-/* ---- food search ---- */
-.search{position:relative;margin:18px 0 4px}
-.search input{padding:11px 12px;font-size:16px;min-height:46px}
-.hidden{display:none!important}
-.noresult{padding:14px 2px;color:var(--muted);font-size:13.5px}
+/* ---------------- segmented control ---------------- */
+.seg{display:flex;background:var(--card2);border-radius:12px;padding:3px;margin-bottom:13px}
+.seg button{flex:1;border:0;background:transparent;border-radius:9px;padding:9px 6px;
+  font-size:13.5px;font-weight:500;color:var(--muted);min-height:40px}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow);font-weight:600}
 
-select,input[type=number],input[type=text]{font-family:var(--sans);font-size:14px;padding:6px 8px;
-  border:1px solid var(--rule);background:var(--panel);color:var(--ink);border-radius:2px;width:100%}
-.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-top:12px}
-.field label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:4px}
-.today{border-bottom:1px solid var(--rule);padding:16px 0 18px}
-.today[hidden]{display:none}
-.t-head{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;justify-content:space-between}
-.t-head h2{font-family:var(--serif);font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
-.t-acts{display:flex;gap:8px;flex-wrap:wrap}
-.t-none{margin:9px 0 0;font-size:13.5px;color:var(--muted);max-width:66ch;line-height:1.55}
-.diffs{margin:12px 0 0;display:grid;gap:7px}
-.diff{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:baseline;
-  font-size:13.5px;padding-bottom:6px;border-bottom:1px solid var(--rule-soft)}
-.diff .was{color:var(--muted);font-size:12.5px;white-space:nowrap}
-.diff .eff{font-family:var(--serif);font-weight:600;white-space:nowrap;min-width:74px;text-align:right}
+/* ---------------- diffs ---------------- */
+.diff{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:9px 0;
+  border-bottom:1px solid var(--line);font-size:14px}
+.diff:last-of-type{border-bottom:0}
+.diff .dn{font-weight:500}
+.diff .dw{font-size:12px;color:var(--muted)}
+.diff .de{font-family:var(--serif);font-weight:600;font-size:14.5px;grid-row:1/3;
+  align-self:center;white-space:nowrap}
 .up{color:var(--in)}.down{color:var(--out)}
-.t-sum{margin:13px 0 0;padding:12px 14px;background:var(--panel);border-left:3px solid var(--out);
-  font-size:13.5px;line-height:1.6;max-width:70ch}
-.t-sum b{font-family:var(--serif);font-size:15px}
-@media(max-width:620px){
-  .diff{grid-template-columns:1fr auto}
-  .diff .was{grid-column:1;grid-row:2;margin-top:-4px}
-  .diff .eff{grid-row:1/3}
-}
-.gate{display:none;margin:12px 0 0;padding:11px 14px;border-left:3px solid var(--fat);
-  background:rgba(138,58,82,.06);font-size:13.5px;line-height:1.5;max-width:66ch}
-.gate.show{display:block}
-.incomplete{border-color:var(--fat)!important}
-.note{font-size:13px;color:var(--muted);margin:14px 0 0;max-width:70ch;line-height:1.55}
+.verdict{margin-top:13px;padding:13px 14px;background:var(--card2);border-radius:var(--r-sm);
+  font-size:13.5px;line-height:1.6}
+.verdict b{font-family:var(--serif);font-size:15px}
+
+/* ---------------- flags ---------------- */
+.flag{display:flex;gap:10px;font-size:13.5px;line-height:1.5;padding:9px 0;
+  border-bottom:1px solid var(--line)}
+.flag:last-child{border-bottom:0}
+.flag i{width:7px;height:7px;border-radius:50%;background:var(--fat);flex:none;margin-top:7px}
+.flag.ok i{background:var(--out)}
+
+/* ---------------- sheets ---------------- */
+.scrim{position:fixed;inset:0;background:rgba(10,14,12,.45);z-index:60;opacity:0;
+  pointer-events:none;transition:opacity .25s}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:61;background:var(--bg);
+  border-radius:20px 20px 0 0;box-shadow:var(--shadow-lg);
+  transform:translateY(101%);transition:transform .3s cubic-bezier(.32,.72,0,1);
+  max-height:90vh;display:flex;flex-direction:column}
+.sheet.on{transform:translateY(0)}
+.sheet .sh{padding:14px 18px 10px;position:relative;flex:none;border-bottom:1px solid var(--line)}
+.sheet .sh h2{font-family:var(--serif);font-size:18px;font-weight:600;padding-right:44px}
+.sheet .grab{width:36px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 11px}
+.sheet .x{position:absolute;right:11px;top:19px;width:40px;height:40px;border:0;
+  background:var(--card2);border-radius:50%;font-size:19px;line-height:1;padding:0}
+.sheet .sbody{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 18px
+  calc(20px + env(safe-area-inset-bottom))}
+.search{width:100%;padding:12px 14px;font-size:16px;border:0;border-radius:var(--r-sm);
+  background:var(--card2);color:var(--ink);font-family:var(--sans);margin-bottom:6px}
+.pick{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;
+  padding:13px 4px;border:0;border-bottom:1px solid var(--line);background:transparent;
+  text-align:left;font-size:14.5px;min-height:50px}
+.pick:active{background:var(--card2)}
+.pick .pk{font-size:11.5px;color:var(--muted);white-space:nowrap}
+.pick .plus{color:var(--out);font-size:20px;font-weight:500}
+.pickgroup{font-size:11.5px;color:var(--muted);padding:14px 4px 5px;font-weight:500}
+
+/* ---------------- status strip + tab bar ---------------- */
+.strip{position:fixed;left:0;right:0;bottom:calc(var(--tabh) + env(safe-area-inset-bottom));
+  z-index:40;background:var(--card);border-top:1px solid var(--line);
+  display:flex;align-items:center;gap:14px;padding:7px 18px;font-size:11px;color:var(--muted);
+  box-shadow:0 -1px 10px rgba(22,32,28,.05)}
+.strip b{font-family:var(--serif);font-size:15px;color:var(--ink);font-weight:600;
+  display:block;line-height:1.15}
+.strip .sp{flex:1}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:41;background:var(--card);
+  border-top:1px solid var(--line);display:flex;
+  padding-bottom:env(safe-area-inset-bottom);height:calc(var(--tabh) + env(safe-area-inset-bottom))}
+.tabbar button{flex:1;border:0;background:transparent;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:3px;font-size:10.5px;color:var(--muted);
+  padding:0;font-weight:500}
+.tabbar button.on{color:var(--out)}
+.tabbar svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.7;
+  stroke-linecap:round;stroke-linejoin:round}
+.tabbar button.on svg{stroke-width:2.1}
+
+/* ---------------- misc ---------------- */
+.gate{padding:13px 14px;background:var(--fat-bg);border-radius:var(--r-sm);font-size:13.5px;
+  line-height:1.55;margin-bottom:13px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+.field input,.field select{width:100%;padding:11px 12px;font-size:16px;border:0;
+  border-radius:var(--r-sm);background:var(--card2);color:var(--ink);font-family:var(--sans);
+  min-height:46px}
+.field.wide{grid-column:1/3}
+.note{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:11px}
 .note b{color:var(--ink);font-weight:600}
+.calc{font-size:13px}
+.calc h3{font-family:var(--serif);font-size:15px;font-weight:600;margin:20px 0 7px}
+.calc h3:first-child{margin-top:2px}
+table.ctab{width:100%;border-collapse:collapse;font-size:12.5px}
+table.ctab td{padding:6px 0;border-bottom:1px solid var(--line);vertical-align:baseline}
+table.ctab td.w{color:var(--muted);padding-left:10px;font-size:11.5px}
+table.ctab td.k{text-align:right;white-space:nowrap;padding-left:10px;font-weight:600}
+table.ctab tr.sum td{border-bottom:0;border-top:1.5px solid var(--line);font-weight:600}
+.formula{font-size:12.5px;color:var(--muted);line-height:1.65;margin:8px 0 12px}
+.formula b{color:var(--ink)}
+.hidden{display:none!important}
+.tiny{font-size:11.5px;color:var(--muted);line-height:1.55}
 
-/* arithmetic panel */
-.calc{margin-top:16px;display:none}
-.calc.show{display:block}
-.calc h3{font-family:var(--serif);font-size:16px;font-weight:600;margin:22px 0 6px}
-.calc h3:first-child{margin-top:4px}
-table.ctab{width:100%;border-collapse:collapse;font-size:13px}
-table.ctab td{padding:4px 0;border-bottom:1px solid var(--rule-soft);vertical-align:baseline}
-table.ctab td.w{color:var(--muted);padding-left:12px}
-table.ctab td.k{text-align:right;white-space:nowrap;padding-left:12px;font-weight:500}
-table.ctab tr.sum td{border-bottom:2px solid var(--rule);border-top:1px solid var(--rule);font-weight:600}
-table.ctab tr.sum td.w{font-weight:400}
-.formula{font-size:12.5px;color:var(--muted);margin:6px 0 10px;line-height:1.6}
-footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--rule);font-size:13px;
-  color:var(--muted);max-width:72ch}
-
-.sheet-back{display:none}
-.dock{display:none}
-@media(max-width:940px){
-  .ledger{position:static;margin-top:24px}
-  .dock{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--panel);
-    border-top:1px solid var(--rule);padding:10px 16px calc(10px + env(safe-area-inset-bottom));
-    justify-content:space-between;align-items:center;gap:10px;cursor:pointer;
-    touch-action:manipulation;-webkit-tap-highlight-color:transparent;
-    box-shadow:0 -2px 14px rgba(26,36,32,.07)}
-  .dock .d{font-size:11px;color:var(--muted);line-height:1.2}
-  .dock .d b{display:block;font-family:var(--serif);font-size:19px;font-weight:600;color:var(--ink)}
-  .dock .grab{position:absolute;top:5px;left:50%;transform:translateX(-50%);
-    width:34px;height:3px;border-radius:2px;background:var(--rule)}
-  .wrap{padding-bottom:104px}
-
-  /* the ledger slides up as a sheet when the dock is tapped */
-  .ledger{position:fixed;left:0;right:0;bottom:0;z-index:45;margin:0;
-    transform:translateY(102%);transition:transform .26s ease;
-    max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
-  body.sheet .ledger{transform:translateY(0)}
-  .ledger-inner{border-radius:12px 12px 0 0;border-bottom:0;
-    padding-bottom:calc(20px + env(safe-area-inset-bottom))}
-  .sheet-back{display:block;position:fixed;inset:0;background:rgba(26,36,32,.34);
-    z-index:44;opacity:0;pointer-events:none;transition:opacity .26s ease}
-  body.sheet .sheet-back{opacity:1;pointer-events:auto}
-  .sheet-close{position:sticky;top:0;float:right;margin:-6px -4px 0 0;border:0;background:transparent;
-    font-size:24px;line-height:1;color:var(--muted);width:44px;height:44px}
+@media(min-width:760px){
+  body{padding-bottom:30px}
+  .page{max-width:940px;padding-top:12px}
+  .strip{display:none}
+  .tabbar{position:sticky;top:0;bottom:auto;max-width:940px;margin:0 auto 16px;
+    border-radius:14px;border:1px solid var(--line);height:auto;padding:5px}
+  .tabbar button{flex-direction:row;gap:8px;font-size:14px;padding:11px;border-radius:10px}
+  .tabbar button.on{background:var(--card2)}
+  .tiles{gap:13px}
+  .cols2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;align-items:start}
 }
-@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <div class="masthead">
-    <h1>Energy ledger</h1>
-    <p>Log what you ate, what you lifted, and what you did around the house. The ledger
-       works out what came in, what your body spent on each of those, and whether the
-       difference is going onto you as fat or coming off you.</p>
+<header class="appbar" id="appbar">
+  <div class="ttl">
+    <h1 id="barTitle">Energy ledger</h1>
+    <div class="sub" id="barSub">Set yourself up to begin</div>
   </div>
+  <button class="avatar" id="avatar" aria-label="Profiles">&mdash;</button>
+</header>
 
-  <div class="userbar">
-    <div class="who">
-      <label for="userSel">Who's logging</label>
-      <select id="userSel"></select>
-    </div>
-    <div class="uacts">
-      <button class="btn sm ghost" id="newUser">Add someone</button>
-      <button class="btn sm" id="saveUsual">Save as my usual day</button>
-      <button class="btn sm ghost" id="loadUsual">Load usual day</button>
-      <button class="btn sm ghost" id="clearBtn">Clear</button>
-      <button class="btn sm ghost" id="exportBtn">Export</button>
-      <label class="btn sm ghost filebtn">Import<input type="file" id="importFile" accept=".json,application/json"></label>
-      <button class="btn sm ghost" id="delUser">Remove</button>
-    </div>
-    <div class="newrow" id="newRow">
-      <input type="text" id="newName" placeholder="Name for this profile" maxlength="40">
-      <button class="btn sm" id="createUser">Create</button>
-      <button class="btn sm ghost" id="cancelUser">Cancel</button>
-    </div>
-    <p class="storeNote" id="storeNote"></p>
-  </div>
+<div class="page">
 
-  <div class="today" id="todayPanel" hidden>
-    <div class="t-head">
-      <h2 id="todayTitle">Today</h2>
-      <div class="t-acts">
-        <button class="btn sm ghost" id="resetToday">Back to my usual day</button>
-        <button class="btn sm ghost" id="makeUsual">Make today my new usual</button>
+  <!-- ============ TODAY ============ -->
+  <section class="tabpane on" id="pane-today">
+    <div class="gate hidden" id="gate">
+      Nothing can be worked out until the ledger knows your height, weight, age and sex.
+      Resting metabolism is the largest number of the day and it is built entirely from those four.
+      <div style="margin-top:10px"><button class="btn sm primary" id="goSetup">Set them now</button></div>
+    </div>
+
+    <div class="hero">
+      <span class="lbl" id="heroLbl">Balance</span>
+      <span class="big" id="heroBig">&mdash;</span>
+      <span class="cap" id="heroCap">Waiting on your details</span>
+      <div class="meter">
+        <div class="mrow"><span class="mlbl">Taken</span>
+          <span class="track"><span class="fill a" id="barIn" style="width:0"></span></span>
+          <span class="mval c-in" id="valIn">&mdash;</span></div>
+        <div class="mrow"><span class="mlbl">Used</span>
+          <span class="track"><span class="fill b" id="barOut" style="width:0"></span></span>
+          <span class="mval c-out" id="valOut">&mdash;</span></div>
       </div>
     </div>
-    <div id="todayBody"></div>
-  </div>
 
-  <div class="cols">
-    <main>
-      <section>
-        <div class="sec-head"><h2>You</h2><span class="tot" id="bmrTot"></span></div>
-        <p class="gate" id="gate">Nothing can be estimated until the ledger knows your height,
-           weight and age. Resting metabolism is the largest single number in the day and it is
-           built entirely from these three.</p>
-        <div class="fields">
-          <div class="field"><label for="weight">Weight, kg</label>
-            <input type="number" id="weight" placeholder="kg" min="30" max="200" step="0.1"></div>
-          <div class="field"><label for="height">Height, cm</label>
-            <input type="number" id="height" placeholder="cm" min="120" max="230" step="1"></div>
-          <div class="field"><label for="age">Age</label>
-            <input type="number" id="age" placeholder="years" min="14" max="90" step="1"></div>
-          <div class="field"><label for="sex">Body type for the formula</label>
-            <select id="sex"><option value="" selected>Choose</option><option value="male">Male</option><option value="female">Female</option></select></div>
-          <div class="field"><label for="job">Rest of your day, beyond what you logged</label>
-            <select id="job">
-              <option value="0.18" selected>Mostly sitting</option>
-              <option value="0.28">On my feet a fair bit</option>
-              <option value="0.42">Moving most of the day</option>
-              <option value="0.60">Physical job</option>
-            </select></div>
-          <div class="field"><label for="train">Training experience</label>
-            <select id="train">
-              <option value="beginner">Under a year</option>
-              <option value="intermediate" selected>One to three years</option>
-              <option value="advanced">Several years</option>
-            </select></div>
-        </div>
-        <div id="recovRows" style="margin-top:6px"></div>
-      </section>
+    <div class="tiles">
+      <div class="tile"><div class="tl" id="tileFatL">Body fat</div>
+        <div class="tv c-fat" id="tileFat">&mdash;</div></div>
+      <div class="tile"><div class="tl">Muscle</div>
+        <div class="tv c-lean" id="tileLean">&mdash;</div></div>
+      <div class="tile"><div class="tl">Protein</div>
+        <div class="tv" id="tileProt">&mdash;</div></div>
+    </div>
 
-      <div class="search">
-        <input type="search" id="foodSearch" placeholder="Search food, exercises or chores"
-               aria-label="Search everything you can log">
+    <div class="card" id="diffCard">
+      <div class="cardhead"><h2 id="diffTitle">Today</h2>
+        <span class="sm" id="diffDate"></span></div>
+      <div id="diffBody"></div>
+      <div class="btnrow" id="diffActs" style="margin-top:12px"></div>
+    </div>
+
+    <div class="card" id="flagCard">
+      <div class="cardhead"><h2>Worth knowing</h2></div>
+      <div id="flags"></div>
+    </div>
+
+    <button class="btn full line" id="openCalc">Show every step of the arithmetic</button>
+  </section>
+
+  <!-- ============ FOOD ============ -->
+  <section class="tabpane" id="pane-food">
+    <div class="card">
+      <div class="cardhead"><h2>What you ate</h2><span class="sm" id="foodTot"></span></div>
+      <div class="rowlist" id="foodRows"></div>
+      <button class="btn add full" id="addFood"><span>+</span> Add something you ate</button>
+    </div>
+    <p class="tiny">Only the foods in your usual day are shown. Anything else is one tap away
+       and stays out of the way until you need it.</p>
+  </section>
+
+  <!-- ============ MOVE ============ -->
+  <section class="tabpane" id="pane-move">
+    <div class="seg" id="moveSeg">
+      <button data-m="strength" class="segbtn on">Strength</button>
+      <button data-m="cardio" class="segbtn">Cardio</button>
+      <button data-m="chores" class="segbtn">House</button>
+    </div>
+
+    <div id="m-strength">
+      <div class="card">
+        <div class="cardhead"><h2>Lifting</h2><span class="sm" id="repTot"></span></div>
+        <div class="rowlist" id="repRows"></div>
+        <div class="rowlist" id="bandRows"></div>
+        <button class="btn add full" id="addRep"><span>+</span> Add an exercise</button>
       </div>
-      <p class="noresult hidden" id="noResult">Nothing matches that.</p>
-      <div id="foodSections"></div>
-
-      <section>
-        <details class="acc"><summary class="accsum"><h2>Strength, rep by rep</h2><span class="tot" id="repTot"></span></summary>
-        <div class="subhead">Body weight and loaded movements</div>
-        <div id="repRows"></div>
-        <div class="subhead">Resistance bands</div>
-        <div id="bandRows"></div>
-        <div class="fields">
-          <div class="field"><label for="perset">Typical reps in a set</label>
-            <select id="perset">
-              <option value="6">About 6</option><option value="8">About 8</option>
-              <option value="10" selected>About 10</option><option value="12">About 12</option>
-              <option value="15">About 15</option>
-            </select></div>
-          <div class="field"><label for="rest">Rest between sets</label>
-            <select id="rest">
-              <option value="60">60 seconds</option><option value="90" selected>90 seconds</option>
-              <option value="120">2 minutes</option><option value="180">3 minutes</option>
-            </select></div>
-          <div class="field"><label for="lower">How you lower the weight</label>
-            <select id="lower">
-              <option value="slow">Slowly, under control</option>
-              <option value="normal" selected>Normal tempo</option>
-              <option value="drop">Dropped, kipped or assisted</option>
-            </select></div>
-          <div class="field"><label for="intensity">How hard it felt</label>
-            <select id="intensity">
-              <option value="light">Easy, long rests</option>
-              <option value="moderate" selected>Moderate</option>
-              <option value="hard">Hard, barely resting</option>
-            </select></div>
-          <div class="field"><label for="band">Resistance band strength</label>
-            <select id="band">
-              <option value="8">Light, about 8 kg</option>
-              <option value="14" selected>Medium, about 14 kg</option>
-              <option value="20">Heavy, about 20 kg</option>
-            </select></div>
-        </div>
+      <div class="card">
+        <div class="cardhead"><h2>How you trained</h2></div>
+        <div class="fields" id="trainSettings"></div>
         <p class="note" id="workNote"></p>
-        </details>
-      </section>
-
-      <section>
-        <details class="acc"><summary class="accsum"><h2>Holds and conditioning</h2><span class="tot" id="condTot"></span></summary>
-        <div class="subhead">Isometric holds, in minutes</div>
-        <div id="holdRows"></div>
-        <div class="subhead">Conditioning, in minutes</div>
-        <div id="condRows"></div>
-        <p class="note">These are timed rather than counted. A plank moves nothing through any
-          distance, so there is no mechanical work to compute &mdash; the cost is entirely in
-          holding tension, which only a measured rate can capture.</p>
-        </details>
-      </section>
-
-      <section>
-        <details class="acc"><summary class="accsum"><h2>Getting around</h2><span class="tot" id="moveTot"></span></summary>
-        <div id="cardioRows"></div>
-        </details>
-      </section>
-
-      <section>
-        <details class="acc"><summary class="accsum"><h2>House and chores</h2><span class="tot" id="choreTot"></span></summary>
-        <div id="choreRows"></div>
-        <p class="note" id="choreNote"></p>
-        </details>
-      </section>
-
-      <section>
-        <div class="sec-head">
-          <h2>The arithmetic</h2>
-          <button class="btn sm ghost" id="showCalc">Show every step</button>
-        </div>
-        <div class="calc" id="calcPanel"></div>
-      </section>
-
-      <footer>
-        <p>Every number here is a population average fitted to your height, weight and age.
-        Real resting metabolic rates vary by roughly 200 kcal either side of the estimate,
-        food values assume typical home portions, and the activity rates come from published
-        MET tables that describe averages, not you. Treat the ledger as a starting hypothesis:
-        weigh yourself under the same conditions for two or three weeks, and where the scale
-        disagrees with the prediction, the scale is right.</p>
-
-        <p>This is an estimation tool, not medical or dietary advice. It cannot account for
-        medication, thyroid or metabolic conditions, pregnancy, injury, or any of the reasons a
-        real body departs from a population average. If you are planning a large change to how
-        you eat or train, or you have a health condition, talk to a doctor or a registered
-        dietitian first. It is not designed for anyone under 18, and it should not be used to
-        drive weight loss in anyone with a history of disordered eating.</p>
-
-        <p>Your data never leaves your device. There is no server, no account, no analytics and
-        no network request except the web font, which the page works fine without. Profiles live
-        in this browser's local storage, so clearing site data removes them &mdash; use Export to
-        keep a copy.</p>
-
-        <p>Free to use, modify and share under the MIT licence. The model, the MET values and the
-        body-segment fractions are all documented in the README that ships alongside this file.</p>
-      </footer>
-    </main>
-
-    <aside class="ledger" id="ledgerPanel">
-      <div class="ledger-inner">
-        <button class="sheet-close" id="sheetClose" aria-label="Close">&times;</button>
-        <div class="balance-line">
-          <span class="balance-num" id="balNum">&mdash;</span>
-          <span class="balance-word" id="balWord">waiting on your food</span>
-        </div>
-        <div class="bars">
-          <div class="bar-row">
-            <div class="bar-head"><span>Taken in</span><b id="inNum">0</b></div>
-            <div class="bar-track"><div class="seg in" id="inBar" style="width:0%"></div></div>
-          </div>
-          <div class="bar-row">
-            <div class="bar-head"><span>Used</span><b id="outNum">0</b></div>
-            <div class="bar-track" id="outBar"></div>
-          </div>
-          <div class="bar-row">
-            <div class="bar-head"><span id="fatLabel">Body fat</span><b id="fatNum">&mdash;</b></div>
-            <div class="fat-track"><div class="fat-zero"></div>
-              <div class="fat-fill" id="fatBar" style="left:50%;width:0"></div></div>
-            <div class="fat-scale"><span>burning 250 g</span><span>storing 250 g</span></div>
-          </div>
-        </div>
-        <div class="outcome">
-          <div class="o-row"><span><i class="swatch sw-fat"></i>Fat this week</span>
-            <span class="v" id="fatWeek">&mdash;</span></div>
-          <div class="o-row"><span><i class="swatch sw-lean"></i>Muscle this week</span>
-            <span class="v" id="leanWeek">&mdash;</span></div>
-          <div class="o-row dim"><span>Scale change this week</span><span class="v" id="scaleWeek">&mdash;</span></div>
-          <div class="o-row dim"><span>Protein</span><span class="v" id="protNum">0 g</span></div>
-          <div class="o-row dim"><span>Carbs and fat</span><span class="v" id="macroNum">0 / 0 g</span></div>
-        </div>
-        <div class="flags" id="flags"></div>
       </div>
-    </aside>
-  </div>
+    </div>
+
+    <div id="m-cardio" class="hidden">
+      <div class="card">
+        <div class="cardhead"><h2>Getting around</h2><span class="sm" id="moveTot"></span></div>
+        <div class="rowlist" id="cardioRows"></div>
+      </div>
+      <div class="card">
+        <div class="cardhead"><h2>Holds and conditioning</h2><span class="sm" id="condTot"></span></div>
+        <div class="rowlist" id="holdRows"></div>
+        <div class="rowlist" id="condRows"></div>
+        <button class="btn add full" id="addCond"><span>+</span> Add an activity</button>
+      </div>
+    </div>
+
+    <div id="m-chores" class="hidden">
+      <div class="card">
+        <div class="cardhead"><h2>House and chores</h2><span class="sm" id="choreTot"></span></div>
+        <div class="rowlist" id="choreRows"></div>
+        <button class="btn add full" id="addChore"><span>+</span> Add a chore</button>
+      </div>
+      <p class="note" id="choreNote"></p>
+    </div>
+  </section>
+
+  <!-- ============ YOU ============ -->
+  <section class="tabpane" id="pane-you">
+    <div class="card">
+      <div class="cardhead"><h2>Your body</h2><span class="sm" id="bmrTot"></span></div>
+      <div class="fields" id="bodyFields"></div>
+    </div>
+
+    <div class="card">
+      <div class="cardhead"><h2>Sleep and water</h2></div>
+      <div class="rowlist" id="recovRows"></div>
+    </div>
+
+    <div class="card">
+      <div class="cardhead"><h2>Profiles</h2></div>
+      <div class="field" style="margin-bottom:11px">
+        <label for="userSel">Who's logging</label>
+        <select id="userSel"></select>
+      </div>
+      <div class="btnrow">
+        <button class="btn sm primary" id="saveUsual">Save as my usual day</button>
+        <button class="btn sm line" id="loadUsual">Load usual day</button>
+        <button class="btn sm line" id="newUser">Add someone</button>
+        <button class="btn sm line" id="clearBtn">Clear today</button>
+        <button class="btn sm line" id="exportBtn">Export</button>
+        <label class="btn sm line" style="position:relative;overflow:hidden">Import
+          <input type="file" id="importFile" accept=".json,application/json"
+                 style="position:absolute;inset:0;opacity:0;width:100%"></label>
+        <button class="btn sm line" id="delUser">Remove</button>
+      </div>
+      <div class="hidden" id="newRow" style="margin-top:11px">
+        <div class="field"><label for="newName">Name for this profile</label>
+          <input type="text" id="newName" maxlength="40" placeholder="Name"></div>
+        <div class="btnrow" style="margin-top:9px">
+          <button class="btn sm primary" id="createUser">Create</button>
+          <button class="btn sm line" id="cancelUser">Cancel</button>
+        </div>
+      </div>
+      <p class="note" id="storeNote"></p>
+    </div>
+
+    <div class="card">
+      <div class="cardhead"><h2>About these numbers</h2></div>
+      <p class="tiny">Every figure is a population average fitted to your measurements. Resting
+        metabolic rate varies by roughly 200 kcal either way between people of identical size,
+        food values assume typical home portions, and the activity rates come from published MET
+        tables describing averages rather than you. Weigh yourself the same way each morning for
+        two or three weeks; where the scale disagrees with the model, the scale is right.</p>
+      <p class="tiny" style="margin-top:10px">This is an estimation tool, not medical or dietary
+        advice. It cannot account for medication, thyroid or metabolic conditions, pregnancy or
+        injury. Talk to a doctor or registered dietitian before making large changes to how you
+        eat or train. Not designed for under-18s, and not to be used to drive weight loss by
+        anyone with a history of disordered eating.</p>
+      <p class="tiny" style="margin-top:10px">Your data never leaves this device. No server, no
+        account, no analytics. Profiles live in this browser's storage, so clearing site data
+        removes them, and on iOS Safari they are dropped after seven days without a visit unless
+        you add the page to your home screen. Export keeps a copy. Free under the MIT licence.</p>
+    </div>
+  </section>
 </div>
 
-<div class="sheet-back" id="sheetBack"></div>
-<div class="dock" id="dock" role="button" tabindex="0" aria-label="Open the full ledger">
-  <span class="grab"></span>
-  <div class="d">In<b id="dIn">0</b></div>
-  <div class="d">Used<b id="dOut">0</b></div>
-  <div class="d">Balance<b id="dBal">&mdash;</b></div>
-  <div class="d" id="dFatWrap">Fat<b id="dFat">&mdash;</b></div>
+<div class="strip" id="strip">
+  <div><span>Taken</span><b id="sIn">&mdash;</b></div>
+  <div><span>Used</span><b id="sOut">&mdash;</b></div>
+  <div class="sp"></div>
+  <div style="text-align:right"><span id="sBalL">Balance</span><b id="sBal">&mdash;</b></div>
+</div>
+
+<nav class="tabbar" id="tabbar">
+  <button data-t="today" class="tabbtn on"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 11h18"/></svg><span>Today</span></button>
+  <button data-t="food" class="tabbtn"><svg viewBox="0 0 24 24"><path d="M4 12h16a8 8 0 0 1-16 0Z"/><path d="M6 8c0-2 1.5-3 3-3s2 .8 3 .8S13.5 5 15 5s3 1 3 3"/><path d="M3 20h18"/></svg><span>Food</span></button>
+  <button data-t="move" class="tabbtn"><svg viewBox="0 0 24 24"><path d="M6.5 8v8M17.5 8v8M3.5 10v4M20.5 10v4M6.5 12h11"/></svg><span>Move</span></button>
+  <button data-t="you" class="tabbtn"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.7"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg><span>You</span></button>
+</nav>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet">
+  <div class="sh">
+    <div class="grab"></div>
+    <h2 id="sheetTitle">Add</h2>
+    <button class="x" id="sheetX" aria-label="Close">&times;</button>
+  </div>
+  <div class="sbody" id="sheetBody"></div>
 </div>
 
 <script>
 "use strict";
-
 /* ==================================================================
    FOOD  — values are per single slider unit
    ================================================================== */
@@ -656,38 +622,32 @@ const CHORES = [
 const KCAL_FAT = 7700, KCAL_LEAN_GAIN = 5000, KCAL_LEAN_LOST = 1800;
 const LEAN_CAP = {beginner:25, intermediate:13, advanced:6};
 
+
 const $ = id => document.getElementById(id);
 const el = (t,c,h) => { const n=document.createElement(t); if(c)n.className=c; if(h!==undefined)n.innerHTML=h; return n; };
 const kc = n => Math.round(n).toLocaleString("en-IN");
-const n1 = n => (Math.round(n*10)/10).toFixed(1);
-
+const n1 = n => { const v = Math.round(n*10)/10; return (v % 1 === 0 ? v.toFixed(0) : v.toFixed(1)); };
 /* ==================================================================
-   BUILD THE CONTROLS
+   CONTROLS
    ================================================================== */
-
-/* ==================================================================
-   STEPPER.  Replaces the sliders: two big tap targets plus a number
-   you can type into directly. Press and hold to run, accelerating.
-   ================================================================== */
-const LOG_IDS = [];          // every control that holds a logged value
-const LABELS = {};           // id -> {name, unit} so a change can be described
+const LOG_IDS = [];
+const LABELS  = {};
 const SETTING_IDS = ["weight","height","age","sex","job","train",
                      "rest","intensity","band","perset","lower","water","sleep"];
+const PINNED = new Set();     // things the user added this session
+const OWNER  = {};            // control id -> the row that holds it
 
 function mkStep(o){
   const wrap = el("div","ctl"+(o.move?" mv":""));
-  const dec = el("button","pm","\u2212");
+  const dec = el("button","pm","\u2212"), inc = el("button","pm","+");
   const inp = el("input");
-  const inc = el("button","pm","+");
-  inp.type = "number"; inp.id = o.id;
-  inp.className = "num";
-  inp.min = o.min; inp.max = o.max; inp.step = o.step;
-  inp.value = o.value;
+  inp.type="number"; inp.id=o.id; inp.className="num";
+  inp.min=o.min; inp.max=o.max; inp.step=o.step; inp.value=o.value;
   inp.setAttribute("inputmode", String(o.step).includes(".") ? "decimal" : "numeric");
   inp.setAttribute("aria-label", o.aria);
-  dec.setAttribute("aria-label", "decrease "+o.aria);
-  inc.setAttribute("aria-label", "increase "+o.aria);
-  dec.type = "button"; inc.type = "button";
+  dec.type="button"; inc.type="button";
+  dec.setAttribute("aria-label","decrease "+o.aria);
+  inc.setAttribute("aria-label","increase "+o.aria);
   wrap.append(dec, inp, inc);
   if(o.unit) wrap.appendChild(el("span","un",o.unit));
 
@@ -699,19 +659,16 @@ function mkStep(o){
     inp.value = v.toFixed(dp).replace(/\.0$/,"");
     update(); rememberLast();
   }
-  // press and hold, speeding up after a moment
   [[dec,-1],[inc,1]].forEach(([btn,dir]) => {
-    let t1=null, t2=null, n=0;
+    let t1=null,t2=null,n=0;
     const stop = () => { clearTimeout(t1); clearInterval(t2); t1=t2=null; n=0; };
     btn.addEventListener("click", ev => { ev.preventDefault(); if(!n) bump(dir); });
     btn.addEventListener("pointerdown", ev => {
       ev.preventDefault();
-      t1 = setTimeout(() => {
-        t2 = setInterval(() => { n++; bump(dir, n>14 ? 5 : 1); }, 90);
-      }, 430);
+      t1 = setTimeout(() => { t2 = setInterval(() => { n++; bump(dir, n>14?5:1); }, 90); }, 430);
     });
     ["pointerup","pointerleave","pointercancel"].forEach(e =>
-      btn.addEventListener(e, () => setTimeout(stop, 0)));
+      btn.addEventListener(e, () => setTimeout(stop,0)));
   });
   inp.addEventListener("input", update);
   inp.addEventListener("blur", () => {
@@ -724,139 +681,297 @@ function mkStep(o){
   return wrap;
 }
 
-/* Sections become accordions: essential once there are a hundred controls
-   on a phone screen. */
-function accordion(host, title, totId, open){
-  const d = el("details","acc"); d.open = !!open;
-  const sum = el("summary","accsum");
-  sum.appendChild(el("h2",null,title));
-  const tot = el("span","tot"); if(totId) tot.id = totId;
-  sum.appendChild(tot);
-  d.appendChild(sum);
-  const body = el("div","rows2");
-  d.appendChild(body);
-  host.appendChild(d);
-  return body;
+/* Every loggable thing is registered so the Add sheets can list it and the
+   visibility pass can decide whether its row is shown. */
+const CATALOG = {food:[], rep:[], cond:[], chore:[]};
+function reg(kind, rowId, ctlIds, name, group, meta){
+  CATALOG[kind].push({rowId, ctlIds, name, group, meta:meta||""});
+  ctlIds.forEach(id => { OWNER[id] = rowId; });
 }
 
+/* ---------- food ---------- */
 const foodIndex = {};
-GROUPS.forEach((g,gi) => {
-  const totId = "tot_"+g.name.replace(/\W/g,"");
-  const body = accordion($("foodSections"), g.name, totId, gi===0);
+GROUPS.forEach(g => {
   g.items.forEach(([id,name,unit,max,step,kcal,p,c,f,fib]) => {
-    foodIndex[id] = {id,name,unit,kcal,p,c,f,fib,group:totId};
-    const row = el("div","row zero"); row.id = "row_"+id;
-    row.setAttribute("data-name", (name+" "+unit).toLowerCase());
+    foodIndex[id] = {id,name,unit,kcal,p,c,f,fib,group:"tot_none"};
+    const row = el("div","lrow hide"); row.id = "row_"+id;
     const per = unit==="kcal" ? "" :
       `<small>${Math.round(kcal*(step>1?step:1))} kcal per ${step>1?step+" "+unit:unit}</small>`;
     row.appendChild(el("div","nm", name+per));
-    row.appendChild(mkStep({id:"f_"+id, min:0, max:max, step:step, value:0,
+    row.appendChild(el("div","val amt",`<b>0</b> ${unit}`));
+    const sub = el("div","subrow");
+    sub.appendChild(mkStep({id:"f_"+id, min:0, max:max, step:step, value:0,
       unit:unit, aria:name+" in "+unit}));
-    row.appendChild(el("div","amt",`<b>0</b> ${unit}`));
-    body.appendChild(row);
+    row.appendChild(sub);
+    $("foodRows").appendChild(row);
+    reg("food","row_"+id,["f_"+id],name,g.name,
+        unit==="kcal" ? "" : Math.round(kcal*(step>1?step:1))+" kcal per "+(step>1?step+" "+unit:unit));
   });
 });
 
+/* ---------- strength ---------- */
 function repEntries(ex){
   if(ex.bw) return [
-    {key:"rb_"+ex.id, label:"Reps at body weight", weighted:false},
-    {key:"rw_"+ex.id, label:"Reps with weight", weighted:true},
+    {key:"rb_"+ex.id, label:"At body weight", weighted:false},
+    {key:"rw_"+ex.id, label:"With weight", weighted:true},
   ];
   return [{key:"rb_"+ex.id, label:"Reps", weighted:true}];
 }
-
 REPS.forEach(ex => {
-  const row = el("div","ex-row"); row.id="exrow_"+ex.id;
-  row.setAttribute("data-name", (ex.name+" "+(ex.hint||"")).toLowerCase());
+  const row = el("div","lrow hide"); row.id = "exrow_"+ex.id;
   row.appendChild(el("div","nm", ex.name + (ex.hint?`<small>${ex.hint}</small>`:"")));
-  const grp = el("div","grp");
+  row.appendChild(el("div","val",`<b>0</b> reps`));
+  const sub = el("div","subrow");
+  const ids = [];
   repEntries(ex).forEach(en => {
     const w = el("div");
-    w.appendChild(el("div","lbl",en.label));
+    w.appendChild(el("div","sl",en.label));
     w.appendChild(mkStep({id:en.key, min:0, max:ex.max, step:1, value:0, move:true,
       unit:"reps", aria:ex.name+", "+en.label.toLowerCase()}));
-    grp.appendChild(w);
+    sub.appendChild(w); ids.push(en.key);
   });
-  row.appendChild(grp);
   if(ex.add){
     const w = el("div");
-    w.appendChild(el("div","lbl","Weight added"));
+    w.appendChild(el("div","sl","Weight added"));
     w.appendChild(mkStep({id:"l_"+ex.id, min:0, max:ex.add, step:1, value:0, move:true,
       unit:"kg", aria:ex.name+", weight in kg"}));
-    row.appendChild(w);
-  } else row.appendChild(el("div"));
-  const amt = el("div","amt",`<b>0</b> reps`); amt.id="a_"+ex.id;
-  row.appendChild(amt);
+    sub.appendChild(w); ids.push("l_"+ex.id);
+  }
+  row.appendChild(sub);
   $("repRows").appendChild(row);
+  const amt = el("span"); amt.id = "a_"+ex.id; amt.className="hidden";
+  row.appendChild(amt);
+  reg("rep","exrow_"+ex.id, ids, ex.name, "Lifting", ex.hint||"");
 });
 
 BANDS.forEach(b => {
-  const row = el("div","row zero"); row.id="row_"+b.id;
-  row.setAttribute("data-name", ("band "+b.name).toLowerCase());
-  row.appendChild(el("div","nm", b.name));
-  row.appendChild(mkStep({id:"rb_"+b.id, min:0, max:b.max, step:1, value:0, move:true,
+  const row = el("div","lrow hide"); row.id = "row_"+b.id;
+  row.appendChild(el("div","nm", b.name+"<small>resistance band</small>"));
+  row.appendChild(el("div","val",`<b>0</b> reps`));
+  const sub = el("div","subrow");
+  sub.appendChild(mkStep({id:"rb_"+b.id, min:0, max:b.max, step:1, value:0, move:true,
     unit:"reps", aria:b.name+", total reps"}));
-  const amt = el("div","amt",`<b>0</b> reps`); amt.id="a_"+b.id;
-  row.appendChild(amt); $("bandRows").appendChild(row);
+  row.appendChild(sub);
+  const amt = el("span"); amt.id="a_"+b.id; amt.className="hidden"; row.appendChild(amt);
+  $("bandRows").appendChild(row);
+  reg("rep","row_"+b.id,["rb_"+b.id], b.name, "Bands");
 });
 
-function timedRows(host, list){
+/* ---------- holds, conditioning, cardio ---------- */
+function timedRows(host, list, group){
   list.forEach(([id,name,met,max]) => {
-    const row = el("div","row zero"); row.id="row_"+id;
-    row.setAttribute("data-name", name.toLowerCase());
+    const row = el("div","lrow hide"); row.id="row_"+id;
     row.appendChild(el("div","nm", name+`<small>${met} MET</small>`));
-    row.appendChild(mkStep({id:"t_"+id, min:0, max:max, step:5, value:0, move:true,
+    row.appendChild(el("div","val",`<b>0</b> min`));
+    const sub = el("div","subrow");
+    sub.appendChild(mkStep({id:"t_"+id, min:0, max:max, step:5, value:0, move:true,
       unit:"min", aria:name+", minutes"}));
-    const amt = el("div","amt",`<b>0</b> min`); amt.id="a_"+id;
-    row.appendChild(amt); host.appendChild(row);
+    row.appendChild(sub);
+    const amt = el("span"); amt.id="a_"+id; amt.className="hidden"; row.appendChild(amt);
+    host.appendChild(row);
+    reg("cond","row_"+id,["t_"+id], name, group, met+" MET");
   });
 }
-timedRows($("holdRows"), HOLDS);
-timedRows($("condRows"), COND);
+timedRows($("holdRows"), HOLDS, "Holds");
+timedRows($("condRows"), COND, "Conditioning");
 
 CARDIO.forEach(([id,name,pmin,pmax,pdef,punit,dmax,dstep]) => {
-  const row = el("div","ex-row"); row.id="row_"+id;
-  row.setAttribute("data-name", name.toLowerCase());
+  const row = el("div","lrow"); row.id="row_"+id;      // always visible: only three
   row.appendChild(el("div","nm", name));
-  const grp = el("div","grp");
-  const dw = el("div"); dw.appendChild(el("div","lbl","Distance"));
+  row.appendChild(el("div","val",`<b>0</b> km`));
+  const sub = el("div","subrow");
+  const dw = el("div"); dw.appendChild(el("div","sl","Distance"));
   dw.appendChild(mkStep({id:"d_"+id, min:0, max:dmax, step:dstep, value:0, move:true,
     unit:"km", aria:name+", distance in km"}));
-  grp.appendChild(dw);
-  const pw = el("div"); pw.appendChild(el("div","lbl","Pace"));
+  const pw = el("div"); pw.appendChild(el("div","sl","Pace"));
   pw.appendChild(mkStep({id:"p_"+id, min:pmin, max:pmax, step:0.5, value:pdef, move:true,
     unit:punit, aria:name+", pace", setting:true}));
-  grp.appendChild(pw);
-  row.appendChild(grp); row.appendChild(el("div"));
-  const amt = el("div","amt",`<b>0</b> km`); amt.id="a_"+id;
-  row.appendChild(amt); $("cardioRows").appendChild(row);
+  sub.append(dw, pw); row.appendChild(sub);
+  const amt = el("span"); amt.id="a_"+id; amt.className="hidden"; row.appendChild(amt);
+  $("cardioRows").appendChild(row);
 });
 
+/* ---------- chores ---------- */
 CHORES.forEach(([id,name,hint,mode,met,minPer,max,step,unit]) => {
-  const row = el("div","row zero"); row.id="row_"+id;
-  row.setAttribute("data-name", (name+" "+hint).toLowerCase());
-  const sub = mode==="floors" ? hint : (mode==="count" ? hint+(hint?", ":"")+minPer+" min each" : met+" MET");
-  row.appendChild(el("div","nm", name+`<small>${sub}</small>`));
-  row.appendChild(mkStep({id:"h_"+id, min:0, max:max, step:step, value:0, move:true,
+  const row = el("div","lrow hide"); row.id="row_"+id;
+  const sub2 = mode==="floors" ? hint : (mode==="count" ? minPer+" min each" : met+" MET");
+  row.appendChild(el("div","nm", name+`<small>${sub2}</small>`));
+  row.appendChild(el("div","val",`<b>0</b> ${unit}`));
+  const sub = el("div","subrow");
+  sub.appendChild(mkStep({id:"h_"+id, min:0, max:max, step:step, value:0, move:true,
     unit:unit, aria:name+", "+unit}));
-  const amt = el("div","amt",`<b>0</b> ${unit}`); amt.id="a_"+id;
-  row.appendChild(amt); $("choreRows").appendChild(row);
+  row.appendChild(sub);
+  const amt = el("span"); amt.id="a_"+id; amt.className="hidden"; row.appendChild(amt);
+  $("choreRows").appendChild(row);
+  reg("chore","row_"+id,["h_"+id], name, "House", hint||"");
 });
+
+/* ---------- settings and body fields ---------- */
+function fieldSel(host, id, label, opts, wide){
+  const f = el("div","field"+(wide?" wide":""));
+  f.appendChild(el("label",null,label)).setAttribute("for",id);
+  const s = el("select"); s.id = id;
+  let def = opts[0][0];
+  opts.forEach(([v,t,sel]) => {
+    const o = el("option",null,t); o.value = v;
+    if(sel){ o.selected = true; def = v; }
+    s.appendChild(o);
+  });
+  s.value = def;                       // don't rely on the option flag alone
+  f.appendChild(s); host.appendChild(f);
+}
+function fieldNum(host, id, label, ph, min, max, step){
+  const f = el("div","field");
+  f.appendChild(el("label",null,label)).setAttribute("for",id);
+  const i = el("input"); i.type="number"; i.id=id; i.placeholder=ph;
+  i.min=min; i.max=max; i.step=step; i.value="";
+  i.setAttribute("inputmode","decimal");
+  f.appendChild(i); host.appendChild(f);
+}
+fieldNum($("bodyFields"),"weight","Weight","kg",30,200,0.1);
+fieldNum($("bodyFields"),"height","Height","cm",120,230,1);
+fieldNum($("bodyFields"),"age","Age","years",14,90,1);
+fieldSel($("bodyFields"),"sex","Sex for the formula",
+  [["","Choose",1],["male","Male"],["female","Female"]]);
+fieldSel($("bodyFields"),"job","Rest of your day",
+  [["0.18","Mostly sitting",1],["0.28","On my feet a fair bit"],
+   ["0.42","Moving most of the day"],["0.60","Physical job"]],1);
+fieldSel($("bodyFields"),"train","Training experience",
+  [["beginner","Under a year"],["intermediate","One to three years",1],
+   ["advanced","Several years"]],1);
+
+fieldSel($("trainSettings"),"perset","Typical reps in a set",
+  [["6","About 6"],["8","About 8"],["10","About 10",1],["12","About 12"],["15","About 15"]]);
+fieldSel($("trainSettings"),"rest","Rest between sets",
+  [["60","60 seconds"],["90","90 seconds",1],["120","2 minutes"],["180","3 minutes"]]);
+fieldSel($("trainSettings"),"lower","How you lower the weight",
+  [["slow","Slowly, under control"],["normal","Normal tempo",1],["drop","Dropped or kipped"]],1);
+fieldSel($("trainSettings"),"intensity","How hard it felt",
+  [["light","Easy, long rests"],["moderate","Moderate",1],["hard","Hard, barely resting"]],1);
+fieldSel($("trainSettings"),"band","Band strength",
+  [["8","Light, about 8 kg"],["14","Medium, about 14 kg",1],["20","Heavy, about 20 kg"]],1);
 
 function simpleRow(host,id,name,unit,min,max,step,val){
-  const row = el("div","row");
+  const row = el("div","lrow");
   row.appendChild(el("div","nm",name));
-  row.appendChild(mkStep({id:id, min:min, max:max, step:step, value:val,
+  row.appendChild(el("div","val","")).id = "amt_"+id;
+  const sub = el("div","subrow");
+  sub.appendChild(mkStep({id:id, min:min, max:max, step:step, value:val,
     unit:unit, aria:name, setting:true}));
-  const amt = el("div","amt",""); amt.id="amt_"+id;
-  row.appendChild(amt); host.appendChild(row);
+  row.appendChild(sub); host.appendChild(row);
 }
-simpleRow($("recovRows"),"water","Water drunk","ml",0,6000,100,3000);
 simpleRow($("recovRows"),"sleep","Sleep last night","hours",3,11,0.5,7);
+simpleRow($("recovRows"),"water","Water drunk","ml",0,6000,100,3000);
 
 /* ==================================================================
-   MATHS.  Everything returns its own working.
+   VISIBILITY.  A row appears if it holds a value, is part of your usual
+   day, or you added it this session. Everything else waits in the sheet.
    ================================================================== */
+function usualHas(id){
+  const u = activeUser();
+  if(!u || !u.usual) return false;
+  return parseFloat(u.usual[id] || 0) > 0;
+}
+function refreshVisibility(){
+  Object.keys(CATALOG).forEach(kind => CATALOG[kind].forEach(item => {
+    const live = item.ctlIds.some(id => {
+      const n = $(id);
+      return (n && parseFloat(n.value) > 0) || usualHas(id) || PINNED.has(id);
+    });
+    const row = $(item.rowId);
+    if(row) row.classList.toggle("hide", !live);
+  }));
+}
+
+/* ==================================================================
+   SHEETS
+   ================================================================== */
+let sheetOpen = false;
+function openSheet(title, buildBody){
+  $("sheetTitle").textContent = title;
+  $("sheetBody").innerHTML = "";
+  buildBody($("sheetBody"));
+  $("sheet").classList.add("on"); $("scrim").classList.add("on");
+  sheetOpen = true;
+}
+function closeSheet(){
+  $("sheet").classList.remove("on"); $("scrim").classList.remove("on");
+  sheetOpen = false;
+}
+$("scrim").addEventListener("click", closeSheet);
+$("sheetX").addEventListener("click", closeSheet);
+document.addEventListener("keydown", ev => { if(ev.key === "Escape" && sheetOpen) closeSheet(); });
+
+function pickerSheet(kind, title, placeholder){
+  openSheet(title, body => {
+    const q = el("input","search"); q.type="search"; q.placeholder=placeholder;
+    q.setAttribute("aria-label", placeholder);
+    body.appendChild(q);
+    const list = el("div");
+    body.appendChild(list);
+
+    function draw(filter){
+      list.innerHTML = "";
+      let group = null, shown = 0;
+      CATALOG[kind].forEach(item => {
+        if(filter && (item.name+" "+item.group+" "+item.meta).toLowerCase().indexOf(filter) < 0) return;
+        const already = !$(item.rowId).classList.contains("hide");
+        if(item.group !== group){ group = item.group; list.appendChild(el("div","pickgroup",group)); }
+        const b = el("button","pick");
+        b.type = "button";
+        b.innerHTML = `<span>${item.name}${item.meta?` <span class="pk">${item.meta}</span>`:""}</span>`
+                    + `<span class="plus">${already ? "\u2713" : "+"}</span>`;
+        b.addEventListener("click", () => {
+          item.ctlIds.forEach(id => PINNED.add(id));
+          refreshVisibility();
+          closeSheet();
+          const row = $(item.rowId);
+          row.scrollIntoView({block:"center", behavior:"smooth"});
+          const first = $(item.ctlIds[0]);
+          if(first) setTimeout(() => first.focus(), 340);
+        });
+        list.appendChild(b); shown++;
+      });
+      if(!shown) list.appendChild(el("p","tiny","Nothing matches that."));
+    }
+    draw("");
+    q.addEventListener("input", () => draw(q.value.trim().toLowerCase()));
+    setTimeout(() => q.focus(), 120);
+  });
+}
+$("addFood").addEventListener("click", () => pickerSheet("food","Add something you ate","Search foods"));
+$("addRep").addEventListener("click", () => pickerSheet("rep","Add an exercise","Search exercises"));
+$("addCond").addEventListener("click", () => pickerSheet("cond","Add an activity","Search activities"));
+$("addChore").addEventListener("click", () => pickerSheet("chore","Add a chore","Search chores"));
+
+/* ==================================================================
+   TABS
+   ================================================================== */
+let activeTab = "today";
+function showTab(t){
+  activeTab = t;
+  document.querySelectorAll(".tabpane").forEach(p => p.classList.toggle("on", p.id === "pane-"+t));
+  document.querySelectorAll(".tabbtn").forEach(b => b.classList.toggle("on", b.dataset.t === t));
+  $("strip").classList.toggle("hidden", t === "today");
+  window.scrollTo({top:0});
+  const titles = {today:"Energy ledger", food:"What you ate", move:"What you did", you:"You"};
+  $("barTitle").textContent = titles[t];
+}
+document.querySelectorAll(".tabbtn").forEach(b =>
+  b.addEventListener("click", () => showTab(b.dataset.t)));
+$("avatar").addEventListener("click", () => showTab("you"));
+$("goSetup").addEventListener("click", () => showTab("you"));
+
+document.querySelectorAll(".segbtn").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".segbtn").forEach(x => x.classList.toggle("on", x === b));
+  ["strength","cardio","chores"].forEach(m =>
+    $("m-"+m).classList.toggle("hidden", m !== b.dataset.m));
+}));
+
+window.addEventListener("scroll", () => {
+  $("appbar").classList.toggle("stuck", window.scrollY > 6);
+}, {passive:true});
+
 function metKcal(met, minutes, weight){ return (met-1)*3.5*weight/200*minutes; }
 
 function readFood(){
@@ -877,9 +992,11 @@ function readFood(){
 }
 
 function readStrength(weight, heightCm){
-  const rest=+$("rest").value, perSet=+$("perset").value,
-        metOh=MET_OVERHEAD[$("intensity").value], bandKg=+$("band").value,
-        ecc=LOWERING[$("lower").value], A=anthro(heightCm);
+  const rest=+$("rest").value || 90, perSet=+$("perset").value || 10,
+        metOh=MET_OVERHEAD[$("intensity").value] || MET_OVERHEAD.moderate,
+        bandKg=+$("band").value || 14,
+        ecc=LOWERING[$("lower").value] !== undefined ? LOWERING[$("lower").value] : LOWERING.normal,
+        A=anthro(heightCm);
   let sets=0, seconds=0, reps=0, upJ=0; const lines=[];
 
   REPS.forEach(ex => {
@@ -1005,7 +1122,7 @@ function compute(){
   const weight=+$("weight").value||0, height=+$("height").value||0,
         age=+$("age").value||0, male=$("sex").value!=="female",
         ready = weight>0 && height>0 && age>0 && $("sex").value!=="",
-        neatRate=+$("job").value, level=$("train").value,
+        neatRate=+$("job").value || 0.18, level=$("train").value || "intermediate",
         water=+$("water").value, sleep=+$("sleep").value;
 
   const food = readFood(), st = readStrength(weight,height),
@@ -1060,126 +1177,134 @@ function compute(){
           sleep,level,lifted,neatRate};
 }
 
+
 /* ==================================================================
    RENDER
    ================================================================== */
+let lastD = null, inDiff = false;
+
 function update(){
   const d = compute();
   const ready = d.ready;
   const inK = d.food.kcal, outK = ready ? d.out : 0, bal = d.balance;
-  const empty = !ready || inK===0;
+  const empty = !ready || inK === 0;
 
-  // Nothing is estimated until height, weight, age and sex are known: every
-  // figure below is built on those four, so showing a number first would be
-  // showing someone else's body.
-  $("gate").classList.toggle("show", !ready);
-  ["weight","height","age","sex"].forEach(id =>
-    $(id).classList.toggle("incomplete", !(+$(id).value) && $(id).value===""));
+  $("gate").classList.toggle("hidden", ready);
 
-  $("inNum").textContent = ready ? kc(inK) : "\u2014";
-  $("outNum").textContent = ready ? kc(outK) : "\u2014";
-  $("balNum").textContent = empty ? "\u2014" : (bal>=0?"+":"\u2212")+kc(Math.abs(bal));
-  $("balNum").style.color = empty ? "var(--muted)" : (bal>=0?"var(--fat)":"var(--out)");
-  $("balWord").textContent = !ready ? "waiting on your details"
-    : (empty ? "waiting on your food"
-    : (bal>=0 ? "kcal more than you spent" : "kcal short, so the gap comes off you"));
+  // ---- hero ----
+  const sign = v => (v>=0?"+":"\u2212")+kc(Math.abs(v));
+  $("heroBig").textContent  = empty ? "\u2014" : sign(bal);
+  $("heroBig").style.color  = empty ? "var(--muted)" : (bal>=0 ? "var(--fat)" : "var(--out)");
+  $("heroLbl").textContent  = empty ? "Balance" : (bal>=0 ? "Surplus today" : "Deficit today");
+  $("heroCap").textContent  = !ready ? "Waiting on your details"
+    : (inK===0 ? "Nothing logged yet"
+    : (bal>=0 ? "kcal more than your body spent" : "kcal short, so the gap comes off you"));
 
-  const scale = Math.max(inK,outK,1)*1.04;
-  $("inBar").style.width = (ready ? inK/scale*100 : 0)+"%";
-  const ob = $("outBar"); ob.innerHTML = "";
-  if(ready) [["o1",d.bmr,"At rest"],["o2",d.neat,"Everyday moving"],["o3",d.tef,"Digesting"],
-   ["o4",d.cardio.kcal,"Getting around"],["o5",d.st.kcal+d.timed.kcal,"Training"],
-   ["o6",d.chores.kcal,"Chores"]].forEach(([cls,val,label]) => {
-    if(val<=0) return;
-    const s = el("div","seg "+cls); s.style.width=(val/scale*100)+"%";
-    s.title = label+": "+kc(val)+" kcal"; ob.appendChild(s);
-  });
+  const scale = Math.max(inK, outK, 1) * 1.02;
+  $("barIn").style.width  = (ready ? inK/scale*100 : 0)+"%";
+  $("barOut").style.width = (ready ? outK/scale*100 : 0)+"%";
+  $("valIn").textContent  = ready ? kc(inK) : "\u2014";
+  $("valOut").textContent = ready ? kc(outK) : "\u2014";
 
-  const fatG = empty?0:d.fatKg*1000, leanG = empty?0:d.leanKg*1000;
-  const pct = Math.min(Math.abs(fatG)/250,1)*50, fb = $("fatBar");
-  fb.classList.toggle("burn", fatG<0);
-  fb.style.left = fatG>=0 ? "50%" : (50-pct)+"%";
-  fb.style.width = pct+"%";
-  $("fatLabel").textContent = empty?"Body fat":(fatG>=0?"Body fat stored":"Body fat burned off");
-  $("fatNum").textContent = empty?"\u2014":(fatG>=0?"+":"\u2212")+Math.abs(fatG).toFixed(0)+" g";
-  const wF = fatG*7/1000, wL = leanG*7/1000;
-  $("fatWeek").textContent  = empty?"\u2014":(wF>=0?"+":"\u2212")+Math.abs(wF).toFixed(2)+" kg";
-  $("leanWeek").textContent = empty?"\u2014":(wL>=0?"+":"\u2212")+Math.abs(wL).toFixed(2)+" kg";
-  $("scaleWeek").textContent= empty?"\u2014":((wF+wL)>=0?"+":"\u2212")+Math.abs(wF+wL).toFixed(2)+" kg";
-  $("protNum").textContent = ready
-    ? Math.round(d.food.p)+" g  ("+d.ppk.toFixed(2)+" g/kg)"
-    : Math.round(d.food.p)+" g";
-  $("macroNum").textContent = Math.round(d.food.c)+" / "+Math.round(d.food.f)+" g";
+  // ---- tiles ----
+  const fatG = empty ? 0 : d.fatKg*1000, leanG = empty ? 0 : d.leanKg*1000;
+  $("tileFatL").textContent = empty ? "Body fat" : (fatG>=0 ? "Fat stored" : "Fat burned");
+  $("tileFat").textContent  = empty ? "\u2014" : Math.abs(fatG).toFixed(0)+" g";
+  $("tileLean").textContent = empty ? "\u2014"
+    : (leanG>=0?"+":"\u2212")+Math.abs(leanG).toFixed(0)+" g";
+  $("tileProt").textContent = ready && inK>0 ? d.ppk.toFixed(1)+" g/kg" : "\u2014";
 
-  for(const gid in d.food.groupTot){
-    const node = $(gid);
-    if(node) node.textContent = d.food.groupTot[gid]>0 ? kc(d.food.groupTot[gid])+" kcal" : "";
-  }
-  $("repTot").textContent = !ready ? "" : d.st.reps>0
-    ? `${d.st.reps} reps, about ${d.st.sets} sets, ${Math.round(d.st.minutes)} min, ${kc(d.st.kcal)} kcal`
-    : "nothing logged";
-  $("condTot").textContent = !ready ? "" : d.timed.minutes>0 ? `${d.timed.minutes} min, ${kc(d.timed.kcal)} kcal` : "nothing logged";
-  $("moveTot").textContent = !ready ? "" : d.cardio.kcal>0 ? kc(d.cardio.kcal)+" kcal" : "nothing logged";
-  $("choreTot").textContent = !ready ? "" : d.chores.kcal>0
-    ? `${Math.round(d.chores.minutes)} min, ${kc(d.chores.kcal)} kcal` : "nothing logged";
-  $("bmrTot").textContent = ready ? kc(d.bmr)+" kcal at rest" : "details needed";
-  $("amt_water").innerHTML = `<b>${$("water").value}</b> ml`;
-  $("amt_sleep").innerHTML = `<b>${$("sleep").value}</b> hours`;
+  // ---- status strip ----
+  $("sIn").textContent  = ready ? kc(inK) : "\u2014";
+  $("sOut").textContent = ready ? kc(outK) : "\u2014";
+  $("sBal").textContent = empty ? "\u2014" : sign(bal);
+  $("sBal").style.color = empty ? "" : (bal>=0 ? "var(--fat)" : "var(--out)");
+  $("sBalL").textContent = empty ? "Balance" : (bal>=0 ? "Surplus" : "Deficit");
 
+  // ---- section totals ----
+  $("foodTot").textContent  = inK>0 ? kc(inK)+" kcal" : "";
+  $("repTot").textContent   = !ready ? "" : (d.st.reps>0
+    ? `${d.st.reps} reps, ${kc(d.st.kcal)} kcal` : "nothing yet");
+  $("condTot").textContent  = !ready ? "" : (d.timed.minutes>0
+    ? `${d.timed.minutes} min, ${kc(d.timed.kcal)} kcal` : "");
+  $("moveTot").textContent  = !ready ? "" : (d.cardio.kcal>0 ? kc(d.cardio.kcal)+" kcal" : "");
+  $("choreTot").textContent = !ready ? "" : (d.chores.kcal>0
+    ? `${Math.round(d.chores.minutes)} min, ${kc(d.chores.kcal)} kcal` : "");
+  $("bmrTot").textContent   = ready ? kc(d.bmr)+" kcal at rest" : "details needed";
+  $("amt_water").innerHTML  = `<b>${$("water").value}</b> ml`;
+  $("amt_sleep").innerHTML  = `<b>${$("sleep").value}</b> hours`;
+
+  // per-row readouts that the maths layer wrote into hidden spans
+  syncRowValues();
+
+  // ---- notes ----
   const T = d.st, A = T.A;
   $("workNote").innerHTML = T.reps>0
-    ? `Your arm measures about ${(A.arm*100).toFixed(0)} cm and your thigh ${(A.thigh*100).toFixed(0)} cm, `
-      + `which fixes how far each load travels. Raising those loads is <b>${Math.round(T.upJ/1000)} kJ</b> `
-      + `of positive work &mdash; that part is geometry, and firm. Dividing by a muscular efficiency of `
-      + `about 20% gives <b>${Math.round(T.liftKcal)} kcal</b>, and it is the efficiency, not the work, `
-      + `that carries the uncertainty. Lowering the loads does <em>negative</em> work, so the net `
-      + `mechanical work over a full rep is exactly zero, yet the eccentric contraction still costs `
-      + `<b>${Math.round(T.lowerKcal)} kcal</b> at ${Math.round(T.ecc*100)}% of the lifting figure. `
-      + `Separately, <b>${Math.round(T.overhead)} kcal</b> covers ${Math.round(T.minutes)} minutes spent `
-      + `upright and breathing hard, plus ${Math.round(T.epoc)} kcal of afterburn. `
-      + `The full derivation, and which numbers are exact rather than estimated, is under `
-      + `<em>The arithmetic</em>.`
-    : `Reps are logged as a daily total. Body-weight and weighted reps are counted separately, because `
-      + `they are not the same work. Travel distances come from your height, so set that first.`;
+    ? `Raising those loads is <b>${Math.round(T.upJ/1000)} kJ</b> of positive work &mdash; geometry,
+       and firm. Dividing by a muscular efficiency of about 20% gives
+       <b>${Math.round(T.liftKcal)} kcal</b>, and it is the efficiency, not the work, that carries
+       the uncertainty. Lowering does <em>negative</em> work, so net mechanical work over a rep is
+       exactly zero, yet the eccentric still costs <b>${Math.round(T.lowerKcal)} kcal</b>.
+       Separately, <b>${Math.round(T.overhead)} kcal</b> covers ${Math.round(T.minutes)} minutes
+       upright and breathing hard.`
+    : `Reps are a daily total. Body-weight and weighted reps count separately, because they are not
+       the same work. Travel distances come from your height.`;
 
   $("choreNote").innerHTML = d.chores.kcal>0
-    ? `Chores came to <b>${kc(d.chores.kcal)} kcal</b>. Worth knowing: making a chapati costs about `
-      + `${n1(metKcal(2.8,1.5,d.weight))} kcal and eating one gives you 120, so a morning at the stove `
-      + `does not pay for breakfast. Climbing stairs is the exception, being real lifting rather than `
-      + `fiddling with your hands.`
-    : `Household work is genuine expenditure and most trackers ignore it. Stairs use m g h directly; `
-      + `everything else uses measured rates for that activity.`;
-
+    ? `Making a chapati costs about ${n1(metKcal(2.8,1.5,d.weight))} kcal and eating one gives you
+       120, so a morning at the stove does not pay for breakfast. Stairs are the exception, being
+       real lifting.`
+    : `Household work is genuine expenditure and most trackers ignore it.`;
   if(d.chores.minutes > 60 && d.neatRate > 0.18){
-    $("choreNote").innerHTML += ` <b>One caution:</b> you have logged ${Math.round(d.chores.minutes)} `
-      + `minutes of chores while also telling the ledger you move a lot beyond what you log. That counts `
-      + `some of it twice. Set "rest of your day" to mostly sitting when you log chores in detail.`;
+    $("choreNote").innerHTML += ` <b>Careful:</b> you have logged
+      ${Math.round(d.chores.minutes)} minutes of chores while also saying you move a lot beyond what
+      you log. That counts some of it twice &mdash; set "rest of your day" to mostly sitting.`;
   }
-
-  $("dIn").textContent = kc(inK); $("dOut").textContent = kc(outK);
-  $("dBal").textContent = empty?"\u2014":(bal>=0?"+":"\u2212")+kc(Math.abs(bal));
-  $("dFatWrap").firstChild.nodeValue = empty?"Fat":(fatG>=0?"Storing":"Burning");
-  $("dFat").textContent = empty?"\u2014":Math.abs(fatG).toFixed(0)+" g";
 
   renderFlags(d, empty);
-  if($("calcPanel").classList.contains("show")) renderCalc(d);
   lastD = d;
+  refreshVisibility();
+
   if(!inDiff && activeUser() && activeUser().usual){
     inDiff = true;
-    try { renderToday(false); } finally { inDiff = false; }
+    try { renderToday(); } finally { inDiff = false; }
+  } else if(!activeUser() || !activeUser().usual){
+    renderToday();
   }
+}
+
+/* The maths functions write "<b>4</b> piece<br>480 kcal" style readouts into
+   elements they know by id. Mirror those into the row's value cell. */
+function syncRowValues(){
+  for(const id in foodIndex){
+    const row = $("row_"+id), cell = row && row.querySelector(".val");
+    if(!cell) continue;                       // readFood already wrote the numbers here
+    cell.innerHTML = cell.innerHTML.replace(/<br>/g," &middot; ");
+    row.classList.toggle("dim", !(parseFloat($("f_"+id).value) > 0));
+  }
+  const mirror = (srcId, rowId) => {
+    const src = $(srcId), row = $(rowId);
+    if(!src || !row) return;
+    const cell = row.querySelector(".val");
+    if(cell) cell.innerHTML = src.innerHTML.replace(/<br>/g," &middot; ");
+    row.classList.toggle("dim", /^<b>0<\/b>/.test(src.innerHTML));
+  };
+  REPS.forEach(ex => mirror("a_"+ex.id, "exrow_"+ex.id));
+  BANDS.forEach(b => mirror("a_"+b.id, "row_"+b.id));
+  HOLDS.concat(COND).forEach(([id]) => mirror("a_"+id, "row_"+id));
+  CARDIO.forEach(([id]) => mirror("a_"+id, "row_"+id));
+  CHORES.forEach(([id]) => mirror("a_"+id, "row_"+id));
 }
 
 function renderFlags(d, empty){
   const fl = $("flags"); fl.innerHTML = "";
-  const add = (t,ok) => fl.appendChild(el("div","flag"+(ok?" ok":""),t));
+  const add = (t,ok) => fl.appendChild(el("div","flag"+(ok?" ok":""),`<i></i><span>${t}</span>`));
   if(!d.ready){
-    add("Enter your height, weight, age and sex at the top. Resting metabolism is worked out from "
-      + "those four and it is the biggest number in the day, so nothing is estimated before then.", true);
-    return;
-  }
-  if(empty){ add("Nothing logged yet. Drag some food sliders, or load a saved usual day.", true); }
-  else {
+    add("Enter your height, weight, age and sex in the You tab. Resting metabolism is built from "
+      + "those four and it is the biggest number of the day.", true);
+  } else if(empty){
+    add("Nothing logged yet. Add what you ate, or load your usual day from the You tab.", true);
+  } else {
     if(d.ppk<1.6) add(`Protein is ${d.ppk.toFixed(2)} g per kg. Training pushes the useful range to 1.6&ndash;2.2.`);
     else add(`Protein at ${d.ppk.toFixed(2)} g per kg supports your training.`, true);
     if(d.capped) add("The surplus is bigger than muscle growth can absorb, so the extra lands as fat.");
@@ -1187,13 +1312,96 @@ function renderFlags(d, empty){
     if(d.water<d.waterTarget-400) add(`Water is about ${Math.round(d.waterTarget-d.water)} ml short for this much activity.`);
     if(d.food.fib<25 && d.food.kcal>1200) add(`Fibre is ${Math.round(d.food.fib)} g. Aim for 30 or more.`);
     if(d.food.f*9/Math.max(d.food.kcal,1)>0.42) add("Fat is over 42% of your calories.");
-    if(d.balance<-750) add("That is a steep deficit. Past roughly 750 kcal under, more of the loss comes from muscle.");
+    if(d.balance<-750) add("A steep deficit. Past roughly 750 kcal under, more of the loss comes from muscle.");
   }
   add("Weigh yourself the same way each morning. Where two weeks of the scale disagrees with this, believe the scale.", true);
 }
 
-/* ---------- the arithmetic panel ---------- */
-let lastD = null, inDiff = false;
+/* ==================================================================
+   TODAY: the usual day, and what you changed
+   ================================================================== */
+function usingSnapshot(snap, fn){
+  const cur = snapshot();
+  allControls().forEach(n => { if(snap[n.id] !== undefined) n.value = snap[n.id]; });
+  let r;
+  try { r = fn(); }
+  finally { allControls().forEach(n => { if(cur[n.id] !== undefined) n.value = cur[n.id]; }); }
+  return r;
+}
+function dayDiffs(usual){
+  const now = snapshot(), out = [];
+  LOG_IDS.forEach(id => {
+    const a = parseFloat(usual[id] || 0) || 0, b = parseFloat(now[id] || 0) || 0;
+    if(Math.abs(a-b) < 1e-9) return;
+    const L = LABELS[id] || {name:id, unit:""};
+    let kcal = null;
+    const fid = id.startsWith("f_") ? id.slice(2) : null;
+    if(fid && foodIndex[fid]) kcal = (b-a)*foodIndex[fid].kcal;
+    out.push({name:L.name.replace(/ in [a-z]+$/,""), unit:L.unit, was:a, now:b, kcal});
+  });
+  return out;
+}
+
+function renderToday(){
+  const u = activeUser(), body = $("diffBody"), acts = $("diffActs");
+  $("diffDate").textContent = prettyDate();
+  acts.innerHTML = "";
+
+  if(!u){
+    $("diffTitle").textContent = "Get started";
+    body.innerHTML = `<p class="lead">Fill in your body details, log a typical day, then save it
+      as your usual. After that this screen opens with your day already filled in and you only
+      change what was different.</p>`;
+    return;
+  }
+  if(!u.usual){
+    $("diffTitle").textContent = "No usual day yet";
+    body.innerHTML = `<p class="lead">Log a typical day across the Food and Move tabs, then save it
+      as ${db.active}'s usual day. From then on it loads itself and you only adjust what changed.</p>`;
+    acts.appendChild(mkBtn("Save today as my usual day","primary",() => $("saveUsual").click()));
+    return;
+  }
+
+  $("diffTitle").textContent = "What's different today";
+  const diffs = dayDiffs(u.usual);
+  acts.appendChild(mkBtn("Back to my usual day","line",() => $("resetToday_").click()));
+  acts.appendChild(mkBtn("Make today my new usual","line",() => $("makeUsual_").click()));
+
+  if(!diffs.length){
+    body.innerHTML = `<p class="lead">This is ${db.active}'s usual day, loaded and ready. Change
+      whatever was different &mdash; an extra chapati, a session skipped, a longer walk &mdash;
+      and everything updates as you go.</p>`;
+    return;
+  }
+
+  const before = usingSnapshot(u.usual, compute);
+  const after = compute();
+  let h = "";
+  diffs.forEach(x => {
+    const up = x.now > x.was;
+    const eff = x.kcal === null ? "" :
+      `<span class="de ${up?"up":"down"}">${x.kcal>=0?"+":"\u2212"}${kc(Math.abs(x.kcal))}</span>`;
+    h += `<div class="diff"><span class="dn">${x.name}</span>${eff||'<span class="de"></span>'}
+          <span class="dw">${n1(x.was)} &rarr; ${n1(x.now)} ${x.unit}</span></div>`;
+  });
+  if(before.ready && after.ready){
+    const s = v => (v>=0?"+":"\u2212")+kc(Math.abs(v));
+    const fA = after.fatKg*1000, fB = before.fatKg*1000;
+    h += `<div class="verdict">Against your usual day you took in <b>${s(after.food.kcal-before.food.kcal)}</b>
+      kcal and spent <b>${s(after.out-before.out)}</b>, so the balance moved
+      <b>${s(after.balance-before.balance)}</b> kcal, from ${s(before.balance)} to ${s(after.balance)}.
+      Body fat goes from ${fB>=0?"storing":"burning"} ${Math.abs(fB).toFixed(0)} g a day to
+      <b>${fA>=0?"storing":"burning"} ${Math.abs(fA).toFixed(0)} g</b>.</div>`;
+  }
+  body.innerHTML = h;
+}
+function mkBtn(text, cls, fn){
+  const b = el("button","btn sm "+cls, text);
+  b.type = "button";
+  b.addEventListener("click", fn);
+  return b;
+}
+
 function tbl(rows, sumLabel, sumVal, unit){
   let h = '<table class="ctab"><tbody>';
   rows.forEach(r => {
@@ -1203,13 +1411,8 @@ function tbl(rows, sumLabel, sumVal, unit){
   return h+"</tbody></table>";
 }
 
-function renderCalc(d){
-  const p = $("calcPanel");
-  if(!d.ready){
-    p.innerHTML = `<p class="formula">Enter your height, weight, age and sex first. Every line in
-      this panel is computed from them.</p>`;
-    return;
-  }
+function renderCalcInto(p, d){
+
   const ecc = d.st.ecc;
   let h = "";
 
@@ -1333,53 +1536,31 @@ function renderCalc(d){
   p.innerHTML = h;
 }
 
-$("showCalc").addEventListener("click", () => {
-  const p = $("calcPanel"), on = p.classList.toggle("show");
-  $("showCalc").textContent = on ? "Hide the steps" : "Show every step";
-  if(on && lastD) renderCalc(lastD);
-});
 
 /* ==================================================================
    PROFILES.  Saved in this browser, on this device. Not accounts.
    ================================================================== */
 const STORE = "energyLedger.v3";
 const OLD_STORE = "energyLedger.v2";
-function todayKey(){
-  const d = new Date();
-  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
-}
-function prettyDate(){
-  try{ return new Date().toLocaleDateString(undefined,
-    {weekday:"long", day:"numeric", month:"long"}); }
-  catch(e){ return todayKey(); }
-}
 let db = {users:{}, active:null};
 let canStore = true;
 try{ localStorage.setItem("__t","1"); localStorage.removeItem("__t"); }
 catch(e){ canStore = false; }
 
-function allControls(){
-  return LOG_IDS.concat(SETTING_IDS).map(id => $(id)).filter(Boolean);
+function todayKey(){
+  const d = new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 }
-function snapshot(){
-  const s = {};
-  allControls().forEach(n => { s[n.id] = n.value; });
-  return s;
+function prettyDate(){
+  try{ return new Date().toLocaleDateString(undefined,{weekday:"short", day:"numeric", month:"short"}); }
+  catch(e){ return todayKey(); }
 }
+function allControls(){ return LOG_IDS.concat(SETTING_IDS).map(id => $(id)).filter(Boolean); }
+function snapshot(){ const s = {}; allControls().forEach(n => { s[n.id] = n.value; }); return s; }
 function restore(s){
   if(!s) return;
   allControls().forEach(n => { if(s[n.id] !== undefined) n.value = s[n.id]; });
-  update(); openLogged();
-}
-
-/* After loading a day, open the accordions that actually contain something,
-   so nothing logged is hidden behind a closed section. */
-function openLogged(){
-  document.querySelectorAll("details.acc").forEach(d => {
-    let any = false;
-    d.querySelectorAll("input.num").forEach(n => { if(parseFloat(n.value) > 0) any = true; });
-    if(any) d.open = true;
-  });
+  update();
 }
 function loadDb(){
   if(!canStore) return;
@@ -1387,7 +1568,7 @@ function loadDb(){
     const raw = localStorage.getItem(STORE);
     if(raw){ db = JSON.parse(raw); }
     else {
-      const old = localStorage.getItem(OLD_STORE);      // carry across from v2
+      const old = localStorage.getItem(OLD_STORE);
       if(old){
         const prev = JSON.parse(old);
         db = {users:{}, active:prev.active || null};
@@ -1408,55 +1589,77 @@ function saveDb(){
 }
 function noteStore(msg){
   $("storeNote").textContent = msg || (canStore
-    ? "Profiles are saved in this browser on this device. Nothing leaves your computer, and there are no passwords, so treat these as labelled slots rather than secure accounts. Export keeps a copy you can move."
-    : "This browser is blocking local storage, so profiles will vanish when you close the tab. Use Export to keep a copy.");
+    ? "Profiles are saved in this browser on this device. No passwords, so treat these as labelled slots rather than secure accounts."
+    : "This browser is blocking storage, so profiles vanish when you close the tab. Use Export to keep a copy.");
 }
+function activeUser(){ return db.users[db.active]; }
 function refreshUsers(){
   const sel = $("userSel"); sel.innerHTML = "";
   const names = Object.keys(db.users);
-  if(!names.length){
-    sel.appendChild(el("option",null,"No one yet"));
-    $("newRow").classList.add("show");
-    return;
-  }
-  names.forEach(n => {
+  if(!names.length){ sel.appendChild(el("option",null,"No one yet")); }
+  else names.forEach(n => {
     const o = el("option",null,n); o.value = n;
     if(n === db.active) o.selected = true;
     sel.appendChild(o);
   });
+  $("avatar").textContent = db.active ? db.active.trim().charAt(0).toUpperCase() : "\u2014";
+  $("barSub").textContent = db.active
+    ? db.active + " \u00b7 " + prettyDate()
+    : "Set yourself up to begin";
 }
-function activeUser(){ return db.users[db.active]; }
+function openToday(){
+  const u = activeUser();
+  if(!u) return;
+  restore(u.days[todayKey()] || u.usual || null);
+  renderToday();
+}
+
+let saveTimer = null;
+function rememberLast(){
+  const u = activeUser();
+  if(!u) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    u.days[todayKey()] = snapshot();
+    const keys = Object.keys(u.days).sort();
+    while(keys.length > 90) delete u.days[keys.shift()];
+    saveDb();
+  }, 600);
+}
 
 $("newUser").addEventListener("click", () => {
-  $("newRow").classList.add("show"); $("newName").focus();
+  $("newRow").classList.remove("hidden"); $("newName").focus();
 });
-$("cancelUser").addEventListener("click", () => $("newRow").classList.remove("show"));
+$("cancelUser").addEventListener("click", () => $("newRow").classList.add("hidden"));
 $("createUser").addEventListener("click", () => {
   const name = $("newName").value.trim();
   if(!name) return;
   if(db.users[name]){ noteStore(`A profile called ${name} already exists.`); return; }
-  if(activeUser()) activeUser().days[todayKey()] = snapshot();   // don't lose the outgoing day
+  if(activeUser()) activeUser().days[todayKey()] = snapshot();
   db.users[name] = {usual:null, days:{}};
   db.active = name; saveDb(); refreshUsers();
-  $("newRow").classList.remove("show"); $("newName").value = "";
-  noteStore(`Created ${name}. Set your body details and a typical day, then save it as your usual day.`);
+  $("newRow").classList.add("hidden"); $("newName").value = "";
+  update();
+  noteStore(`Created ${name}. Fill in the body details above, log a typical day, then save it as the usual day.`);
 });
 $("userSel").addEventListener("change", () => {
   if(activeUser()) activeUser().days[todayKey()] = snapshot();
   db.active = $("userSel").value;
-  saveDb();
-  openToday();
+  saveDb(); refreshUsers(); openToday();
   noteStore(`Switched to ${db.active}.`);
 });
 $("saveUsual").addEventListener("click", () => {
-  if(!activeUser()){ noteStore("Add a profile first, then save a usual day to it."); return; }
-  activeUser().usual = snapshot(); saveDb(); renderToday(false);
-  noteStore(`Saved this as ${db.active}'s usual day.`);
+  if(!activeUser()){ noteStore("Add a profile first."); return; }
+  activeUser().usual = snapshot(); saveDb(); renderToday(); refreshVisibility();
+  noteStore(`Saved as ${db.active}'s usual day.`);
+  showTab("today");
 });
 $("loadUsual").addEventListener("click", () => {
   const u = activeUser();
-  if(!u || !u.usual){ noteStore("No usual day saved for this profile yet."); return; }
-  restore(u.usual); renderToday(false); noteStore(`Loaded ${db.active}'s usual day.`);
+  if(!u || !u.usual){ noteStore("No usual day saved yet."); return; }
+  restore(u.usual); renderToday();
+  noteStore(`Loaded ${db.active}'s usual day.`);
+  showTab("today");
 });
 $("delUser").addEventListener("click", () => {
   if(!activeUser()) return;
@@ -1464,13 +1667,13 @@ $("delUser").addEventListener("click", () => {
   delete db.users[gone];
   db.active = Object.keys(db.users)[0] || null;
   saveDb(); refreshUsers();
-  if(activeUser()) openToday();
+  if(activeUser()) openToday(); else update();
   noteStore(`Removed ${gone}.`);
 });
 $("clearBtn").addEventListener("click", () => {
   LOG_IDS.forEach(id => { const n = $(id); if(n) n.value = 0; });
-  update(); openLogged();
-  noteStore("Cleared the day. Your body details and settings are kept.");
+  update();
+  noteStore("Cleared today. Body details and settings kept.");
 });
 $("exportBtn").addEventListener("click", () => {
   if(activeUser()) activeUser().days[todayKey()] = snapshot();
@@ -1490,11 +1693,11 @@ $("importFile").addEventListener("change", ev => {
   fr.onload = () => {
     try{
       const incoming = JSON.parse(fr.result);
-      if(!incoming || !incoming.users) throw new Error("not a profile file");
+      if(!incoming || !incoming.users) throw new Error("bad file");
       Object.assign(db.users, incoming.users);
+      Object.values(db.users).forEach(u => { if(!u.days) u.days = {}; });
       db.active = incoming.active && db.users[incoming.active] ? incoming.active : Object.keys(db.users)[0];
-      saveDb(); refreshUsers();
-      openToday();
+      saveDb(); refreshUsers(); openToday();
       noteStore(`Imported ${Object.keys(incoming.users).length} profile(s).`);
     }catch(e){ noteStore("That file could not be read as a profile export."); }
   };
@@ -1502,157 +1705,46 @@ $("importFile").addEventListener("change", ev => {
   ev.target.value = "";
 });
 
-/* Today's log is saved under today's date, so tomorrow starts fresh from the
-   usual day rather than inheriting yesterday's. */
-let saveTimer = null;
-function rememberLast(){
-  const u = activeUser();
-  if(!u) return;
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
-    u.days[todayKey()] = snapshot();
-    const keys = Object.keys(u.days).sort();
-    while(keys.length > 90) delete u.days[keys.shift()];   // keep three months
-    saveDb();
-  }, 600);
-}
-function openToday(){
-  const u = activeUser();
-  if(!u) return;
-  const saved = u.days[todayKey()];
-  restore(saved || u.usual || null);
-  renderToday(!!saved);
-}
-allControls().forEach(n => n.addEventListener("input", rememberLast));
-SETTING_IDS.forEach(id => { const n = $(id); if(n) n.addEventListener("change", update); });
-["weight","height","age","sex","job","train","rest","intensity","band","perset","lower"]
-  .forEach(id => $(id).addEventListener("input", update));
-
-
-/* ==================================================================
-   TODAY.  The usual day is already loaded; this reports what you
-   changed, what it cost, and how it moved the outcome.
-   ================================================================== */
-function usingSnapshot(snap, fn){
-  const cur = snapshot();
-  allControls().forEach(n => { if(snap[n.id] !== undefined) n.value = snap[n.id]; });
-  let r;
-  try { r = fn(); }
-  finally { allControls().forEach(n => { if(cur[n.id] !== undefined) n.value = cur[n.id]; }); }
-  return r;
-}
-
-function dayDiffs(usual){
-  const now = snapshot(), out = [];
-  LOG_IDS.forEach(id => {
-    const a = parseFloat(usual[id] || 0) || 0, b = parseFloat(now[id] || 0) || 0;
-    if(Math.abs(a-b) < 1e-9) return;
-    const L = LABELS[id] || {name:id, unit:""};
-    let kcal = null;
-    const fid = id.startsWith("f_") ? id.slice(2) : null;
-    if(fid && foodIndex[fid]) kcal = (b-a)*foodIndex[fid].kcal;
-    const name = L.name.replace(/ in [a-z]+$/,"").replace(/,\s*$/,"");
-    out.push({id, name, unit:L.unit, was:a, now:b, kcal});
-  });
-  return out;
-}
-
-function renderToday(resumed){
-  const u = activeUser(), panel = $("todayPanel");
-  if(!u || !u.usual){ panel.hidden = true; return; }
-  panel.hidden = false;
-  $("todayTitle").textContent = prettyDate();
-
-  const diffs = dayDiffs(u.usual);
-  const body = $("todayBody");
-
-  if(!diffs.length){
-    body.innerHTML = `<p class="t-none">This is ${db.active}'s usual day, loaded and ready.
-      Change whatever was different &mdash; an extra chapati, a session skipped, a longer walk
-      &mdash; and everything below updates as you go, with the reasoning under
-      <em>The arithmetic</em>.</p>`;
-    return;
-  }
-
-  const before = usingSnapshot(u.usual, compute);
-  const after = compute();
-  let h = '<div class="diffs">';
-  diffs.forEach(d => {
-    const up = d.now > d.was;
-    const eff = d.kcal === null ? "" :
-      `<span class="eff ${up?"up":"down"}">${d.kcal>=0?"+":"\u2212"}${kc(Math.abs(d.kcal))} kcal</span>`;
-    h += `<div class="diff"><span>${d.name}</span>
-            <span class="was">${n1(d.was)} &rarr; ${n1(d.now)} ${d.unit}</span>
-            ${eff || '<span class="eff"></span>'}</div>`;
-  });
-  h += "</div>";
-
-  if(before.ready && after.ready){
-    const dIn = after.food.kcal - before.food.kcal;
-    const dOut = after.out - before.out;
-    const dBal = after.balance - before.balance;
-    const fA = after.fatKg*1000, fB = before.fatKg*1000;
-    const say = v => (v>=0?"+":"\u2212")+kc(Math.abs(v));
-    h += `<p class="t-sum">Against your usual day you took in <b>${say(dIn)}</b> kcal and spent
-      <b>${say(dOut)}</b>, so the balance moved <b>${say(dBal)}</b> kcal, from
-      ${say(before.balance)} to ${say(after.balance)}.
-      Body fat goes from ${fB>=0?"storing":"burning"} ${Math.abs(fB).toFixed(0)} g a day to
-      <b>${fA>=0?"storing":"burning"} ${Math.abs(fA).toFixed(0)} g</b>.
-      Over a week of days like this that is ${(after.fatKg*7).toFixed(2)} kg of fat rather than
-      ${(before.fatKg*7).toFixed(2)} kg.</p>`;
-  }
-  body.innerHTML = h;
-}
-
-$("resetToday").addEventListener("click", () => {
+/* hidden helpers the Today card drives */
+const rt = el("button"); rt.id = "resetToday_"; rt.className = "hidden";
+rt.addEventListener("click", () => {
   const u = activeUser();
   if(!u || !u.usual) return;
   restore(u.usual);
-  u.days[todayKey()] = snapshot(); saveDb();
-  renderToday(false);
+  u.days[todayKey()] = snapshot(); saveDb(); renderToday();
   noteStore("Today reset to your usual day.");
 });
-$("makeUsual").addEventListener("click", () => {
+const mu = el("button"); mu.id = "makeUsual_"; mu.className = "hidden";
+mu.addEventListener("click", () => {
   const u = activeUser();
   if(!u) return;
-  u.usual = snapshot(); saveDb(); renderToday(false);
-  noteStore("Today is now your usual day. Tomorrow will start from this.");
+  u.usual = snapshot(); saveDb(); renderToday(); refreshVisibility();
+  noteStore("Today is now your usual day.");
+});
+document.body.append(rt, mu);
+
+/* the arithmetic, in a sheet */
+$("openCalc").addEventListener("click", () => {
+  openSheet("The arithmetic", body => {
+    const wrap = el("div","calc");
+    body.appendChild(wrap);
+    if(!lastD || !lastD.ready){
+      wrap.innerHTML = `<p class="formula">Enter your height, weight, age and sex first. Every line
+        here is computed from them.</p>`;
+      return;
+    }
+    renderCalcInto(wrap, lastD);
+  });
 });
 
-/* ---------- search across everything loggable ---------- */
-$("foodSearch").addEventListener("input", () => {
-  const q = $("foodSearch").value.trim().toLowerCase();
-  const rows = document.querySelectorAll(".row[data-name]");
-  let hits = 0;
-  rows.forEach(r => {
-    const match = !q || r.getAttribute("data-name").indexOf(q) > -1;
-    r.classList.toggle("hidden", !match);
-    if(match) hits++;
-  });
-  document.querySelectorAll("details.acc").forEach(d => {
-    if(!q){ return; }
-    let any = false;
-    d.querySelectorAll(".row[data-name]").forEach(r => { if(!r.classList.contains("hidden")) any = true; });
-    d.open = any;
-    d.classList.toggle("hidden", !any);
-  });
-  if(!q) document.querySelectorAll("details.acc").forEach(d => d.classList.remove("hidden"));
-  $("noResult").classList.toggle("hidden", hits > 0);
-});
-
-/* ---------- the ledger as a bottom sheet on small screens ---------- */
-function sheet(on){ document.body.classList.toggle("sheet", on); }
-$("dock").addEventListener("click", () => sheet(!document.body.classList.contains("sheet")));
-$("dock").addEventListener("keydown", ev => {
-  if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); sheet(true); }
-});
-$("sheetBack").addEventListener("click", () => sheet(false));
-$("sheetClose").addEventListener("click", () => sheet(false));
-document.addEventListener("keydown", ev => { if(ev.key === "Escape") sheet(false); });
+allControls().forEach(n => n.addEventListener("input", rememberLast));
+SETTING_IDS.forEach(id => { const n = $(id); if(n){ n.addEventListener("input", update);
+                                                    n.addEventListener("change", update); } });
 
 loadDb(); refreshUsers(); noteStore();
 if(activeUser()) openToday();
 update();
+
 </script>
 </body>
 </html>
