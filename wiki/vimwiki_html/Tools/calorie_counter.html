@@ -2118,7 +2118,12 @@ function dayProgress(){
   const awakeWindow = Math.max(8, 24 - sleep);
   return {
     hours,
-    rest: Math.min(1, Math.max(0.02, hours/24)),
+    /* Straight fraction of the 24-hour clock, no floor. An earlier 2% minimum
+       meant that two minutes past midnight - 0.14% of the day - was billed as a
+       full 2% of resting metabolism, roughly 30 phantom kcal "used" before you
+       had done anything. Resting burn is real but it accrues at the clock's
+       pace, not a made-up minimum. */
+    rest: Math.min(1, hours/24),
     awake: Math.min(1, Math.max(0, (hours - wake)/awakeWindow)),
   };
 }
