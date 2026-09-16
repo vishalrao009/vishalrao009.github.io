@@ -260,18 +260,41 @@ table.ctab tr.sum td{border-bottom:0;border-top:1.5px solid var(--line);font-wei
 .formula b{color:var(--ink)}
 .hidden{display:none!important}
 .tiny{font-size:11.5px;color:var(--muted);line-height:1.55}
+.privacy{display:flex;align-items:center;justify-content:center;gap:8px;margin:18px 4px 4px;
+  padding:11px 13px;background:var(--card2);border-radius:var(--r-sm);
+  font-size:11.5px;color:var(--muted);line-height:1.5;text-align:left}
+.privacy svg{width:16px;height:16px;flex:none;stroke:var(--out);fill:none;stroke-width:1.7;
+  stroke-linecap:round;stroke-linejoin:round}
+.privacy b{color:var(--ink);font-weight:600}
 
-.live{position:fixed;left:0;top:50%;transform:translate(-105%,-50%);z-index:80;
+/* Smoother entry on phones: fields keep clear of the sticky bar and the on-screen
+   keyboard when tapped, and scrolling to them eases rather than jumps. */
+html{scroll-behavior:smooth}
+input,select{scroll-margin:84px 0 180px}
+
+.live{position:fixed;left:0;top:calc(70px + env(safe-area-inset-top));
+  transform:translate(-105%,0);z-index:80;
   background:var(--card);border:1px solid var(--line);border-left:0;
   border-radius:0 14px 14px 0;padding:11px 13px 11px 11px;box-shadow:var(--shadow);
-  display:grid;gap:8px;transition:transform .25s cubic-bezier(.32,.72,0,1);min-width:78px}
-.live.on{transform:translate(0,-50%)}
+  display:grid;gap:8px;transition:transform .25s cubic-bezier(.32,.72,0,1);min-width:78px;
+  cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.live:active{cursor:grabbing}
+.live.on{transform:translate(0,0)}
+/* Once dragged, it floats freely at the saved left/top and shows by fading. */
+.live.moved{transform:none!important;opacity:0;pointer-events:none;transition:opacity .2s;
+  border-left:1px solid var(--line);border-radius:14px}
+.live.moved.on{opacity:1;pointer-events:auto}
 .live .lk span{font-size:9.5px;color:var(--muted);text-transform:lowercase;display:block;line-height:1.2}
 .live .lk b{font-family:var(--serif);font-size:15px;font-weight:600;line-height:1.15;display:block}
 .live .bal b{font-size:17px}
+.livex{position:absolute;top:-9px;right:-9px;width:24px;height:24px;border-radius:50%;
+  border:1px solid var(--line);background:var(--card);color:var(--muted);font-size:15px;
+  line-height:1;padding:0;display:flex;align-items:center;justify-content:center;
+  box-shadow:var(--shadow)}
+.livex:active{background:var(--card2)}
 @media(max-width:620px){
-  .live{top:auto;bottom:calc(var(--tabh) + env(safe-area-inset-bottom) + 12px);
-    transform:translate(-105%,0);border-radius:0 12px 12px 0;padding:9px 11px;min-width:70px}
+  .live{top:calc(66px + env(safe-area-inset-top));bottom:auto;transform:translate(-105%,0);
+    border-radius:0 12px 12px 0;padding:9px 11px;min-width:70px}
   .live.on{transform:translate(0,0)}
 }
 .types{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:11px}
@@ -440,6 +463,9 @@ table.ctab tr.sum td{border-bottom:0;border-top:1.5px solid var(--line);font-wei
         <button class="qbtn" id="qChore">
           <svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
           <span>Housework</span></button>
+        <button class="qbtn" id="qMind" style="grid-column:1/3">
+          <svg viewBox="0 0 24 24"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.4 1 2.5h6c0-1.1.4-1.9 1-2.5A6 6 0 0 0 12 3Z"/></svg>
+          <span>Mental work</span></button>
       </div>
       <p class="tiny" id="quickNote"></p>
     </div>
@@ -464,6 +490,13 @@ table.ctab tr.sum td{border-bottom:0;border-top:1.5px solid var(--line);font-wei
     </div>
 
     <button class="btn full line" id="openCalc">Show every step of the arithmetic</button>
+
+    <div class="privacy">
+      <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+      <span><b>Everything stays in this browser, on this device.</b> No account, no server,
+        nothing sent to us &mdash; your details never leave your phone. Clearing this site's
+        data removes them, so use Export to keep a copy.</span>
+    </div>
   </section>
 
   <!-- ============ FOOD ============ -->
@@ -486,6 +519,7 @@ table.ctab tr.sum td{border-bottom:0;border-top:1.5px solid var(--line);font-wei
       <button data-m="strength" class="segbtn on">Strength</button>
       <button data-m="cardio" class="segbtn">Cardio</button>
       <button data-m="chores" class="segbtn">House</button>
+      <button data-m="mind" class="segbtn">Mind</button>
     </div>
 
     <div id="m-strength">
@@ -522,6 +556,18 @@ table.ctab tr.sum td{border-bottom:0;border-top:1.5px solid var(--line);font-wei
         <button class="btn add full" id="addChore"><span>+</span> Add a chore</button>
       </div>
       <p class="note" id="choreNote"></p>
+    </div>
+
+    <div id="m-mind" class="hidden">
+      <div class="card">
+        <div class="cardhead"><h2>Mental work</h2><span class="sm" id="mindTot"></span></div>
+        <div class="rowlist" id="mindRows"></div>
+      </div>
+      <p class="note" id="mindNote">Your resting metabolism already pays for your brain
+        &mdash; roughly a fifth of it, running whether or not you are thinking hard. Effortful
+        cognition lifts that only a little, so these figures stay small and honest. A draining
+        day of work is mostly stress, tension and skipped meals, <b>not fuel burned by
+        neurons</b>. Worth logging, but it will not move the scale.</p>
     </div>
   </section>
 
@@ -615,6 +661,7 @@ table.ctab tr.sum td{border-bottom:0;border-top:1.5px solid var(--line);font-wei
 </div>
 
 <aside class="live" id="live" aria-live="polite">
+  <button class="livex" id="liveX" type="button" aria-label="Hide live totals">&times;</button>
   <div class="lk"><span>in</span><b id="liveIn">0</b></div>
   <div class="lk"><span>used</span><b id="liveOut">0</b></div>
   <div class="lk bal"><span id="liveLbl">net</span><b id="liveBal">0</b></div>
@@ -810,6 +857,18 @@ const CHORES = [
   ["ch_child","Carrying or playing with a child","","min",3.0,1,240,10,"min"],
   ["ch_stand","Extra time standing, not sitting","","min",1.8,1,480,15,"min"],
   ["ch_stairs","Flights of stairs climbed","your weight lifted 3.2 m each","floors",0,0,80,1,"floors"],
+];
+
+/* Mental work. The brain draws about a fifth of resting metabolism whether you
+   think hard or not, and that baseline already sits inside your RMR above. What
+   is credited here is only the small extra rise from cognitive effort, scaled by
+   how demanding the task is. The fourth field is that rise as a fraction of the
+   brain's resting draw: 5% for light work, 10% focused, 18% flat-out. These are
+   deliberately modest — the honest cost of thinking is small. */
+const MENTAL = [
+  ["m_light","Light mental work","email, admin, easy reading",0.05],
+  ["m_focus","Focused study or deep work","coding, writing, problem sets",0.10],
+  ["m_intense","Intense problem-solving","exams, hard maths, debugging",0.18],
 ];
 
 const KCAL_FAT = 7700, KCAL_LEAN_GAIN = 5000, KCAL_LEAN_LOST = 1800;
@@ -1227,6 +1286,21 @@ CHORES.forEach(([id,name,hint,mode,met,minPer,max,step,unit]) => {
   reg("chore","row_"+id,["h_"+id], name, "House", hint||"");
 });
 
+/* ---------- mental work ---------- */
+/* Only three, and always shown, so there is no picker to go through: pick the
+   nearest one and dial in the minutes. */
+MENTAL.forEach(([id,name,hint,bump]) => {
+  const row = el("div","lrow"); row.id="row_"+id;
+  row.appendChild(el("div","nm", name+`<small>${hint}</small>`));
+  row.appendChild(el("div","val",`<b>0</b> min`));
+  const sub = el("div","subrow");
+  sub.appendChild(mkStep({id:"mw_"+id, min:0, max:240, step:15, value:0, move:true,
+    unit:"min", aria:name+", minutes"}));
+  row.appendChild(sub);
+  const amt = el("span"); amt.id="a_"+id; amt.className="hidden"; row.appendChild(amt);
+  $("mindRows").appendChild(row); noteHome($("mindRows"), row);
+});
+
 /* ---------- settings and body fields ---------- */
 function bandSummary(){
   const on = bandsChosen();
@@ -1239,7 +1313,7 @@ function bandSummary(){
 }
 
 function fieldSel(host, id, label, opts, wide){
-  const f = el("div","field"+(wide?" wide":""));
+  const f = el("div","field"+(wide?" wide":"")); f.id = "field_"+id;
   f.appendChild(el("label",null,label)).setAttribute("for",id);
   const s = el("select"); s.id = id;
   let def = opts[0][0];
@@ -1252,7 +1326,7 @@ function fieldSel(host, id, label, opts, wide){
   f.appendChild(s); host.appendChild(f);
 }
 function fieldNum(host, id, label, ph, min, max, step){
-  const f = el("div","field");
+  const f = el("div","field"); f.id = "field_"+id;
   f.appendChild(el("label",null,label)).setAttribute("for",id);
   const i = el("input"); i.type="number"; i.id=id; i.placeholder=ph;
   i.min=min; i.max=max; i.step=step; i.value="";
@@ -1383,7 +1457,7 @@ const SOMATOTYPES = [
 ];
 
 (function(){
-  const card = el("div","field wide");
+  const card = el("div","field wide"); card.id = "field_build";
   card.appendChild(el("label",null,"Build \u2014 used only to estimate body fat"))
       .setAttribute("for","bodyType");
   const hidden = el("input"); hidden.type="hidden"; hidden.id="bodyType"; hidden.value="";
@@ -1494,6 +1568,7 @@ function closeSheet(){
   restoreRows();
   $("sheet").classList.remove("on"); $("scrim").classList.remove("on");
   sheetOpen = false;
+  liveOff();
   update();
 }
 $("scrim").addEventListener("click", closeSheet);
@@ -1623,8 +1698,63 @@ $("addChore").addEventListener("click", () => pickerSheet("chore","Add a chore",
 
 /* A small live readout while you are entering something, so the effect of the
    number you are typing is visible without leaving the field. */
-function liveOn(){ $("live").classList.add("on"); update(); }
-function liveOff(){ $("live").classList.remove("on"); }
+/* The live readout can be dismissed with its X; the dismissal lasts until the
+   current add flow ends, so it stops popping back while you keep entering. */
+let liveDismissed = false;
+function liveOn(){ if(!liveDismissed) $("live").classList.add("on"); update(); }
+function liveOff(){ $("live").classList.remove("on"); liveDismissed = false; }
+$("liveX").addEventListener("click", () => {
+  liveDismissed = true; $("live").classList.remove("on");
+});
+
+/* Drag the live readout anywhere. Once moved it floats at an explicit left/top,
+   which is remembered so it stays put between sessions. Grabbing the X is left
+   to the close button. */
+(function(){
+  const live = $("live");
+  const KEY = "ledger_live_pos";
+  let drag = null;
+  function applyPos(left, top){
+    const w = live.offsetWidth || 80, h = live.offsetHeight || 90;
+    left = Math.max(4, Math.min(left, window.innerWidth  - w - 4));
+    top  = Math.max(4, Math.min(top,  window.innerHeight - h - 4));
+    live.classList.add("moved");
+    live.style.left = left + "px";
+    live.style.top  = top + "px";
+    return {left, top};
+  }
+  try{
+    const pos = JSON.parse(localStorage.getItem(KEY) || "null");
+    if(pos && isFinite(pos.left) && isFinite(pos.top)) applyPos(pos.left, pos.top);
+  }catch(e){}
+  live.addEventListener("pointerdown", ev => {
+    if(ev.target.closest(".livex")) return;      // the close button keeps its tap
+    const r = live.getBoundingClientRect();
+    drag = {dx: ev.clientX - r.left, dy: ev.clientY - r.top, moved:false};
+    try{ live.setPointerCapture(ev.pointerId); }catch(e){}
+    live.style.transition = "none";
+  });
+  live.addEventListener("pointermove", ev => {
+    if(!drag) return;
+    drag.moved = true;
+    applyPos(ev.clientX - drag.dx, ev.clientY - drag.dy);
+  });
+  function end(){
+    if(!drag) return;
+    live.style.transition = "";
+    if(drag.moved){
+      const r = live.getBoundingClientRect();
+      try{ localStorage.setItem(KEY, JSON.stringify({left:r.left, top:r.top})); }catch(e){}
+    }
+    drag = null;
+  }
+  live.addEventListener("pointerup", end);
+  live.addEventListener("pointercancel", end);
+  window.addEventListener("resize", () => {
+    if(live.classList.contains("moved"))
+      applyPos(parseFloat(live.style.left)||0, parseFloat(live.style.top)||0);
+  });
+})();
 
 /* ==================================================================
    TABS
@@ -1648,7 +1778,7 @@ $("goSetup").addEventListener("click", () => showTab("you"));
 
 document.querySelectorAll(".segbtn").forEach(b => b.addEventListener("click", () => {
   document.querySelectorAll(".segbtn").forEach(x => x.classList.toggle("on", x === b));
-  ["strength","cardio","chores"].forEach(m =>
+  ["strength","cardio","chores","mind"].forEach(m =>
     $("m-"+m).classList.toggle("hidden", m !== b.dataset.m));
 }));
 
@@ -1832,6 +1962,30 @@ function readChores(weight){
   return {kcal, minutes, lines};
 }
 
+/* Mental work. The brain's resting draw is about 20% of RMR; effortful thinking
+   lifts it by the small fraction stored on each item, and only that rise is
+   credited, since the baseline is already inside the resting figure. */
+function readMental(bmr){
+  let kcal=0, minutes=0; const lines=[];
+  const brainPerMin = 0.20*bmr/1440;              // kcal per minute, at rest
+  MENTAL.forEach(([id,name,hint,bump]) => {
+    const inp = $("mw_"+id); if(!inp) return;
+    const m = +inp.value;
+    inp.classList.toggle("hot", m>0);
+    const row = $("row_"+id);
+    if(row){ row.classList.toggle("zero", m===0); row.classList.toggle("on", m>0); }
+    const k = m>0 ? brainPerMin*bump*m : 0;
+    const amt = $("a_"+id);
+    if(amt) amt.innerHTML = m>0 ? `<b>${m}</b> min<br>${n1(k)} kcal` : `<b>0</b> min`;
+    if(!m) return;
+    kcal += k; minutes += m;
+    lines.push({label:name+", thinking",
+      work:`${n1(brainPerMin)} kcal/min at rest (20% of ${kc(bmr)}) &times; ${Math.round(bump*100)}% for effort &times; ${m} min`,
+      kcal:k});
+  });
+  return {kcal, minutes, lines, brainPerMin};
+}
+
 function compute(){
   const weight=+$("weight").value||0, height=+$("height").value||0,
         age=+$("age").value||0, male=$("sex").value!=="female",
@@ -1846,12 +2000,13 @@ function compute(){
   const rr = restingRate(weight, height, age, male, bodyFat);
   const bmr = rr.kcal;
   const neat = bmr*neatRate;
+  const mental = readMental(bmr);
   const prog = dayProgress();
   const protShare = food.kcal>0 ? (food.p*4)/food.kcal : 0;
   const tefRate = 0.09 + 0.09*protShare;
   const tef = food.kcal*tefRate;
   const sleepAdj = sleep<6 ? -0.02*bmr : 0;
-  const activity = st.kcal + timed.kcal + cardio.kcal + chores.kcal;
+  const activity = st.kcal + timed.kcal + cardio.kcal + chores.kcal + mental.kcal;
 
   /* Two honest totals. "So far" is what your body has actually spent by now and
      is the only fair comparison against the food logged so far. "Full day" is
@@ -1897,7 +2052,7 @@ function compute(){
 
   const waterTarget = 35*weight + 600*((st.minutes+timed.minutes)/60) + 400*(chores.minutes/120);
   return {ready,weight,height,age,male,bodyFat,rr,prog,outSoFar,balanceSoFar,
-          food,st,timed,cardio,chores,bmr,neat,tef,tefRate,protShare,
+          food,st,timed,cardio,chores,mental,bmr,neat,tef,tefRate,protShare,
           sleepAdj,activity,out,balance,fatKg,leanKg,capped,part,ppk,water,waterTarget,
           sleep,level,lifted,neatRate};
 }
@@ -1982,10 +2137,12 @@ function update(){
       it.ctlIds.some(id => (+($(id)||{}).value) > 0)).length;
     const chores = CATALOG.chore.filter(it =>
       it.ctlIds.some(id => (+($(id)||{}).value) > 0)).length;
+    const minds = MENTAL.filter(([id]) => (+($("mw_"+id)||{}).value) > 0).length;
     const bits = [];
     if(foods)  bits.push(foods + (foods===1?" food":" foods"));
     if(moves)  bits.push(moves + (moves===1?" exercise":" exercises"));
     if(chores) bits.push(chores + (chores===1?" chore":" chores"));
+    if(minds)  bits.push(minds + (minds===1?" mental task":" mental tasks"));
     $("quickNote").textContent = bits.length
       ? "On today's list: " + bits.join(", ") + "."
       : "Nothing logged yet today.";
@@ -2014,6 +2171,8 @@ function update(){
   $("moveTot").textContent  = !ready ? "" : (d.cardio.kcal>0 ? kc(d.cardio.kcal)+" kcal" : "");
   $("choreTot").textContent = !ready ? "" : (d.chores.kcal>0
     ? `${Math.round(d.chores.minutes)} min, ${kc(d.chores.kcal)} kcal` : "");
+  $("mindTot").textContent  = !ready ? "" : (d.mental.minutes>0
+    ? `${d.mental.minutes} min, ${n1(d.mental.kcal)} kcal` : "");
   $("bmrTot").textContent   = ready ? kc(d.bmr)+" kcal at rest" : "details needed";
   if($("bodyNote")){
     const bf = d.bodyFat;
@@ -2433,6 +2592,7 @@ function renderCalcInto(p, d){
   }
   d.timed.lines.forEach(l => out.push({label:l.label, work:l.work, val:kc(l.kcal)+" kcal"}));
   d.chores.lines.forEach(l => out.push({label:l.label, work:l.work, val:n1(l.kcal)+" kcal"}));
+  d.mental.lines.forEach(l => out.push({label:l.label, work:l.work, val:n1(l.kcal)+" kcal"}));
   if(d.sleepAdj) out.push({label:"Short sleep", work:"2% off resting rate under 6 h", val:kc(d.sleepAdj)+" kcal"});
   h += tbl(out, "Used so far", kc(d.outSoFar)+" kcal");
   h += `<p class="formula">The whole-day figure is <b>${kc(d.out)} kcal</b>. The ledger compares your
@@ -2548,11 +2708,16 @@ const WIZ_HOME = {
   choreRows:"slotChore", recovRows:"slotRecov",
 };
 function lend(id, host){ host.appendChild($(id)); }      // borrow a real block
+/* The body fields are lent one at a time, so after returning the big blocks we
+   re-seat every body field inside bodyFields in its canonical order. */
+const BODY_FIELD_ORDER = ["field_weight","field_height","field_age","field_sex",
+                          "field_job","field_wake","field_train","field_build"];
 function giveBack(){                                      // and put it home again
   for(const id in WIZ_HOME){
     const node = $(id), home = $(WIZ_HOME[id]);
     if(node && home) home.appendChild(node);
   }
+  BODY_FIELD_ORDER.forEach(fid => { const n = $(fid); if(n) $("bodyFields").appendChild(n); });
 }
 
 const wiz = {i:0, ate:null, trained:null, moved:null, chores:null, open:false};
@@ -2560,6 +2725,29 @@ const wiz = {i:0, ate:null, trained:null, moved:null, chores:null, open:false};
 function bodyReady(){
   return (+$("weight").value > 0) && (+$("height").value > 0)
       && (+$("age").value > 0) && $("sex").value !== "";
+}
+
+/* One body detail per screen: lend just that field in, focus it, Enter advances.
+   Nothing else is shown, so each question stands on its own. */
+function bodyStep(q, sub, fieldId, ctlId, guard){
+  return {
+    q, sub, essential:true, cta:"Next", guard,
+    build(b){
+      const c = el("div","wizcard");
+      lend("field_"+fieldId, c);
+      b.appendChild(c);
+      const ctl = $(ctlId);
+      if(ctl){
+        if(ctl.tagName === "INPUT" && !ctl.__wizEnter){
+          ctl.__wizEnter = true;
+          ctl.addEventListener("keydown", ev => {
+            if(ev.key === "Enter"){ ev.preventDefault(); wizNext(); }
+          });
+        }
+        setTimeout(() => ctl.focus && ctl.focus(), 90);
+      }
+    }
+  };
 }
 
 const STEPS = [
@@ -2589,18 +2777,35 @@ const STEPS = [
     },
     cta:"Start"
   },
-  {
-    q:"Your body",
-    sub:"Resting metabolism is the largest single number in your day, and it is built entirely "
-      + "from these four. Nothing can be estimated until they are filled in.",
-    build(b){
-      lend("bodyFields", b);
-      focusChain(["weight","height","age","sex","job","train"]);
-    },
-    guard(){ return bodyReady() ? null
-      : "Weight, height, age and sex are all needed before anything can be worked out."; },
-    cta:"Next"
-  },
+  bodyStep("How much do you weigh?",
+    "This is the base of every calorie figure. To the nearest kilogram is fine — just weigh "
+    + "yourself the same way each morning.",
+    "weight","weight",
+    () => (+$("weight").value>0) ? null : "Enter your weight to continue."),
+  bodyStep("How tall are you?",
+    "In centimetres. Height feeds the resting-metabolism formula.",
+    "height","height",
+    () => (+$("height").value>0) ? null : "Enter your height to continue."),
+  bodyStep("How old are you?",
+    "In years. Resting metabolism eases down a little with age.",
+    "age","age",
+    () => (+$("age").value>0) ? null : "Enter your age to continue."),
+  bodyStep("Which formula fits you?",
+    "The resting-rate equation runs slightly differently for men and women. Pick whichever "
+    + "matches you — it only changes the maths.",
+    "sex","sex",
+    () => $("sex").value!=="" ? null : "Pick one to continue."),
+  bodyStep("The rest of your day",
+    "Outside anything you log here, how much are you on your feet? This sets your everyday "
+    + "background burn.",
+    "job","job", null),
+  bodyStep("When do you usually wake?",
+    "So the day's figures build against your real waking hours rather than a fixed clock.",
+    "wake","wake", null),
+  bodyStep("How long have you trained?",
+    "Experience shapes how much of a surplus your body can turn into muscle rather than fat. "
+    + "A rough answer is fine.",
+    "train","train", null),
   {
     q:"Have you eaten today?",
     sub:"Log everything you have had so far. You can always come back and add more later.",
@@ -2917,7 +3122,8 @@ function wizClose(){
 }
 $("wizBack").addEventListener("click", wizPrev);
 $("wizSkip").addEventListener("click", () => {
-  if(wiz.i === 1 && !bodyReady()){ wizNext(); return; }   // body details are not skippable
+  // Body basics are not skippable: route through Next so its guard still runs.
+  if(STEPS[wiz.i] && STEPS[wiz.i].essential){ wizNext(); return; }
   let i = wiz.i + 1;
   while(i < STEPS.length && !stepLive(i)) i++;
   if(i >= STEPS.length){ wizClose(); return; }
@@ -3328,6 +3534,25 @@ $("qMove").addEventListener("click", () =>
 $("qChore").addEventListener("click", () =>
   pickerSheet("chore","Add housework","Search chores",
     {hint:"Cooking, chapatis, utensils, sweeping, stairs."}));
+
+/* Mental work has only three options and no search, so its quick sheet just
+   lends the real rows in and lets you dial minutes on the spot. Closing the
+   sheet returns them to the Mind tab. */
+$("qMind").addEventListener("click", () => {
+  openSheet("Study or work", body => {
+    body.appendChild(el("p","tiny",
+      "Pick the closest kind and set the minutes. The extra cost of thinking is "
+      + "small — your resting rate already runs your brain."));
+    const list = el("div","rowlist");
+    MENTAL.forEach(([id]) => list.appendChild($("row_"+id)));
+    body.appendChild(list);
+    const done = el("button","btn sm line full","Done");
+    done.type = "button"; done.style.marginTop = "12px";
+    done.addEventListener("click", closeSheet);
+    body.appendChild(done);
+    liveOn(); update();
+  });
+});
 
 /* the arithmetic, in a sheet */
 $("openCalc").addEventListener("click", () => {
