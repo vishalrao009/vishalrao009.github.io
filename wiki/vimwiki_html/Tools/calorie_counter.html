@@ -1640,14 +1640,10 @@ function showTab(t){
   $("barTitle").textContent = titles[t];
 }
 document.querySelectorAll(".tabbtn").forEach(b =>
-  b.addEventListener("click", () => { if(b.dataset.t !== "you") lastTab = b.dataset.t;
-                                      showTab(b.dataset.t); }));
-/* The avatar toggles: tap to see the profile, tap again to go back where you were. */
-let lastTab = "today";
-$("avatar").addEventListener("click", () => {
-  if(activeTab === "you") showTab(lastTab === "you" ? "today" : lastTab);
-  else { lastTab = activeTab; showTab("you"); }
-});
+  b.addEventListener("click", () => showTab(b.dataset.t)));
+/* The avatar opens the profile switcher: every saved profile in one list, tap
+   any to switch, or jump to the You tab to manage them. */
+$("avatar").addEventListener("click", openProfileSheet);
 $("goSetup").addEventListener("click", () => showTab("you"));
 
 document.querySelectorAll(".segbtn").forEach(b => b.addEventListener("click", () => {
@@ -3133,12 +3129,76 @@ $("createUser").addEventListener("click", () => {
   noteStore(`Created ${name}.`);
   wizOpen();          // walk them straight through body details, food and training
 });
-$("userSel").addEventListener("change", () => {
+/* Switch to a saved profile: stow the current day before leaving, then load the
+   next person's day, body and usual. Used by the You-tab dropdown and by the
+   avatar's quick-switch sheet. */
+function switchToUser(name){
+  if(!db.users[name] || name === db.active) return;
   if(activeUser()){ activeUser().days[todayKey()] = snapshot(); activeUser().body = bodySnapshot(); }
-  db.active = $("userSel").value;
+  db.active = name;
   saveDb(); refreshUsers(); openToday();
   noteStore(`Switched to ${db.active}.`);
-});
+}
+$("userSel").addEventListener("change", () => switchToUser($("userSel").value));
+
+/* Tapping the avatar shows every saved profile at once, so switching is one tap
+   from anywhere rather than a trip to the You tab and a dropdown. */
+function openProfileSheet(){
+  openSheet("Profiles", body => {
+    const names = Object.keys(db.users);
+    if(!names.length){
+      body.appendChild(el("p","tiny",
+        "No profiles yet. Add someone to start logging."));
+    } else {
+      const list = el("div");
+      names.forEach(n => {
+        const active = (n === db.active);
+        const row = el("button","pick"); row.type = "button";
+        const left = el("span");
+        left.style.cssText = "display:flex;align-items:center;gap:12px;min-width:0";
+        const av = el("span",null,n.trim().charAt(0).toUpperCase());
+        av.style.cssText = "width:34px;height:34px;border-radius:50%;flex:none;"
+          + "display:flex;align-items:center;justify-content:center;"
+          + "font-family:var(--serif);font-weight:600;font-size:15px;"
+          + (active ? "background:var(--out);color:#fff"
+                    : "background:var(--card2);color:var(--ink)");
+        const nm = el("span",null, n);
+        nm.style.cssText = "min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
+        left.append(av, nm);
+        row.append(left, el("span","pk", active ? "Current" : "Switch"));
+        if(active) row.style.background = "var(--card2)";
+        row.addEventListener("click", () => {
+          if(!active) switchToUser(n);
+          closeSheet();
+          showTab("today");
+        });
+        list.appendChild(row);
+      });
+      body.appendChild(list);
+    }
+
+    const add = el("button","pick"); add.type = "button";
+    const al = el("span");
+    al.style.cssText = "display:flex;align-items:center;gap:12px";
+    const ap = el("span","plus","+");
+    ap.style.cssText = "width:34px;height:34px;border-radius:50%;background:var(--card2);"
+      + "display:flex;align-items:center;justify-content:center;flex:none";
+    al.append(ap, el("span",null,"Add someone"));
+    add.appendChild(al);
+    add.addEventListener("click", () => {
+      closeSheet(); showTab("you");
+      $("newRow").classList.remove("hidden"); $("newName").focus();
+    });
+    body.appendChild(add);
+
+    if(names.length){
+      const manage = el("button","btn sm line full","Manage profiles");
+      manage.type = "button"; manage.style.marginTop = "14px";
+      manage.addEventListener("click", () => { closeSheet(); showTab("you"); });
+      body.appendChild(manage);
+    }
+  });
+}
 $("saveUsual").addEventListener("click", () => {
   if(!activeUser()){ noteStore("Add a profile first."); return; }
   activeUser().usual = snapshot(); saveDb(); renderToday(); refreshVisibility();
