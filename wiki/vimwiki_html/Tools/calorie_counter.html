@@ -200,14 +200,22 @@ h1,h2,h3{margin:0}
 .flag.ok i{background:var(--out)}
 
 /* ---------------- sheets ---------------- */
-.scrim{position:fixed;inset:0;background:rgba(10,14,12,.45);z-index:60;opacity:0;
+/* Above .wiz (z-index 70): the walkthrough's summary boxes open these sheets,
+   and a sheet rendered behind a full-screen overlay is a dead tap. */
+.scrim{position:fixed;inset:0;background:rgba(10,14,12,.45);z-index:80;opacity:0;
   pointer-events:none;transition:opacity .25s}
 .scrim.on{opacity:1;pointer-events:auto}
-.sheet{position:fixed;left:0;right:0;bottom:0;z-index:61;background:var(--bg);
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:81;background:var(--bg);
   border-radius:20px 20px 0 0;box-shadow:var(--shadow-lg);
   transform:translateY(101%);transition:transform .3s cubic-bezier(.32,.72,0,1);
   max-height:90vh;display:flex;flex-direction:column}
 .sheet.on{transform:translateY(0)}
+/* When a sheet opens onto a field we want typed into, the slide has to be
+   skipped. Focus must happen inside the tap to raise a keyboard, and at that
+   instant an animating sheet is still off the bottom of the screen - and no
+   browser opens a keyboard for an off-screen input. Snapping it into place
+   costs 300ms of polish and buys a cursor that is actually ready. */
+.sheet.snap{transition:none}
 .sheet .sh{padding:14px 18px 10px;position:relative;flex:none;border-bottom:1px solid var(--line)}
 .sheet .sh h2{font-family:var(--serif);font-size:18px;font-weight:600;padding-right:44px}
 .sheet .grab{width:36px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 11px}
@@ -219,8 +227,16 @@ h1,h2,h3{margin:0}
      past its parent; overscroll-behavior stops the page behind the sheet from
      scrolling once the sheet hits its end. */
   flex:1 1 auto;min-height:0;overscroll-behavior:contain}
+/* The commit bar is pinned to the sheet, outside the scrolling body, because a
+   numeric keypad has no return key and a Done button that scrolls under the
+   keyboard is a Done button that does not exist. */
+.sfoot{flex:none;display:flex;gap:10px;padding:10px 18px
+  calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);
+  background:var(--card)}
+.sfoot .btn{flex:1;justify-content:center;min-height:48px;font-size:15px}
 .search{width:100%;padding:12px 14px;font-size:16px;border:0;border-radius:var(--r-sm);
-  background:var(--card2);color:var(--ink);font-family:var(--sans);margin-bottom:6px}
+  background:var(--card2);color:var(--ink);font-family:var(--sans);margin-bottom:6px;
+  box-shadow:0 0 0 6px var(--bg)}
 .pick{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;
   padding:13px 4px;border:0;border-bottom:1px solid var(--line);background:transparent;
   text-align:left;font-size:14.5px;min-height:50px}
@@ -383,6 +399,15 @@ input,select{scroll-margin:84px 0 180px}
   padding:10px 0 2px;border-top:1px dashed var(--line);margin-top:4px}
 .modepanel.hidden{display:none}
 .modepanel .sl{width:100%;margin-bottom:-4px}
+.tapr{cursor:pointer;-webkit-tap-highlight-color:transparent;border-radius:var(--r-sm)}
+.sumbox.tapr:active{filter:brightness(.96)}
+.tapr:active{background:var(--card2)}
+.tapr:focus-visible{outline:2px solid var(--out);outline-offset:2px}
+.commitbar{display:flex;gap:10px;margin-top:12px}
+.commitbar .btn{flex:1;justify-content:center;min-height:48px;font-size:15px}
+/* The search box stays put while the list scrolls under it, so the next item is
+   one tap away with no button hunt and nothing to scroll back to. */
+.search{position:sticky;top:0;z-index:3}
 .stage{margin-top:4px}
 .stage:empty{display:none}
 .stagehead{font-family:var(--serif);font-size:16px;font-weight:600;margin:14px 0 2px;
@@ -414,11 +439,19 @@ input,select{scroll-margin:84px 0 180px}
 .wizprog{flex:1;height:4px;border-radius:2px;background:var(--card2);overflow:hidden}
 .wizfill{height:100%;background:var(--out);border-radius:2px;width:0;
   transition:width .3s cubic-bezier(.4,0,.2,1)}
-.wizbody{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 18px 20px;
+/* flex:0 1 auto, not flex:1. Growing the body to fill the screen pushed Next to
+   the very bottom, so on a one-field step the thumb had to travel the whole
+   phone between typing and advancing. Shrink-wrapped, the button sits directly
+   under the field being filled, and long steps still scroll with the button
+   parked at the foot because the body shrinks rather than overflowing. */
+.wizbody{flex:0 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 18px 14px;
   max-width:620px;width:100%;margin:0 auto;min-height:0;overscroll-behavior:contain}
-.wizfoot{flex:none;padding:12px 18px calc(14px + env(safe-area-inset-bottom));
+.wizfoot{flex:none;padding:10px 18px calc(14px + env(safe-area-inset-bottom));
   border-top:1px solid var(--line);background:var(--card);
   display:flex;gap:9px;max-width:620px;width:100%;margin:0 auto}
+.wizfoot .btn{min-height:50px}
+/* and the leftover space goes below, so everything hugs the top */
+.wiz::after{content:"";flex:1 1 auto;min-height:0}
 .wizfoot .btn{flex:1}
 .wizq{font-family:var(--serif);font-size:27px;font-weight:600;letter-spacing:-.02em;
   line-height:1.2;margin:14px 0 8px}
@@ -484,10 +517,12 @@ input,select{scroll-margin:84px 0 180px}
       <span class="big" id="heroBig">&mdash;</span>
       <span class="cap" id="heroCap">Waiting on your details</span>
       <div class="meter">
-        <div class="mrow"><span class="mlbl">Taken</span>
+        <div class="mrow tapr" data-calc="in" role="button" tabindex="0"
+             aria-label="Taken in so far, tap for the arithmetic"><span class="mlbl">Taken</span>
           <span class="track"><span class="fill a" id="barIn" style="width:0"></span></span>
           <span class="mval c-in" id="valIn">&mdash;</span></div>
-        <div class="mrow"><span class="mlbl">Used</span>
+        <div class="mrow tapr" data-calc="out" role="button" tabindex="0"
+             aria-label="Used so far, tap for the arithmetic"><span class="mlbl">Used</span>
           <span class="track"><span class="fill b" id="barOut" style="width:0"></span></span>
           <span class="mval c-out" id="valOut">&mdash;</span></div>
       </div>
@@ -512,16 +547,26 @@ input,select{scroll-margin:84px 0 180px}
     </div>
 
     <div class="tiles">
-      <div class="tile"><div class="tl" id="tileFatL">Body fat</div>
+      <div class="tile tapr" data-calc="fat" role="button" tabindex="0"
+           aria-label="Body fat, tap for the arithmetic"><div class="tl" id="tileFatL">Body fat</div>
         <div class="tv c-fat" id="tileFat">&mdash;</div>
         <div class="tu" id="tileFatU"></div></div>
-      <div class="tile"><div class="tl" id="tileLeanL">Muscle</div>
+      <div class="tile tapr" data-calc="lean" role="button" tabindex="0"
+           aria-label="Muscle, tap for the arithmetic"><div class="tl" id="tileLeanL">Muscle</div>
         <div class="tv c-lean" id="tileLean">&mdash;</div>
         <div class="tu" id="tileLeanU"></div></div>
-      <div class="tile"><div class="tl">Protein</div>
+      <div class="tile tapr" data-calc="prot" role="button" tabindex="0"
+           aria-label="Protein, tap for the arithmetic"><div class="tl">Protein</div>
         <div class="tv" id="tileProt">&mdash;</div>
         <div class="tu" id="tileProtU"></div></div>
     </div>
+    <p class="macrohint" style="margin:6px 2px 0">Tap any tile, or Taken and Used above,
+      for the arithmetic behind it.</p>
+
+    <!-- The fat and muscle tiles stay blank until the day is closed, so the
+         control that closes it belongs here, against those tiles, not four
+         cards further down where nobody scrolls to look for it. -->
+    <div id="closeRow" style="margin:2px 0 4px"></div>
 
     <div class="card daycard hidden" id="dayCard" role="button" tabindex="0"
          aria-label="Your day so far — tap to see and edit everything logged">
@@ -565,7 +610,6 @@ input,select{scroll-margin:84px 0 180px}
       <div id="diffBody"></div>
       <div class="btnrow" id="diffActs" style="margin-top:12px"></div>
       <input type="hidden" id="dayDone" value="0">
-      <div id="closeRow" style="margin-top:12px"></div>
     </div>
 
     <div class="card" id="flagCard">
@@ -629,6 +673,7 @@ input,select{scroll-margin:84px 0 180px}
       <div class="card">
         <div class="cardhead"><h2>Getting around</h2><span class="sm" id="moveTot"></span></div>
         <div id="slotCardio"><div class="rowlist" id="cardioRows"></div></div>
+        <button class="btn add full" id="addMove"><span>+</span> Add a way you moved</button>
       </div>
       <div class="card">
         <div class="cardhead"><h2>Holds and conditioning</h2><span class="sm" id="condTot"></span></div>
@@ -764,6 +809,10 @@ input,select{scroll-margin:84px 0 180px}
     <button class="x" id="sheetX" aria-label="Close">&times;</button>
   </div>
   <div class="sbody" id="sheetBody"></div>
+  <div class="sfoot" id="sheetFoot" hidden>
+    <button class="btn line" id="sheetMore" type="button">Save &amp; add another</button>
+    <button class="btn" id="sheetDone" type="button">Done</button>
+  </div>
 </div>
 
 <script>
@@ -1069,7 +1118,7 @@ const LOG_IDS = [];
 const LABELS  = {};
 const SETTING_IDS = ["weight","height","age","sex","job","train",
                      "rest","intensity","bandColor","bandLen","lower","water","sleep",
-                     "wake","dayDone"];
+                     "wake","dayDone","fastH"];
 const PINNED = new Set();     // things the user added this session
 /* Nothing is pinned by default. The profile is whatever the person searches
    for and adds, and nothing else. */
@@ -1563,6 +1612,9 @@ $("bandLen").value = 120;    // resting length of one loop
 
 simpleRow($("recovRows"),"sleep","Sleep last night","hours",3,11,0.5,7);
 simpleRow($("recovRows"),"water","Water drunk","ml",0,6000,100,3000);
+/* Hours since the last meal. Without it the app cannot tell a fasted day from a
+   day nobody got round to logging, and those two need opposite treatment. */
+simpleRow($("recovRows"),"fastH","Hours since your last meal","hours",0,48,1,0);
 
 /* ==================================================================
    BUILD: body type
@@ -1741,15 +1793,50 @@ function refreshVisibility(){
    SHEETS
    ================================================================== */
 let sheetOpen = false;
+/* focusNow must be called in the same tick as the tap that opened the sheet.
+   Mobile browsers only raise the keyboard for a focus() that is still inside the
+   user gesture; a focus() deferred by setTimeout moves the caret and leaves the
+   keyboard shut, which is why this used to open onto a dead search box. */
+function focusNow(node){
+  if(!node || !node.focus) return;
+  // Bring it into view first. A field scrolled out of its container is treated
+  // the same as one off the screen: caret yes, keyboard no.
+  try { node.scrollIntoView({block:"nearest", inline:"nearest"}); } catch(e){}
+  node.focus();
+  if(node.select && node.value !== undefined && node.type !== "search"){
+    try { node.select(); } catch(e){}   // so the first keystroke replaces the 0
+  }
+  // One retry after the frame settles, for the case where layout moved under us.
+  requestAnimationFrame(() => {
+    if(document.activeElement !== node){
+      try { node.focus(); } catch(e){}
+    }
+  });
+}
+function sheetActions(opts){
+  const foot = $("sheetFoot"), more = $("sheetMore"), done = $("sheetDone");
+  if(!opts){ foot.hidden = true; more.onclick = done.onclick = null; return; }
+  foot.hidden = false;
+  more.textContent = opts.moreLabel || "Save & add another";
+  more.onclick = opts.onMore;
+  done.onclick  = opts.onDone;
+}
 function openSheet(title, buildBody){
+  const sh = $("sheet");
   $("sheetTitle").textContent = title;
   $("sheetBody").innerHTML = "";
-  buildBody($("sheetBody"));
-  $("sheet").classList.add("on"); $("scrim").classList.add("on");
+  sheetActions(null);
+  sh.classList.add("snap");            // no slide, so it is on screen immediately
+  sh.classList.add("on");
+  $("scrim").classList.add("on");
+  void sh.offsetHeight;                // force the layout to apply before we focus
   sheetOpen = true;
+  buildBody($("sheetBody"));           // builds the fields and focuses, still inside the tap
+  requestAnimationFrame(() => sh.classList.remove("snap"));
 }
 function closeSheet(){
   restoreRows();
+  sheetActions(null);
   $("sheet").classList.remove("on"); $("scrim").classList.remove("on");
   sheetOpen = false;
   liveOff();
@@ -1779,29 +1866,55 @@ function buildPicker(kind, body, placeholder, after, opts){
       + (item.meta ? ` <span class="pk">${item.meta}</span>` : ""));
     stage.appendChild(head);
     stage.appendChild($(item.rowId));    // the real row, moved here
-    const done = el("button","btn sm line","Done");
-    done.type = "button";
     const finish = () => {
       restoreRows(); stage.innerHTML = ""; update(); liveOff();
       q.value = ""; browsing = false; draw("");
-      setTimeout(() => q.focus(), 60);
+      sheetActions(null);
+      focusNow(q);                       // straight back to a live search box
     };
-    done.addEventListener("click", finish);
-    stage.appendChild(done);
-    // Enter on any of this item's numbers means "that's it, next"
-    item.ctlIds.forEach(id => {
+
+    /* The bar goes INSIDE the staged item, not only in the sheet footer. The
+       picker is used in two places: bottom sheets on the Move and Food cards,
+       and the first-run walkthrough, which is its own full-screen overlay with
+       the sheet parked off screen. A footer-only bar leaves the walkthrough
+       with no way to commit an item at all - and a numeric keypad has no return
+       key to fall back on. Inline works in both; the sheet footer is mirrored
+       on top of it when there is a sheet to mirror into. */
+    const bar  = el("div","commitbar");
+    const more = el("button","btn line","Save & add another");
+    const fin  = el("button","btn primary","Done");
+    more.type = fin.type = "button";
+    more.addEventListener("click", finish);
+    fin.addEventListener("click", () => { finish(); if(sheetOpen) closeSheet(); });
+    bar.append(more, fin);
+    stage.appendChild(bar);
+
+    if(sheetOpen) sheetActions({
+      moreLabel: "Save & add another",
+      onMore: finish,
+      onDone: () => { finish(); closeSheet(); }
+    });
+    /* Enter still works on a hardware keyboard, and tabbing between this item's
+       numbers works, but neither is the path on a phone: inputmode="numeric"
+       gives a bare keypad with no return key. The pinned bar above is the real
+       commit control; this is the desktop shortcut. */
+    const ids = item.ctlIds.slice();
+    ids.forEach((id, i) => {
       const n = $(id);
       if(n && !n.__entered){
         n.__entered = true;
+        n.setAttribute("enterkeyhint", i === ids.length-1 ? "done" : "next");
         n.addEventListener("keydown", ev => {
-          if(ev.key === "Enter"){ ev.preventDefault(); finish(); }
+          if(ev.key !== "Enter") return;
+          ev.preventDefault();
+          const nxt = $(ids[i+1]);
+          if(nxt) focusNow(nxt); else finish();
         });
       }
     });
     liveOn();
     update();
-    const first = $(item.ctlIds[0]);
-    if(first && first.focus) setTimeout(() => first.focus(), 120);
+    focusNow($(ids[0]));                 // caret in the first number, keyboard up
   }
 
   function pool(){
@@ -1838,6 +1951,14 @@ function buildPicker(kind, body, placeholder, after, opts){
   draw("");
   q.addEventListener("input", () => { browsing = false; draw(q.value.trim().toLowerCase()); });
   q.redraw = () => { browsing = false; draw(q.value.trim().toLowerCase()); };
+  /* Jump straight to one item's own fields, skipping the search list - e.g. the
+     "Walked" quick button opens onto Walking's distance and pace, not a list of
+     exercises to pick from first. The search box stays above for the rarer case
+     of a run or ride. */
+  if(opts.autoOpenId){
+    const it = CATALOG[kind].find(x => x.rowId === "row_" + opts.autoOpenId);
+    if(it) openItem(it);
+  }
   return q;
 }
 
@@ -1862,7 +1983,9 @@ function splitChips(host, onChange, keys){
 function pickerSheet(kind, title, placeholder, opts){
   openSheet(title, body => {
     const q = buildPicker(kind, body, placeholder, null, opts);
-    setTimeout(() => q.focus(), 120);
+    // When an item auto-opens, the caret belongs in its first field, not the
+    // search box - buildPicker/openItem has already put it there.
+    if(!(opts && opts.autoOpenId)) focusNow(q);
   });
 }
 $("addFood").addEventListener("click", () => pickerSheet("food","Add something you ate","Search foods"));
@@ -1874,7 +1997,18 @@ $("addRep").addEventListener("click", () => {
       filter: it => !chosen.size || chosen.has(it.split),
       hint: "Pick a split above, or just type the movement."
     });
-    setTimeout(() => q.focus(), 120);
+    focusNow(q);
+  });
+});
+/* Cardio rows hide until they hold a number, so without this the card could sit
+   empty with no way into it. Same catalogue as Add an exercise, narrowed. */
+$("addMove").addEventListener("click", () => {
+  openSheet("Add a way you moved", body => {
+    const q = buildPicker("rep", body, "Search walking, running, cycling", null, {
+      filter: it => it.split === "cardio",
+      hint: "Walking, running, cycling \u2014 start typing."
+    });
+    focusNow(q);
   });
 });
 $("addCond").addEventListener("click", () => pickerSheet("cond","Add an activity","Search activities"));
@@ -2221,7 +2355,8 @@ function compute(){
         age=+$("age").value||0, male=$("sex").value!=="female",
         ready = weight>0 && height>0 && age>0 && $("sex").value!=="",
         neatRate=+$("job").value || 0.18, level=$("train").value || "intermediate",
-        water=+$("water").value, sleep=+$("sleep").value;
+        water=+$("water").value, sleep=+$("sleep").value,
+        fastH=+($("fastH")||{}).value || 0;
 
   const food = readFood(), st = readStrength(weight,height),
         timed = readTimed(weight), cardio = readCardio(weight), chores = readChores(weight);
@@ -2277,6 +2412,10 @@ function compute(){
      sleep to recover and release growth hormone. Each is a 0..1 factor; the
      day's muscle is the experience-based ceiling multiplied by all three, so
      a zero on any one of them means almost nothing is built whatever you ate. */
+  /* Ramps in from 12 h, full by 24 h. Liver glycogen is typically gone somewhere
+     in the 12-24 h window and the protein-sparing shift tracks that, so a switch
+     at one exact hour would be a false precision. */
+  const fastSpare = Math.max(0, Math.min(1, (fastH - 12)/12));
   const hardSets = st.sets || 0;
   const grpSets = st.groups || {};
   const grpSignal = {};
@@ -2285,36 +2424,70 @@ function compute(){
   const sigP = Math.max(0, Math.min(1, ppk/1.6));               // protein adequacy
   const sigZ = Math.max(0, Math.min(1, (sleep-4.5)/3));         // sleep adequacy
 
-  let fatKg, leanKg, capped=false, part={};
-  if(balance>=0){
-    const capG = LEAN_CAP[level];                 // ceiling grams/day for this level
-    const potentialG = capG * sigS * sigP * sigZ; // grams the signals allow
-    let muscleKcal = potentialG/1000 * KCAL_LEAN_GAIN;
-    if(muscleKcal > balance){ muscleKcal = balance; capped = true; }  // energy-limited
-    const fatKcal = balance - muscleKcal;
-    leanKg = muscleKcal/KCAL_LEAN_GAIN;
-    fatKg  = fatKcal/KCAL_FAT;
-    part = {surplus:true, sigS, sigP, sigZ, capG, potentialG,
-            builtG:leanKg*1000, muscleKcal, fatKcal, hardSets, grpSets, grpSignal,
-            energyLimited: capped};
-  } else {
-    const def = -balance;
-    let ls = 0.20; const why = ["20% of the mass lost is lean tissue by default"];
-    if(lifted){ ls-=0.07; why.push("&minus; 7 points for lifting"); }
-    if(ppk>=1.6){ ls-=0.06; why.push("&minus; 6 points for protein at or above 1.6 g/kg"); }
-    if(def>750){ ls+=0.08; why.push("+ 8 points for a deficit over 750 kcal"); }
-    ls = Math.max(0.03,Math.min(ls,0.35));
-    const mass = def/(KCAL_FAT*(1-ls) + KCAL_LEAN_LOST*ls);
-    fatKg = -mass*(1-ls); leanKg = -mass*ls;
-    part = {why, ratio:ls, mass};
+  /* Partitioning is a pure function of a balance, so it runs twice: once on the
+     balance so far, which is what the live tiles show, and once on the
+     projected full day, which is what the weekly and tissue maths use.
+
+     capScale matters. LEAN_CAP is a ceiling in grams per DAY. Applied whole to
+     a balance that only covers the morning it would let you bank a full day's
+     muscle by 10am, so the partial-day call scales the ceiling by how much of
+     the day has actually passed. The deficit branch needs no such scaling - it
+     is a straight ratio, so a third of a day's deficit gives a third of the
+     tissue. */
+  function partition(bal, capScale){
+    let fatKg, leanKg, capped=false, part={};
+    if(bal>=0){
+      const capG = LEAN_CAP[level] * (capScale === undefined ? 1 : capScale);
+      const potentialG = capG * sigS * sigP * sigZ;
+      let muscleKcal = potentialG/1000 * KCAL_LEAN_GAIN;
+      if(muscleKcal > bal){ muscleKcal = bal; capped = true; }
+      const fatKcal = bal - muscleKcal;
+      leanKg = muscleKcal/KCAL_LEAN_GAIN;
+      fatKg  = fatKcal/KCAL_FAT;
+      part = {surplus:true, sigS, sigP, sigZ, capG, potentialG,
+              builtG:leanKg*1000, muscleKcal, fatKcal, hardSets, grpSets, grpSignal,
+              energyLimited: capped};
+    } else {
+      const def = -bal;
+      let ls = 0.20; const why = ["20% of the mass lost is lean tissue by default"];
+      if(lifted){ ls-=0.07; why.push("&minus; 7 points for lifting"); }
+      if(ppk>=1.6){ ls-=0.06; why.push("&minus; 6 points for protein at or above 1.6 g/kg"); }
+      if(def>750){ ls+=0.08; why.push("+ 8 points for a deficit over 750 kcal"); }
+      /* Protein sparing during a fast. A fast is not the same as an equally
+         large deficit taken with food in the day: once liver glycogen runs out
+         the body shifts toward fat and ketones for fuel and away from breaking
+         down protein for gluconeogenesis, and growth hormone secretion climbs
+         several-fold, which is lipolytic and protein-sparing. Nitrogen losses
+         measured across prolonged fasts start high and fall as that adaptation
+         takes hold. So the lean share comes down, on a ramp rather than a
+         switch, and only partly offsets the big-deficit penalty above - a fast
+         spares muscle relative to the same deficit, it does not protect it. */
+      if(fastSpare > 0){
+        const cut = 0.08*fastSpare;
+        ls -= cut;
+        why.push(`&minus; ${(cut*100).toFixed(0)} points for ${n1(fastH)} h fasted, `
+               + `as fuel shifts to fat and ketones and growth hormone rises`);
+      }
+      ls = Math.max(0.03,Math.min(ls,0.35));
+      const mass = def/(KCAL_FAT*(1-ls) + KCAL_LEAN_LOST*ls);
+      fatKg = -mass*(1-ls); leanKg = -mass*ls;
+      part = {why, ratio:ls, mass};
+    }
+    return {fatKg, leanKg, capped, part};
   }
+
+  const full = partition(balance);
+  const fatKg = full.fatKg, leanKg = full.leanKg,
+        capped = full.capped, part = full.part;
+  const now  = partition(balanceSoFar, prog.rest);   // live, as the day stands
 
   const waterTarget = 35*weight + 600*((st.minutes+timed.minutes)/60) + 400*(chores.minutes/120);
   const burn = Object.assign({}, st.burn, timed.burn, cardio.burn, chores.burn, mental.burn);
   return {ready,weight,height,age,male,bodyFat,rr,prog,outSoFar,balanceSoFar,
           food,st,timed,cardio,chores,mental,bmr,neat,tef,tefRate,protShare,
           sleepAdj,brainSleep,activity,out,balance,fatKg,leanKg,capped,part,ppk,water,waterTarget,
-          sleep,level,lifted,neatRate,burn};
+          fatNow:now.fatKg, leanNow:now.leanKg, partNow:now.part, cappedNow:now.capped,
+          sleep,level,lifted,neatRate,burn,fastH,fastSpare};
 }
 
 
@@ -2329,7 +2502,11 @@ function update(){
   const inK = d.food.kcal;
   const outK = ready ? d.outSoFar : 0;      // spent by now, not by midnight
   const bal = d.balanceSoFar;
-  const empty = !ready || inK === 0;
+  /* A day with a ready profile is never blanked. Zero food is now read as a
+     fast, not as missing data, so the deficit, tiles and donut are all worked
+     out and shown - the body is spending its reserves whether or not a meal is
+     logged. Only an unfinished profile (no height/weight/age/sex) stays blank. */
+  const empty = !ready;
 
   $("gate").classList.toggle("hidden", ready);
 
@@ -2341,15 +2518,20 @@ function update(){
   const hh = String(Math.floor(clock)).padStart(2,"0")+":"+String(Math.floor((clock%1)*60)).padStart(2,"0");
   $("heroLbl").textContent  = empty ? "Balance"
     : (bal>=0 ? "Ahead so far, by " + hh : "Behind so far, by " + hh);
-  $("heroCap").innerHTML = !ready ? "Waiting on your details"
-    : (inK===0 ? "Nothing logged yet"
-    : (bal>=0 ? "kcal more than your body has spent so far today"
-              : "kcal less than your body has spent so far today")
-      + ($("dayDone").value === "1"
-          ? `<br><span class="proj">Day closed. Full day: <b>${(d.balance>=0?"+":"\u2212")
-             + kc(Math.abs(d.balance))}</b> kcal.</span>`
-          : `<br><span class="proj">Your body will spend about <b>${kc(d.out - d.outSoFar)}</b> more `
-            + `kcal before midnight, whatever else you eat.</span>`));
+  if(!ready){
+    $("heroCap").innerHTML = "Waiting on your details";
+  } else {
+    const lead = inK===0
+      ? "kcal drawn from your reserves so far &mdash; no food logged, so today counts as a fast"
+      : (bal>=0 ? "kcal more than your body has spent so far today"
+                : "kcal less than your body has spent so far today");
+    const proj = $("dayDone").value === "1"
+      ? `<br><span class="proj">Day closed. Full day: <b>${(d.balance>=0?"+":"\u2212")
+         + kc(Math.abs(d.balance))}</b> kcal.</span>`
+      : `<br><span class="proj">Your body will spend about <b>${kc(d.out - d.outSoFar)}</b> more `
+        + `kcal before midnight, whatever else you eat.</span>`;
+    $("heroCap").innerHTML = lead + proj;
+  }
 
   const scale = Math.max(inK, outK, 1) * 1.02;
   $("barIn").style.width  = (ready ? inK/scale*100 : 0)+"%";
@@ -2364,35 +2546,64 @@ function update(){
      honest unit is a rate, not an event: muscle does not measurably move in
      twenty-four hours, it moves over weeks of days like this one. */
   const done = $("dayDone").value === "1";
-  const fatG = empty ? 0 : d.fatKg*1000, leanG = empty ? 0 : d.leanKg*1000;
+  /* Live, not gated. The tiles track fat and muscle as the day accumulates,
+     off the balance so far, and switch to the finished-day projection once the
+     day is closed. A running figure is only honest if it says which it is, so
+     the unit line always names it. */
+  const src = done ? {f:d.fatKg, l:d.leanKg, p:d.part} : {f:d.fatNow, l:d.leanNow, p:d.partNow};
+  /* An empty day used to be zeroed here, so the tiles said "held" while the
+     breakdown behind them showed a real deficit's worth of loss - the same day
+     described two different ways. Nothing is zeroed now. What zero food means
+     is genuinely ambiguous: it is either a fast or a day nobody has logged yet,
+     and only the person can say which. The fasting field on the You tab is how
+     they say it, and until they do the tiles report that rather than inventing
+     an answer. */
+  const fasting  = d.fastH >= 12;
+  const unlogged = empty && !fasting;
+  const fatG  = src.f*1000;
+  const leanG = src.l*1000;
+  const when  = done ? "projected for the day" : "so far today";
   const u = activeUser();
   const usualIn = (u && u.usual) ? usualIntake(u.usual) : 0;
 
-  if(!ready || !done){
-    $("tileFatL").textContent = usualIn > 0 ? "Still to eat" : "Taken so far";
-    $("tileFat").textContent  = !ready ? "\u2014"
-      : (usualIn > 0 ? kc(Math.max(0, usualIn - inK)) : kc(inK));
-    $("tileFatU").textContent = usualIn > 0 ? "to reach your usual day" : "kcal";
-    $("tileLeanL").textContent = "Spent so far";
-    $("tileLean").textContent  = ready ? kc(outK) : "\u2014";
-    $("tileLeanU").textContent = "of " + (ready ? kc(d.out) : "\u2014") + " by midnight";
+  if(!ready){
+    $("tileFatL").textContent = "Body fat";
+    $("tileFat").textContent  = "\u2014";
+    $("tileFatU").textContent = "add your body basics";
+    $("tileLeanL").textContent = "Muscle";
+    $("tileLean").textContent  = "\u2014";
+    $("tileLeanU").textContent = "add your body basics";
+  } else if(unlogged){
+    $("tileFatL").textContent = "Fat";
+    $("tileFat").textContent  = "\u2014";
+    $("tileFatU").textContent = "nothing logged yet";
+    $("tileLeanL").textContent = "Muscle";
+    $("tileLean").textContent  = "\u2014";
+    $("tileLeanU").textContent = "log food, or set hours fasted";
   } else {
-    // Day closed: the projected fat stored (or burned) for the finished day.
-    $("tileFatL").textContent = "Fat " + (fatG>=0 ? "stored" : "burned") + " today";
+    $("tileFatL").textContent = "Fat " + (fatG>=0 ? "stored" : "burned");
     $("tileFat").textContent  = (fatG>=0?"+":"\u2212")+Math.abs(fatG).toFixed(0)+" g";
-    $("tileFatU").textContent = "projected for the day";
-    // Muscle built today, gated on the training signal, protein and sleep.
-    if(d.part && d.part.surplus){
-      $("tileLeanL").textContent = "Muscle built today";
-      $("tileLean").textContent  = leanG >= 0.5 ? "+"+leanG.toFixed(1)+" g" : "none";
-      $("tileLeanU").textContent = leanG >= 0.5 ? "from today's signal"
+    $("tileFatU").textContent = when;
+
+    if(src.p && src.p.surplus){
+      $("tileLeanL").textContent = "Muscle built";
+      $("tileLean").textContent  = leanG >= 0.5 ? "+"+leanG.toFixed(1)+" g" : "none yet";
+      $("tileLeanU").textContent = leanG >= 0.5 ? when
         : (d.st.reps>0 ? "signal too weak to build" : "no training signal");
     } else {
-      $("tileLeanL").textContent = "Muscle today";
+      $("tileLeanL").textContent = "Muscle";
       $("tileLean").textContent  = leanG < -0.5 ? "\u2212"+Math.abs(leanG).toFixed(1)+" g" : "held";
-      $("tileLeanU").textContent = leanG < -0.5 ? "lost in the deficit"
-        : (d.lifted ? "spared by training" : "roughly held");
+      $("tileLeanU").textContent = leanG < -0.5
+        ? (d.fastSpare > 0 ? when + ", fasting spares some" : when)
+        : (d.lifted ? "spared by training" : "deficit too small to matter");
     }
+  }
+  /* What the day is heading for, shown alongside the running figure so an early
+     deficit is not mistaken for the finished result. */
+  if(ready && !done && !unlogged){
+    const pf = d.fatKg*1000;
+    $("tileFatU").textContent = when + ", heading for "
+      + (pf>=0?"+":"\u2212")+Math.abs(pf).toFixed(0)+" g";
   }
   $("tileProt").textContent = ready && inK>0 ? d.ppk.toFixed(1)+" g/kg" : "\u2014";
   $("tileProtU").textContent = ready && inK>0 ? Math.round(d.food.p)+" g today" : "";
@@ -2401,9 +2612,10 @@ function update(){
   MACRO_ORDER.forEach(key => {
     const M = MACROS[key], g = d.food[key], fromMac = g*M.per;
     const share = inK > 0 ? fromMac/inK : 0;
-    $("mac"+M.tag+"g").textContent = inK > 0 ? n1(g)+" g" : "\u2014";
+    $("mac"+M.tag+"g").textContent = inK > 0 ? n1(g)+" g" : (ready ? "0 g" : "\u2014");
     $("mac"+M.tag+"s").textContent = inK > 0
-      ? `${kc(fromMac)} kcal \u00b7 ${(share*100).toFixed(0)}% of intake` : "nothing logged yet";
+      ? `${kc(fromMac)} kcal \u00b7 ${(share*100).toFixed(0)}% of intake`
+      : (ready ? "none eaten yet" : "nothing logged yet");
     $("mac"+M.tag+"b").style.width = Math.min(100, share*100).toFixed(1)+"%";
   });
 
@@ -2665,12 +2877,12 @@ function renderCloseRow(ready, done, d, usualIn, inK){
   if(!done){
     const left = usualIn > 0 ? Math.max(0, usualIn - inK) : 0;
     const p = el("p","tiny", left > 0
-      ? `Fat and muscle figures appear once you close the day. You are about ${kc(left)} kcal `
-        + `short of your usual intake, so there is probably more eating to come.`
-      : `Fat and muscle figures appear once you close the day, since what you eat this evening `
-        + `changes them completely.`);
+      ? `The fat and muscle tiles are running live off the day so far. You are about `
+        + `${kc(left)} kcal short of your usual intake, so expect them to move again this evening.`
+      : `The fat and muscle tiles are running live off the day so far. Closing the day fixes them `
+        + `at the finished-day projection and files it in your history.`);
     host.appendChild(p);
-    const b = el("button","btn sm primary","That is everything for today");
+    const b = el("button","btn primary full","That is everything for today \u2014 close and file it");
     b.type = "button";
     b.addEventListener("click", () => {
       $("dayDone").value = "1"; update(); rememberLast();
@@ -2683,7 +2895,8 @@ function renderCloseRow(ready, done, d, usualIn, inK){
       $("dayDone").value = "0"; update(); rememberLast();
     });
     host.appendChild(b);
-    host.appendChild(el("p","tiny","Day closed. The fat and muscle figures above are this finished "
+    host.appendChild(el("p","tiny","Day closed. The fat and muscle tiles above have stopped running "
+      + "live and now show this finished "
       + "day's projection, built from the balance and today's training signal. Both move slowly, so "
       + "only the scale over a fortnight can confirm them."));
   }
@@ -2695,19 +2908,23 @@ function renderFlags(d, empty){
   if(!d.ready){
     add("Enter your height, weight, age and sex in the You tab. Resting metabolism is built from "
       + "those four and it is the biggest number of the day.", true);
-  } else if(empty){
-    add("Nothing logged yet. Add what you ate, or load your usual day from the You tab.", true);
   } else {
-    if(d.ppk<1.6) add(`Protein is ${d.ppk.toFixed(2)} g per kg. Training pushes the useful range to 1.6&ndash;2.2.`);
-    else add(`Protein at ${d.ppk.toFixed(2)} g per kg supports your training.`, true);
+    if(d.food.kcal === 0){
+      add("No food logged, so today is counted as a fast &mdash; the figures show your body "
+        + "running on its reserves. Log a meal, or set hours since your last meal on the You tab, "
+        + "to refine it.", true);
+    } else {
+      if(d.ppk<1.6) add(`Protein is ${d.ppk.toFixed(2)} g per kg. Training pushes the useful range to 1.6&ndash;2.2.`);
+      else add(`Protein at ${d.ppk.toFixed(2)} g per kg supports your training.`, true);
+      if(d.food.fib<25 && d.food.kcal>1200) add(`Fibre is ${Math.round(d.food.fib)} g. Aim for 30 or more.`);
+      if(d.food.f*9/Math.max(d.food.kcal,1)>0.42) add("Fat is over 42% of your calories.");
+    }
     if(d.part && d.part.surplus && !d.part.energyLimited && d.fatKg*1000 > 5)
       add("The surplus is more than today's muscle signal can absorb, so the rest is stored as fat.");
     if(d.part && d.part.surplus && d.part.hardSets === 0 && d.balance > 60)
       add("No resistance training logged, so none of today's surplus is going to muscle.");
     if(d.sleep<7) add("Under 7 hours of sleep lowers how much of a surplus becomes muscle.");
     if(d.water<d.waterTarget-400) add(`Water is about ${Math.round(d.waterTarget-d.water)} ml short for this much activity.`);
-    if(d.food.fib<25 && d.food.kcal>1200) add(`Fibre is ${Math.round(d.food.fib)} g. Aim for 30 or more.`);
-    if(d.food.f*9/Math.max(d.food.kcal,1)>0.42) add("Fat is over 42% of your calories.");
     if(d.balance<-750) add("A steep deficit. Past roughly 750 kcal under, more of the loss comes from muscle.");
   }
   add("Weigh yourself the same way each morning. Where two weeks of the scale disagrees with this, believe the scale.", true);
@@ -2871,35 +3088,41 @@ function clockHM(h){
 function renderDaySoFar(d){
   const card = $("dayCard");
   if(!card) return;
-  const logged = d && d.ready && (d.food.kcal > 0 || d.activity > 0);
+  /* Shown for any ready profile. With nothing logged the day is a pure deficit -
+     the whole ring is drawn from reserves - so the donut is meaningful even on a
+     fast, not just once food or activity is entered. */
+  const logged = d && d.ready;
   card.classList.toggle("hidden", !logged);
   if(!logged) return;
 
   const intake = d.food.kcal, exp = d.outSoFar, bal = d.balanceSoFar;
-  const exerciseBurn = d.st.kcal + d.cardio.kcal + d.timed.kcal + d.chores.kcal + d.mental.kcal;
 
-  let segs, centerVal, centerLbl;
-  if(bal >= 0){
-    // a surplus so far: the food powered your day, the rest is being stored
-    const total = Math.max(intake, 1);
-    segs = [{frac:exp/total, color:"var(--spend)", flow:"burned"},
-            {frac:bal/total, color:"var(--store)", flow:"stored"}];
-    centerVal = "+" + kc(bal); centerLbl = "to store";
-  } else {
-    // a deficit so far: your day cost more than you ate, the gap comes from reserves
-    const total = Math.max(exp, 1);
-    segs = [{frac:intake/total, color:"var(--spend)", flow:"burned"},
-            {frac:(-bal)/total, color:"var(--store)", flow:"stored"}];
-    centerVal = "−" + kc(-bal); centerLbl = "from reserves";
-  }
+  /* The three numbers a calorie tracker actually cares about: what went IN
+     (eaten), what went OUT (burned), and the NET gap between them. The ring is a
+     plain in-vs-out comparison - the green wedge is the share you ate, the red
+     wedge the share you burned - so a fast reads as an all-red ring and a big
+     eating day as a mostly-green one. The centre and the legend both report the
+     net, so there is one clear number to track. Green = in, red = out. */
+  const netColor = bal >= 0 ? "var(--store)" : "var(--spend)";
+  const netVal   = (bal >= 0 ? "+" : "−") + kc(Math.abs(bal));
+  const netWord  = bal >= 0 ? "surplus" : "deficit";
+  const total = Math.max(intake + exp, 1);
+  const segs = [{frac:intake/total, color:"var(--store)", flow:"eaten"},
+                {frac:exp/total,    color:"var(--spend)", flow:"burned"}];
+
   $("dayDonut").innerHTML = donutSVG(segs)
-    + `<div class="donutc" data-flow="stored"><b style="color:${bal>=0?"var(--store)":"var(--spend)"}">${centerVal}</b>`
-    + `<span>${centerLbl}</span></div>`;
+    + `<div class="donutc" data-flow="stored"><b style="color:${netColor}">${netVal}</b>`
+    + `<span>${netWord}</span></div>`;
 
   $("dayStats").innerHTML =
-      `<div class="daystat" data-flow="eaten"><i style="background:var(--store)"></i><span>Eaten</span><b>${kc(intake)}</b></div>`
-    + `<div class="daystat" data-flow="burned"><i style="background:var(--spend)"></i><span>Burned</span><b>${kc(exp)}</b></div>`
-    + `<div class="daystat sub" data-flow="burned"><i style="background:transparent"></i><span>of that, exercise</span><b>${kc(exerciseBurn)}</b></div>`;
+      `<div class="daystat" data-flow="eaten"><i style="background:var(--store)"></i>`
+        + `<span>Eaten (in)</span><b>${kc(intake)}</b></div>`
+    + `<div class="daystat" data-flow="burned"><i style="background:var(--spend)"></i>`
+        + `<span>Burned (out)</span><b>${kc(exp)}</b></div>`
+    + `<div class="daystat" data-flow="stored"><i style="background:${netColor}"></i>`
+        + `<span>Net ${netWord}</span><b style="color:${netColor}">${netVal}</b></div>`
+    + `<div class="daystat sub"><i style="background:transparent"></i>`
+        + `<span>all figures in kcal</span><b></b></div>`;
 
   $("dayEditLbl").textContent = "Edit what you ate and did";
 }
@@ -3137,6 +3360,240 @@ function openMacroSheet(which){
   row.addEventListener("click", ev => {
     const btn = ev.target.closest("[data-macro]");
     if(btn) openMacroSheet(btn.getAttribute("data-macro"));
+  });
+})();
+
+/* ------------------------------------------------------------------
+   Tap-through arithmetic for the hero meter and the three tiles.
+
+   Every figure on the front page should be able to show its own working.
+   These build on the same tbl() renderer the full arithmetic sheet uses, but
+   scoped to one number, and - unlike that sheet - they show the SO FAR maths,
+   where the resting rate is prorated by how much of the day has actually
+   passed rather than charged whole.
+   ------------------------------------------------------------------ */
+function clockNow(){
+  const h = lastD && lastD.prog ? lastD.prog.hours : 0;
+  const hh = Math.floor(h), mm = Math.round((h-hh)*60);
+  return `${hh}:${String(mm).padStart(2,"0")}`;
+}
+
+function calcTakenIn(d){
+  if(!d.food.lines.length)
+    return `<p class="formula">Nothing logged yet. Anything you add shows up here with the
+      arithmetic that turned the portion into calories.</p>`;
+  let h = tbl(d.food.lines.map(l => ({label:l.label, work:l.work, val:kc(l.kcal)+" kcal"})),
+              "Taken in so far", kc(d.food.kcal)+" kcal");
+  h += `<p class="formula">Each line is the portion multiplied by that food's energy per unit.
+    The macros add back through the Atwater factors &mdash; 4 kcal a gram for protein and
+    carbohydrate, 9 for fat: ${n1(d.food.p)} &times; 4 + ${n1(d.food.c)} &times; 4 +
+    ${n1(d.food.f)} &times; 9 = ${kc(d.food.p*4 + d.food.c*4 + d.food.f*9)} kcal, which matches
+    the total to within rounding and unabsorbed fibre.</p>`;
+  return h;
+}
+
+function calcUsedSoFar(d){
+  const rows = [];
+  const pct = (d.prog.rest*100).toFixed(0), apct = (d.prog.awake*100).toFixed(0);
+  rows.push({label:"Resting metabolism",
+    work:`${kc(d.bmr)} kcal a day &times; ${pct}% of the day elapsed at ${clockNow()}`,
+    val:kc(d.bmr*d.prog.rest)+" kcal"});
+  rows.push({label:"Daily movement (NEAT)",
+    work:`${kc(d.bmr)} &times; ${(d.neatRate*100).toFixed(0)}% for your job &times; ${apct}% `
+       + `of your waking hours so far`,
+    val:kc(d.neat*d.prog.awake)+" kcal"});
+  rows.push({label:"Digesting what you ate",
+    work:`${kc(d.food.kcal)} kcal &times; ${(d.tefRate*100).toFixed(1)}% &mdash; 9% base plus 9% `
+       + `scaled by protein at ${(d.protShare*100).toFixed(0)}% of calories`,
+    val:kc(d.tef)+" kcal"});
+  if(d.st.kcal)     rows.push({label:"Lifting",       work:"work done &divide; 0.20 efficiency", val:kc(d.st.kcal)+" kcal"});
+  if(d.cardio.kcal) rows.push({label:"Getting around",work:"ACSM equations, distance and pace",  val:kc(d.cardio.kcal)+" kcal"});
+  if(d.timed.kcal)  rows.push({label:"Holds and conditioning", work:"MET &times; weight &times; hours", val:kc(d.timed.kcal)+" kcal"});
+  if(d.chores.kcal) rows.push({label:"House and chores",       work:"MET &times; weight &times; hours", val:kc(d.chores.kcal)+" kcal"});
+  if(d.mental.kcal) rows.push({label:"Mental work",   work:`20 W &times; effort above baseline`, val:n1(d.mental.kcal)+" kcal"});
+  if(d.brainSleep)  rows.push({label:"Brain, asleep",
+    work:`the resting rate bills 20 W of brain all day; it runs ~17% lower asleep &mdash; `
+       + `3.4 W &times; ${n1(d.sleep)} h, prorated to ${pct}% of the day`,
+    val:kc(d.brainSleep*d.prog.rest)+" kcal"});
+  if(d.sleepAdj)    rows.push({label:"Short sleep", work:"up to 2% off the resting rate below 6 h", val:kc(d.sleepAdj)+" kcal"});
+  let h = tbl(rows, "Used so far", kc(d.outSoFar)+" kcal");
+  h += `<p class="formula">The resting rate and daily movement are prorated because it is
+    ${clockNow()}, not midnight &mdash; charging a whole day's resting metabolism against a
+    morning's food would show a deficit on every normal day before lunch. By midnight, with
+    nothing further logged, this lands at <b>${kc(d.out)} kcal</b>.</p>`;
+  return h;
+}
+
+function calcTissue(d, which){
+  const done = $("dayDone").value === "1";
+  /* Zero food is read as a fast, so the working is shown rather than withheld.
+     Without hours since the last meal there is no protein-sparing adjustment, so
+     the split uses the default lean fraction; setting the hours refines it. */
+  const note0 = d.food.kcal === 0
+    ? `<p class="formula">No food is logged, so today is treated as a <b>fast</b>: the figures below
+       are your body running entirely on its reserves.` +
+      (d.fastH < 12
+        ? ` Set <b>Hours since your last meal</b> on the You tab to add protein sparing to the split.`
+        : ``) + `</p>`
+    : ``;
+  const bal  = done ? d.balance : d.balanceSoFar;
+  const pt   = done ? d.part : d.partNow;
+  const fat  = (done ? d.fatKg  : d.fatNow)*1000;
+  const lean = (done ? d.leanKg : d.leanNow)*1000;
+  const when = done ? "for the finished day" : `so far today, at ${clockNow()}`;
+  let h = note0 + tbl([{label:"Taken in", work:"everything logged", val:kc(d.food.kcal)+" kcal"},
+               {label:"Used", work: done ? "projected to midnight" : "so far", val:kc(done?d.out:d.outSoFar)+" kcal"},
+               {label:"Balance", work:"taken in &minus; used", val:kc(bal)+" kcal"}],
+              "Energy to account for", kc(bal)+" kcal");
+  if(pt && pt.surplus){
+    h += `<h3>Splitting a surplus</h3>`;
+    h += tbl([
+      {label:"Ceiling for your experience", work:`${n1(pt.capG)} g of lean tissue`, val:n1(pt.capG)+" g"},
+      {label:"Training signal",  work:`${pt.hardSets} hard sets &rarr; 1 &minus; e^(&minus;sets/6)`, val:(pt.sigS*100).toFixed(0)+"%"},
+      {label:"Protein",          work:`${d.ppk.toFixed(2)} g/kg &divide; 1.6, capped at 100%`,       val:(pt.sigP*100).toFixed(0)+"%"},
+      {label:"Sleep",            work:`(${n1(d.sleep)} h &minus; 4.5) &divide; 3, full at 7.5 h`,     val:(pt.sigZ*100).toFixed(0)+"%"},
+      {label:"Muscle the signals allow", work:`${n1(pt.capG)} &times; all three`, val:n1(pt.potentialG)+" g"},
+      {label:"Energy that costs", work:`&times; ${KCAL_LEAN_GAIN} kcal per kg`, val:kc(pt.muscleKcal)+" kcal"},
+      {label:"Left over, stored as fat", work:`${kc(bal)} &minus; ${kc(pt.muscleKcal)}, &divide; ${KCAL_FAT} kcal per kg`, val:kc(pt.fatKcal)+" kcal"},
+    ], "Which is", `${lean>=0?"+":"\u2212"}${Math.abs(lean).toFixed(1)} g muscle, ${fat>=0?"+":"\u2212"}${Math.abs(fat).toFixed(0)} g fat`);
+    if(pt.energyLimited) h += `<p class="formula">The surplus ran out before the signals did, so
+      every calorie above maintenance went to muscle and none to fat.</p>`;
+    if(!done) h += `<p class="formula">The grams-per-day ceiling is scaled to the
+      ${(d.prog.rest*100).toFixed(0)}% of the day that has passed, otherwise a morning's surplus
+      could bank a whole day's muscle before lunch.</p>`;
+  } else if(pt){
+    h += `<h3>Splitting a deficit</h3>`;
+    h += tbl([
+      ...(pt.why||[]).map(w => ({label:"Lean share", work:w, val:""})),
+      {label:"Lean share of the loss", work:"clamped to 3&ndash;35%", val:(pt.ratio*100).toFixed(0)+"%"},
+      {label:"Tissue burned", work:`${kc(-bal)} kcal &divide; (${KCAL_FAT} &times; ${(1-pt.ratio).toFixed(2)} + ${KCAL_LEAN_LOST} &times; ${pt.ratio.toFixed(2)})`, val:n1(pt.mass*1000)+" g"},
+      {label:"Of which fat",  work:`&times; ${(1-pt.ratio).toFixed(2)}`, val:n1(-fat)+" g"},
+      {label:"Of which lean", work:`&times; ${pt.ratio.toFixed(2)}`,     val:n1(-lean)+" g"},
+    ], "Which is", `&minus;${Math.abs(fat).toFixed(0)} g fat, &minus;${Math.abs(lean).toFixed(1)} g lean`);
+    const fatPct = ((1-pt.ratio)*100).toFixed(0), lsPct = (pt.ratio*100).toFixed(0);
+    const denom = Math.round(KCAL_FAT*(1-pt.ratio) + KCAL_LEAN_LOST*pt.ratio);
+    h += `<p class="formula"><b>Where that "tissue burned" line comes from.</b> A deficit is paid by
+      breaking down stored tissue, and a kilogram of each kind releases a different amount of energy.
+      Body fat gives about <b>${KCAL_FAT} kcal per kg</b> &mdash; the old "3,500 kcal to a pound"
+      &mdash; because it is nearly pure fat. Lean tissue gives only about
+      <b>${KCAL_LEAN_LOST} kcal per kg</b>, since muscle is roughly three-quarters water, which
+      carries no energy; only its protein and stored glycogen do.</p>
+      <p class="formula">Under a deficit you lose a <em>mix</em>, here ${fatPct}% fat and ${lsPct}%
+      lean, so a kilogram of that mix is worth ${KCAL_FAT} &times; ${(1-pt.ratio).toFixed(2)}
+      + ${KCAL_LEAN_LOST} &times; ${pt.ratio.toFixed(2)} = <b>${kc(denom)} kcal</b>. Dividing the
+      ${kc(-bal)} kcal shortfall by that blended figure gives the ${n1(pt.mass*1000)} g of tissue
+      that had to be broken down, and the same two shares split it back into fat and lean.</p>
+      <p class="formula">This is why losing muscle costs the scale more than it sounds: a kilo of lean
+      releases so little energy that meeting part of a deficit from muscle burns <em>more</em> total
+      grams than meeting it from fat alone. Note too the asymmetry with a surplus day &mdash; building
+      a kilogram of muscle costs about ${KCAL_LEAN_GAIN} kcal, but losing one releases only about
+      ${KCAL_LEAN_LOST}; the same tissue shows two different numbers depending on which way it is
+      moving.</p>`;
+  }
+  if(d.fastSpare > 0){
+    h += `<p class="formula"><b>Fasted ${n1(d.fastH)} h.</b> A fast and an equally large deficit
+      taken with food in the day are not the same thing. Once liver glycogen is gone the body
+      leans on fat and ketones instead of breaking down protein for glucose, and growth hormone
+      secretion rises several-fold &mdash; it is lipolytic and protein-sparing, which is the
+      mechanism behind the nitrogen losses measured across prolonged fasts starting high and
+      falling as the adaptation sets in. The lean share above is cut by
+      ${(0.08*d.fastSpare*100).toFixed(0)} points for this, ramped in from 12 h and full at 24 h
+      rather than switching at one exact hour, because glycogen runs out somewhere across that
+      window and not on a stopwatch.</p>
+      <p class="formula">Two honest limits. This <b>spares</b> muscle relative to the same
+      deficit, it does not protect it &mdash; the split still shows lean loss, and the
+      big-deficit penalty is only partly offset. And the strongest growth-hormone data comes
+      from fasts of two days and longer; what happens across a single 16&ndash;24 h window is
+      less firmly pinned down, so treat this term as directionally right rather than precise.
+      I could not search the web here, so check the specifics if they matter to you.</p>`;
+  }
+  h += `<p class="formula">Figures are ${when}. ` + (pt && pt.surplus
+    ? `Fat is stored at ${KCAL_FAT} kcal per kg and lean tissue costs ${KCAL_LEAN_GAIN} kcal per kg
+       to build, which is why the same surplus makes far more fat than muscle. `
+    : `Fat releases about ${KCAL_FAT} kcal per kg when broken down and lean tissue only about
+       ${KCAL_LEAN_LOST}, the two densities the split above is built from. `)
+    + `Neither moves enough in one day to see on a scale; only a fortnight of days like this one can
+    confirm them.</p>`;
+  return h;
+}
+
+function calcProtein(d){
+  let h = tbl([
+    {label:"Protein eaten", work:"summed across everything logged", val:n1(d.food.p)+" g"},
+    {label:"Your weight",   work:"from the You tab", val:n1(d.weight)+" kg"},
+    {label:"Per kilo",      work:`${n1(d.food.p)} &divide; ${n1(d.weight)}`, val:d.ppk.toFixed(2)+" g/kg"},
+  ], "Protein density", d.ppk.toFixed(2)+" g/kg");
+  h += `<p class="formula">1.6 g/kg is where the evidence for added muscle stops improving much;
+    2.2 is the usual upper bound past which nothing more is gained. You are at
+    <b>${d.ppk.toFixed(2)}</b>, which is ${(Math.min(1,d.ppk/1.6)*100).toFixed(0)}% of the way to
+    that first mark &mdash; and that percentage is exactly the protein gate applied to any
+    surplus in the muscle maths.</p>`;
+  return h;
+}
+
+function calcBalance(d){
+  let h = tbl([
+    {label:"Taken in so far", work:"everything you have logged", val:kc(d.food.kcal)+" kcal"},
+    {label:"Used so far", work:`resting rate prorated to ${(d.prog.rest*100).toFixed(0)}% of the `
+      + `day, plus movement, digestion and everything logged`, val:kc(d.outSoFar)+" kcal"},
+  ], "Balance so far", (d.balanceSoFar>=0?"+":"&minus;")+kc(Math.abs(d.balanceSoFar))+" kcal");
+  h += `<p class="formula">${kc(d.food.kcal)} &minus; ${kc(d.outSoFar)} =
+    ${(d.balanceSoFar>=0?"+":"&minus;")}${kc(Math.abs(d.balanceSoFar))} kcal at ${clockNow()}.
+    Both sides are measured to the same moment, which is the whole point: comparing a morning's
+    food against a full day's burning would invent a deficit out of the clock. Your body will
+    spend roughly <b>${kc(d.out - d.outSoFar)}</b> more before midnight whatever else you do,
+    so with nothing further eaten the day closes at
+    <b>${(d.balance>=0?"+":"&minus;")}${kc(Math.abs(d.balance))} kcal</b>.</p>`;
+  h += `<p class="formula">Tap Taken or Used on the front page for the line-by-line working
+    behind either side of this subtraction.</p>`;
+  return h;
+}
+
+function calcWeek(d){
+  let h = tbl([
+    {label:"Balance, full day", work:"taken in &minus; used, projected to midnight", val:kc(d.balance)+" kcal"},
+    {label:"Fat from that day", work:`partitioned, then &divide; ${KCAL_FAT} kcal per kg`, val:n1(d.fatKg*1000)+" g"},
+    {label:"Seven such days", work:`${n1(d.fatKg*1000)} g &times; 7`, val:Math.abs(d.fatKg*7).toFixed(2)+" kg"},
+  ], "If every day looked like this", (d.fatKg>=0?"+":"&minus;")+Math.abs(d.fatKg*7).toFixed(2)+" kg a week");
+  h += `<p class="formula">This is a <b>rate, not a total</b>. Nothing here has been banked &mdash;
+    it is what a week of days like this one would come to. One day's figure is far too small to
+    see on a scale, and the arithmetic assumes the day repeats exactly, which no week does.
+    Weigh yourself the same way each morning for two or three weeks; where the scale disagrees
+    with this projection, the scale is right.</p>`;
+  return h;
+}
+
+const CALC_SHEETS = {
+  in:      {title:"Taken in so far", fn:calcTakenIn},
+  out:     {title:"Used so far",     fn:calcUsedSoFar},
+  balance: {title:"Balance so far",  fn:calcBalance},
+  week:    {title:"Fat, if repeated",fn:calcWeek},
+  fat:  {title:"Body fat",        fn:d => calcTissue(d,"fat")},
+  lean: {title:"Muscle",          fn:d => calcTissue(d,"lean")},
+  prot: {title:"Protein",         fn:calcProtein},
+};
+
+function openCalcSheet(key){
+  const c = CALC_SHEETS[key]; if(!c) return;
+  openSheet(c.title, body => {
+    if(!lastD || !lastD.ready){
+      body.appendChild(el("p","tiny","Add your height, weight, age and sex on the You tab "
+        + "first \u2014 every figure here is built from those four."));
+      return;
+    }
+    const wrap = el("div"); wrap.innerHTML = c.fn(lastD); body.appendChild(wrap);
+  });
+}
+
+(function(){
+  document.addEventListener("click", ev => {
+    const t = ev.target.closest("[data-calc]");
+    if(t) openCalcSheet(t.getAttribute("data-calc"));
+  });
+  document.addEventListener("keydown", ev => {
+    if(ev.key !== "Enter" && ev.key !== " ") return;
+    const t = ev.target.closest && ev.target.closest("[data-calc]");
+    if(t){ ev.preventDefault(); openCalcSheet(t.getAttribute("data-calc")); }
   });
 })();
 
@@ -3548,7 +4005,7 @@ function bodyStep(q, sub, fieldId, ctlId, guard){
             if(ev.key === "Enter"){ ev.preventDefault(); wizNext(); }
           });
         }
-        setTimeout(() => ctl.focus && ctl.focus(), 90);
+        focusNow(ctl);
       }
     }
   };
@@ -3572,7 +4029,7 @@ const STEPS = [
       b.appendChild(el("p","tiny","This just labels your profile on this device. There are no "
         + "accounts and no passwords."));
       i.addEventListener("keydown", ev => { if(ev.key === "Enter"){ ev.preventDefault(); wizNext(); } });
-      setTimeout(() => i.focus(), 90);
+      focusNow(i);
     },
     next(){
       const name = ($("wizName").value || "").trim() || "Me";
@@ -3672,6 +4129,8 @@ const STEPS = [
       b.appendChild(p);
       const c = el("div","wizcard");
       c.appendChild(el("h2",null,"Your exercises"));
+      c.appendChild(el("p","tiny","Search above and tap a movement \u2014 it drops in "
+        + "here with its own reps, sets and weight. Add as many as you like, then Next."));
       lend("strengthGroup", c);
       b.appendChild(c);
       const c2 = el("div","wizcard");
@@ -3681,7 +4140,11 @@ const STEPS = [
         + "tan, yellow, red, green, blue, black, silver, gold from lightest to heaviest."));
       lend("trainSettings", c2);
       b.appendChild(c2);
-      focusChain(["rest","lower","intensity","bandLen"]);
+      // Enter still walks these settings, but they must not steal the cursor:
+      // doing so focused a dropdown near the foot of the step and scrolled the
+      // empty exercise list off the top of the screen.
+      focusChain(["rest","lower","intensity","bandLen"], false);
+      focusNow(q);
     },
     cta:"Next"
   },
@@ -3754,7 +4217,8 @@ const STEPS = [
    only when another digit could not produce a valid entry -- height 180 cannot
    become 1800, so it is finished; weight 66 could still become 66.5, so it is
    left alone. Enter always advances. */
-function focusChain(ids){
+function focusChain(ids, autofocus){
+  if(autofocus === undefined) autofocus = true;
   const fields = ids.map(id => $(id)).filter(Boolean);
   const goNext = from => {
     for(let i = from+1; i < fields.length; i++){
@@ -3781,8 +4245,9 @@ function focusChain(ids){
       n.addEventListener("change", () => { if(n.value) goNext(i); });
     }
   });
+  if(!autofocus) return;
   const first = fields.find(n => !String(n.value || "").trim()) || fields[0];
-  if(first && first.focus) setTimeout(() => first.focus(), 90);
+  if(first) focusNow(first);
 }
 
 function yesNo(yes, no, cb){
@@ -3801,8 +4266,16 @@ function buildSummary(b){
   const d = compute();
   const noFood = d.food.kcal === 0;
   const grid = el("div","sumgrid");
-  const box = (label, value, unit, cls) => {
-    const x = el("div","sumbox");
+  /* Each box carries the key of its own arithmetic sheet, so the existing
+     data-calc delegate opens the working without any extra wiring. */
+  const box = (label, value, unit, cls, calc) => {
+    const x = el("div","sumbox"+(calc?" tapr":""));
+    if(calc){
+      x.setAttribute("data-calc", calc);
+      x.setAttribute("role","button");
+      x.setAttribute("tabindex","0");
+      x.setAttribute("aria-label", label + ", tap for the arithmetic");
+    }
     x.appendChild(el("div","sl",label));
     x.appendChild(el("div","sv"+(cls?" "+cls:""), value));
     if(unit) x.appendChild(el("div","su",unit));
@@ -3813,25 +4286,24 @@ function buildSummary(b){
 
   /* Everything here is the day up to now. Comparing what you have eaten so far
      against a whole day of burning would invent a deficit out of the clock. */
-  box("Taken in so far", noFood ? "\u2014" : kc(d.food.kcal),
-      noFood ? "nothing logged" : "kcal of food", "c-in");
-  box("Used so far", kc(d.outSoFar), "by " + hh, "c-out");
-  if(noFood){
-    box("Balance", "\u2014", "needs your food", "");
-    box("Fat", "\u2014", "needs your food", "");
-  } else {
-    box("Balance so far", (d.balanceSoFar>=0?"+":"\u2212")+kc(Math.abs(d.balanceSoFar)), "kcal",
-        d.balanceSoFar>=0 ? "c-fat" : "c-out");
-    box("Fat, if repeated", (d.fatKg>=0?"+":"\u2212")+Math.abs(d.fatKg*7).toFixed(2),
-        "kg per week of days like this", "c-fat");
-  }
+  box("Taken in so far", noFood ? kc(0) : kc(d.food.kcal),
+      noFood ? "no food \u2014 fasting" : "kcal of food", "c-in", "in");
+  box("Used so far", kc(d.outSoFar), "by " + hh, "c-out", "out");
+  /* No food is read as a fast, so the balance and fat rate are worked out from the
+     deficit rather than withheld. */
+  box("Balance so far", (d.balanceSoFar>=0?"+":"\u2212")+kc(Math.abs(d.balanceSoFar)), "kcal",
+      d.balanceSoFar>=0 ? "c-fat" : "c-out", "balance");
+  box("Fat, if repeated", (d.fatKg>=0?"+":"\u2212")+Math.abs(d.fatKg*7).toFixed(2),
+      "kg per week of days like this", "c-fat", "week");
   b.appendChild(grid);
 
   const c = el("div","wizcard");
   c.innerHTML = noFood
     ? `<p style="margin:0;font-size:14px;line-height:1.65">By ${hh} your body has spent about
        <b>${kc(d.outSoFar)}</b> kcal, of which ${kc(d.bmr*d.prog.rest)} is simply staying alive.
-       Add what you have eaten and this will show where the balance sits.</p>`
+       With no food logged, today is counted as a fast, so the whole
+       <b>${(d.balanceSoFar>=0?"+":"−")+kc(Math.abs(d.balanceSoFar))}</b> comes from your
+       reserves. Log a meal, or set hours since your last meal, to refine it.</p>`
     : `<p style="margin:0;font-size:14px;line-height:1.65">By ${hh} you have taken in
        <b>${kc(d.food.kcal)}</b> kcal and your body has spent <b>${kc(d.outSoFar)}</b>, leaving
        <b>${(d.balanceSoFar>=0?"+":"\u2212")+kc(Math.abs(d.balanceSoFar))}</b>. It will spend roughly
@@ -4356,13 +4828,14 @@ $("qTrain").addEventListener("click", () => {
       filter: it => it.split !== "cardio" && (!chosen.size || chosen.has(it.split)),
       hint: "Pick a split above, or type the movement you did."
     });
-    setTimeout(() => q.focus(), 120);
+    focusNow(q);
   });
 });
 
 $("qMove").addEventListener("click", () =>
-  pickerSheet("rep","Walking, running, cycling","Search",
-    {filter: it => it.split === "cardio", hint:"Distance and pace for each."}));
+  pickerSheet("rep","Walking","Run or ride instead? Search here",
+    {filter: it => it.split === "cardio", autoOpenId:"walk",
+     hint:"Set your distance and pace below. For a run or ride, search above."}));
 
 $("qChore").addEventListener("click", () =>
   pickerSheet("chore","Add housework","Search chores",
