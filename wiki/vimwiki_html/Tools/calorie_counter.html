@@ -105,6 +105,23 @@ h1,h2,h3{margin:0}
 .fill.a{background:var(--in)}
 .fill.b{background:var(--out)}
 
+/* ---------------- macros under the meter ---------------- */
+.macros{margin-top:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.macro{background:var(--card2);border:0;border-radius:var(--r-sm);padding:9px 10px 8px;
+  text-align:left;display:block;min-height:62px}
+.macro:active{opacity:.7}
+.macro .ml{display:block;font-size:10.5px;color:var(--muted)}
+.macro .mg{display:block;font-family:var(--serif);font-size:18px;font-weight:600;margin-top:1px;
+  letter-spacing:-.01em}
+.macro .ms{display:block;font-size:10px;color:var(--muted);line-height:1.3;margin-top:1px}
+.macro .mbar{display:block;height:4px;border-radius:2px;background:var(--line);margin-top:6px;
+  overflow:hidden}
+.macro .mbar i{display:block;height:100%;border-radius:2px;transition:width .25s cubic-bezier(.4,0,.2,1)}
+.macro.m-c .mg{color:var(--in)}      .macro.m-c .mbar i{background:var(--in)}
+.macro.m-f .mg{color:var(--fat)}     .macro.m-f .mbar i{background:var(--fat)}
+.macro.m-p .mg{color:var(--lean)}    .macro.m-p .mbar i{background:var(--lean)}
+.macrohint{font-size:10.5px;color:var(--muted);margin-top:7px;display:block}
+
 .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:13px}
 .tile{background:var(--card);border-radius:var(--r-sm);padding:12px 11px;box-shadow:var(--shadow)}
 .tile .tl{font-size:11px;color:var(--muted);line-height:1.3}
@@ -166,7 +183,9 @@ h1,h2,h3{margin:0}
 .diff:last-of-type{border-bottom:0}
 .diff .dn{font-weight:500}
 .diff .dw{font-size:12px;color:var(--muted)}
-.diff .de{font-family:var(--serif);font-weight:600;font-size:14.5px;grid-row:1/3;
+.diff .dd{font-size:12px;color:var(--muted);grid-column:1}
+.diff .dd b{font-family:var(--serif);font-weight:600;color:var(--ink)}
+.diff .de{font-family:var(--serif);font-weight:600;font-size:14.5px;grid-row:1/-1;
   align-self:center;white-space:nowrap}
 .up{color:var(--in)}.down{color:var(--out)}
 .verdict{margin-top:13px;padding:13px 14px;background:var(--card2);border-radius:var(--r-sm);
@@ -468,6 +487,24 @@ input,select{scroll-margin:84px 0 180px}
           <span class="track"><span class="fill b" id="barOut" style="width:0"></span></span>
           <span class="mval c-out" id="valOut">&mdash;</span></div>
       </div>
+      <div class="macros" id="macroRow">
+        <button class="macro m-c" type="button" data-macro="c"
+                aria-label="Carbohydrate today, tap for the breakdown food by food">
+          <span class="ml">Carbs</span><span class="mg" id="macCg">&mdash;</span>
+          <span class="ms" id="macCs"></span>
+          <span class="mbar"><i id="macCb" style="width:0"></i></span></button>
+        <button class="macro m-f" type="button" data-macro="f"
+                aria-label="Fat today, tap for the breakdown food by food">
+          <span class="ml">Fat</span><span class="mg" id="macFg">&mdash;</span>
+          <span class="ms" id="macFs"></span>
+          <span class="mbar"><i id="macFb" style="width:0"></i></span></button>
+        <button class="macro m-p" type="button" data-macro="p"
+                aria-label="Protein today, tap for the breakdown food by food">
+          <span class="ml">Protein</span><span class="mg" id="macPg">&mdash;</span>
+          <span class="ms" id="macPs"></span>
+          <span class="mbar"><i id="macPb" style="width:0"></i></span></button>
+      </div>
+      <span class="macrohint">Tap any of the three for the breakdown, food by food.</span>
     </div>
 
     <div class="tiles">
@@ -881,12 +918,43 @@ const COND = [
   ["c_yoga","Yoga or stretching",2.5,120],
   ["c_sport","Sport or game",7.0,180],
 ];
-/* Distance-based, so pace matters. */
+/* Distance-based, so pace matters. The pace box runs from a shuffle to a sprint
+   on both rows, because what your legs are actually doing is decided by the
+   speed, not by which row you happened to type it into. */
 const CARDIO = [
-  ["walk","Walking",3,8,5,"km/h",25,0.5],
-  ["run","Running",6,18,10,"km/h",30,0.5],
+  ["walk","Walking",1.5,14,5,"km/h",25,0.5],
+  ["run","Running",4,24,10,"km/h",42,0.5],
   ["cycle","Cycling",8,35,18,"km/h",100,1],
 ];
+
+/* Walking and running are not the same machine. Walking keeps one foot down and
+   vaults the body over a stiff leg, so it is cheap; running has a flight phase
+   and every stride has to be paid for by lifting and re-accelerating the whole
+   body, so it costs roughly twice as much per metre. People change gait at
+   their own preferred transition speed, which sits near 2 m/s — about 7 km/h —
+   and that is the threshold used here. Above it the running equation is used
+   even if the entry was typed on the walking row, and below it the walking one
+   is used even on the running row. */
+const RUN_FROM = 7.0;            // km/h: at or above this it is treated as running
+
+/* ACSM metabolic equations, in ml O2 per kg per minute on level ground:
+     walking  VO2 = 3.5 + 0.1 x speed(m/min)
+     running  VO2 = 3.5 + 0.2 x speed(m/min)
+   One MET is 3.5 ml/kg/min by definition, so MET = VO2 / 3.5. */
+function gaitMet(id, pace){
+  if(id === "cycle"){
+    return {met: 0.45*pace, gait:"cycle", label:"cycling",
+            work:`0.45 MET per km/h &times; ${n1(pace)} km/h`};
+  }
+  const running = pace >= RUN_FROM;
+  const vmin = pace*1000/60;                       // metres per minute
+  const coef = running ? 0.2 : 0.1;
+  const vo2  = 3.5 + coef*vmin;
+  return {met: vo2/3.5, gait: running ? "run" : "walk",
+          label: running ? "running" : "walking", vmin, vo2, coef,
+          work:`ACSM ${running?"running":"walking"} equation: VO&#8322; = 3.5 + ${coef} &times; `
+             + `${n1(vmin)} m/min = ${n1(vo2)} ml/kg/min, &divide; 3.5 = ${n1(vo2/3.5)} MET`};
+}
 /* Chores. mode "min" is minutes; "count" converts a count into minutes;
    "floors" uses m g h directly, since climbing is honest lifting. */
 const CHORES = [
@@ -907,17 +975,41 @@ const CHORES = [
   ["ch_stairs","Flights of stairs climbed","your weight lifted 3.2 m each","floors",0,0,80,1,"floors"],
 ];
 
-/* Mental work. The brain draws about a fifth of resting metabolism whether you
-   think hard or not, and that baseline already sits inside your RMR above. What
-   is credited here is only the small extra rise from cognitive effort, scaled by
-   how demanding the task is. The fourth field is that rise as a fraction of the
-   brain's resting draw: 5% for light work, 10% focused, 18% flat-out. These are
-   deliberately modest — the honest cost of thinking is small. */
+/* Mental work, from the brain's power draw.
+
+   The adult brain runs at about 20 watts. That figure is not a guess: the brain
+   is roughly 2% of body mass but takes about 20% of resting energy, and a resting
+   adult burns on the order of 100 W, so 20 W is where the neuroenergetics
+   literature lands (Raichle and Gusnard's review of brain energy budgets is the
+   usual citation). Twenty joules a second for a whole day is
+   20 x 86,400 = 1,728,000 J, which is 1,728,000 / 4.184 = 413,000 calories, or
+   413 kcal a day, and that matches the ~20% of a 2,000 kcal resting rate it is
+   meant to be.
+
+   The catch is that those 20 W run whether you are solving differential equations
+   or watching a wall. They are already inside the resting metabolism computed
+   further down, so adding them here would count the same energy twice. What is
+   genuinely extra when you concentrate is small: task-evoked increases in brain
+   metabolism measured by PET and fMRI are a few percent of baseline, not a
+   doubling. So the fourth field below is the rise above the 20 W baseline as a
+   fraction of it, and only that rise is added to your day. */
+const BRAIN_W      = 20;        // watts, the awake resting brain
+const JOULE_CAL    = 4.184;     // joules per (small) calorie, by definition
 const MENTAL = [
   ["m_light","Light mental work","email, admin, easy reading",0.05],
   ["m_focus","Focused study or deep work","coding, writing, problem sets",0.10],
   ["m_intense","Intense problem-solving","exams, hard maths, debugging",0.18],
 ];
+
+/* Atwater factors: 4 kcal a gram for protein and carbohydrate, 9 for fat. These
+   are the numbers the food table was built from, so the three rows add back to
+   the calorie total to within rounding and whatever fibre is not absorbed. */
+const MACROS = {
+  c:{tag:"C", name:"Carbohydrate", short:"carbs",   per:4, cls:"m-c"},
+  f:{tag:"F", name:"Fat",          short:"fat",     per:9, cls:"m-f"},
+  p:{tag:"P", name:"Protein",      short:"protein", per:4, cls:"m-p"},
+};
+const MACRO_ORDER = ["c","f","p"];
 
 const KCAL_FAT = 7700, KCAL_LEAN_GAIN = 5000, KCAL_LEAN_LOST = 1800;
 const LEAN_CAP = {beginner:25, intermediate:13, advanced:6};
@@ -927,6 +1019,15 @@ const $ = id => document.getElementById(id);
 const el = (t,c,h) => { const n=document.createElement(t); if(c)n.className=c; if(h!==undefined)n.innerHTML=h; return n; };
 const kc = n => Math.round(n).toLocaleString("en-IN");
 const n1 = n => { const v = Math.round(n*10)/10; return (v % 1 === 0 ? v.toFixed(0) : v.toFixed(1)); };
+/* Per-unit food figures are often tiny — 0.032 g of protein per ml of milk —
+   so they need more decimals than n1 gives before they stop reading as zero. */
+const gfmt = n => {
+  const a = Math.abs(n);
+  if(a >= 10) return n1(n);
+  if(a >= 1)  return (Math.round(n*10)/10).toString();
+  if(a >= 0.1) return (Math.round(n*100)/100).toString();
+  return (Math.round(n*1000)/1000).toString();
+};
 /* ==================================================================
    CONTROLS
    ================================================================== */
@@ -1312,6 +1413,7 @@ CARDIO.forEach(([id,name,pmin,pmax,pdef,punit,dmax,dstep]) => {
   const pw = el("div"); pw.appendChild(el("div","sl","Pace"));
   pw.appendChild(mkStep({id:"p_"+id, min:pmin, max:pmax, step:0.5, value:pdef, move:true,
     unit:punit, aria:name+", pace", setting:true}));
+  SETTING_IDS.push("p_"+id);          // so a saved day restores the pace, not just the distance
   sub.append(dw, pw); row.appendChild(sub);
   const amt = el("span"); amt.id="a_"+id; amt.className="hidden"; row.appendChild(amt);
   $("cardioRows").appendChild(row); noteHome($("cardioRows"), row);
@@ -1866,7 +1968,7 @@ function restingRate(weight, height, age, male, bodyFat){
 }
 
 function readFood(){
-  let kcal=0,p=0,c=0,f=0,fib=0; const groupTot={}, lines=[];
+  let kcal=0,p=0,c=0,f=0,fib=0; const groupTot={}, lines=[], items=[];
   for(const id in foodIndex){
     const fd = foodIndex[id], v = +$("f_"+id).value, k = v*fd.kcal;
     kcal+=k; p+=v*fd.p; c+=v*fd.c; f+=v*fd.f; fib+=v*fd.fib;
@@ -1876,10 +1978,15 @@ function readFood(){
     $("f_"+id).classList.toggle("hot", v>0);
     row.querySelector(".amt").innerHTML =
       `<b>${v%1?v.toFixed(1):v}</b> ${fd.unit}`+(v>0?`<br>${kc(k)} kcal`:"");
-    if(v>0) lines.push({label:fd.name,
-      work:`${v} ${fd.unit} &times; ${fd.kcal} kcal per ${fd.unit}`, kcal:k});
+    if(v>0){
+      lines.push({label:fd.name,
+        work:`${v} ${fd.unit} &times; ${fd.kcal} kcal per ${fd.unit}`, kcal:k});
+      /* Kept per food so the macro strip can show where each gram came from. */
+      items.push({id, name:fd.name, unit:fd.unit, v, kcal:k, per:fd,
+                  p:v*fd.p, c:v*fd.c, f:v*fd.f, fib:v*fd.fib});
+    }
   }
-  return {kcal,p,c,f,fib,groupTot,lines};
+  return {kcal,p,c,f,fib,groupTot,lines,items};
 }
 
 function readStrength(weight, heightCm){
@@ -1890,6 +1997,7 @@ function readStrength(weight, heightCm){
         A=anthro(heightCm);
   let sets=0, seconds=0, reps=0, upJ=0; const lines=[];
   const burn = {};                 // per rep-entry control -> mechanical kcal
+  const setInfo = {};              // per rep-entry control -> what that one set was and cost
   const groups = {};               // muscle group -> hard sets, for the growth signal
 
   function runExercise(ex, bandOnly){
@@ -1922,7 +2030,12 @@ function readStrength(weight, heightCm){
       const g = SPLIT[ex.id] || "full";
       groups[g] = (groups[g] || 0) + 1;
       // mechanical cost of this set (up plus the eccentric fraction on the way down)
-      burn["er_"+ex.id+"_"+i] = J*r*(1+ecc)/EFFICIENCY/KCAL_J;
+      const setKcal = J*r*(1+ecc)/EFFICIENCY/KCAL_J;
+      burn["er_"+ex.id+"_"+i] = setKcal;
+      setInfo["er_"+ex.id+"_"+i] = {
+        name:ex.name, set:i, reps:r, mode, kcal:setKcal, J:J*r,
+        load:(mode==="wt" ? (+($("ew_"+ex.id+"_"+i)||{}).value || 0) : 0),
+        note};
       parts.push(note);
       lines.push({label:ex.name+", set "+i,
         work:`${r} reps &times; ${n1(J/(G*h))} kg-equivalent &times; 9.81 &times; ${h.toFixed(2)} m`,
@@ -1944,7 +2057,7 @@ function readStrength(weight, heightCm){
   const overhead = minutes>0 ? metKcal(metOh, minutes, weight) : 0;
   const epoc = (liftKcal+lowerKcal+overhead)*0.06;
   return {sets,reps,minutes,upJ,liftKcal,lowerKcal,overhead,epoc,ecc,metOh,
-          kcal:liftKcal+lowerKcal+overhead+epoc, A, lines, burn, groups};
+          kcal:liftKcal+lowerKcal+overhead+epoc, A, lines, burn, setInfo, groups};
 }
 
 function readTimed(weight){
@@ -1966,22 +2079,29 @@ function readTimed(weight){
 function readCardio(weight){
   let kcal=0; const lines=[], burn={};
   CARDIO.forEach(([id,name]) => {
-    const km = +$("d_"+id).value, pace = +$("p_"+id).value;
+    const km = +$("d_"+id).value, pace = Math.max(0.5, +$("p_"+id).value || 0);
     $("d_"+id).classList.toggle("hot", km>0); $("p_"+id).classList.toggle("hot", km>0);
-    let met = 0;
-    if(id==="walk") met = 2.0+0.55*pace;
-    else if(id==="run") met = 1.0*pace;
-    else met = 0.45*pace;
+    const g = gaitMet(id, pace);
+    const met = g.met;
     const minutes = km>0 ? (km/pace)*60 : 0;
     const k = km>0 ? metKcal(met, minutes, weight) : 0;
+    /* If the speed disagrees with the row it was typed into, say so rather than
+       silently using the wrong equation. */
+    const mismatch = (id==="walk" && g.gait==="run") ? "that pace is running, so the running equation is used"
+                   : (id==="run" && g.gait==="walk") ? "that pace is a walk, so the walking equation is used"
+                   : "";
     $("a_"+id).innerHTML = km>0
-      ? `<b>${km}</b> km<br>${Math.round(minutes)} min at ${met.toFixed(1)} MET<br>${kc(k)} kcal`
+      ? `<b>${km}</b> km<br>${Math.round(minutes)} min at ${n1(met)} MET (${g.label})`
+        + (mismatch ? `<br><em>${mismatch}</em>` : "")
+        + `<br>${kc(k)} kcal`
       : `<b>0</b> km`;
     $("row_"+id).classList.toggle("zero", km===0);
     if(!km) return;
     kcal += k; burn["d_"+id] = k;
-    lines.push({label:`${name}, ${km} km at ${pace} km/h`,
-      work:`(${met.toFixed(1)} &minus; 1) MET &times; 3.5 &times; ${weight} kg / 200 &times; ${Math.round(minutes)} min`, kcal:k});
+    lines.push({label:`${name}, ${km} km at ${n1(pace)} km/h`
+        + (mismatch ? ` (counted as ${g.label})` : ""),
+      work:`${g.work}, then (${n1(met)} &minus; 1) &times; 3.5 &times; ${weight} kg / 200 `
+         + `&times; ${Math.round(minutes)} min`, kcal:k});
   });
   return {kcal, lines, burn};
 }
@@ -2016,28 +2136,50 @@ function readChores(weight){
   return {kcal, minutes, lines, burn};
 }
 
-/* Mental work. The brain's resting draw is about 20% of RMR; effortful thinking
-   lifts it by the small fraction stored on each item, and only that rise is
-   credited, since the baseline is already inside the resting figure. */
+/* Mental work, computed from power rather than from a share of your RMR.
+
+   Baseline: 20 W. Over a whole day that is 20 x 86,400 s = 1,728,000 J, which is
+   1,728,000 / 4.184 = 413,000 cal = 413 kcal. Every one of those kilocalories is
+   already inside the resting metabolism further down, so none of them is added
+   here — that would be counting the same energy twice.
+
+   Credited: only the rise above 20 W while you are concentrating. Extra watts =
+   20 x the effort fraction for the task; joules = extra watts x seconds; calories
+   = joules / 4.184; kilocalories = calories / 1000. */
 function readMental(bmr){
-  let kcal=0, minutes=0; const lines=[], burn={};
-  const brainPerMin = 0.20*bmr/1440;              // kcal per minute, at rest
+  let kcal=0, minutes=0, joules=0, grossJ=0; const lines=[], burn={};
+  const baseJ    = BRAIN_W*86400;                 // joules the brain uses in a day
+  const baseKcal = baseJ/KCAL_J;                  // ~413 kcal/day, already in the RMR
   MENTAL.forEach(([id,name,hint,bump]) => {
     const inp = $("mw_"+id); if(!inp) return;
     const m = +inp.value;
     inp.classList.toggle("hot", m>0);
     const row = $("row_"+id);
     if(row){ row.classList.toggle("zero", m===0); row.classList.toggle("on", m>0); }
-    const k = m>0 ? brainPerMin*bump*m : 0;
+
+    const sec     = m*60;                         // hours converted to seconds
+    const extraW  = BRAIN_W*bump;                 // watts above the 20 W baseline
+    const J       = extraW*sec;                   // joules, since 1 W = 1 J/s
+    const cal     = J/JOULE_CAL;                  // small calories
+    const k       = cal/1000;                     // kilocalories
+    const gJ      = BRAIN_W*sec;                  // what the brain spent in total
+
     const amt = $("a_"+id);
-    if(amt) amt.innerHTML = m>0 ? `<b>${m}</b> min<br>${n1(k)} kcal` : `<b>0</b> min`;
+    if(amt) amt.innerHTML = m>0
+      ? `<b>${m}</b> min<br>${BRAIN_W} W &plus; ${n1(extraW)} W for effort`
+        + `<br>${kc(J)} J = ${kc(cal)} cal = ${n1(k)} kcal`
+      : `<b>0</b> min`;
     if(!m) return;
-    kcal += k; minutes += m; burn["mw_"+id] = k;
+    kcal += k; minutes += m; joules += J; grossJ += gJ; burn["mw_"+id] = k;
     lines.push({label:name+", thinking",
-      work:`${n1(brainPerMin)} kcal/min at rest (20% of ${kc(bmr)}) &times; ${Math.round(bump*100)}% for effort &times; ${m} min`,
+      work:`${BRAIN_W} W &times; ${Math.round(bump*100)}% effort = ${n1(extraW)} W extra, `
+         + `&times; ${m} min &times; 60 = ${kc(J)} J, &divide; 4.184 = ${kc(cal)} cal, `
+         + `&divide; 1000 = ${n1(k)} kcal`,
       kcal:k});
   });
-  return {kcal, minutes, lines, brainPerMin, burn};
+  return {kcal, minutes, joules, grossJ, lines, burn,
+          baseW:BRAIN_W, baseJ, baseKcal,
+          grossKcal:grossJ/KCAL_J};
 }
 
 function compute(){
@@ -2199,6 +2341,16 @@ function update(){
   }
   $("tileProt").textContent = ready && inK>0 ? d.ppk.toFixed(1)+" g/kg" : "\u2014";
   $("tileProtU").textContent = ready && inK>0 ? Math.round(d.food.p)+" g today" : "";
+
+  // ---- carbs, fat, protein under the meter ----
+  MACRO_ORDER.forEach(key => {
+    const M = MACROS[key], g = d.food[key], fromMac = g*M.per;
+    const share = inK > 0 ? fromMac/inK : 0;
+    $("mac"+M.tag+"g").textContent = inK > 0 ? n1(g)+" g" : "\u2014";
+    $("mac"+M.tag+"s").textContent = inK > 0
+      ? `${kc(fromMac)} kcal \u00b7 ${(share*100).toFixed(0)}% of intake` : "nothing logged yet";
+    $("mac"+M.tag+"b").style.width = Math.min(100, share*100).toFixed(1)+"%";
+  });
 
   renderDaySoFar(d);
   renderCloseRow(ready, done, d, usualIn, inK);
@@ -2517,21 +2669,85 @@ function usingSnapshot(snap, fn){
   finally { allControls().forEach(n => { if(cur[n.id] !== undefined) n.value = cur[n.id]; }); }
   return r;
 }
+/* One line per thing that moved. Strength is handled set by set rather than
+   exercise by exercise, because a set is the unit you actually change: twelve
+   reps at 20 kg is a different amount of work from twelve at 15, and the line
+   is useless unless it says what that one set cost. Each row carries both the
+   change in the balance (the +/- figure) and, underneath, what the set or the
+   activity burned today against what it burned on your usual day. */
 function dayDiffs(usual, before, after){
   const now = snapshot(), out = [];
+  const bInfo = (before && before.st && before.st.setInfo) || {};
+  const aInfo = (after  && after.st  && after.st.setInfo)  || {};
+  const bBurn = (before && before.burn) || {};
+  const aBurn = (after  && after.burn)  || {};
+  const handled = new Set();
+
+  const num = (o,id) => parseFloat((o && o[id]) || 0) || 0;
+
+  /* ---- strength, one row per set ---- */
+  const setKeys = new Set(Object.keys(bInfo).concat(Object.keys(aInfo)));
+  LOG_IDS.forEach(id => { if(/^er_.+_\d+$/.test(id)) setKeys.add(id); });
+
+  Array.from(setKeys).sort().forEach(key => {
+    const m = key.match(/^er_(.+)_(\d+)$/); if(!m) return;
+    const exId = m[1], idx = +m[2], wid = "ew_"+exId+"_"+idx;
+    const A = bInfo[key], B = aInfo[key];
+    const wasR = num(usual,key), nowR = num(now,key);
+    const wasW = num(usual,wid), nowW = num(now,wid);
+    const wasK = A ? A.kcal : 0, nowK = B ? B.kcal : 0;
+
+    const loadMoved = Math.abs(wasW-nowW) > 1e-9 && (wasR > 0 || nowR > 0);
+    if(Math.abs(wasR-nowR) < 1e-9 && !loadMoved && Math.abs(wasK-nowK) < 0.05) return;
+
+    handled.add(key); handled.add(wid);
+
+    const exName = (B && B.name) || (A && A.name)
+                 || (LABELS[key] ? LABELS[key].name.replace(/ set \d+, reps$/,"") : exId);
+    const loadTxt = (nowW > 0 || wasW > 0)
+      ? (Math.abs(wasW-nowW) < 1e-9 ? ` at ${n1(nowW)} kg` : ` at ${n1(wasW)} \u2192 ${n1(nowW)} kg`)
+      : "";
+
+    out.push({
+      name: `${exName}, set ${idx}`,
+      unit: "reps",
+      was: wasR, now: nowR,
+      wasTxt: `${n1(wasR)} \u2192 ${n1(nowR)} reps${loadTxt}`,
+      kcal: -(nowK - wasK),                       // effect on the balance
+      detail: nowK > 0
+        ? `this set burns <b>${n1(nowK)} kcal</b>` + (wasK > 0 ? ` (usually ${n1(wasK)})` : " (new set)")
+        : (wasK > 0 ? `skipped &mdash; usually <b>${n1(wasK)} kcal</b>` : "")
+    });
+  });
+
+  /* ---- everything else ---- */
   LOG_IDS.forEach(id => {
-    const a = parseFloat(usual[id] || 0) || 0, b = parseFloat(now[id] || 0) || 0;
+    if(handled.has(id)) return;
+    const a = num(usual,id), b = num(now,id);
     if(Math.abs(a-b) < 1e-9) return;
     const L = LABELS[id] || {name:id, unit:""};
-    let kcal = null;
+    /* Control labels are written for screen readers ("Walking, distance in km",
+       "Focused study, minutes"). Strip the unit tail so the card reads as a list
+       of things rather than a list of input boxes. */
+    const nm = L.name.replace(/ in [a-z]+$/i,"")
+                     .replace(/,\s*(minutes|reps|distance|pace|floors|items|chapatis|km|kg|min)$/i,"");
+    let kcal = null, detail = "";
     const fid = id.startsWith("f_") ? id.slice(2) : null;
     if(fid && foodIndex[fid]){
-      kcal = (b-a)*foodIndex[fid].kcal;         // food: energy taken in (+)
-    } else if(after && after.burn && after.burn[id] > 0.5){
-      // activities: what this exercise actually burned today, shown as spent (−)
-      kcal = -after.burn[id];
+      const fd = foodIndex[fid];
+      kcal = (b-a)*fd.kcal;                       // food: energy taken in (+)
+      detail = b > 0
+        ? `${kc(b*fd.kcal)} kcal on the plate, and `
+          + `${n1(b*fd.p)} g protein, ${n1(b*fd.c)} g carbs, ${n1(b*fd.f)} g fat`
+        : `dropped &mdash; usually <b>${kc(a*fd.kcal)} kcal</b>`;
+    } else if((aBurn[id] || 0) > 0.05 || (bBurn[id] || 0) > 0.05){
+      const nowK = aBurn[id] || 0, wasK = bBurn[id] || 0;
+      kcal = -(nowK - wasK);
+      detail = nowK > 0
+        ? `burns <b>${n1(nowK)} kcal</b>` + (wasK > 0 ? ` (usually ${n1(wasK)})` : "")
+        : `skipped &mdash; usually <b>${n1(wasK)} kcal</b>`;
     }
-    out.push({name:L.name.replace(/ in [a-z]+$/,""), unit:L.unit, was:a, now:b, kcal});
+    out.push({name:nm, unit:L.unit, was:a, now:b, kcal, detail});
   });
   return out;
 }
@@ -2786,6 +3002,69 @@ function openFlowCalc(which){
   });
 }
 
+/* ==================================================================
+   MACROS: the three bars under the meter, and where each gram came from
+   ================================================================== */
+function openMacroSheet(which){
+  const M = MACROS[which]; if(!M) return;
+  const d = compute();
+  openSheet(M.name + " today", body => {
+    const wrap = el("div","calc"); body.appendChild(wrap);
+    const items = (d.food.items || []).filter(it => it[which] > 0.049)
+                                      .sort((a,b) => b[which] - a[which]);
+    let h = "";
+    if(!items.length){
+      h += `<p class="formula">Nothing logged yet that carries ${M.short}.</p>`;
+    } else {
+      const total = d.food[which], fromMac = total*M.per;
+      h += tbl(items.map(it => ({
+        label: it.name,
+        work: `${n1(it.v)} ${it.unit} &times; ${gfmt(it.per[which])} g of ${M.short} per ${it.unit} `
+            + `&rarr; ${n1(it[which]*M.per)} kcal`,
+        val: n1(it[which])+" g"
+      })), "Total "+M.short, n1(total)+" g");
+
+      h += `<p class="formula">At ${M.per} kcal a gram that is <b>${kc(fromMac)} kcal</b>`
+         + (d.food.kcal > 0
+             ? `, which is ${(fromMac/d.food.kcal*100).toFixed(0)}% of the ${kc(d.food.kcal)} kcal
+                you have eaten today.` : ".");
+      if(which === "p" && d.weight > 0){
+        h += ` That works out at <b>${n1(total/d.weight)} g per kg</b> of body weight;
+               muscle protein synthesis is saturated at about 1.6 g/kg, so past that the extra
+               protein is simply fuel.`;
+      }
+      if(which === "f"){
+        h += ` Fat is the densest of the three at 9 kcal a gram, so a small change in ghee or oil
+               moves the day more than it looks like it should.`;
+      }
+      if(which === "c"){
+        h += ` Fibre is counted inside the carbohydrate figure here but is largely not absorbed;
+               you have ${n1(d.food.fib)} g of it today.`;
+      }
+      h += `</p>`;
+
+      const other = MACRO_ORDER.filter(k => k !== which);
+      h += `<p class="formula">The other two: `
+         + other.map(k => `${MACROS[k].short} ${n1(d.food[k])} g (${kc(d.food[k]*MACROS[k].per)} kcal)`).join(", ")
+         + `.</p>`;
+    }
+    wrap.innerHTML = h;
+    const b = el("button","btn primary full","Done"); b.type="button";
+    b.style.marginTop = "14px";
+    b.addEventListener("click", closeSheet);
+    body.appendChild(b);
+  });
+}
+
+(function(){
+  const row = $("macroRow");
+  if(!row) return;
+  row.addEventListener("click", ev => {
+    const btn = ev.target.closest("[data-macro]");
+    if(btn) openMacroSheet(btn.getAttribute("data-macro"));
+  });
+})();
+
 (function(){
   const card = $("dayCard");
   if(!card) return;
@@ -2839,10 +3118,17 @@ function renderToday(){
   diffs.forEach(x => {
     // colour by the effect on the balance: food in is plum, energy spent is teal
     const up = x.kcal !== null ? x.kcal >= 0 : x.now > x.was;
+    /* A set or a stretch of thinking is worth a few kcal, so rounding those to a
+       whole number throws away most of what the row is saying. */
+    const mag = Math.abs(x.kcal || 0);
+    const fk = mag < 10 ? n1(mag) : kc(mag);
     const eff = x.kcal === null ? "" :
-      `<span class="de ${up?"up":"down"}">${x.kcal>=0?"+":"\u2212"}${kc(Math.abs(x.kcal))}</span>`;
+      `<span class="de ${up?"up":"down"}">${x.kcal>=0?"+":"\u2212"}${fk}</span>`;
+    const was = x.wasTxt || `${n1(x.was)} &rarr; ${n1(x.now)} ${x.unit}`;
     h += `<div class="diff"><span class="dn">${x.name}</span>${eff||'<span class="de"></span>'}
-          <span class="dw">${n1(x.was)} &rarr; ${n1(x.now)} ${x.unit}</span></div>`;
+          <span class="dw">${was}</span>`
+       + (x.detail ? `<span class="dd">${x.detail}</span>` : "")
+       + `</div>`;
   });
   if(before.ready && after.ready){
     const s = v => (v>=0?"+":"\u2212")+kc(Math.abs(v));
@@ -2938,6 +3224,60 @@ function renderCalcInto(p, d){
           Each figure above is the mass that, moved through the distance shown, does the same work.</p>`;
   }
 
+
+  h += `<h3>Walking, running and where one becomes the other</h3>`;
+  h += `<p class="formula">Walking and running are different machines and cost
+    different amounts per kilometre, so one formula cannot serve both. Walking keeps a
+    foot on the ground and vaults the body over a near-straight leg, recovering much of
+    each step elastically. Running has a flight phase: every stride has to lift and
+    re-accelerate the whole body, which costs roughly twice as much oxygen at the same
+    speed. The ACSM equations put that difference in one coefficient &mdash;
+    VO&#8322; = 3.5 + <b>0.1</b> &times; speed in m/min for walking, and
+    VO&#8322; = 3.5 + <b>0.2</b> &times; speed for running &mdash; and since one MET is
+    defined as 3.5 ml O&#8322; per kg per minute, dividing by 3.5 gives the MET figure
+    used above. The changeover is set at <b>${n1(RUN_FROM)} km/h</b>, near the preferred
+    transition speed at which people spontaneously break into a run (about 2 m/s). Below
+    it the walking equation is used, at or above it the running one, whichever row the
+    entry was typed into &mdash; so 9 km/h logged as a walk is still counted as running,
+    and 5 km/h logged as a run is still counted as a walk. The walking equation is
+    validated to about 6.4 km/h, so a genuine fast walk just under the threshold is the
+    one case this understates.</p>`;
+
+  h += `<h3>What thinking costs</h3>`;
+  const mt = d.mental;
+  h += tbl([
+    {label:"The brain, running",
+     work:`about <b>${mt.baseW} W</b> awake &mdash; the brain is ~2% of body mass and takes `
+        + `~20% of resting energy, and a resting adult is on the order of 100 W`,
+     val:`${mt.baseW} J/s`},
+    {label:"Over a whole day",
+     work:`${mt.baseW} W &times; 86,400 s = ${kc(mt.baseJ)} J, &divide; 4.184 = `
+        + `${kc(mt.baseJ/JOULE_CAL)} cal, &divide; 1000`,
+     val:`${kc(mt.baseKcal)} kcal`},
+    {label:"Counted in this ledger",
+     work:`none of it &mdash; those ${kc(mt.baseKcal)} kcal are already inside the `
+        + `${kc(d.bmr)} kcal resting metabolism above, and adding them again would be `
+        + `charging you twice for the same energy`,
+     val:"0 kcal"},
+  ], "Baseline brain draw", kc(mt.baseKcal)+" kcal, already counted");
+  if(mt.lines.length){
+    h += tbl(mt.lines.map(l => ({label:l.label, work:l.work, val:n1(l.kcal)+" kcal"})),
+             "Added for effort today", n1(mt.kcal)+" kcal");
+    h += `<p class="formula">For comparison, your brain spent about
+      <b>${n1(mt.grossKcal)} kcal</b> in total over those ${mt.minutes} minutes
+      (${mt.baseW} W &times; ${kc(mt.minutes*60)} s = ${kc(mt.grossJ)} J). Nearly all of
+      that would have been spent anyway, which is why only the
+      ${n1(mt.kcal)} kcal of extra effort is added.</p>`;
+  }
+  h += `<p class="formula">The effort fractions are 5% for light mental work, 10% for
+    focused study, 18% flat out. They are small on purpose. Task-evoked increases in brain
+    metabolism measured with PET and fMRI are a few percent above baseline, not a
+    doubling &mdash; the brain is close to fully lit before you start concentrating, and
+    hard thinking redistributes blood flow far more than it raises total consumption. An
+    hour of deep work is therefore worth roughly
+    <b>${n1(BRAIN_W*0.10*3600/KCAL_J)} kcal</b>, about a fifth of a banana. Anyone
+    quoting hundreds of calories for a chess tournament is counting the baseline your
+    resting rate has already charged you for.</p>`;
 
   h += `<h3>The physics, precisely</h3>`;
   h += `<p class="formula"><b>What is exact.</b> Work is the line integral of force along the
