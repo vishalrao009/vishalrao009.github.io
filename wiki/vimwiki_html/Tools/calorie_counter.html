@@ -1841,6 +1841,8 @@ function readStrength(weight, heightCm){
         ecc=LOWERING[$("lower").value] !== undefined ? LOWERING[$("lower").value] : LOWERING.normal,
         A=anthro(heightCm);
   let sets=0, seconds=0, reps=0, upJ=0; const lines=[];
+  const burn = {};                 // per rep-entry control -> mechanical kcal
+  const groups = {};               // muscle group -> hard sets, for the growth signal
 
   function runExercise(ex, bandOnly){
     const h = ex.h(A);
@@ -1869,6 +1871,10 @@ function readStrength(weight, heightCm){
       /* Each logged entry is one set, so the count is exact rather than
          estimated from a typical set length. */
       sets += 1; seconds += r*3 + rest;
+      const g = SPLIT[ex.id] || "full";
+      groups[g] = (groups[g] || 0) + 1;
+      // mechanical cost of this set (up plus the eccentric fraction on the way down)
+      burn["er_"+ex.id+"_"+i] = J*r*(1+ecc)/EFFICIENCY/KCAL_J;
       parts.push(note);
       lines.push({label:ex.name+", set "+i,
         work:`${r} reps &times; ${n1(J/(G*h))} kg-equivalent &times; 9.81 &times; ${h.toFixed(2)} m`,
@@ -1890,11 +1896,11 @@ function readStrength(weight, heightCm){
   const overhead = minutes>0 ? metKcal(metOh, minutes, weight) : 0;
   const epoc = (liftKcal+lowerKcal+overhead)*0.06;
   return {sets,reps,minutes,upJ,liftKcal,lowerKcal,overhead,epoc,ecc,metOh,
-          kcal:liftKcal+lowerKcal+overhead+epoc, A, lines};
+          kcal:liftKcal+lowerKcal+overhead+epoc, A, lines, burn, groups};
 }
 
 function readTimed(weight){
-  let kcal=0, minutes=0; const lines=[];
+  let kcal=0, minutes=0; const lines=[], burn={};
   HOLDS.concat(COND).forEach(([id,name,met]) => {
     const m = +$("t_"+id).value;
     $("t_"+id).classList.toggle("hot", m>0);
@@ -1903,14 +1909,14 @@ function readTimed(weight){
     const k = m>0 ? metKcal(met,m,weight) : 0;
     $("a_"+id).innerHTML = m>0 ? `<b>${m}</b> min<br>${kc(k)} kcal` : `<b>0</b> min`;
     if(!m) return;
-    kcal += k; minutes += m;
+    kcal += k; minutes += m; burn["t_"+id] = k;
     lines.push({label:name, work:`(${met} &minus; 1) MET &times; 3.5 &times; ${weight} kg / 200 &times; ${m} min`, kcal:k});
   });
-  return {kcal, minutes, lines};
+  return {kcal, minutes, lines, burn};
 }
 
 function readCardio(weight){
-  let kcal=0; const lines=[];
+  let kcal=0; const lines=[], burn={};
   CARDIO.forEach(([id,name]) => {
     const km = +$("d_"+id).value, pace = +$("p_"+id).value;
     $("d_"+id).classList.toggle("hot", km>0); $("p_"+id).classList.toggle("hot", km>0);
@@ -1925,15 +1931,15 @@ function readCardio(weight){
       : `<b>0</b> km`;
     $("row_"+id).classList.toggle("zero", km===0);
     if(!km) return;
-    kcal += k;
+    kcal += k; burn["d_"+id] = k;
     lines.push({label:`${name}, ${km} km at ${pace} km/h`,
       work:`(${met.toFixed(1)} &minus; 1) MET &times; 3.5 &times; ${weight} kg / 200 &times; ${Math.round(minutes)} min`, kcal:k});
   });
-  return {kcal, lines};
+  return {kcal, lines, burn};
 }
 
 function readChores(weight){
-  let kcal=0, minutes=0; const lines=[];
+  let kcal=0, minutes=0; const lines=[], burn={};
   CHORES.forEach(([id,name,hint,mode,met,minPer,max,step,unit]) => {
     const v = +$("h_"+id).value;
     $("h_"+id).classList.toggle("hot", v>0);
@@ -1956,17 +1962,17 @@ function readChores(weight){
     }
     $("a_"+id).innerHTML = v>0 ? `<b>${v}</b> ${unit}<br>${n1(k)} kcal` : `<b>0</b> ${unit}`;
     if(!v) return;
-    kcal += k;
+    kcal += k; burn["h_"+id] = k;
     lines.push({label:name, work, kcal:k});
   });
-  return {kcal, minutes, lines};
+  return {kcal, minutes, lines, burn};
 }
 
 /* Mental work. The brain's resting draw is about 20% of RMR; effortful thinking
    lifts it by the small fraction stored on each item, and only that rise is
    credited, since the baseline is already inside the resting figure. */
 function readMental(bmr){
-  let kcal=0, minutes=0; const lines=[];
+  let kcal=0, minutes=0; const lines=[], burn={};
   const brainPerMin = 0.20*bmr/1440;              // kcal per minute, at rest
   MENTAL.forEach(([id,name,hint,bump]) => {
     const inp = $("mw_"+id); if(!inp) return;
@@ -1978,12 +1984,12 @@ function readMental(bmr){
     const amt = $("a_"+id);
     if(amt) amt.innerHTML = m>0 ? `<b>${m}</b> min<br>${n1(k)} kcal` : `<b>0</b> min`;
     if(!m) return;
-    kcal += k; minutes += m;
+    kcal += k; minutes += m; burn["mw_"+id] = k;
     lines.push({label:name+", thinking",
       work:`${n1(brainPerMin)} kcal/min at rest (20% of ${kc(bmr)}) &times; ${Math.round(bump*100)}% for effort &times; ${m} min`,
       kcal:k});
   });
-  return {kcal, minutes, lines, brainPerMin};
+  return {kcal, minutes, lines, brainPerMin, burn};
 }
 
 function compute(){
@@ -2019,25 +2025,33 @@ function compute(){
   const ppk = food.p/weight;
   const lifted = st.reps>0;
 
+  /* ---- muscle-growth signal ----------------------------------------------
+     A surplus does not become muscle on its own. Three gates each have to be
+     open: a training signal (mechanical tension told the muscle to grow, and
+     that signal lasts a day or two), enough protein to build from, and enough
+     sleep to recover and release growth hormone. Each is a 0..1 factor; the
+     day's muscle is the experience-based ceiling multiplied by all three, so
+     a zero on any one of them means almost nothing is built whatever you ate. */
+  const hardSets = st.sets || 0;
+  const grpSets = st.groups || {};
+  const grpSignal = {};
+  Object.keys(grpSets).forEach(g => { grpSignal[g] = 1 - Math.exp(-grpSets[g]/4); });
+  const sigS = hardSets>0 ? 1 - Math.exp(-hardSets/6) : 0;      // training signal
+  const sigP = Math.max(0, Math.min(1, ppk/1.6));               // protein adequacy
+  const sigZ = Math.max(0, Math.min(1, (sleep-4.5)/3));         // sleep adequacy
+
   let fatKg, leanKg, capped=false, part={};
   if(balance>=0){
-    let ratio = {beginner:0.50,intermediate:0.38,advanced:0.25}[level];
-    const why = [`${Math.round(ratio*100)}% base for your training experience`];
-    if(!lifted){ ratio*=0.45; why.push("&times; 0.45, no lifting logged"); }
-    if(ppk<1.6){ ratio*=0.75; why.push("&times; 0.75, protein under 1.6 g/kg"); }
-    if(sleep<7){ ratio*=0.85; why.push("&times; 0.85, under 7 h sleep"); }
-    ratio = Math.max(0.05, Math.min(ratio,0.60));
-    let leanKcal = balance*ratio;
-    let cap = LEAN_CAP[level];
-    if(sleep<7) cap*=0.85;
-    if(ppk<1.6) cap*=0.80;
-    if(!lifted) cap = 0;
-    if(leanKcal/KCAL_LEAN_GAIN*1000 > cap){
-      leanKcal = cap/1000*KCAL_LEAN_GAIN; capped = balance>60;
-      why.push(`capped at ${n1(cap)} g of muscle a day, which is all your body can build`);
-    }
-    fatKg = (balance-leanKcal)/KCAL_FAT; leanKg = leanKcal/KCAL_LEAN_GAIN;
-    part = {why, ratio, leanKcal, fatKcal:balance-leanKcal};
+    const capG = LEAN_CAP[level];                 // ceiling grams/day for this level
+    const potentialG = capG * sigS * sigP * sigZ; // grams the signals allow
+    let muscleKcal = potentialG/1000 * KCAL_LEAN_GAIN;
+    if(muscleKcal > balance){ muscleKcal = balance; capped = true; }  // energy-limited
+    const fatKcal = balance - muscleKcal;
+    leanKg = muscleKcal/KCAL_LEAN_GAIN;
+    fatKg  = fatKcal/KCAL_FAT;
+    part = {surplus:true, sigS, sigP, sigZ, capG, potentialG,
+            builtG:leanKg*1000, muscleKcal, fatKcal, hardSets, grpSets, grpSignal,
+            energyLimited: capped};
   } else {
     const def = -balance;
     let ls = 0.20; const why = ["20% of the mass lost is lean tissue by default"];
@@ -2051,10 +2065,11 @@ function compute(){
   }
 
   const waterTarget = 35*weight + 600*((st.minutes+timed.minutes)/60) + 400*(chores.minutes/120);
+  const burn = Object.assign({}, st.burn, timed.burn, cardio.burn, chores.burn, mental.burn);
   return {ready,weight,height,age,male,bodyFat,rr,prog,outSoFar,balanceSoFar,
           food,st,timed,cardio,chores,mental,bmr,neat,tef,tefRate,protShare,
           sleepAdj,activity,out,balance,fatKg,leanKg,capped,part,ppk,water,waterTarget,
-          sleep,level,lifted,neatRate};
+          sleep,level,lifted,neatRate,burn};
 }
 
 
@@ -2117,12 +2132,22 @@ function update(){
     $("tileLean").textContent  = ready ? kc(outK) : "\u2014";
     $("tileLeanU").textContent = "of " + (ready ? kc(d.out) : "\u2014") + " by midnight";
   } else {
-    $("tileFatL").textContent = fatG >= 0 ? "Fat, if repeated" : "Fat, if repeated";
-    $("tileFat").textContent  = (fatG>=0?"+":"\u2212")+Math.abs(d.fatKg*7).toFixed(2)+" kg";
-    $("tileFatU").textContent = "per week of days like this";
-    $("tileLeanL").textContent = "Muscle, if repeated";
-    $("tileLean").textContent  = (leanG>=0?"+":"\u2212")+Math.abs(d.leanKg*7).toFixed(2)+" kg";
-    $("tileLeanU").textContent = "per week of days like this";
+    // Day closed: the projected fat stored (or burned) for the finished day.
+    $("tileFatL").textContent = "Fat " + (fatG>=0 ? "stored" : "burned") + " today";
+    $("tileFat").textContent  = (fatG>=0?"+":"\u2212")+Math.abs(fatG).toFixed(0)+" g";
+    $("tileFatU").textContent = "projected for the day";
+    // Muscle built today, gated on the training signal, protein and sleep.
+    if(d.part && d.part.surplus){
+      $("tileLeanL").textContent = "Muscle built today";
+      $("tileLean").textContent  = leanG >= 0.5 ? "+"+leanG.toFixed(1)+" g" : "none";
+      $("tileLeanU").textContent = leanG >= 0.5 ? "from today's signal"
+        : (d.st.reps>0 ? "signal too weak to build" : "no training signal");
+    } else {
+      $("tileLeanL").textContent = "Muscle today";
+      $("tileLean").textContent  = leanG < -0.5 ? "\u2212"+Math.abs(leanG).toFixed(1)+" g" : "held";
+      $("tileLeanU").textContent = leanG < -0.5 ? "lost in the deficit"
+        : (d.lifted ? "spared by training" : "roughly held");
+    }
   }
   $("tileProt").textContent = ready && inK>0 ? d.ppk.toFixed(1)+" g/kg" : "\u2014";
   $("tileProtU").textContent = ready && inK>0 ? Math.round(d.food.p)+" g today" : "";
@@ -2402,9 +2427,9 @@ function renderCloseRow(ready, done, d, usualIn, inK){
       $("dayDone").value = "0"; update(); rememberLast();
     });
     host.appendChild(b);
-    host.appendChild(el("p","tiny","Day closed. The figures above are rates: what a week of days "
-      + "like this one would do, not something that happened in the last twenty-four hours. "
-      + "Muscle and fat move slowly enough that only the scale over a fortnight can confirm them."));
+    host.appendChild(el("p","tiny","Day closed. The fat and muscle figures above are this finished "
+      + "day's projection, built from the balance and today's training signal. Both move slowly, so "
+      + "only the scale over a fortnight can confirm them."));
   }
 }
 
@@ -2419,7 +2444,10 @@ function renderFlags(d, empty){
   } else {
     if(d.ppk<1.6) add(`Protein is ${d.ppk.toFixed(2)} g per kg. Training pushes the useful range to 1.6&ndash;2.2.`);
     else add(`Protein at ${d.ppk.toFixed(2)} g per kg supports your training.`, true);
-    if(d.capped) add("The surplus is bigger than muscle growth can absorb, so the extra lands as fat.");
+    if(d.part && d.part.surplus && !d.part.energyLimited && d.fatKg*1000 > 5)
+      add("The surplus is more than today's muscle signal can absorb, so the rest is stored as fat.");
+    if(d.part && d.part.surplus && d.part.hardSets === 0 && d.balance > 60)
+      add("No resistance training logged, so none of today's surplus is going to muscle.");
     if(d.sleep<7) add("Under 7 hours of sleep lowers how much of a surplus becomes muscle.");
     if(d.water<d.waterTarget-400) add(`Water is about ${Math.round(d.waterTarget-d.water)} ml short for this much activity.`);
     if(d.food.fib<25 && d.food.kcal>1200) add(`Fibre is ${Math.round(d.food.fib)} g. Aim for 30 or more.`);
@@ -2440,7 +2468,7 @@ function usingSnapshot(snap, fn){
   finally { allControls().forEach(n => { if(cur[n.id] !== undefined) n.value = cur[n.id]; }); }
   return r;
 }
-function dayDiffs(usual){
+function dayDiffs(usual, before, after){
   const now = snapshot(), out = [];
   LOG_IDS.forEach(id => {
     const a = parseFloat(usual[id] || 0) || 0, b = parseFloat(now[id] || 0) || 0;
@@ -2448,7 +2476,13 @@ function dayDiffs(usual){
     const L = LABELS[id] || {name:id, unit:""};
     let kcal = null;
     const fid = id.startsWith("f_") ? id.slice(2) : null;
-    if(fid && foodIndex[fid]) kcal = (b-a)*foodIndex[fid].kcal;
+    if(fid && foodIndex[fid]){
+      kcal = (b-a)*foodIndex[fid].kcal;         // food: energy taken in (+)
+    } else if(before && after && before.burn && after.burn){
+      // activities: the extra energy this change spent, so it lowers the balance
+      const spent = (after.burn[id]||0) - (before.burn[id]||0);
+      if(Math.abs(spent) > 0.5) kcal = -spent;
+    }
     out.push({name:L.name.replace(/ in [a-z]+$/,""), unit:L.unit, was:a, now:b, kcal});
   });
   return out;
@@ -2494,7 +2528,9 @@ function renderToday(){
   }
 
   $("diffTitle").textContent = "What's different today";
-  const diffs = dayDiffs(u.usual);
+  const before = usingSnapshot(u.usual, compute);
+  const after = compute();
+  const diffs = dayDiffs(u.usual, before, after);
   acts.appendChild(mkBtn("Back to my usual day","line",() => $("resetToday_").click()));
   acts.appendChild(mkBtn("Make today my new usual","line",() => $("makeUsual_").click()));
   acts.appendChild(clearBtnFront());
@@ -2506,11 +2542,10 @@ function renderToday(){
     return;
   }
 
-  const before = usingSnapshot(u.usual, compute);
-  const after = compute();
   let h = "";
   diffs.forEach(x => {
-    const up = x.now > x.was;
+    // colour by the effect on the balance: food in is plum, energy spent is teal
+    const up = x.kcal !== null ? x.kcal >= 0 : x.now > x.was;
     const eff = x.kcal === null ? "" :
       `<span class="de ${up?"up":"down"}">${x.kcal>=0?"+":"\u2212"}${kc(Math.abs(x.kcal))}</span>`;
     h += `<div class="diff"><span class="dn">${x.name}</span>${eff||'<span class="de"></span>'}
@@ -2666,6 +2701,44 @@ function renderCalcInto(p, d){
     is far more reliable than any single day's total &mdash; which is the same reason the scale
     beats the model over a fortnight.</p>`;
 
+  // ---- the muscle-growth signal, when there is a surplus to partition ----
+  if(d.part && d.part.surplus){
+    const pt = d.part;
+    h += `<h3>The signal to build muscle</h3>`;
+    const sg = [
+      {label:"Training signal",
+       work: pt.hardSets>0
+         ? `${pt.hardSets} hard set${pt.hardSets>1?"s":""} logged &rarr; 1 &minus; e^(&minus;sets/6), `
+           + `the stimulus saturating as volume rises`
+         : `no resistance sets logged, so nothing told a muscle to grow`,
+       val:(pt.sigS*100).toFixed(0)+"%"},
+      {label:"Protein adequacy",
+       work:`${n1(d.ppk)} g/kg &divide; 1.6 g/kg, the intake that saturates muscle protein synthesis`,
+       val:(pt.sigP*100).toFixed(0)+"%"},
+      {label:"Sleep adequacy",
+       work:`(${n1(d.sleep)} h &minus; 4.5) &divide; 3, full at about 7.5 h &mdash; deep sleep is when `
+         + `growth hormone is released and tissue is repaired`,
+       val:(pt.sigZ*100).toFixed(0)+"%"},
+    ];
+    h += tbl(sg);
+    const grp = Object.keys(pt.grpSets || {}).filter(g => pt.grpSets[g] > 0);
+    if(grp.length){
+      h += tbl(grp.map(g => ({
+        label:(SPLIT_NAMES[g] || g) + " worked",
+        work:`${pt.grpSets[g]} set${pt.grpSets[g]>1?"s":""} &rarr; 1 &minus; e^(&minus;sets/4)`,
+        val:(pt.grpSignal[g]*100).toFixed(0)+"% signal"
+      })), "Muscle groups given a growth signal", "");
+      h += `<p class="formula">Only a muscle you actually loaded gets a signal, and that signal fades
+        over a day or two without being repeated. An untrained group grows nothing, however large the
+        surplus &mdash; which is why a big eating day with no lifting stores fat and not muscle.</p>`;
+    }
+    h += `<p class="formula">Muscle is not built by a surplus alone. The day's ceiling for your
+      experience (<b>${pt.capG} g</b> for ${d.level}) is multiplied by all three gates at once, so a
+      low reading on any one of them &mdash; no training, thin on protein, short on sleep &mdash;
+      holds the whole result down. Whatever surplus is left over after muscle has nowhere to go but
+      fat.</p>`;
+  }
+
   h += `<h3>Where the difference went</h3>`;
   const bal = d.balance;
   const bl = [{label:"Balance so far", work:`${kc(d.food.kcal)} taken in &minus; ${kc(d.outSoFar)} spent by now`,
@@ -2673,11 +2746,19 @@ function renderCalcInto(p, d){
               {label:"Balance, whole day", work:`${kc(d.food.kcal)} taken in &minus; ${kc(d.out)} used`,
                val:(bal>=0?"+":"\u2212")+kc(Math.abs(bal))+" kcal"}];
   if(bal>=0){
-    bl.push({label:"Split toward muscle", work:d.part.why.join(", "), val:(d.part.ratio*100).toFixed(0)+"%"});
-    bl.push({label:"To muscle", work:`${kc(d.part.leanKcal)} kcal &divide; 5000 kcal per kg of muscle built`,
-             val:n1(d.leanKg*1000)+" g"});
-    bl.push({label:"To fat", work:`${kc(d.part.fatKcal)} kcal &divide; 7700 kcal per kg of fat`,
-             val:n1(d.fatKg*1000)+" g"});
+    const pt = d.part;
+    bl.push({label:"Muscle the signal allows",
+      work:`${pt.capG} g ceiling &times; ${(pt.sigS*100).toFixed(0)}% signal `
+        + `&times; ${(pt.sigP*100).toFixed(0)}% protein &times; ${(pt.sigZ*100).toFixed(0)}% sleep`,
+      val:n1(pt.potentialG)+" g"});
+    bl.push({label:"To muscle",
+      work: pt.energyLimited
+        ? `held to the ${kc(bal)} kcal surplus &divide; 5000 kcal per kg of muscle built`
+        : `${n1(pt.potentialG)} g &times; 5000 kcal per kg = ${kc(pt.muscleKcal)} kcal of the surplus`,
+      val:n1(d.leanKg*1000)+" g"});
+    bl.push({label:"To fat",
+      work:`the surplus left over, ${kc(pt.fatKcal)} kcal &divide; 7700 kcal per kg of fat`,
+      val:n1(d.fatKg*1000)+" g"});
   } else {
     bl.push({label:"Share lost as lean", work:d.part.why.join(", "), val:(d.part.ratio*100).toFixed(0)+"%"});
     bl.push({label:"Total tissue lost",
