@@ -1,0 +1,1658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Ledger">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23EDEFEC'/%3E%3Crect x='5' y='8' width='22' height='4' fill='%23B0761A'/%3E%3Crect x='5' y='14' width='16' height='4' fill='%231F6B63'/%3E%3Crect x='5' y='20' width='10' height='4' fill='%238A3A52'/%3E%3C/svg%3E">
+<title>Energy ledger — daily calorie and energy balance</title>
+<meta name="description" content="A single-file calorie and energy balance tracker. Log food, lifting, cardio and household work, and see where a surplus or deficit actually goes. All data stays in your browser.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#EDEFEC">
+<meta property="og:title" content="Energy ledger">
+<meta property="og:description" content="Log food, lifting and housework. See what your body spent, and whether the difference becomes fat or muscle.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EDEFEC; --panel:#F6F7F4; --ink:#1A2420; --muted:#6C7670;
+  --rule:#CBD2CA; --rule-soft:#DEE3DC;
+  --in:#B0761A; --out:#1F6B63; --fat:#8A3A52; --lean:#6E7B3F;
+  --sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --serif:"Fraunces",Georgia,"Times New Roman",serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+  font-size:15px;line-height:1.5;font-variant-numeric:tabular-nums lining-nums}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px 140px}
+
+.masthead{padding:34px 0 18px;border-bottom:1px solid var(--rule)}
+.masthead h1{font-family:var(--serif);font-weight:600;font-size:38px;line-height:1.05;
+  margin:0 0 6px;letter-spacing:-.015em}
+.masthead p{margin:0;color:var(--muted);max-width:62ch}
+
+button{font-family:var(--sans);font-size:14px;cursor:pointer}
+.btn{background:transparent;border:1px solid var(--ink);color:var(--ink);
+  padding:7px 14px;border-radius:2px;font-weight:500}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn.ghost{border-color:var(--rule);color:var(--muted)}
+.btn.ghost:hover{background:transparent;border-color:var(--ink);color:var(--ink)}
+.btn.sm{padding:5px 10px;font-size:13px}
+:focus-visible{outline:2px solid var(--out);outline-offset:2px}
+
+/* user bar */
+.userbar{border-bottom:1px solid var(--rule);padding:14px 0;display:flex;
+  flex-wrap:wrap;gap:12px;align-items:center}
+.userbar .who{display:flex;align-items:center;gap:9px}
+.userbar .who label{font-size:12.5px;color:var(--muted)}
+.userbar select{width:auto;min-width:150px}
+.uacts{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+.newrow{display:none;gap:8px;align-items:center;width:100%;padding-top:4px}
+.newrow.show{display:flex}
+.newrow input{width:auto;flex:0 1 240px}
+.filebtn{position:relative;overflow:hidden;display:inline-block}
+.filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+.storeNote{width:100%;margin:2px 0 0;font-size:12.5px;color:var(--muted)}
+
+.cols{display:grid;grid-template-columns:1fr 400px;gap:44px;align-items:start}
+@media(max-width:940px){.cols{grid-template-columns:1fr;gap:0}}
+
+/* ledger */
+.ledger{position:sticky;top:20px;margin-top:28px}
+.ledger-inner{background:var(--panel);border:1px solid var(--rule);padding:22px 20px 18px}
+.balance-line{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.balance-num{font-family:var(--serif);font-size:46px;font-weight:600;line-height:1;letter-spacing:-.02em}
+.balance-word{font-size:13px;color:var(--muted);text-align:right;max-width:13ch;line-height:1.35}
+.bars{margin:22px 0 4px}
+.bar-row{margin-bottom:14px}
+.bar-head{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;margin-bottom:5px}
+.bar-head b{font-weight:600;font-size:15px;font-family:var(--serif)}
+.bar-track{height:15px;background:#E3E7E1;position:relative;overflow:hidden;display:flex}
+.seg{height:100%;transition:width .18s ease}
+.seg.in{background:var(--in)}
+.seg.o1{background:#1F6B63}.seg.o2{background:#2E7F76}.seg.o3{background:#43948A}
+.seg.o4{background:#5EA79E}.seg.o5{background:#7CBAB2}.seg.o6{background:#96C8C1}
+.fat-track{height:24px;background:#E3E7E1;position:relative;overflow:hidden}
+.fat-zero{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--ink);opacity:.5;z-index:2}
+.fat-fill{position:absolute;top:0;bottom:0;transition:width .18s ease,left .18s ease;background:var(--fat)}
+.fat-fill.burn{background:repeating-linear-gradient(-45deg,var(--fat) 0 3px,#E3E7E1 3px 7px);
+  border:1px solid var(--fat)}
+.fat-scale{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-top:4px}
+.outcome{border-top:1px solid var(--rule-soft);margin-top:16px;padding-top:14px;display:grid;gap:9px}
+.o-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:14px}
+.o-row .v{font-family:var(--serif);font-size:19px;font-weight:600}
+.o-row.dim{color:var(--muted);font-size:13px}
+.o-row.dim .v{font-size:15px}
+.swatch{display:inline-block;width:9px;height:9px;margin-right:7px;vertical-align:1px}
+.sw-fat{background:var(--fat)}.sw-lean{background:var(--lean)}
+.flags{border-top:1px solid var(--rule-soft);margin-top:14px;padding-top:12px;display:grid;gap:8px}
+.flag{font-size:13px;line-height:1.45;padding-left:14px;position:relative}
+.flag:before{content:"";position:absolute;left:0;top:7px;width:6px;height:6px;background:var(--fat)}
+.flag.ok:before{background:var(--out)}
+
+/* sections */
+section{margin-top:34px}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;
+  border-bottom:1px solid var(--rule);padding-bottom:7px;margin-bottom:4px}
+.sec-head h2{font-family:var(--serif);font-size:21px;font-weight:600;margin:0;letter-spacing:-.01em}
+.sec-head .tot{font-size:13px;color:var(--muted);text-align:right}
+.subhead{font-size:12.5px;color:var(--muted);margin:16px 0 2px;padding-bottom:4px;
+  border-bottom:1px solid var(--rule-soft)}
+
+.row{display:grid;grid-template-columns:1fr auto 104px;gap:12px;align-items:center;
+  padding:9px 0;border-bottom:1px solid var(--rule-soft)}
+.row:last-child{border-bottom:0}
+.row.on{background:linear-gradient(90deg,rgba(176,118,26,.07),transparent 65%)}
+.row.on.mv{background:linear-gradient(90deg,rgba(31,107,99,.08),transparent 65%)}
+.row .nm{font-size:14px;line-height:1.25}
+.row .nm small{display:block;color:var(--muted);font-size:11.5px}
+.row .amt{text-align:right;font-size:12.5px;color:var(--muted);white-space:nowrap;line-height:1.35}
+.row .amt b{font-family:var(--serif);font-size:15px;color:var(--ink);font-weight:600}
+.row.zero .nm,.row.zero .amt{opacity:.5}
+@media(max-width:620px){
+  .row{grid-template-columns:1fr auto;gap:7px 10px;padding:11px 0}
+  .row .nm{grid-column:1/3}
+  .row .ctl{grid-column:1}
+  .row .amt{grid-column:2;text-align:right;align-self:center}
+}
+/* iPad portrait and up: two columns of rows, less scrolling */
+@media(min-width:700px){
+  .rows2{display:grid;grid-template-columns:1fr 1fr;gap:0 30px}
+  .rows2 .ex-row{grid-column:1/3}
+  .rows2 .row:nth-last-child(2):nth-child(odd){border-bottom:0}
+}
+.ex-row{display:grid;grid-template-columns:1fr auto auto 112px;gap:12px;align-items:center;
+  padding:12px 0;border-bottom:1px solid var(--rule-soft)}
+.ex-row .grp{display:flex;flex-direction:column;gap:3px}
+.ex-row .lbl{font-size:11.5px;color:var(--muted);margin-bottom:-4px}
+.ex-row .nm{font-size:14px;line-height:1.25}
+.ex-row .nm small{display:block;color:var(--muted);font-size:11.5px}
+.ex-row .amt{text-align:right;font-size:12px;color:var(--muted);line-height:1.4}
+.ex-row .amt b{font-family:var(--serif);font-size:15px;color:var(--ink);font-weight:600}
+@media(max-width:900px){
+  .ex-row{grid-template-columns:1fr;gap:9px;padding:14px 0}
+  .ex-row .nm,.ex-row .amt{grid-column:1}
+  .ex-row .amt{text-align:left}
+  .ex-row .grp{flex-direction:row;flex-wrap:wrap;gap:8px;align-items:center}
+}
+
+/* ---- stepper: the control that replaced the sliders ---- */
+.ctl{display:inline-flex;align-items:stretch;border:1px solid var(--rule);border-radius:4px;
+  background:var(--panel);overflow:hidden;width:max-content;max-width:100%}
+.ctl.on{border-color:var(--in);box-shadow:inset 0 0 0 1px rgba(176,118,26,.25)}
+.ctl.mv.on{border-color:var(--out);box-shadow:inset 0 0 0 1px rgba(31,107,99,.25)}
+.pm{width:46px;min-height:46px;border:0;background:transparent;color:var(--ink);
+  font-size:21px;line-height:1;font-family:var(--sans);padding:0;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none}
+.pm:hover{background:rgba(26,36,32,.05)}
+.pm:active{background:rgba(31,107,99,.16)}
+.pm[disabled]{opacity:.28;cursor:default}
+.num{width:74px;min-height:46px;border:0;border-left:1px solid var(--rule-soft);
+  border-right:1px solid var(--rule-soft);text-align:center;background:transparent;
+  font-family:var(--serif);font-size:16px;font-weight:600;color:var(--ink);
+  padding:0 2px;-moz-appearance:textfield;border-radius:0}
+.num::-webkit-outer-spin-button,.num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.num:focus{outline:none;background:rgba(31,107,99,.07)}
+.un{display:flex;align-items:center;padding:0 11px;font-size:12.5px;color:var(--muted);
+  white-space:nowrap;background:rgba(26,36,32,.03)}
+
+/* ---- accordions ---- */
+details.acc{border-bottom:1px solid var(--rule-soft)}
+details.acc[open]{padding-bottom:10px}
+summary.accsum{list-style:none;cursor:pointer;display:flex;align-items:baseline;gap:10px;
+  padding:15px 2px;min-height:46px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+summary.accsum::-webkit-details-marker{display:none}
+summary.accsum h2{font-family:var(--serif);font-size:19px;font-weight:600;margin:0;
+  letter-spacing:-.01em;flex:1}
+summary.accsum .tot{font-size:12.5px;color:var(--muted);text-align:right}
+summary.accsum:after{content:"";width:8px;height:8px;border-right:1.5px solid var(--muted);
+  border-bottom:1.5px solid var(--muted);transform:rotate(45deg) translateY(-3px);
+  transition:transform .18s ease;flex:none}
+details[open] > summary.accsum:after{transform:rotate(225deg) translateY(-1px)}
+summary.accsum:hover h2{color:var(--out)}
+
+/* ---- food search ---- */
+.search{position:relative;margin:18px 0 4px}
+.search input{padding:11px 12px;font-size:16px;min-height:46px}
+.hidden{display:none!important}
+.noresult{padding:14px 2px;color:var(--muted);font-size:13.5px}
+
+select,input[type=number],input[type=text]{font-family:var(--sans);font-size:14px;padding:6px 8px;
+  border:1px solid var(--rule);background:var(--panel);color:var(--ink);border-radius:2px;width:100%}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-top:12px}
+.field label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:4px}
+.today{border-bottom:1px solid var(--rule);padding:16px 0 18px}
+.today[hidden]{display:none}
+.t-head{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;justify-content:space-between}
+.t-head h2{font-family:var(--serif);font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
+.t-acts{display:flex;gap:8px;flex-wrap:wrap}
+.t-none{margin:9px 0 0;font-size:13.5px;color:var(--muted);max-width:66ch;line-height:1.55}
+.diffs{margin:12px 0 0;display:grid;gap:7px}
+.diff{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:baseline;
+  font-size:13.5px;padding-bottom:6px;border-bottom:1px solid var(--rule-soft)}
+.diff .was{color:var(--muted);font-size:12.5px;white-space:nowrap}
+.diff .eff{font-family:var(--serif);font-weight:600;white-space:nowrap;min-width:74px;text-align:right}
+.up{color:var(--in)}.down{color:var(--out)}
+.t-sum{margin:13px 0 0;padding:12px 14px;background:var(--panel);border-left:3px solid var(--out);
+  font-size:13.5px;line-height:1.6;max-width:70ch}
+.t-sum b{font-family:var(--serif);font-size:15px}
+@media(max-width:620px){
+  .diff{grid-template-columns:1fr auto}
+  .diff .was{grid-column:1;grid-row:2;margin-top:-4px}
+  .diff .eff{grid-row:1/3}
+}
+.gate{display:none;margin:12px 0 0;padding:11px 14px;border-left:3px solid var(--fat);
+  background:rgba(138,58,82,.06);font-size:13.5px;line-height:1.5;max-width:66ch}
+.gate.show{display:block}
+.incomplete{border-color:var(--fat)!important}
+.note{font-size:13px;color:var(--muted);margin:14px 0 0;max-width:70ch;line-height:1.55}
+.note b{color:var(--ink);font-weight:600}
+
+/* arithmetic panel */
+.calc{margin-top:16px;display:none}
+.calc.show{display:block}
+.calc h3{font-family:var(--serif);font-size:16px;font-weight:600;margin:22px 0 6px}
+.calc h3:first-child{margin-top:4px}
+table.ctab{width:100%;border-collapse:collapse;font-size:13px}
+table.ctab td{padding:4px 0;border-bottom:1px solid var(--rule-soft);vertical-align:baseline}
+table.ctab td.w{color:var(--muted);padding-left:12px}
+table.ctab td.k{text-align:right;white-space:nowrap;padding-left:12px;font-weight:500}
+table.ctab tr.sum td{border-bottom:2px solid var(--rule);border-top:1px solid var(--rule);font-weight:600}
+table.ctab tr.sum td.w{font-weight:400}
+.formula{font-size:12.5px;color:var(--muted);margin:6px 0 10px;line-height:1.6}
+footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--rule);font-size:13px;
+  color:var(--muted);max-width:72ch}
+
+.sheet-back{display:none}
+.dock{display:none}
+@media(max-width:940px){
+  .ledger{position:static;margin-top:24px}
+  .dock{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--panel);
+    border-top:1px solid var(--rule);padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+    justify-content:space-between;align-items:center;gap:10px;cursor:pointer;
+    touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+    box-shadow:0 -2px 14px rgba(26,36,32,.07)}
+  .dock .d{font-size:11px;color:var(--muted);line-height:1.2}
+  .dock .d b{display:block;font-family:var(--serif);font-size:19px;font-weight:600;color:var(--ink)}
+  .dock .grab{position:absolute;top:5px;left:50%;transform:translateX(-50%);
+    width:34px;height:3px;border-radius:2px;background:var(--rule)}
+  .wrap{padding-bottom:104px}
+
+  /* the ledger slides up as a sheet when the dock is tapped */
+  .ledger{position:fixed;left:0;right:0;bottom:0;z-index:45;margin:0;
+    transform:translateY(102%);transition:transform .26s ease;
+    max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  body.sheet .ledger{transform:translateY(0)}
+  .ledger-inner{border-radius:12px 12px 0 0;border-bottom:0;
+    padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+  .sheet-back{display:block;position:fixed;inset:0;background:rgba(26,36,32,.34);
+    z-index:44;opacity:0;pointer-events:none;transition:opacity .26s ease}
+  body.sheet .sheet-back{opacity:1;pointer-events:auto}
+  .sheet-close{position:sticky;top:0;float:right;margin:-6px -4px 0 0;border:0;background:transparent;
+    font-size:24px;line-height:1;color:var(--muted);width:44px;height:44px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <h1>Energy ledger</h1>
+    <p>Log what you ate, what you lifted, and what you did around the house. The ledger
+       works out what came in, what your body spent on each of those, and whether the
+       difference is going onto you as fat or coming off you.</p>
+  </div>
+
+  <div class="userbar">
+    <div class="who">
+      <label for="userSel">Who's logging</label>
+      <select id="userSel"></select>
+    </div>
+    <div class="uacts">
+      <button class="btn sm ghost" id="newUser">Add someone</button>
+      <button class="btn sm" id="saveUsual">Save as my usual day</button>
+      <button class="btn sm ghost" id="loadUsual">Load usual day</button>
+      <button class="btn sm ghost" id="clearBtn">Clear</button>
+      <button class="btn sm ghost" id="exportBtn">Export</button>
+      <label class="btn sm ghost filebtn">Import<input type="file" id="importFile" accept=".json,application/json"></label>
+      <button class="btn sm ghost" id="delUser">Remove</button>
+    </div>
+    <div class="newrow" id="newRow">
+      <input type="text" id="newName" placeholder="Name for this profile" maxlength="40">
+      <button class="btn sm" id="createUser">Create</button>
+      <button class="btn sm ghost" id="cancelUser">Cancel</button>
+    </div>
+    <p class="storeNote" id="storeNote"></p>
+  </div>
+
+  <div class="today" id="todayPanel" hidden>
+    <div class="t-head">
+      <h2 id="todayTitle">Today</h2>
+      <div class="t-acts">
+        <button class="btn sm ghost" id="resetToday">Back to my usual day</button>
+        <button class="btn sm ghost" id="makeUsual">Make today my new usual</button>
+      </div>
+    </div>
+    <div id="todayBody"></div>
+  </div>
+
+  <div class="cols">
+    <main>
+      <section>
+        <div class="sec-head"><h2>You</h2><span class="tot" id="bmrTot"></span></div>
+        <p class="gate" id="gate">Nothing can be estimated until the ledger knows your height,
+           weight and age. Resting metabolism is the largest single number in the day and it is
+           built entirely from these three.</p>
+        <div class="fields">
+          <div class="field"><label for="weight">Weight, kg</label>
+            <input type="number" id="weight" placeholder="kg" min="30" max="200" step="0.1"></div>
+          <div class="field"><label for="height">Height, cm</label>
+            <input type="number" id="height" placeholder="cm" min="120" max="230" step="1"></div>
+          <div class="field"><label for="age">Age</label>
+            <input type="number" id="age" placeholder="years" min="14" max="90" step="1"></div>
+          <div class="field"><label for="sex">Body type for the formula</label>
+            <select id="sex"><option value="" selected>Choose</option><option value="male">Male</option><option value="female">Female</option></select></div>
+          <div class="field"><label for="job">Rest of your day, beyond what you logged</label>
+            <select id="job">
+              <option value="0.18" selected>Mostly sitting</option>
+              <option value="0.28">On my feet a fair bit</option>
+              <option value="0.42">Moving most of the day</option>
+              <option value="0.60">Physical job</option>
+            </select></div>
+          <div class="field"><label for="train">Training experience</label>
+            <select id="train">
+              <option value="beginner">Under a year</option>
+              <option value="intermediate" selected>One to three years</option>
+              <option value="advanced">Several years</option>
+            </select></div>
+        </div>
+        <div id="recovRows" style="margin-top:6px"></div>
+      </section>
+
+      <div class="search">
+        <input type="search" id="foodSearch" placeholder="Search food, exercises or chores"
+               aria-label="Search everything you can log">
+      </div>
+      <p class="noresult hidden" id="noResult">Nothing matches that.</p>
+      <div id="foodSections"></div>
+
+      <section>
+        <details class="acc"><summary class="accsum"><h2>Strength, rep by rep</h2><span class="tot" id="repTot"></span></summary>
+        <div class="subhead">Body weight and loaded movements</div>
+        <div id="repRows"></div>
+        <div class="subhead">Resistance bands</div>
+        <div id="bandRows"></div>
+        <div class="fields">
+          <div class="field"><label for="perset">Typical reps in a set</label>
+            <select id="perset">
+              <option value="6">About 6</option><option value="8">About 8</option>
+              <option value="10" selected>About 10</option><option value="12">About 12</option>
+              <option value="15">About 15</option>
+            </select></div>
+          <div class="field"><label for="rest">Rest between sets</label>
+            <select id="rest">
+              <option value="60">60 seconds</option><option value="90" selected>90 seconds</option>
+              <option value="120">2 minutes</option><option value="180">3 minutes</option>
+            </select></div>
+          <div class="field"><label for="lower">How you lower the weight</label>
+            <select id="lower">
+              <option value="slow">Slowly, under control</option>
+              <option value="normal" selected>Normal tempo</option>
+              <option value="drop">Dropped, kipped or assisted</option>
+            </select></div>
+          <div class="field"><label for="intensity">How hard it felt</label>
+            <select id="intensity">
+              <option value="light">Easy, long rests</option>
+              <option value="moderate" selected>Moderate</option>
+              <option value="hard">Hard, barely resting</option>
+            </select></div>
+          <div class="field"><label for="band">Resistance band strength</label>
+            <select id="band">
+              <option value="8">Light, about 8 kg</option>
+              <option value="14" selected>Medium, about 14 kg</option>
+              <option value="20">Heavy, about 20 kg</option>
+            </select></div>
+        </div>
+        <p class="note" id="workNote"></p>
+        </details>
+      </section>
+
+      <section>
+        <details class="acc"><summary class="accsum"><h2>Holds and conditioning</h2><span class="tot" id="condTot"></span></summary>
+        <div class="subhead">Isometric holds, in minutes</div>
+        <div id="holdRows"></div>
+        <div class="subhead">Conditioning, in minutes</div>
+        <div id="condRows"></div>
+        <p class="note">These are timed rather than counted. A plank moves nothing through any
+          distance, so there is no mechanical work to compute &mdash; the cost is entirely in
+          holding tension, which only a measured rate can capture.</p>
+        </details>
+      </section>
+
+      <section>
+        <details class="acc"><summary class="accsum"><h2>Getting around</h2><span class="tot" id="moveTot"></span></summary>
+        <div id="cardioRows"></div>
+        </details>
+      </section>
+
+      <section>
+        <details class="acc"><summary class="accsum"><h2>House and chores</h2><span class="tot" id="choreTot"></span></summary>
+        <div id="choreRows"></div>
+        <p class="note" id="choreNote"></p>
+        </details>
+      </section>
+
+      <section>
+        <div class="sec-head">
+          <h2>The arithmetic</h2>
+          <button class="btn sm ghost" id="showCalc">Show every step</button>
+        </div>
+        <div class="calc" id="calcPanel"></div>
+      </section>
+
+      <footer>
+        <p>Every number here is a population average fitted to your height, weight and age.
+        Real resting metabolic rates vary by roughly 200 kcal either side of the estimate,
+        food values assume typical home portions, and the activity rates come from published
+        MET tables that describe averages, not you. Treat the ledger as a starting hypothesis:
+        weigh yourself under the same conditions for two or three weeks, and where the scale
+        disagrees with the prediction, the scale is right.</p>
+
+        <p>This is an estimation tool, not medical or dietary advice. It cannot account for
+        medication, thyroid or metabolic conditions, pregnancy, injury, or any of the reasons a
+        real body departs from a population average. If you are planning a large change to how
+        you eat or train, or you have a health condition, talk to a doctor or a registered
+        dietitian first. It is not designed for anyone under 18, and it should not be used to
+        drive weight loss in anyone with a history of disordered eating.</p>
+
+        <p>Your data never leaves your device. There is no server, no account, no analytics and
+        no network request except the web font, which the page works fine without. Profiles live
+        in this browser's local storage, so clearing site data removes them &mdash; use Export to
+        keep a copy.</p>
+
+        <p>Free to use, modify and share under the MIT licence. The model, the MET values and the
+        body-segment fractions are all documented in the README that ships alongside this file.</p>
+      </footer>
+    </main>
+
+    <aside class="ledger" id="ledgerPanel">
+      <div class="ledger-inner">
+        <button class="sheet-close" id="sheetClose" aria-label="Close">&times;</button>
+        <div class="balance-line">
+          <span class="balance-num" id="balNum">&mdash;</span>
+          <span class="balance-word" id="balWord">waiting on your food</span>
+        </div>
+        <div class="bars">
+          <div class="bar-row">
+            <div class="bar-head"><span>Taken in</span><b id="inNum">0</b></div>
+            <div class="bar-track"><div class="seg in" id="inBar" style="width:0%"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-head"><span>Used</span><b id="outNum">0</b></div>
+            <div class="bar-track" id="outBar"></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-head"><span id="fatLabel">Body fat</span><b id="fatNum">&mdash;</b></div>
+            <div class="fat-track"><div class="fat-zero"></div>
+              <div class="fat-fill" id="fatBar" style="left:50%;width:0"></div></div>
+            <div class="fat-scale"><span>burning 250 g</span><span>storing 250 g</span></div>
+          </div>
+        </div>
+        <div class="outcome">
+          <div class="o-row"><span><i class="swatch sw-fat"></i>Fat this week</span>
+            <span class="v" id="fatWeek">&mdash;</span></div>
+          <div class="o-row"><span><i class="swatch sw-lean"></i>Muscle this week</span>
+            <span class="v" id="leanWeek">&mdash;</span></div>
+          <div class="o-row dim"><span>Scale change this week</span><span class="v" id="scaleWeek">&mdash;</span></div>
+          <div class="o-row dim"><span>Protein</span><span class="v" id="protNum">0 g</span></div>
+          <div class="o-row dim"><span>Carbs and fat</span><span class="v" id="macroNum">0 / 0 g</span></div>
+        </div>
+        <div class="flags" id="flags"></div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<div class="sheet-back" id="sheetBack"></div>
+<div class="dock" id="dock" role="button" tabindex="0" aria-label="Open the full ledger">
+  <span class="grab"></span>
+  <div class="d">In<b id="dIn">0</b></div>
+  <div class="d">Used<b id="dOut">0</b></div>
+  <div class="d">Balance<b id="dBal">&mdash;</b></div>
+  <div class="d" id="dFatWrap">Fat<b id="dFat">&mdash;</b></div>
+</div>
+
+<script>
+"use strict";
+
+/* ==================================================================
+   FOOD  — values are per single slider unit
+   ================================================================== */
+const GROUPS = [
+  { name:"Dairy", items:[
+    ["milk_cow","Cow milk, whole","ml",3000,50,0.62,0.032,0.048,0.035,0],
+    ["milk_buf","Buffalo milk","ml",3000,50,0.97,0.038,0.050,0.065,0],
+    ["milk_toned","Toned milk","ml",3000,50,0.58,0.032,0.048,0.030,0],
+    ["curd","Curd, whole milk","g",1500,50,0.60,0.031,0.045,0.033,0],
+    ["curd_toned","Curd, toned milk","g",1500,50,0.52,0.033,0.047,0.022,0],
+    ["paneer","Paneer","g",400,10,2.65,0.18,0.03,0.20,0],
+    ["ghee_cow","Desi ghee, cow","tsp",12,1,45,0,0,5,0],
+    ["ghee_buf","Desi ghee, buffalo","tsp",12,1,46,0,0,5.1,0],
+    ["butter","Butter","tsp",12,1,36,0,0,4,0],
+  ]},
+  { name:"Grains", items:[
+    ["chapati","Chapati","piece",12,1,120,3.5,22,1,3],
+    ["rice","Rice, cooked","katori",6,1,200,4,44,0.5,0.7],
+    ["poha","Poha","plate",3,1,270,5,45,7,2],
+    ["oats","Oats, dry","g",150,10,3.75,0.125,0.675,0.075,0.10],
+    ["bread","Brown bread","slice",8,1,70,2.5,13,1,1.5],
+    ["paratha","Paratha","piece",6,1,210,4,26,10,3],
+  ]},
+  { name:"Pulses and protein", items:[
+    ["dal","Dal, cooked","katori",6,1,140,7,20,3,5],
+    ["rajma","Rajma or chole","katori",4,1,175,8,25,4.5,7],
+    ["sprouts","Mixed sprouts","katori",4,1,100,7,15,1,5],
+    ["soya","Soya chunks, dry","g",150,10,3.40,0.52,0.33,0.007,0.10],
+    ["chana","Roasted chana","g",150,10,3.67,0.20,0.60,0.05,0.17],
+    ["whey","Whey protein","scoop",4,1,120,24,3,1.5,0],
+  ]},
+  { name:"Vegetables", items:[
+    ["sabji_dry","Dry sabji","katori",6,1,130,3,12,7,4],
+    ["sabji_gravy","Gravy sabji","katori",6,1,180,4,14,11,4],
+    ["salad","Raw salad","bowl",4,1,45,2,8,0.3,3],
+    ["potato","Potato, boiled","g",500,25,0.87,0.02,0.20,0.001,0.02],
+  ]},
+  { name:"Fruit", items:[
+    ["banana","Banana","piece",8,1,105,1.3,27,0.4,3.1],
+    ["apple","Apple","piece",5,1,95,0.5,25,0.3,4.4],
+    ["orange","Orange","piece",5,1,62,1.2,15,0.2,3.1],
+    ["mango","Mango","piece",4,1,150,1.4,38,0.6,4],
+    ["papaya","Papaya","bowl",4,1,65,0.7,16,0.4,2.5],
+  ]},
+  { name:"Dry fruit and nuts", items:[
+    ["almond","Almonds","nuts",60,1,7,0.26,0.24,0.60,0.15],
+    ["cashew","Cashews","nuts",60,1,8.5,0.28,0.45,0.68,0.05],
+    ["walnut","Walnuts, whole","nuts",20,1,33,0.75,0.70,3.3,0.35],
+    ["peanut","Peanuts","g",200,10,5.67,0.25,0.16,0.47,0.08],
+    ["raisin","Raisins","g",200,10,3.00,0.03,0.77,0.003,0.03],
+    ["date","Dates","pieces",15,1,23,0.2,6,0,0.6],
+  ]},
+  { name:"Fats, sugar and drinks", items:[
+    ["oil","Cooking oil","tsp",15,1,45,0,0,5,0],
+    ["sugar","Sugar","tsp",15,1,20,0,5,0,0],
+    ["jaggery","Jaggery","g",100,5,3.8,0,0.98,0,0],
+    ["honey","Honey","tsp",10,1,21,0,5.8,0,0],
+    ["chai","Chai with milk and sugar","cup",8,1,90,2,12,3,0],
+    ["misc","Anything else","kcal",1200,25,1,0,0,0,0],
+  ]},
+];
+
+/* ==================================================================
+   BODY SEGMENTS — fractions of standing height (Drillis & Contini)
+   ================================================================== */
+function anthro(heightCm){
+  const H = heightCm/100;
+  return {H, arm:0.332*H, thigh:0.245*H, forearm:0.146*H, acromion:0.818*H, com:0.570*H};
+}
+const G = 9.81;
+const KCAL_J = 4184;        // thermochemical calorie, exactly 4.184 kJ
+
+/* A push-up rotates the body about the toe. Standing-height fractions are
+   measured from the floor at the sole, so each landmark's distance from the
+   pivot is its standing height plus the ankle-to-toe offset of the plantar-
+   flexed foot (~0.11 H). Using the raw standing fractions puts the pivot in
+   the wrong place and understates the work by about 5%. */
+const TOE = 0.110;                       // ankle to toe tip, as a fraction of height
+const D_SHOULDER = 0.818 + TOE;          // pivot to shoulder
+const D_COM      = 0.570 + TOE;          // pivot to centre of mass
+const D_BACK     = 0.750 + TOE;          // pivot to a plate on the upper back
+const EFFICIENCY = 0.20;
+const LOWERING = {slow:0.45, normal:0.33, drop:0.05};
+const MET_OVERHEAD = {light:2.6, moderate:3.2, hard:4.0};
+
+/* Rep exercises. h = how far the load travels, mb = fraction of body weight that
+   travels that far, lf = how much further any added weight travels than the body's
+   centre of mass (only push-ups differ, since the plate sits nearer the shoulders). */
+const REPS = [
+  {id:"pushup",  name:"Push-ups",      bw:1, add:40,  max:200, h:A=>Math.max(.15,A.arm-.15)*(D_COM/D_SHOULDER), mb:1.00, lf:D_BACK/D_COM},
+  {id:"pullup",  name:"Pull-ups",      bw:1, add:30,  max:150, h:A=>Math.max(.20,A.arm-.06), mb:0.95, lf:1},
+  {id:"dip",     name:"Dips",          bw:1, add:30,  max:150, h:A=>A.arm*0.75, mb:0.90, lf:1},
+  {id:"squat",   name:"Squats",        bw:1, add:80,  max:300, h:A=>A.thigh, mb:0.85, lf:1},
+  {id:"lunge",   name:"Lunges",        bw:1, add:60,  max:300, hint:"per leg",  h:A=>A.thigh*0.8, mb:0.85, lf:1},
+  {id:"stepup",  name:"Step-ups",      bw:1, add:60,  max:300, hint:"onto a bench", h:A=>0.25*A.H, mb:0.90, lf:1},
+  {id:"jsquat",  name:"Jump squats",   bw:1, add:20,  max:200, h:A=>A.thigh+0.20, mb:0.85, lf:1},
+  {id:"burpee",  name:"Burpees",       bw:1, add:0,   max:200, h:A=>A.thigh*1.2+0.20, mb:0.90, lf:1},
+  {id:"glute",   name:"Glute bridges", bw:1, add:100, max:200, hint:"or hip thrusts", h:A=>0.11*A.H, mb:0.45, lf:1},
+  {id:"calf",    name:"Calf raises",   bw:1, add:60,  max:400, h:A=>0.035*A.H, mb:0.90, lf:1},
+  {id:"situp",   name:"Sit-ups",       bw:1, add:20,  max:300, hint:"or crunches", h:A=>0.12*A.H, mb:0.40, lf:1},
+  {id:"legraise",name:"Leg raises",    bw:1, add:15,  max:300, h:A=>0.19*A.H, mb:0.32, lf:1},
+  {id:"deadlift",name:"Deadlifts",     bw:0, add:220, max:200, h:A=>0.25*A.H, mb:0.35, lf:1},
+  {id:"bench",   name:"Bench press",   bw:0, add:150, max:200, h:A=>0.20*A.H, mb:0.05, lf:1},
+  {id:"ohp",     name:"Overhead press",bw:0, add:100, max:200, h:A=>0.28*A.H, mb:0.05, lf:1},
+  {id:"row",     name:"Bent-over rows",bw:0, add:120, max:200, h:A=>0.16*A.H, mb:0.04, lf:1},
+  {id:"pulldown",name:"Lat pulldown",  bw:0, add:120, max:200, h:A=>0.22*A.H, mb:0.03, lf:1},
+  {id:"curl",    name:"Biceps curls",  bw:0, add:60,  max:300, h:A=>0.22*A.H, mb:0.03, lf:1},
+  {id:"tri_ext", name:"Triceps extensions", bw:0, add:60, max:300, h:A=>0.17*A.H, mb:0.03, lf:1},
+  {id:"other",   name:"Anything else", bw:0, add:150, max:300, hint:"dumbbell, machine", h:A=>0.25*A.H, mb:0.03, lf:1},
+];
+
+/* Band movements: force is tension, not mass, so there is no body-weight term. */
+const BANDS = [
+  {id:"b_tri", name:"Triceps pushdowns", max:300, h:A=>0.17*A.H},
+  {id:"b_sho", name:"Shoulder raises or press", max:300, h:A=>0.30*A.H},
+  {id:"b_row", name:"Rows or pull-aparts", max:300, h:A=>0.20*A.H},
+  {id:"b_curl",name:"Biceps curls", max:300, h:A=>0.22*A.H},
+  {id:"b_leg", name:"Glute or leg work", max:300, h:A=>0.16*A.H},
+];
+
+/* Timed work: MET values from the Compendium of Physical Activities. */
+const HOLDS = [
+  ["hold_plank","Plank",3.3,30],
+  ["hold_wall","Wall sit",4.0,30],
+  ["hold_hang","Dead hang",3.5,30],
+  ["hold_lsit","L-sit or hollow hold",4.5,30],
+];
+const COND = [
+  ["c_skip","Skipping rope",11.8,90],
+  ["c_hiit","Circuit or HIIT",8.0,120],
+  ["c_mtn","Mountain climbers",8.0,60],
+  ["c_jj","Jumping jacks",7.7,60],
+  ["c_yoga","Yoga or stretching",2.5,120],
+  ["c_sport","Sport or game",7.0,180],
+];
+/* Distance-based, so pace matters. */
+const CARDIO = [
+  ["walk","Walking",3,8,5,"km/h",25,0.5],
+  ["run","Running",6,18,10,"km/h",30,0.5],
+  ["cycle","Cycling",8,35,18,"km/h",100,1],
+];
+/* Chores. mode "min" is minutes; "count" converts a count into minutes;
+   "floors" uses m g h directly, since climbing is honest lifting. */
+const CHORES = [
+  ["ch_chapati","Making chapatis","rolling and roasting","count",2.8,1.5,40,1,"chapatis"],
+  ["ch_utensil","Washing utensils","by hand at the sink","count",2.0,0.4,150,5,"items"],
+  ["ch_cook","Cooking sabji or dal","standing at the stove","min",2.5,1,180,5,"min"],
+  ["ch_chop","Chopping vegetables","sitting","min",2.0,1,120,5,"min"],
+  ["ch_knead","Kneading dough, grinding masala","","min",3.0,1,90,5,"min"],
+  ["ch_sweep","Sweeping","jhadu","min",3.3,1,120,5,"min"],
+  ["ch_mop","Mopping or swabbing","pocha, bending or squatting","min",4.0,1,120,5,"min"],
+  ["ch_clothes","Washing clothes by hand","","min",3.3,1,120,5,"min"],
+  ["ch_clean","Cleaning, dusting, bathroom","","min",3.5,1,150,5,"min"],
+  ["ch_shop","Shopping and carrying bags","","min",3.5,1,150,5,"min"],
+  ["ch_carry","Carrying water or heavy loads","buckets, cylinders, sacks","min",5.0,1,90,5,"min"],
+  ["ch_garden","Gardening or plants","","min",3.8,1,150,5,"min"],
+  ["ch_child","Carrying or playing with a child","","min",3.0,1,240,10,"min"],
+  ["ch_stand","Extra time standing, not sitting","","min",1.8,1,480,15,"min"],
+  ["ch_stairs","Flights of stairs climbed","your weight lifted 3.2 m each","floors",0,0,80,1,"floors"],
+];
+
+const KCAL_FAT = 7700, KCAL_LEAN_GAIN = 5000, KCAL_LEAN_LOST = 1800;
+const LEAN_CAP = {beginner:25, intermediate:13, advanced:6};
+
+const $ = id => document.getElementById(id);
+const el = (t,c,h) => { const n=document.createElement(t); if(c)n.className=c; if(h!==undefined)n.innerHTML=h; return n; };
+const kc = n => Math.round(n).toLocaleString("en-IN");
+const n1 = n => (Math.round(n*10)/10).toFixed(1);
+
+/* ==================================================================
+   BUILD THE CONTROLS
+   ================================================================== */
+
+/* ==================================================================
+   STEPPER.  Replaces the sliders: two big tap targets plus a number
+   you can type into directly. Press and hold to run, accelerating.
+   ================================================================== */
+const LOG_IDS = [];          // every control that holds a logged value
+const LABELS = {};           // id -> {name, unit} so a change can be described
+const SETTING_IDS = ["weight","height","age","sex","job","train",
+                     "rest","intensity","band","perset","lower","water","sleep"];
+
+function mkStep(o){
+  const wrap = el("div","ctl"+(o.move?" mv":""));
+  const dec = el("button","pm","\u2212");
+  const inp = el("input");
+  const inc = el("button","pm","+");
+  inp.type = "number"; inp.id = o.id;
+  inp.className = "num";
+  inp.min = o.min; inp.max = o.max; inp.step = o.step;
+  inp.value = o.value;
+  inp.setAttribute("inputmode", String(o.step).includes(".") ? "decimal" : "numeric");
+  inp.setAttribute("aria-label", o.aria);
+  dec.setAttribute("aria-label", "decrease "+o.aria);
+  inc.setAttribute("aria-label", "increase "+o.aria);
+  dec.type = "button"; inc.type = "button";
+  wrap.append(dec, inp, inc);
+  if(o.unit) wrap.appendChild(el("span","un",o.unit));
+
+  const dp = String(o.step).includes(".") ? 1 : 0;
+  const clamp = v => Math.min(o.max, Math.max(o.min, v));
+  function bump(dir, mult){
+    const cur = parseFloat(inp.value);
+    const v = clamp((isNaN(cur)?o.min:cur) + dir*o.step*(mult||1));
+    inp.value = v.toFixed(dp).replace(/\.0$/,"");
+    update(); rememberLast();
+  }
+  // press and hold, speeding up after a moment
+  [[dec,-1],[inc,1]].forEach(([btn,dir]) => {
+    let t1=null, t2=null, n=0;
+    const stop = () => { clearTimeout(t1); clearInterval(t2); t1=t2=null; n=0; };
+    btn.addEventListener("click", ev => { ev.preventDefault(); if(!n) bump(dir); });
+    btn.addEventListener("pointerdown", ev => {
+      ev.preventDefault();
+      t1 = setTimeout(() => {
+        t2 = setInterval(() => { n++; bump(dir, n>14 ? 5 : 1); }, 90);
+      }, 430);
+    });
+    ["pointerup","pointerleave","pointercancel"].forEach(e =>
+      btn.addEventListener(e, () => setTimeout(stop, 0)));
+  });
+  inp.addEventListener("input", update);
+  inp.addEventListener("blur", () => {
+    const v = parseFloat(inp.value);
+    inp.value = isNaN(v) ? o.min : clamp(v);
+    update();
+  });
+  if(!o.setting) LOG_IDS.push(o.id);
+  LABELS[o.id] = {name:o.aria, unit:o.unit||""};
+  return wrap;
+}
+
+/* Sections become accordions: essential once there are a hundred controls
+   on a phone screen. */
+function accordion(host, title, totId, open){
+  const d = el("details","acc"); d.open = !!open;
+  const sum = el("summary","accsum");
+  sum.appendChild(el("h2",null,title));
+  const tot = el("span","tot"); if(totId) tot.id = totId;
+  sum.appendChild(tot);
+  d.appendChild(sum);
+  const body = el("div","rows2");
+  d.appendChild(body);
+  host.appendChild(d);
+  return body;
+}
+
+const foodIndex = {};
+GROUPS.forEach((g,gi) => {
+  const totId = "tot_"+g.name.replace(/\W/g,"");
+  const body = accordion($("foodSections"), g.name, totId, gi===0);
+  g.items.forEach(([id,name,unit,max,step,kcal,p,c,f,fib]) => {
+    foodIndex[id] = {id,name,unit,kcal,p,c,f,fib,group:totId};
+    const row = el("div","row zero"); row.id = "row_"+id;
+    row.setAttribute("data-name", (name+" "+unit).toLowerCase());
+    const per = unit==="kcal" ? "" :
+      `<small>${Math.round(kcal*(step>1?step:1))} kcal per ${step>1?step+" "+unit:unit}</small>`;
+    row.appendChild(el("div","nm", name+per));
+    row.appendChild(mkStep({id:"f_"+id, min:0, max:max, step:step, value:0,
+      unit:unit, aria:name+" in "+unit}));
+    row.appendChild(el("div","amt",`<b>0</b> ${unit}`));
+    body.appendChild(row);
+  });
+});
+
+function repEntries(ex){
+  if(ex.bw) return [
+    {key:"rb_"+ex.id, label:"Reps at body weight", weighted:false},
+    {key:"rw_"+ex.id, label:"Reps with weight", weighted:true},
+  ];
+  return [{key:"rb_"+ex.id, label:"Reps", weighted:true}];
+}
+
+REPS.forEach(ex => {
+  const row = el("div","ex-row"); row.id="exrow_"+ex.id;
+  row.setAttribute("data-name", (ex.name+" "+(ex.hint||"")).toLowerCase());
+  row.appendChild(el("div","nm", ex.name + (ex.hint?`<small>${ex.hint}</small>`:"")));
+  const grp = el("div","grp");
+  repEntries(ex).forEach(en => {
+    const w = el("div");
+    w.appendChild(el("div","lbl",en.label));
+    w.appendChild(mkStep({id:en.key, min:0, max:ex.max, step:1, value:0, move:true,
+      unit:"reps", aria:ex.name+", "+en.label.toLowerCase()}));
+    grp.appendChild(w);
+  });
+  row.appendChild(grp);
+  if(ex.add){
+    const w = el("div");
+    w.appendChild(el("div","lbl","Weight added"));
+    w.appendChild(mkStep({id:"l_"+ex.id, min:0, max:ex.add, step:1, value:0, move:true,
+      unit:"kg", aria:ex.name+", weight in kg"}));
+    row.appendChild(w);
+  } else row.appendChild(el("div"));
+  const amt = el("div","amt",`<b>0</b> reps`); amt.id="a_"+ex.id;
+  row.appendChild(amt);
+  $("repRows").appendChild(row);
+});
+
+BANDS.forEach(b => {
+  const row = el("div","row zero"); row.id="row_"+b.id;
+  row.setAttribute("data-name", ("band "+b.name).toLowerCase());
+  row.appendChild(el("div","nm", b.name));
+  row.appendChild(mkStep({id:"rb_"+b.id, min:0, max:b.max, step:1, value:0, move:true,
+    unit:"reps", aria:b.name+", total reps"}));
+  const amt = el("div","amt",`<b>0</b> reps`); amt.id="a_"+b.id;
+  row.appendChild(amt); $("bandRows").appendChild(row);
+});
+
+function timedRows(host, list){
+  list.forEach(([id,name,met,max]) => {
+    const row = el("div","row zero"); row.id="row_"+id;
+    row.setAttribute("data-name", name.toLowerCase());
+    row.appendChild(el("div","nm", name+`<small>${met} MET</small>`));
+    row.appendChild(mkStep({id:"t_"+id, min:0, max:max, step:5, value:0, move:true,
+      unit:"min", aria:name+", minutes"}));
+    const amt = el("div","amt",`<b>0</b> min`); amt.id="a_"+id;
+    row.appendChild(amt); host.appendChild(row);
+  });
+}
+timedRows($("holdRows"), HOLDS);
+timedRows($("condRows"), COND);
+
+CARDIO.forEach(([id,name,pmin,pmax,pdef,punit,dmax,dstep]) => {
+  const row = el("div","ex-row"); row.id="row_"+id;
+  row.setAttribute("data-name", name.toLowerCase());
+  row.appendChild(el("div","nm", name));
+  const grp = el("div","grp");
+  const dw = el("div"); dw.appendChild(el("div","lbl","Distance"));
+  dw.appendChild(mkStep({id:"d_"+id, min:0, max:dmax, step:dstep, value:0, move:true,
+    unit:"km", aria:name+", distance in km"}));
+  grp.appendChild(dw);
+  const pw = el("div"); pw.appendChild(el("div","lbl","Pace"));
+  pw.appendChild(mkStep({id:"p_"+id, min:pmin, max:pmax, step:0.5, value:pdef, move:true,
+    unit:punit, aria:name+", pace", setting:true}));
+  grp.appendChild(pw);
+  row.appendChild(grp); row.appendChild(el("div"));
+  const amt = el("div","amt",`<b>0</b> km`); amt.id="a_"+id;
+  row.appendChild(amt); $("cardioRows").appendChild(row);
+});
+
+CHORES.forEach(([id,name,hint,mode,met,minPer,max,step,unit]) => {
+  const row = el("div","row zero"); row.id="row_"+id;
+  row.setAttribute("data-name", (name+" "+hint).toLowerCase());
+  const sub = mode==="floors" ? hint : (mode==="count" ? hint+(hint?", ":"")+minPer+" min each" : met+" MET");
+  row.appendChild(el("div","nm", name+`<small>${sub}</small>`));
+  row.appendChild(mkStep({id:"h_"+id, min:0, max:max, step:step, value:0, move:true,
+    unit:unit, aria:name+", "+unit}));
+  const amt = el("div","amt",`<b>0</b> ${unit}`); amt.id="a_"+id;
+  row.appendChild(amt); $("choreRows").appendChild(row);
+});
+
+function simpleRow(host,id,name,unit,min,max,step,val){
+  const row = el("div","row");
+  row.appendChild(el("div","nm",name));
+  row.appendChild(mkStep({id:id, min:min, max:max, step:step, value:val,
+    unit:unit, aria:name, setting:true}));
+  const amt = el("div","amt",""); amt.id="amt_"+id;
+  row.appendChild(amt); host.appendChild(row);
+}
+simpleRow($("recovRows"),"water","Water drunk","ml",0,6000,100,3000);
+simpleRow($("recovRows"),"sleep","Sleep last night","hours",3,11,0.5,7);
+
+/* ==================================================================
+   MATHS.  Everything returns its own working.
+   ================================================================== */
+function metKcal(met, minutes, weight){ return (met-1)*3.5*weight/200*minutes; }
+
+function readFood(){
+  let kcal=0,p=0,c=0,f=0,fib=0; const groupTot={}, lines=[];
+  for(const id in foodIndex){
+    const fd = foodIndex[id], v = +$("f_"+id).value, k = v*fd.kcal;
+    kcal+=k; p+=v*fd.p; c+=v*fd.c; f+=v*fd.f; fib+=v*fd.fib;
+    groupTot[fd.group] = (groupTot[fd.group]||0)+k;
+    const row = $("row_"+id);
+    row.classList.toggle("zero", v===0); row.classList.toggle("on", v>0);
+    $("f_"+id).classList.toggle("hot", v>0);
+    row.querySelector(".amt").innerHTML =
+      `<b>${v%1?v.toFixed(1):v}</b> ${fd.unit}`+(v>0?`<br>${kc(k)} kcal`:"");
+    if(v>0) lines.push({label:fd.name,
+      work:`${v} ${fd.unit} &times; ${fd.kcal} kcal per ${fd.unit}`, kcal:k});
+  }
+  return {kcal,p,c,f,fib,groupTot,lines};
+}
+
+function readStrength(weight, heightCm){
+  const rest=+$("rest").value, perSet=+$("perset").value,
+        metOh=MET_OVERHEAD[$("intensity").value], bandKg=+$("band").value,
+        ecc=LOWERING[$("lower").value], A=anthro(heightCm);
+  let sets=0, seconds=0, reps=0, upJ=0; const lines=[];
+
+  REPS.forEach(ex => {
+    const h = ex.h(A), added = ex.add ? +$("l_"+ex.id).value : 0;
+    let rowReps=0, rowJ=0, parts=[];
+    repEntries(ex).forEach(en => {
+      const n = +$(en.key).value;
+      $(en.key).classList.toggle("hot", n>0);
+      if(!n) return;
+      const load = en.weighted ? added : 0;
+      const J = G*h*(ex.mb*weight + ex.lf*load);
+      const effKg = J/(G*h);
+      rowJ += J*n; rowReps += n; upJ += J*n; reps += n;
+      const s = Math.max(1, Math.round(n/perSet));
+      sets += s; seconds += n*3 + s*rest;
+      parts.push(`${n} &times; ${Math.round(effKg)} kg lifted ${(h*100).toFixed(0)} cm`);
+      lines.push({label:ex.name+(en.weighted&&added?` (+${added} kg)`:""),
+        work:`${n} reps &times; ${Math.round(effKg)} kg &times; 9.81 &times; ${h.toFixed(2)} m`,
+        J:J*n});
+    });
+    if(ex.add) $("l_"+ex.id).classList.toggle("hot", added>0);
+    $("a_"+ex.id).innerHTML = rowReps>0
+      ? `<b>${rowReps}</b> reps<br>${parts.join("<br>")}<br>${n1(rowJ*(1+ecc)/EFFICIENCY/KCAL_J)} kcal`
+      : `<b>0</b> reps`;
+    $("exrow_"+ex.id).classList.toggle("zero", rowReps===0);
+  });
+
+  BANDS.forEach(b => {
+    const n = +$("rb_"+b.id).value, h = b.h(A), F = bandKg*G*0.75, J = F*h;
+    $("rb_"+b.id).classList.toggle("hot", n>0);
+    const row = $("row_"+b.id);
+    row.classList.toggle("zero", n===0); row.classList.toggle("on", n>0); row.classList.toggle("mv", n>0);
+    $("a_"+b.id).innerHTML = n>0
+      ? `<b>${n}</b> reps<br>${n1(J*n*(1+ecc)/EFFICIENCY/KCAL_J)} kcal` : `<b>0</b> reps`;
+    if(!n) return;
+    upJ += J*n; reps += n;
+    const s = Math.max(1, Math.round(n/perSet));
+    sets += s; seconds += n*3 + s*rest;
+    lines.push({label:b.name,
+      work:`${n} reps &times; ${(bandKg*0.75).toFixed(1)} kg tension &times; 9.81 &times; ${h.toFixed(2)} m`,
+      J:J*n});
+  });
+
+  const minutes = seconds/60;
+  const liftKcal = upJ/EFFICIENCY/KCAL_J;
+  const lowerKcal = upJ*ecc/EFFICIENCY/KCAL_J;
+  const overhead = minutes>0 ? metKcal(metOh, minutes, weight) : 0;
+  const epoc = (liftKcal+lowerKcal+overhead)*0.06;
+  return {sets,reps,minutes,upJ,liftKcal,lowerKcal,overhead,epoc,ecc,metOh,
+          kcal:liftKcal+lowerKcal+overhead+epoc, A, lines};
+}
+
+function readTimed(weight){
+  let kcal=0, minutes=0; const lines=[];
+  HOLDS.concat(COND).forEach(([id,name,met]) => {
+    const m = +$("t_"+id).value;
+    $("t_"+id).classList.toggle("hot", m>0);
+    const row = $("row_"+id);
+    row.classList.toggle("zero", m===0); row.classList.toggle("on", m>0); row.classList.toggle("mv", m>0);
+    const k = m>0 ? metKcal(met,m,weight) : 0;
+    $("a_"+id).innerHTML = m>0 ? `<b>${m}</b> min<br>${kc(k)} kcal` : `<b>0</b> min`;
+    if(!m) return;
+    kcal += k; minutes += m;
+    lines.push({label:name, work:`(${met} &minus; 1) MET &times; 3.5 &times; ${weight} kg / 200 &times; ${m} min`, kcal:k});
+  });
+  return {kcal, minutes, lines};
+}
+
+function readCardio(weight){
+  let kcal=0; const lines=[];
+  CARDIO.forEach(([id,name]) => {
+    const km = +$("d_"+id).value, pace = +$("p_"+id).value;
+    $("d_"+id).classList.toggle("hot", km>0); $("p_"+id).classList.toggle("hot", km>0);
+    let met = 0;
+    if(id==="walk") met = 2.0+0.55*pace;
+    else if(id==="run") met = 1.0*pace;
+    else met = 0.45*pace;
+    const minutes = km>0 ? (km/pace)*60 : 0;
+    const k = km>0 ? metKcal(met, minutes, weight) : 0;
+    $("a_"+id).innerHTML = km>0
+      ? `<b>${km}</b> km<br>${Math.round(minutes)} min at ${met.toFixed(1)} MET<br>${kc(k)} kcal`
+      : `<b>0</b> km`;
+    $("row_"+id).classList.toggle("zero", km===0);
+    if(!km) return;
+    kcal += k;
+    lines.push({label:`${name}, ${km} km at ${pace} km/h`,
+      work:`(${met.toFixed(1)} &minus; 1) MET &times; 3.5 &times; ${weight} kg / 200 &times; ${Math.round(minutes)} min`, kcal:k});
+  });
+  return {kcal, lines};
+}
+
+function readChores(weight){
+  let kcal=0, minutes=0; const lines=[];
+  CHORES.forEach(([id,name,hint,mode,met,minPer,max,step,unit]) => {
+    const v = +$("h_"+id).value;
+    $("h_"+id).classList.toggle("hot", v>0);
+    const row = $("row_"+id);
+    row.classList.toggle("zero", v===0); row.classList.toggle("on", v>0); row.classList.toggle("mv", v>0);
+    let k=0, work="";
+    if(mode==="floors"){
+      // Climbing is honest lifting: your whole weight up 3.2 m a floor, at about
+      // 23% efficiency, plus a third again for coming back down.
+      const J = weight*G*3.2*v;
+      k = J/0.23/KCAL_J*1.33;
+      work = `${v} &times; ${weight} kg &times; 9.81 &times; 3.2 m / 0.23 efficiency &times; 1.33 for the descent`;
+    } else {
+      const mins = mode==="count" ? v*minPer : v;
+      minutes += mins;
+      k = metKcal(met, mins, weight);
+      work = mode==="count"
+        ? `${v} &times; ${minPer} min = ${n1(mins)} min, then (${met} &minus; 1) &times; 3.5 &times; ${weight} / 200 &times; ${n1(mins)}`
+        : `(${met} &minus; 1) MET &times; 3.5 &times; ${weight} kg / 200 &times; ${v} min`;
+    }
+    $("a_"+id).innerHTML = v>0 ? `<b>${v}</b> ${unit}<br>${n1(k)} kcal` : `<b>0</b> ${unit}`;
+    if(!v) return;
+    kcal += k;
+    lines.push({label:name, work, kcal:k});
+  });
+  return {kcal, minutes, lines};
+}
+
+function compute(){
+  const weight=+$("weight").value||0, height=+$("height").value||0,
+        age=+$("age").value||0, male=$("sex").value!=="female",
+        ready = weight>0 && height>0 && age>0 && $("sex").value!=="",
+        neatRate=+$("job").value, level=$("train").value,
+        water=+$("water").value, sleep=+$("sleep").value;
+
+  const food = readFood(), st = readStrength(weight,height),
+        timed = readTimed(weight), cardio = readCardio(weight), chores = readChores(weight);
+
+  const bmr = 10*weight + 6.25*height - 5*age + (male?5:-161);
+  const neat = bmr*neatRate;
+  const protShare = food.kcal>0 ? (food.p*4)/food.kcal : 0;
+  const tefRate = 0.09 + 0.09*protShare;
+  const tef = food.kcal*tefRate;
+  const sleepAdj = sleep<6 ? -0.02*bmr : 0;
+  const activity = st.kcal + timed.kcal + cardio.kcal + chores.kcal;
+  const out = bmr + neat + tef + activity + sleepAdj;
+  const balance = food.kcal - out;
+  const ppk = food.p/weight;
+  const lifted = st.reps>0;
+
+  let fatKg, leanKg, capped=false, part={};
+  if(balance>=0){
+    let ratio = {beginner:0.50,intermediate:0.38,advanced:0.25}[level];
+    const why = [`${Math.round(ratio*100)}% base for your training experience`];
+    if(!lifted){ ratio*=0.45; why.push("&times; 0.45, no lifting logged"); }
+    if(ppk<1.6){ ratio*=0.75; why.push("&times; 0.75, protein under 1.6 g/kg"); }
+    if(sleep<7){ ratio*=0.85; why.push("&times; 0.85, under 7 h sleep"); }
+    ratio = Math.max(0.05, Math.min(ratio,0.60));
+    let leanKcal = balance*ratio;
+    let cap = LEAN_CAP[level];
+    if(sleep<7) cap*=0.85;
+    if(ppk<1.6) cap*=0.80;
+    if(!lifted) cap = 0;
+    if(leanKcal/KCAL_LEAN_GAIN*1000 > cap){
+      leanKcal = cap/1000*KCAL_LEAN_GAIN; capped = balance>60;
+      why.push(`capped at ${n1(cap)} g of muscle a day, which is all your body can build`);
+    }
+    fatKg = (balance-leanKcal)/KCAL_FAT; leanKg = leanKcal/KCAL_LEAN_GAIN;
+    part = {why, ratio, leanKcal, fatKcal:balance-leanKcal};
+  } else {
+    const def = -balance;
+    let ls = 0.20; const why = ["20% of the mass lost is lean tissue by default"];
+    if(lifted){ ls-=0.07; why.push("&minus; 7 points for lifting"); }
+    if(ppk>=1.6){ ls-=0.06; why.push("&minus; 6 points for protein at or above 1.6 g/kg"); }
+    if(def>750){ ls+=0.08; why.push("+ 8 points for a deficit over 750 kcal"); }
+    ls = Math.max(0.03,Math.min(ls,0.35));
+    const mass = def/(KCAL_FAT*(1-ls) + KCAL_LEAN_LOST*ls);
+    fatKg = -mass*(1-ls); leanKg = -mass*ls;
+    part = {why, ratio:ls, mass};
+  }
+
+  const waterTarget = 35*weight + 600*((st.minutes+timed.minutes)/60) + 400*(chores.minutes/120);
+  return {ready,weight,height,age,male,food,st,timed,cardio,chores,bmr,neat,tef,tefRate,protShare,
+          sleepAdj,activity,out,balance,fatKg,leanKg,capped,part,ppk,water,waterTarget,
+          sleep,level,lifted,neatRate};
+}
+
+/* ==================================================================
+   RENDER
+   ================================================================== */
+function update(){
+  const d = compute();
+  const ready = d.ready;
+  const inK = d.food.kcal, outK = ready ? d.out : 0, bal = d.balance;
+  const empty = !ready || inK===0;
+
+  // Nothing is estimated until height, weight, age and sex are known: every
+  // figure below is built on those four, so showing a number first would be
+  // showing someone else's body.
+  $("gate").classList.toggle("show", !ready);
+  ["weight","height","age","sex"].forEach(id =>
+    $(id).classList.toggle("incomplete", !(+$(id).value) && $(id).value===""));
+
+  $("inNum").textContent = ready ? kc(inK) : "\u2014";
+  $("outNum").textContent = ready ? kc(outK) : "\u2014";
+  $("balNum").textContent = empty ? "\u2014" : (bal>=0?"+":"\u2212")+kc(Math.abs(bal));
+  $("balNum").style.color = empty ? "var(--muted)" : (bal>=0?"var(--fat)":"var(--out)");
+  $("balWord").textContent = !ready ? "waiting on your details"
+    : (empty ? "waiting on your food"
+    : (bal>=0 ? "kcal more than you spent" : "kcal short, so the gap comes off you"));
+
+  const scale = Math.max(inK,outK,1)*1.04;
+  $("inBar").style.width = (ready ? inK/scale*100 : 0)+"%";
+  const ob = $("outBar"); ob.innerHTML = "";
+  if(ready) [["o1",d.bmr,"At rest"],["o2",d.neat,"Everyday moving"],["o3",d.tef,"Digesting"],
+   ["o4",d.cardio.kcal,"Getting around"],["o5",d.st.kcal+d.timed.kcal,"Training"],
+   ["o6",d.chores.kcal,"Chores"]].forEach(([cls,val,label]) => {
+    if(val<=0) return;
+    const s = el("div","seg "+cls); s.style.width=(val/scale*100)+"%";
+    s.title = label+": "+kc(val)+" kcal"; ob.appendChild(s);
+  });
+
+  const fatG = empty?0:d.fatKg*1000, leanG = empty?0:d.leanKg*1000;
+  const pct = Math.min(Math.abs(fatG)/250,1)*50, fb = $("fatBar");
+  fb.classList.toggle("burn", fatG<0);
+  fb.style.left = fatG>=0 ? "50%" : (50-pct)+"%";
+  fb.style.width = pct+"%";
+  $("fatLabel").textContent = empty?"Body fat":(fatG>=0?"Body fat stored":"Body fat burned off");
+  $("fatNum").textContent = empty?"\u2014":(fatG>=0?"+":"\u2212")+Math.abs(fatG).toFixed(0)+" g";
+  const wF = fatG*7/1000, wL = leanG*7/1000;
+  $("fatWeek").textContent  = empty?"\u2014":(wF>=0?"+":"\u2212")+Math.abs(wF).toFixed(2)+" kg";
+  $("leanWeek").textContent = empty?"\u2014":(wL>=0?"+":"\u2212")+Math.abs(wL).toFixed(2)+" kg";
+  $("scaleWeek").textContent= empty?"\u2014":((wF+wL)>=0?"+":"\u2212")+Math.abs(wF+wL).toFixed(2)+" kg";
+  $("protNum").textContent = ready
+    ? Math.round(d.food.p)+" g  ("+d.ppk.toFixed(2)+" g/kg)"
+    : Math.round(d.food.p)+" g";
+  $("macroNum").textContent = Math.round(d.food.c)+" / "+Math.round(d.food.f)+" g";
+
+  for(const gid in d.food.groupTot){
+    const node = $(gid);
+    if(node) node.textContent = d.food.groupTot[gid]>0 ? kc(d.food.groupTot[gid])+" kcal" : "";
+  }
+  $("repTot").textContent = !ready ? "" : d.st.reps>0
+    ? `${d.st.reps} reps, about ${d.st.sets} sets, ${Math.round(d.st.minutes)} min, ${kc(d.st.kcal)} kcal`
+    : "nothing logged";
+  $("condTot").textContent = !ready ? "" : d.timed.minutes>0 ? `${d.timed.minutes} min, ${kc(d.timed.kcal)} kcal` : "nothing logged";
+  $("moveTot").textContent = !ready ? "" : d.cardio.kcal>0 ? kc(d.cardio.kcal)+" kcal" : "nothing logged";
+  $("choreTot").textContent = !ready ? "" : d.chores.kcal>0
+    ? `${Math.round(d.chores.minutes)} min, ${kc(d.chores.kcal)} kcal` : "nothing logged";
+  $("bmrTot").textContent = ready ? kc(d.bmr)+" kcal at rest" : "details needed";
+  $("amt_water").innerHTML = `<b>${$("water").value}</b> ml`;
+  $("amt_sleep").innerHTML = `<b>${$("sleep").value}</b> hours`;
+
+  const T = d.st, A = T.A;
+  $("workNote").innerHTML = T.reps>0
+    ? `Your arm measures about ${(A.arm*100).toFixed(0)} cm and your thigh ${(A.thigh*100).toFixed(0)} cm, `
+      + `which fixes how far each load travels. Raising those loads is <b>${Math.round(T.upJ/1000)} kJ</b> `
+      + `of positive work &mdash; that part is geometry, and firm. Dividing by a muscular efficiency of `
+      + `about 20% gives <b>${Math.round(T.liftKcal)} kcal</b>, and it is the efficiency, not the work, `
+      + `that carries the uncertainty. Lowering the loads does <em>negative</em> work, so the net `
+      + `mechanical work over a full rep is exactly zero, yet the eccentric contraction still costs `
+      + `<b>${Math.round(T.lowerKcal)} kcal</b> at ${Math.round(T.ecc*100)}% of the lifting figure. `
+      + `Separately, <b>${Math.round(T.overhead)} kcal</b> covers ${Math.round(T.minutes)} minutes spent `
+      + `upright and breathing hard, plus ${Math.round(T.epoc)} kcal of afterburn. `
+      + `The full derivation, and which numbers are exact rather than estimated, is under `
+      + `<em>The arithmetic</em>.`
+    : `Reps are logged as a daily total. Body-weight and weighted reps are counted separately, because `
+      + `they are not the same work. Travel distances come from your height, so set that first.`;
+
+  $("choreNote").innerHTML = d.chores.kcal>0
+    ? `Chores came to <b>${kc(d.chores.kcal)} kcal</b>. Worth knowing: making a chapati costs about `
+      + `${n1(metKcal(2.8,1.5,d.weight))} kcal and eating one gives you 120, so a morning at the stove `
+      + `does not pay for breakfast. Climbing stairs is the exception, being real lifting rather than `
+      + `fiddling with your hands.`
+    : `Household work is genuine expenditure and most trackers ignore it. Stairs use m g h directly; `
+      + `everything else uses measured rates for that activity.`;
+
+  if(d.chores.minutes > 60 && d.neatRate > 0.18){
+    $("choreNote").innerHTML += ` <b>One caution:</b> you have logged ${Math.round(d.chores.minutes)} `
+      + `minutes of chores while also telling the ledger you move a lot beyond what you log. That counts `
+      + `some of it twice. Set "rest of your day" to mostly sitting when you log chores in detail.`;
+  }
+
+  $("dIn").textContent = kc(inK); $("dOut").textContent = kc(outK);
+  $("dBal").textContent = empty?"\u2014":(bal>=0?"+":"\u2212")+kc(Math.abs(bal));
+  $("dFatWrap").firstChild.nodeValue = empty?"Fat":(fatG>=0?"Storing":"Burning");
+  $("dFat").textContent = empty?"\u2014":Math.abs(fatG).toFixed(0)+" g";
+
+  renderFlags(d, empty);
+  if($("calcPanel").classList.contains("show")) renderCalc(d);
+  lastD = d;
+  if(!inDiff && activeUser() && activeUser().usual){
+    inDiff = true;
+    try { renderToday(false); } finally { inDiff = false; }
+  }
+}
+
+function renderFlags(d, empty){
+  const fl = $("flags"); fl.innerHTML = "";
+  const add = (t,ok) => fl.appendChild(el("div","flag"+(ok?" ok":""),t));
+  if(!d.ready){
+    add("Enter your height, weight, age and sex at the top. Resting metabolism is worked out from "
+      + "those four and it is the biggest number in the day, so nothing is estimated before then.", true);
+    return;
+  }
+  if(empty){ add("Nothing logged yet. Drag some food sliders, or load a saved usual day.", true); }
+  else {
+    if(d.ppk<1.6) add(`Protein is ${d.ppk.toFixed(2)} g per kg. Training pushes the useful range to 1.6&ndash;2.2.`);
+    else add(`Protein at ${d.ppk.toFixed(2)} g per kg supports your training.`, true);
+    if(d.capped) add("The surplus is bigger than muscle growth can absorb, so the extra lands as fat.");
+    if(d.sleep<7) add("Under 7 hours of sleep lowers how much of a surplus becomes muscle.");
+    if(d.water<d.waterTarget-400) add(`Water is about ${Math.round(d.waterTarget-d.water)} ml short for this much activity.`);
+    if(d.food.fib<25 && d.food.kcal>1200) add(`Fibre is ${Math.round(d.food.fib)} g. Aim for 30 or more.`);
+    if(d.food.f*9/Math.max(d.food.kcal,1)>0.42) add("Fat is over 42% of your calories.");
+    if(d.balance<-750) add("That is a steep deficit. Past roughly 750 kcal under, more of the loss comes from muscle.");
+  }
+  add("Weigh yourself the same way each morning. Where two weeks of the scale disagrees with this, believe the scale.", true);
+}
+
+/* ---------- the arithmetic panel ---------- */
+let lastD = null, inDiff = false;
+function tbl(rows, sumLabel, sumVal, unit){
+  let h = '<table class="ctab"><tbody>';
+  rows.forEach(r => {
+    h += `<tr><td>${r.label}</td><td class="w">${r.work}</td><td class="k">${r.val}</td></tr>`;
+  });
+  if(sumLabel) h += `<tr class="sum"><td>${sumLabel}</td><td class="w"></td><td class="k">${sumVal}</td></tr>`;
+  return h+"</tbody></table>";
+}
+
+function renderCalc(d){
+  const p = $("calcPanel");
+  if(!d.ready){
+    p.innerHTML = `<p class="formula">Enter your height, weight, age and sex first. Every line in
+      this panel is computed from them.</p>`;
+    return;
+  }
+  const ecc = d.st.ecc;
+  let h = "";
+
+  h += `<h3>What you ate</h3>`;
+  h += tbl(d.food.lines.map(l => ({label:l.label, work:l.work, val:kc(l.kcal)+" kcal"})),
+           "Taken in", kc(d.food.kcal)+" kcal");
+  h += `<p class="formula">Protein ${n1(d.food.p)} g, carbs ${n1(d.food.c)} g, fat ${n1(d.food.f)} g,
+        fibre ${n1(d.food.fib)} g. Protein is ${(d.protShare*100).toFixed(0)}% of your calories, which
+        sets the digestion cost below.</p>`;
+
+  h += `<h3>What your body spent</h3>`;
+  const out = [];
+  out.push({label:"Resting metabolism",
+    work:`Mifflin&ndash;St Jeor: 10 &times; ${d.weight} + 6.25 &times; ${d.height} &minus; 5 &times; ${d.age} ${d.male?"+ 5":"&minus; 161"}`,
+    val:kc(d.bmr)+" kcal"});
+  out.push({label:"Everyday moving",
+    work:`${kc(d.bmr)} &times; ${d.neatRate} for the part of your day you did not log`,
+    val:kc(d.neat)+" kcal"});
+  out.push({label:"Digesting the food",
+    work:`${kc(d.food.kcal)} &times; ${(d.tefRate*100).toFixed(1)}%, the rate rising with protein share`,
+    val:kc(d.tef)+" kcal"});
+  if(d.cardio.kcal>0) d.cardio.lines.forEach(l => out.push({label:l.label, work:l.work, val:kc(l.kcal)+" kcal"}));
+  if(d.st.kcal>0){
+    out.push({label:"Lifting, the way up",
+      work:`${Math.round(d.st.upJ)} J of work &divide; 0.20 efficiency &divide; 4184 J per kcal`,
+      val:n1(d.st.liftKcal)+" kcal"});
+    out.push({label:"Lifting, the way down",
+      work:`negative work, so no mechanical cost, but ${Math.round(ecc*100)}% of the lifting cost metabolically`,
+      val:n1(d.st.lowerKcal)+" kcal"});
+    out.push({label:"Being in the session",
+      work:`(${d.st.metOh} &minus; 1) MET &times; 3.5 &times; ${d.weight} / 200 &times; ${Math.round(d.st.minutes)} min`,
+      val:kc(d.st.overhead)+" kcal"});
+    out.push({label:"Afterburn", work:"6% of the three rows above", val:n1(d.st.epoc)+" kcal"});
+  }
+  d.timed.lines.forEach(l => out.push({label:l.label, work:l.work, val:kc(l.kcal)+" kcal"}));
+  d.chores.lines.forEach(l => out.push({label:l.label, work:l.work, val:n1(l.kcal)+" kcal"}));
+  if(d.sleepAdj) out.push({label:"Short sleep", work:"2% off resting rate under 6 h", val:kc(d.sleepAdj)+" kcal"});
+  h += tbl(out, "Used", kc(d.out)+" kcal");
+
+  if(d.st.lines.length){
+    h += `<h3>Every rep, as m g h</h3>`;
+    h += tbl(d.st.lines.map(l => ({label:l.label, work:l.work, val:Math.round(l.J/1000)+" kJ"})),
+             "Positive work", Math.round(d.st.upJ/1000)+" kJ");
+    h += `<p class="formula">Effective mass is not always your body weight. In a push-up your body
+          pivots at the toes, so your centre of mass rises only ${(d.st.A.arm*100-15).toFixed(0)} &times;
+          0.70 cm while your shoulders rise further, and any plate on your back rises further still.
+          Each figure above is the mass that, moved through the distance shown, does the same work.</p>`;
+  }
+
+
+  h += `<h3>The physics, precisely</h3>`;
+  h += `<p class="formula"><b>What is exact.</b> Work is the line integral of force along the
+    path, W = &int;<b>F</b>&middot;d<b>s</b>. Against a constant gravitational force the vertical
+    component is all that survives, giving W = mgh for a rise of h. Over a complete repetition
+    that returns to its starting position at rest, &Delta;KE = 0 and &Delta;PE = 0, so the net
+    mechanical work is exactly zero however fast or slow you moved: tempo changes the peak force,
+    not the total work. The lowering phase is where that cancellation happens &mdash; gravity does
+    +mgh on the load and your muscles do &minus;mgh. An isometric hold has d<b>s</b> = 0 and
+    therefore does exactly zero work, however hard it feels. One kilocalorie is defined as
+    4184 J, so every joule above converts at that rate and nothing else.</p>`;
+
+  h += `<p class="formula"><b>What is measured, with error bars.</b> Muscle converts roughly
+    <b>20%</b> of the metabolic energy it consumes into mechanical work; the literature spans
+    18&ndash;26% depending on the movement, contraction speed and muscle group, so a session
+    figure carries at least that much uncertainty. Eccentric contraction costs about
+    <b>a third</b> of concentric for the same load (reported between a fifth and a half), which is
+    the tempo setting above. A MET is defined as 3.5 ml O&#8322; per kg per minute, and a litre of
+    oxygen releases about 5 kcal &mdash; 4.69 burning pure fat, 5.05 burning pure carbohydrate, so
+    every MET figure carries a &plusmn;4% fuel-mix uncertainty before anything else. That is where
+    <span style="white-space:nowrap">MET &times; 3.5 &times; kg / 200</span> comes from:
+    3.5 ml &times; kg &divide; 1000 gives litres per minute, &times; 5 kcal gives kcal per minute,
+    and 3.5 &times; 5 &divide; 1000 = 1/200. Subtracting 1 MET removes resting metabolism so the
+    figure is the cost <em>above</em> lying still &mdash; though that subtraction assumes your
+    resting rate is exactly 3.5 ml/kg/min, which for most adults is an overestimate.</p>`;
+
+  h += `<p class="formula"><b>What is assumed, and could be argued with.</b> A single MET value
+    for resistance training (the standard tables say 5.0) would bundle the lifting and the standing
+    about together, and would not respond to load at all. This ledger splits them: mechanical work
+    from m g h, plus a postural rate of ${d.st.metOh} MET for the time you spend upright and
+    breathing hard. That avoids double-counting but the split point is a modelling choice, not a
+    measurement. Body segment fractions are population averages from Drillis and Contini, so a
+    long-limbed person of your height does more work per rep than this credits. The effective-mass
+    fractions treat you as a set of rigid links &mdash; 0.95 of body weight rising in a pull-up
+    because the forearms and hands stay on the bar, 0.85 in a squat because the shins do not rise
+    with the trunk. Internal work is ignored throughout: swinging an empty limb costs energy that
+    no m g h term captures. And afterburn is a flat 6%, which is an average standing in for
+    something that genuinely varies with intensity.</p>`;
+
+  h += `<p class="formula"><b>What this means for the numbers you see.</b> The work terms are
+    trustworthy to a few percent, because they are geometry and arithmetic. The conversion from
+    work to calories is trustworthy to about a fifth, because efficiency varies. The postural and
+    MET terms are the loosest of all, and they are also the largest. So the ranking of your days
+    is far more reliable than any single day's total &mdash; which is the same reason the scale
+    beats the model over a fortnight.</p>`;
+
+  h += `<h3>Where the difference went</h3>`;
+  const bal = d.balance;
+  const bl = [{label:"Balance", work:`${kc(d.food.kcal)} taken in &minus; ${kc(d.out)} used`,
+               val:(bal>=0?"+":"\u2212")+kc(Math.abs(bal))+" kcal"}];
+  if(bal>=0){
+    bl.push({label:"Split toward muscle", work:d.part.why.join(", "), val:(d.part.ratio*100).toFixed(0)+"%"});
+    bl.push({label:"To muscle", work:`${kc(d.part.leanKcal)} kcal &divide; 5000 kcal per kg of muscle built`,
+             val:n1(d.leanKg*1000)+" g"});
+    bl.push({label:"To fat", work:`${kc(d.part.fatKcal)} kcal &divide; 7700 kcal per kg of fat`,
+             val:n1(d.fatKg*1000)+" g"});
+  } else {
+    bl.push({label:"Share lost as lean", work:d.part.why.join(", "), val:(d.part.ratio*100).toFixed(0)+"%"});
+    bl.push({label:"Total tissue lost",
+      work:`${kc(-bal)} &divide; (7700 &times; ${(1-d.part.ratio).toFixed(2)} + 1800 &times; ${d.part.ratio.toFixed(2)})`,
+      val:n1(d.part.mass*1000)+" g"});
+    bl.push({label:"Of which fat", work:`${n1(d.part.mass*1000)} g &times; ${(1-d.part.ratio).toFixed(2)}`,
+             val:n1(-d.fatKg*1000)+" g"});
+    bl.push({label:"Of which lean", work:`${n1(d.part.mass*1000)} g &times; ${d.part.ratio.toFixed(2)}`,
+             val:n1(-d.leanKg*1000)+" g"});
+  }
+  h += tbl(bl);
+  h += `<p class="formula">A kilo of body fat holds about 7700 kcal. Muscle holds only about 1800,
+        but costs roughly 5000 to build, because synthesis itself burns energy. That asymmetry is why
+        a surplus and a deficit are not mirror images of each other.</p>`;
+
+  p.innerHTML = h;
+}
+
+$("showCalc").addEventListener("click", () => {
+  const p = $("calcPanel"), on = p.classList.toggle("show");
+  $("showCalc").textContent = on ? "Hide the steps" : "Show every step";
+  if(on && lastD) renderCalc(lastD);
+});
+
+/* ==================================================================
+   PROFILES.  Saved in this browser, on this device. Not accounts.
+   ================================================================== */
+const STORE = "energyLedger.v3";
+const OLD_STORE = "energyLedger.v2";
+function todayKey(){
+  const d = new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+function prettyDate(){
+  try{ return new Date().toLocaleDateString(undefined,
+    {weekday:"long", day:"numeric", month:"long"}); }
+  catch(e){ return todayKey(); }
+}
+let db = {users:{}, active:null};
+let canStore = true;
+try{ localStorage.setItem("__t","1"); localStorage.removeItem("__t"); }
+catch(e){ canStore = false; }
+
+function allControls(){
+  return LOG_IDS.concat(SETTING_IDS).map(id => $(id)).filter(Boolean);
+}
+function snapshot(){
+  const s = {};
+  allControls().forEach(n => { s[n.id] = n.value; });
+  return s;
+}
+function restore(s){
+  if(!s) return;
+  allControls().forEach(n => { if(s[n.id] !== undefined) n.value = s[n.id]; });
+  update(); openLogged();
+}
+
+/* After loading a day, open the accordions that actually contain something,
+   so nothing logged is hidden behind a closed section. */
+function openLogged(){
+  document.querySelectorAll("details.acc").forEach(d => {
+    let any = false;
+    d.querySelectorAll("input.num").forEach(n => { if(parseFloat(n.value) > 0) any = true; });
+    if(any) d.open = true;
+  });
+}
+function loadDb(){
+  if(!canStore) return;
+  try{
+    const raw = localStorage.getItem(STORE);
+    if(raw){ db = JSON.parse(raw); }
+    else {
+      const old = localStorage.getItem(OLD_STORE);      // carry across from v2
+      if(old){
+        const prev = JSON.parse(old);
+        db = {users:{}, active:prev.active || null};
+        Object.keys(prev.users||{}).forEach(n => {
+          db.users[n] = {usual: prev.users[n].usual || null, days:{}};
+          if(prev.users[n].last) db.users[n].days[todayKey()] = prev.users[n].last;
+        });
+        saveDb();
+      }
+    }
+  }catch(e){ db = {users:{}, active:null}; }
+  Object.values(db.users||{}).forEach(u => { if(!u.days) u.days = {}; });
+}
+function saveDb(){
+  if(!canStore) return;
+  try{ localStorage.setItem(STORE, JSON.stringify(db)); }
+  catch(e){ canStore = false; noteStore(); }
+}
+function noteStore(msg){
+  $("storeNote").textContent = msg || (canStore
+    ? "Profiles are saved in this browser on this device. Nothing leaves your computer, and there are no passwords, so treat these as labelled slots rather than secure accounts. Export keeps a copy you can move."
+    : "This browser is blocking local storage, so profiles will vanish when you close the tab. Use Export to keep a copy.");
+}
+function refreshUsers(){
+  const sel = $("userSel"); sel.innerHTML = "";
+  const names = Object.keys(db.users);
+  if(!names.length){
+    sel.appendChild(el("option",null,"No one yet"));
+    $("newRow").classList.add("show");
+    return;
+  }
+  names.forEach(n => {
+    const o = el("option",null,n); o.value = n;
+    if(n === db.active) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+function activeUser(){ return db.users[db.active]; }
+
+$("newUser").addEventListener("click", () => {
+  $("newRow").classList.add("show"); $("newName").focus();
+});
+$("cancelUser").addEventListener("click", () => $("newRow").classList.remove("show"));
+$("createUser").addEventListener("click", () => {
+  const name = $("newName").value.trim();
+  if(!name) return;
+  if(db.users[name]){ noteStore(`A profile called ${name} already exists.`); return; }
+  if(activeUser()) activeUser().days[todayKey()] = snapshot();   // don't lose the outgoing day
+  db.users[name] = {usual:null, days:{}};
+  db.active = name; saveDb(); refreshUsers();
+  $("newRow").classList.remove("show"); $("newName").value = "";
+  noteStore(`Created ${name}. Set your body details and a typical day, then save it as your usual day.`);
+});
+$("userSel").addEventListener("change", () => {
+  if(activeUser()) activeUser().days[todayKey()] = snapshot();
+  db.active = $("userSel").value;
+  saveDb();
+  openToday();
+  noteStore(`Switched to ${db.active}.`);
+});
+$("saveUsual").addEventListener("click", () => {
+  if(!activeUser()){ noteStore("Add a profile first, then save a usual day to it."); return; }
+  activeUser().usual = snapshot(); saveDb(); renderToday(false);
+  noteStore(`Saved this as ${db.active}'s usual day.`);
+});
+$("loadUsual").addEventListener("click", () => {
+  const u = activeUser();
+  if(!u || !u.usual){ noteStore("No usual day saved for this profile yet."); return; }
+  restore(u.usual); renderToday(false); noteStore(`Loaded ${db.active}'s usual day.`);
+});
+$("delUser").addEventListener("click", () => {
+  if(!activeUser()) return;
+  const gone = db.active;
+  delete db.users[gone];
+  db.active = Object.keys(db.users)[0] || null;
+  saveDb(); refreshUsers();
+  if(activeUser()) openToday();
+  noteStore(`Removed ${gone}.`);
+});
+$("clearBtn").addEventListener("click", () => {
+  LOG_IDS.forEach(id => { const n = $(id); if(n) n.value = 0; });
+  update(); openLogged();
+  noteStore("Cleared the day. Your body details and settings are kept.");
+});
+$("exportBtn").addEventListener("click", () => {
+  if(activeUser()) activeUser().days[todayKey()] = snapshot();
+  saveDb();
+  const blob = new Blob([JSON.stringify(db,null,2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "energy-ledger-profiles.json";
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 200);
+  noteStore("Exported every profile as a JSON file.");
+});
+$("importFile").addEventListener("change", ev => {
+  const file = ev.target.files && ev.target.files[0];
+  if(!file) return;
+  const fr = new FileReader();
+  fr.onload = () => {
+    try{
+      const incoming = JSON.parse(fr.result);
+      if(!incoming || !incoming.users) throw new Error("not a profile file");
+      Object.assign(db.users, incoming.users);
+      db.active = incoming.active && db.users[incoming.active] ? incoming.active : Object.keys(db.users)[0];
+      saveDb(); refreshUsers();
+      openToday();
+      noteStore(`Imported ${Object.keys(incoming.users).length} profile(s).`);
+    }catch(e){ noteStore("That file could not be read as a profile export."); }
+  };
+  fr.readAsText(file);
+  ev.target.value = "";
+});
+
+/* Today's log is saved under today's date, so tomorrow starts fresh from the
+   usual day rather than inheriting yesterday's. */
+let saveTimer = null;
+function rememberLast(){
+  const u = activeUser();
+  if(!u) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    u.days[todayKey()] = snapshot();
+    const keys = Object.keys(u.days).sort();
+    while(keys.length > 90) delete u.days[keys.shift()];   // keep three months
+    saveDb();
+  }, 600);
+}
+function openToday(){
+  const u = activeUser();
+  if(!u) return;
+  const saved = u.days[todayKey()];
+  restore(saved || u.usual || null);
+  renderToday(!!saved);
+}
+allControls().forEach(n => n.addEventListener("input", rememberLast));
+SETTING_IDS.forEach(id => { const n = $(id); if(n) n.addEventListener("change", update); });
+["weight","height","age","sex","job","train","rest","intensity","band","perset","lower"]
+  .forEach(id => $(id).addEventListener("input", update));
+
+
+/* ==================================================================
+   TODAY.  The usual day is already loaded; this reports what you
+   changed, what it cost, and how it moved the outcome.
+   ================================================================== */
+function usingSnapshot(snap, fn){
+  const cur = snapshot();
+  allControls().forEach(n => { if(snap[n.id] !== undefined) n.value = snap[n.id]; });
+  let r;
+  try { r = fn(); }
+  finally { allControls().forEach(n => { if(cur[n.id] !== undefined) n.value = cur[n.id]; }); }
+  return r;
+}
+
+function dayDiffs(usual){
+  const now = snapshot(), out = [];
+  LOG_IDS.forEach(id => {
+    const a = parseFloat(usual[id] || 0) || 0, b = parseFloat(now[id] || 0) || 0;
+    if(Math.abs(a-b) < 1e-9) return;
+    const L = LABELS[id] || {name:id, unit:""};
+    let kcal = null;
+    const fid = id.startsWith("f_") ? id.slice(2) : null;
+    if(fid && foodIndex[fid]) kcal = (b-a)*foodIndex[fid].kcal;
+    const name = L.name.replace(/ in [a-z]+$/,"").replace(/,\s*$/,"");
+    out.push({id, name, unit:L.unit, was:a, now:b, kcal});
+  });
+  return out;
+}
+
+function renderToday(resumed){
+  const u = activeUser(), panel = $("todayPanel");
+  if(!u || !u.usual){ panel.hidden = true; return; }
+  panel.hidden = false;
+  $("todayTitle").textContent = prettyDate();
+
+  const diffs = dayDiffs(u.usual);
+  const body = $("todayBody");
+
+  if(!diffs.length){
+    body.innerHTML = `<p class="t-none">This is ${db.active}'s usual day, loaded and ready.
+      Change whatever was different &mdash; an extra chapati, a session skipped, a longer walk
+      &mdash; and everything below updates as you go, with the reasoning under
+      <em>The arithmetic</em>.</p>`;
+    return;
+  }
+
+  const before = usingSnapshot(u.usual, compute);
+  const after = compute();
+  let h = '<div class="diffs">';
+  diffs.forEach(d => {
+    const up = d.now > d.was;
+    const eff = d.kcal === null ? "" :
+      `<span class="eff ${up?"up":"down"}">${d.kcal>=0?"+":"\u2212"}${kc(Math.abs(d.kcal))} kcal</span>`;
+    h += `<div class="diff"><span>${d.name}</span>
+            <span class="was">${n1(d.was)} &rarr; ${n1(d.now)} ${d.unit}</span>
+            ${eff || '<span class="eff"></span>'}</div>`;
+  });
+  h += "</div>";
+
+  if(before.ready && after.ready){
+    const dIn = after.food.kcal - before.food.kcal;
+    const dOut = after.out - before.out;
+    const dBal = after.balance - before.balance;
+    const fA = after.fatKg*1000, fB = before.fatKg*1000;
+    const say = v => (v>=0?"+":"\u2212")+kc(Math.abs(v));
+    h += `<p class="t-sum">Against your usual day you took in <b>${say(dIn)}</b> kcal and spent
+      <b>${say(dOut)}</b>, so the balance moved <b>${say(dBal)}</b> kcal, from
+      ${say(before.balance)} to ${say(after.balance)}.
+      Body fat goes from ${fB>=0?"storing":"burning"} ${Math.abs(fB).toFixed(0)} g a day to
+      <b>${fA>=0?"storing":"burning"} ${Math.abs(fA).toFixed(0)} g</b>.
+      Over a week of days like this that is ${(after.fatKg*7).toFixed(2)} kg of fat rather than
+      ${(before.fatKg*7).toFixed(2)} kg.</p>`;
+  }
+  body.innerHTML = h;
+}
+
+$("resetToday").addEventListener("click", () => {
+  const u = activeUser();
+  if(!u || !u.usual) return;
+  restore(u.usual);
+  u.days[todayKey()] = snapshot(); saveDb();
+  renderToday(false);
+  noteStore("Today reset to your usual day.");
+});
+$("makeUsual").addEventListener("click", () => {
+  const u = activeUser();
+  if(!u) return;
+  u.usual = snapshot(); saveDb(); renderToday(false);
+  noteStore("Today is now your usual day. Tomorrow will start from this.");
+});
+
+/* ---------- search across everything loggable ---------- */
+$("foodSearch").addEventListener("input", () => {
+  const q = $("foodSearch").value.trim().toLowerCase();
+  const rows = document.querySelectorAll(".row[data-name]");
+  let hits = 0;
+  rows.forEach(r => {
+    const match = !q || r.getAttribute("data-name").indexOf(q) > -1;
+    r.classList.toggle("hidden", !match);
+    if(match) hits++;
+  });
+  document.querySelectorAll("details.acc").forEach(d => {
+    if(!q){ return; }
+    let any = false;
+    d.querySelectorAll(".row[data-name]").forEach(r => { if(!r.classList.contains("hidden")) any = true; });
+    d.open = any;
+    d.classList.toggle("hidden", !any);
+  });
+  if(!q) document.querySelectorAll("details.acc").forEach(d => d.classList.remove("hidden"));
+  $("noResult").classList.toggle("hidden", hits > 0);
+});
+
+/* ---------- the ledger as a bottom sheet on small screens ---------- */
+function sheet(on){ document.body.classList.toggle("sheet", on); }
+$("dock").addEventListener("click", () => sheet(!document.body.classList.contains("sheet")));
+$("dock").addEventListener("keydown", ev => {
+  if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); sheet(true); }
+});
+$("sheetBack").addEventListener("click", () => sheet(false));
+$("sheetClose").addEventListener("click", () => sheet(false));
+document.addEventListener("keydown", ev => { if(ev.key === "Escape") sheet(false); });
+
+loadDb(); refreshUsers(); noteStore();
+if(activeUser()) openToday();
+update();
+</script>
+</body>
+</html>
