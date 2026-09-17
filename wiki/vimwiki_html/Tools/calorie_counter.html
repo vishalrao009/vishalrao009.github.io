@@ -162,6 +162,16 @@ iframe.skiptranslate,.goog-te-banner-frame.skiptranslate,.goog-te-gadget-icon{di
 .goog-te-gadget{height:0;overflow:hidden;color:transparent}
 body{top:0!important}
 .goog-text-highlight{background:none!important;box-shadow:none!important}
+/* Google also pops a "Rate this translation" balloon over translated text, with
+   a hover tooltip and a voting iframe behind it. On a phone it lands on top of
+   whatever was just tapped, so the whole apparatus is hidden and made
+   untouchable - translated text then behaves like ordinary text. */
+#goog-gt-tt,#goog-gt-tt *,.goog-te-balloon-frame,#goog-gt-votingFrame,
+.goog-tooltip,.goog-tooltip:hover,.goog-te-spinner-pos,
+.VIpgJd-ZVi9od-aZ2wEe-wOHMyf,.VIpgJd-ZVi9od-ORHb-OEVmcd,
+.VIpgJd-ZVi9od-vH1Gmf,.VIpgJd-ZVi9od-vH1Gmf-ibnC6b,
+.VIpgJd-yAWNEb-VIpgJd-fmcmS-sn54Q,.VIpgJd-yAWNEb-L7lbkb,.VIpgJd-yAWNEb-hvhgNd{
+  display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
 
 /* ---------------- app bar ---------------- */
 .appbar{
@@ -6649,6 +6659,41 @@ try{
   document.addEventListener('keydown', function(e){ if(e.key==='Escape') panel.classList.remove('open'); });
   search.addEventListener('input', function(){ renderList(search.value); });
   renderList('');
+  /* The CSS above covers the balloon classes Google ships today; these get
+     renamed from time to time, so anything it injects with a goog-gt- id or a
+     balloon class is hidden here too. Hidden rather than removed, so the
+     translator's own script never trips over a missing node. */
+  var KILL = '#goog-gt-tt,.goog-te-balloon-frame,#goog-gt-votingFrame,.goog-tooltip,'
+           + '.VIpgJd-ZVi9od-vH1Gmf,.VIpgJd-yAWNEb-VIpgJd-fmcmS-sn54Q';
+  function hide(n){
+    if(!n || n.nodeType!==1) return;
+    n.style.setProperty('display','none','important');
+    n.style.setProperty('visibility','hidden','important');
+    n.style.setProperty('pointer-events','none','important');
+    n.setAttribute('aria-hidden','true');
+  }
+  function killFeedback(root){
+    var scope = (root && root.querySelectorAll) ? root : document;
+    var nodes = scope.querySelectorAll(KILL);
+    for(var i=0;i<nodes.length;i++) hide(nodes[i]);
+  }
+  killFeedback();
+  if(window.MutationObserver){
+    new MutationObserver(function(muts){
+      for(var i=0;i<muts.length;i++){
+        var added=muts[i].addedNodes;
+        for(var j=0;j<added.length;j++){
+          var n=added[j];
+          if(!n || n.nodeType!==1) continue;
+          var cn = (typeof n.className==='string') ? n.className : '';
+          if((n.id && n.id.indexOf('goog-gt-')===0) || cn.indexOf('goog-te-balloon')>=0) hide(n);
+          if(n.matches && n.matches(KILL)) hide(n);
+          killFeedback(n);
+        }
+      }
+    }).observe(document.documentElement,{childList:true,subtree:true});
+  }
+
   var saved=currentLang();
   if(saved && saved!=='en') applyLanguage(saved);
 })();
