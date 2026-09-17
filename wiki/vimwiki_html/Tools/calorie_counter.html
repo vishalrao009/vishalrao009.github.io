@@ -118,6 +118,45 @@ h1,h2,h3{margin:0}
 .qchip.on{border-color:var(--in)}
 .qchip.on b{color:var(--in)}
 .qchip:active{transform:scale(.97)}
+/* ---- micronutrients ---- */
+.ntgrp{margin:15px 0 3px;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.ntrow{padding:9px 0;border-bottom:1px solid var(--line)}
+.ntrow:last-child{border-bottom:0}
+.nttop{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.ntname{font-size:14.5px;flex:1;min-width:0}
+.ntval{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.ntbar{height:7px;border-radius:999px;background:var(--card2);margin-top:6px;overflow:hidden}
+.ntbar i{display:block;height:100%;border-radius:999px;background:var(--muted)}
+.ntlow i{background:#C0524B}
+.ntmid i{background:#C08A3E}
+.ntok i{background:#4E8D6E}
+.ntsum{list-style:none;cursor:pointer;display:block}
+.ntsum::-webkit-details-marker{display:none}
+.ntrow[open] .ntname{font-weight:600}
+.ntcar{color:var(--muted);font-size:16px;line-height:1;transition:transform .15s;align-self:center}
+.ntrow[open] .ntcar{transform:rotate(90deg)}
+.ntsum:hover .ntname{color:var(--in)}
+.ntsrc{font-size:12.5px;color:var(--ink);margin-top:5px;line-height:1.5}
+.ntsup{font-size:12.5px;color:var(--ink);margin-top:5px;padding:7px 9px;background:var(--card2);border-radius:var(--r-sm);line-height:1.5}
+.ntnote{font-size:12px;color:var(--muted);margin-top:4px;font-style:italic}
+/* ---- translate (globe) ---- */
+#translate-panel{display:none;flex-direction:column;position:fixed;right:12px;top:60px;width:242px;max-height:62vh;
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);box-shadow:var(--shadow);z-index:1200;overflow:hidden}
+#translate-panel.open{display:flex}
+#translate-panel .tp-header{padding:10px 12px 6px;font-weight:600;color:var(--in);font-size:14px}
+#translate-panel input[type=text]{margin:6px 12px;padding:7px 9px;border:1px solid var(--line);border-radius:var(--r-sm);
+  background:var(--card2);color:var(--ink);font:inherit;font-size:14px}
+#translate-panel .tp-list{overflow-y:auto;padding:0 6px 8px}
+#translate-panel .tp-lang{display:block;width:100%;text-align:left;background:none;border:none;padding:8px 10px;
+  font:inherit;font-size:14px;color:var(--ink);cursor:pointer;border-radius:var(--r-sm)}
+#translate-panel .tp-lang:hover{background:var(--card2)}
+#translate-panel .tp-lang.active{background:var(--in);color:#fff}
+/* keep Google's own banner/tooltip/select out of sight; we drive it ourselves */
+#google_translate_element{display:none!important}
+iframe.skiptranslate,.goog-te-banner-frame.skiptranslate,.goog-te-gadget-icon{display:none!important}
+.goog-te-gadget{height:0;overflow:hidden;color:transparent}
+body{top:0!important}
+.goog-text-highlight{background:none!important;box-shadow:none!important}
 
 /* ---------------- app bar ---------------- */
 .appbar{
@@ -585,6 +624,9 @@ input,select{scroll-margin:84px 0 180px}
   <button class="iconbtn" id="factsBtn" aria-label="The power in your food">
     <svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg>
   </button>
+  <button class="iconbtn" id="btn-globe" aria-label="Translate this page">
+    <svg viewBox="0 0 24 24" style="fill:none;stroke:var(--in);stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/><path d="M5.3 6.5c1.9 1 4.2 1.6 6.7 1.6s4.8-.6 6.7-1.6"/><path d="M5.3 17.5c1.9-1 4.2-1.6 6.7-1.6s4.8.6 6.7 1.6"/></svg>
+  </button>
   <button class="iconbtn" id="settingsBtn" aria-label="Reminders and settings">
     <svg viewBox="0 0 24 24" style="fill:none;stroke:var(--in);stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
   </button>
@@ -712,6 +754,8 @@ input,select{scroll-margin:84px 0 180px}
     </div>
 
     <button class="btn full line" id="openCalc">Show every step of the arithmetic</button>
+    <button class="btn full line" id="openMicros" style="margin-top:9px">Vitamins &amp; minerals</button>
+    <button class="btn full line" id="refsBtn" style="margin-top:9px">Sources &amp; references</button>
 
     <div class="privacy">
       <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
@@ -4267,6 +4311,21 @@ const STEPS = [
     + "A rough answer is fine.",
     "train"),
   {
+    q:"What is your build?",
+    sub:"Optional, and only used to estimate your body-fat percentage when you don't know it — "
+      + "that percentage is what resting metabolism is built on, since it tracks lean mass. Pick "
+      + "the closest build, or, if you know your real body-fat %, type it in and it overrules the "
+      + "pictures. You can skip this.",
+    when(){ return (+($("age").value) || 0) >= 18; },   // body composition only past 18
+    cta:"Next",
+    build(b){
+      const c = el("div","wizcard");
+      lend("field_build", c);
+      b.appendChild(c);
+      if(typeof drawTypes === "function") drawTypes();   // draw builds for the chosen sex
+    }
+  },
+  {
     q:"Have you eaten today?",
     sub:"Log everything you have had so far. You can always come back and add more later.",
     build(b){
@@ -6276,6 +6335,267 @@ try{
   } else {
     setTimeout(schedule, 1500);
   }
+})();
+</script>
+<script>
+/* ---------------------------------------------------------------
+   MICRONUTRIENTS
+   Per-serving vitamin & mineral estimates for every food, summed
+   for the day and checked against ICMR-NIN 2020 RDA for the
+   person's age and sex. Food values are estimates from IFCT 2017
+   and USDA FoodData Central scaled to this app's serving sizes,
+   not lab measurements. Information only, not medical advice.
+   --------------------------------------------------------------- */
+(function(){
+  "use strict";
+  var MICRO = {"milk_cow":{"ca":1.2,"fe":0.0005,"mg":0.13,"p":0.9,"k":1.5,"na":0.45,"zn":0.004,"cu":0.0002,"se":0.02,"iod":0.15,"va":0.46,"vc":0.02,"vd":0.02,"ve":0.0007,"vk":0.003,"b1":0.0004,"b2":0.0018,"b3":0.0009,"b5":0.0036,"b6":0.0004,"b9":0.05,"b12":0.0045,"o3":0.0002},"milk_buf":{"ca":1.95,"fe":0.001,"mg":0.15,"p":1.2,"k":1.78,"na":0.52,"zn":0.005,"cu":0.0002,"se":0.02,"iod":0.15,"va":0.53,"vc":0.023,"vd":0.02,"ve":0.001,"vk":0.003,"b1":0.0005,"b2":0.0014,"b3":0.001,"b5":0.0019,"b6":0.0004,"b9":0.06,"b12":0.0036,"o3":0.0003},"milk_toned":{"ca":1.2,"fe":0.0005,"mg":0.13,"p":0.9,"k":1.5,"na":0.45,"zn":0.004,"cu":0.0002,"se":0.02,"iod":0.15,"va":0.3,"vc":0.02,"vd":0.01,"ve":0.0005,"vk":0.003,"b1":0.0004,"b2":0.0018,"b3":0.0009,"b5":0.0036,"b6":0.0004,"b9":0.05,"b12":0.004,"o3":0.0002},"curd":{"ca":1.5,"fe":0.001,"mg":0.12,"p":1.0,"k":1.3,"na":0.45,"zn":0.005,"cu":0.0002,"se":0.02,"iod":0.12,"va":0.3,"vc":0.008,"vd":0.02,"ve":0.0006,"vk":0.002,"b1":0.0003,"b2":0.0014,"b3":0.0008,"b5":0.0039,"b6":0.0005,"b9":0.07,"b12":0.004,"o3":0.0002},"curd_toned":{"ca":1.5,"fe":0.001,"mg":0.12,"p":1.0,"k":1.3,"na":0.45,"zn":0.005,"cu":0.0002,"se":0.02,"iod":0.12,"va":0.2,"vc":0.008,"vd":0.01,"ve":0.0005,"vk":0.002,"b1":0.0003,"b2":0.0014,"b3":0.0008,"b5":0.0039,"b6":0.0005,"b9":0.07,"b12":0.004,"o3":0.0002},"paneer":{"ca":4.8,"fe":0.002,"mg":0.22,"p":3.4,"k":1.0,"na":0.22,"zn":0.019,"cu":0.0003,"se":0.15,"iod":0.05,"mn":0.0003,"va":1.5,"vd":0.03,"ve":0.003,"vk":0.01,"b1":0.0002,"b2":0.002,"b3":0.001,"b5":0.005,"b6":0.0006,"b9":0.08,"b12":0.011,"o3":0.001},"ghee_cow":{"va":15.0,"ve":0.14,"vk":0.4,"o3":0.025},"ghee_buf":{"va":15.0,"ve":0.14,"vk":0.4,"o3":0.025},"butter":{"ca":1.2,"fe":0.001,"mg":0.1,"p":1.2,"k":1.2,"na":0.55,"zn":0.0045,"se":0.05,"iod":0.15,"va":34.2,"vd":3.0,"ve":0.115,"vk":0.35,"b2":0.0015,"b3":0.002,"b5":0.005,"b9":0.15,"b12":0.0085,"o3":0.015},"chapati":{"ca":9.9,"fe":1.125,"mg":40.5,"p":90.0,"k":81.0,"na":2.25,"zn":0.675,"cu":0.1575,"se":13.5,"mn":0.765,"ve":0.18,"vk":0.45,"b1":0.1125,"b2":0.036,"b3":1.575,"b5":0.225,"b6":0.09,"b9":9.0,"o3":0.0225},"rice":{"ca":15.0,"fe":0.9,"mg":18.0,"p":64.5,"k":52.5,"na":1.5,"zn":0.9,"cu":0.15,"se":12.0,"mn":0.75,"ve":0.06,"b1":0.03,"b2":0.015,"b3":0.6,"b5":0.6,"b6":0.075,"b9":4.5,"o3":0.015},"poha":{"ca":40.0,"fe":8.0,"mg":50.0,"p":120.0,"k":80.0,"na":300.0,"zn":2.0,"cu":0.3,"se":10.0,"mn":1.0,"va":60.0,"vc":10.0,"ve":0.4,"vk":4.0,"b1":0.1,"b2":0.06,"b3":3.0,"b5":0.6,"b6":0.2,"b9":20.0,"o3":0.06},"oats":{"ca":0.52,"fe":0.047,"mg":1.38,"p":4.1,"k":3.6,"na":0.02,"zn":0.036,"cu":0.006,"se":0.28,"mn":0.036,"ve":0.007,"vk":0.02,"b1":0.005,"b2":0.0015,"b3":0.011,"b5":0.013,"b6":0.001,"b9":0.32,"o3":0.001},"bread":{"ca":27.0,"fe":0.972,"mg":20.25,"p":54.0,"k":67.5,"na":121.5,"zn":0.405,"cu":0.0675,"se":7.56,"mn":0.405,"ve":0.081,"vk":0.27,"b1":0.108,"b2":0.054,"b3":1.08,"b5":0.135,"b6":0.027,"b9":10.8,"o3":0.0135},"paratha":{"ca":13.75,"fe":1.32,"mg":44.0,"p":99.0,"k":88.0,"na":110.0,"zn":0.77,"cu":0.165,"se":13.75,"mn":0.825,"va":5.5,"ve":0.825,"vk":1.1,"b1":0.11,"b2":0.0385,"b3":1.65,"b5":0.22,"b6":0.0825,"b9":9.9,"o3":0.055},"dal":{"ca":28.5,"fe":2.85,"mg":37.5,"p":112.5,"k":330.0,"na":7.5,"zn":1.35,"cu":0.3,"se":4.5,"mn":0.6,"va":7.5,"vc":1.5,"ve":0.15,"vk":1.5,"b1":0.15,"b2":0.075,"b3":0.9,"b5":0.6,"b6":0.15,"b9":67.5,"o3":0.15},"rajma":{"ca":52.5,"fe":3.3,"mg":67.5,"p":157.5,"k":420.0,"na":12.0,"zn":1.5,"cu":0.3,"se":1.5,"mn":0.6,"vc":1.5,"ve":0.03,"vk":3.0,"b1":0.18,"b2":0.075,"b3":0.75,"b5":0.3,"b6":0.18,"b9":90.0,"o3":0.15},"sprouts":{"ca":33.0,"fe":2.85,"mg":45.0,"p":105.0,"k":225.0,"na":9.0,"zn":1.35,"cu":0.24,"se":1.5,"mn":0.3,"va":1.5,"vc":18.0,"ve":0.15,"vk":4.5,"b1":0.225,"b2":0.15,"b3":1.05,"b5":0.3,"b6":0.15,"b9":90.0,"o3":0.075},"soya":{"ca":3.5,"fe":0.2,"mg":2.5,"p":6.5,"k":21.0,"na":0.05,"zn":0.05,"cu":0.015,"se":0.2,"mn":0.02,"ve":0.005,"vk":0.05,"b1":0.007,"b2":0.003,"b3":0.02,"b5":0.005,"b6":0.005,"b9":3.0,"o3":0.006},"chana":{"ca":0.58,"fe":0.05,"mg":1.2,"p":3.0,"k":8.0,"na":0.2,"zn":0.034,"cu":0.006,"se":0.08,"mn":0.02,"va":0.03,"vc":0.01,"ve":0.008,"vk":0.09,"b1":0.004,"b2":0.002,"b3":0.015,"b5":0.005,"b6":0.005,"b9":3.4,"o3":0.001},"whey":{"ca":150.0,"fe":0.3,"mg":12.0,"p":120.0,"k":120.0,"na":90.0,"zn":0.9,"cu":0.03,"se":9.0,"iod":3.0,"mn":0.03,"va":30.0,"vc":1.5,"vd":30.0,"ve":0.3,"vk":0.3,"b1":0.06,"b2":0.15,"b3":0.3,"b5":0.3,"b6":0.15,"b9":12.0,"b12":0.3,"o3":0.015},"sabji_dry":{"ca":60.0,"fe":1.8,"mg":30.0,"p":67.5,"k":375.0,"na":300.0,"zn":0.6,"cu":0.15,"se":1.5,"mn":0.3,"va":300.0,"vc":37.5,"ve":0.75,"vk":60.0,"b1":0.09,"b2":0.075,"b3":0.9,"b5":0.3,"b6":0.225,"b9":60.0,"o3":0.15},"sabji_gravy":{"ca":75.0,"fe":1.95,"mg":33.0,"p":75.0,"k":390.0,"na":375.0,"zn":0.75,"cu":0.15,"se":1.5,"mn":0.3,"va":375.0,"vc":30.0,"ve":0.9,"vk":45.0,"b1":0.09,"b2":0.075,"b3":0.9,"b5":0.3,"b6":0.225,"b9":52.5,"o3":0.15},"salad":{"ca":45.0,"fe":1.05,"mg":18.0,"p":45.0,"k":300.0,"na":22.5,"zn":0.3,"cu":0.075,"se":0.75,"mn":0.225,"va":225.0,"vc":30.0,"ve":0.45,"vk":90.0,"b1":0.075,"b2":0.06,"b3":0.6,"b5":0.3,"b6":0.12,"b9":45.0,"o3":0.075},"potato":{"ca":0.08,"fe":0.005,"mg":0.22,"p":0.6,"k":3.8,"na":0.05,"zn":0.003,"cu":0.001,"se":0.004,"mn":0.0015,"vc":0.13,"ve":0.0001,"vk":0.02,"b1":0.0008,"b2":0.0003,"b3":0.011,"b5":0.005,"b6":0.003,"b9":0.12,"o3":0.0001},"banana":{"ca":5.9,"fe":0.354,"mg":31.86,"p":25.96,"k":422.44,"na":1.18,"zn":0.177,"cu":0.0944,"se":1.18,"mn":0.3186,"va":3.54,"vc":10.266,"ve":0.118,"vk":0.59,"b1":0.0354,"b2":0.0826,"b3":0.826,"b5":0.354,"b6":0.4366,"b9":23.6,"o3":0.0354},"apple":{"ca":10.92,"fe":0.182,"mg":9.1,"p":20.02,"k":194.74,"na":1.82,"zn":0.0728,"cu":0.0546,"mn":0.0637,"va":5.46,"vc":8.372,"ve":0.3276,"vk":4.004,"b1":0.0364,"b2":0.0546,"b3":0.1638,"b5":0.1092,"b6":0.0728,"b9":5.46,"o3":0.0182},"orange":{"ca":52.4,"fe":0.131,"mg":13.1,"p":18.34,"k":237.11,"zn":0.0917,"cu":0.0524,"se":0.655,"mn":0.0328,"va":14.41,"vc":69.43,"ve":0.2358,"b1":0.1179,"b2":0.0524,"b3":0.3668,"b5":0.3275,"b6":0.0786,"b9":39.3,"o3":0.0131},"mango":{"ca":22.0,"fe":0.32,"mg":20.0,"p":28.0,"k":336.0,"na":2.0,"zn":0.18,"cu":0.22,"se":1.2,"mn":0.12,"va":108.0,"vc":72.0,"ve":1.8,"vk":8.4,"b1":0.06,"b2":0.08,"b3":1.34,"b5":0.4,"b6":0.24,"b9":86.0,"o3":0.1},"papaya":{"ca":30.0,"fe":0.375,"mg":31.5,"p":15.0,"k":273.0,"na":12.0,"zn":0.12,"cu":0.075,"se":0.9,"mn":0.06,"va":70.5,"vc":91.5,"ve":0.45,"vk":3.9,"b1":0.03,"b2":0.045,"b3":0.51,"b5":0.285,"b6":0.06,"b9":55.5,"o3":0.045},"almond":{"ca":3.228,"fe":0.0444,"mg":3.24,"p":5.772,"k":8.796,"na":0.012,"zn":0.0372,"cu":0.012,"se":0.048,"mn":0.0264,"ve":0.3072,"b1":0.0024,"b2":0.0132,"b3":0.0432,"b5":0.0056,"b6":0.0017,"b9":0.528},"cashew":{"ca":0.555,"fe":0.1005,"mg":4.38,"p":8.895,"k":9.9,"na":0.18,"zn":0.087,"cu":0.033,"se":0.3,"mn":0.0255,"vc":0.0075,"ve":0.0135,"vk":0.51,"b1":0.006,"b2":0.0009,"b3":0.0165,"b5":0.0129,"b6":0.006,"b9":0.375,"o3":0.0009},"walnut":{"ca":4.9,"fe":0.145,"mg":7.9,"p":17.3,"k":22.05,"na":0.1,"zn":0.155,"cu":0.08,"se":0.25,"mn":0.17,"vc":0.065,"ve":0.035,"vk":0.135,"b1":0.017,"b2":0.0075,"b3":0.055,"b5":0.0285,"b6":0.027,"b9":4.9,"o3":0.45},"peanut":{"ca":0.92,"fe":0.046,"mg":1.68,"p":3.76,"k":7.05,"na":0.18,"zn":0.033,"cu":0.011,"se":0.07,"mn":0.019,"ve":0.083,"b1":0.006,"b2":0.0014,"b3":0.12,"b5":0.018,"b6":0.0035,"b9":2.4},"raisin":{"ca":0.5,"fe":0.019,"mg":0.32,"p":1.01,"k":7.49,"na":0.11,"zn":0.002,"cu":0.003,"se":0.006,"mn":0.003,"vc":0.02,"ve":0.001,"vk":0.035,"b1":0.001,"b2":0.0013,"b3":0.008,"b5":0.001,"b6":0.0017,"b9":0.05,"o3":0.0001},"date":{"ca":2.925,"fe":0.075,"mg":3.225,"p":4.65,"k":49.2,"na":0.15,"zn":0.03,"cu":0.015,"se":0.225,"mn":0.0225,"vc":0.03,"ve":0.0037,"vk":0.2025,"b1":0.0037,"b2":0.0045,"b3":0.12,"b5":0.06,"b6":0.0187,"b9":1.125,"o3":0.0008},"oil":{"ve":0.75,"vk":0.5,"o3":0.05},"sugar":{"ca":0.05,"fe":0.0025,"k":0.1,"na":0.05},"jaggery":{"ca":0.8,"fe":0.11,"mg":0.7,"p":0.3,"k":10.5,"na":0.3,"zn":0.002,"cu":0.001,"se":0.01,"mn":0.003,"b1":0.0001,"b2":0.0001,"b3":0.001},"honey":{"ca":0.42,"fe":0.028,"mg":0.14,"p":0.28,"k":3.64,"na":0.28,"zn":0.014,"cu":0.0028,"se":0.056,"mn":0.0056,"vc":0.035,"b2":0.0028,"b3":0.0084,"b5":0.0049,"b6":0.0014,"b9":0.14},"chai":{"ca":82.5,"fe":0.15,"mg":12.0,"p":60.0,"k":105.0,"na":30.0,"zn":0.3,"cu":0.015,"se":1.5,"iod":9.0,"mn":0.03,"va":30.0,"vc":0.75,"vd":0.75,"ve":0.075,"vk":0.3,"b1":0.03,"b2":0.12,"b3":0.15,"b5":0.225,"b6":0.03,"b9":4.5,"b12":0.3,"o3":0.015}};
+  var NUT   = [{"k": "ca", "name": "Calcium", "u": "mg", "g": "Minerals", "m": 1000, "w": 1000, "src": "milk, curd, paneer, ragi, sesame, greens", "sup": "calcium citrate 500 mg"}, {"k": "fe", "name": "Iron", "u": "mg", "g": "Minerals", "m": 19, "w": 29, "src": "dal, rajma, soya, sprouts, jaggery, dates, greens; take with vitamin C (lemon, amla) and keep tea/coffee away from meals", "sup": "an iron supplement only if a blood test shows low ferritin"}, {"k": "mg", "name": "Magnesium", "u": "mg", "g": "Minerals", "m": 440, "w": 370, "src": "nuts, seeds, oats, whole grains, dal, greens"}, {"k": "p", "name": "Phosphorus", "u": "mg", "g": "Minerals", "m": 1000, "w": 1000, "src": "dairy, pulses, nuts, whole grains"}, {"k": "k", "name": "Potassium", "u": "mg", "g": "Minerals", "m": 3500, "w": 3500, "src": "banana, dates, rajma, potato, coconut water, greens"}, {"k": "na", "name": "Sodium", "u": "mg", "g": "Minerals", "m": 2000, "w": 2000, "kind": "limit", "src": "almost all from salt; most people already cross this, so the aim is to stay under it, not to reach it", "note": "This is a ceiling, not a goal. Added salt in cooking is not tracked, so your real intake is higher."}, {"k": "zn", "name": "Zinc", "u": "mg", "g": "Minerals", "m": 17, "w": 13, "src": "whole grains, pulses, nuts, seeds, soya, paneer", "sup": "zinc 20 mg"}, {"k": "cu", "name": "Copper", "u": "mg", "g": "Minerals", "m": 1.7, "w": 1.7, "src": "cashew, other nuts, seeds, whole grains"}, {"k": "se", "name": "Selenium", "u": "µg", "g": "Minerals", "m": 40, "w": 40, "src": "whey, cashew, whole grains, milk"}, {"k": "iod", "name": "Iodine", "u": "µg", "g": "Minerals", "m": 150, "w": 150, "src": "iodised salt, milk, curd"}, {"k": "mn", "name": "Manganese", "u": "mg", "g": "Minerals", "m": 4, "w": 4, "src": "oats, whole grains, nuts, chana"}, {"k": "va", "name": "Vitamin A", "u": "µg", "g": "Vitamins", "m": 1000, "w": 840, "src": "papaya, mango, carrot & salad, ghee, milk, greens"}, {"k": "vc", "name": "Vitamin C", "u": "mg", "g": "Vitamins", "m": 80, "w": 65, "src": "amla, guava, citrus, capsicum, sprouts, papaya"}, {"k": "vd", "name": "Vitamin D", "u": "IU", "g": "Vitamins", "m": 600, "w": 600, "kind": "sun", "src": "sunlight on skin ~15-20 min midday; few foods carry it (fortified milk, mushrooms)", "sup": "vitamin D3 (cholecalciferol) — dose and course per a doctor", "note": "Mostly made in the skin from sunlight, which this cannot count, so food alone almost always reads low."}, {"k": "ve", "name": "Vitamin E", "u": "mg", "g": "Vitamins", "m": 10, "w": 10, "src": "almonds, peanuts, seeds, vegetable oils"}, {"k": "vk", "name": "Vitamin K", "u": "µg", "g": "Vitamins", "m": 55, "w": 55, "src": "green leafy vegetables, salad"}, {"k": "b1", "name": "Thiamin (B1)", "u": "mg", "g": "Vitamins", "m": 1.4, "w": 1.4, "src": "whole grains, pulses, nuts, chapati"}, {"k": "b2", "name": "Riboflavin (B2)", "u": "mg", "g": "Vitamins", "m": 2.0, "w": 1.9, "src": "milk, curd, paneer, greens, whole grains"}, {"k": "b3", "name": "Niacin (B3)", "u": "mg", "g": "Vitamins", "m": 18, "w": 14, "src": "peanut, whole grains, pulses"}, {"k": "b5", "name": "Pantothenate (B5)", "u": "mg", "g": "Vitamins", "m": 5, "w": 5, "src": "whole grains, pulses, milk, nuts"}, {"k": "b6", "name": "Vitamin B6", "u": "mg", "g": "Vitamins", "m": 2.4, "w": 1.9, "src": "banana, potato, whole grains, pulses"}, {"k": "b9", "name": "Folate (B9)", "u": "µg", "g": "Vitamins", "m": 300, "w": 220, "src": "greens, pulses, sprouts, chana, citrus", "sup": "folic acid 400 µg (especially before and during pregnancy)"}, {"k": "b12", "name": "Vitamin B12", "u": "µg", "g": "Vitamins", "m": 2.2, "w": 2.2, "src": "dairy (milk, curd, paneer); not present in plant foods, so vegetarians often fall short", "sup": "methylcobalamin 1500 µg daily, or a 2500 µg tablet once a week"}, {"k": "o3", "name": "Omega-3 (ALA)", "u": "g", "g": "Other", "m": 2.2, "w": 2.2, "src": "walnuts, flaxseed (alsi), mustard oil, chia, soya", "note": "Plant omega-3 (alpha-linolenic acid)."}];
+  var CHILD = {"ca": [[3, 500], [6, 550], [9, 650], [12, 850], [15, 1000], [17, 1050]], "fe": {"m": [[3, 8], [6, 11], [9, 15], [12, 16], [15, 22], [17, 26]], "w": [[3, 8], [6, 11], [9, 15], [12, 28], [15, 30], [17, 32]]}, "zn": {"m": [[3, 3.3], [6, 4.5], [9, 5.9], [12, 8.5], [15, 14.3], [17, 17.6]], "w": [[3, 3.3], [6, 4.5], [9, 5.9], [12, 8.5], [15, 12.8], [17, 14.2]]}, "mg": {"m": [[3, 90], [6, 125], [9, 175], [12, 240], [15, 345], [17, 440]], "w": [[3, 90], [6, 125], [9, 175], [12, 250], [15, 340], [17, 380]]}};
+
+  function fmtN(v){ v=+v||0;
+    if(v>=100) return Math.round(v).toLocaleString("en-IN");
+    if(v>=10)  return "" + (Math.round(v*10)/10);
+    return "" + (Math.round(v*100)/100);
+  }
+  function rdaFor(n, age, male){
+    if(age>0 && age<18 && CHILD[n.k]){
+      var tbl=CHILD[n.k], arr=Array.isArray(tbl)?tbl:(male?tbl.m:tbl.w);
+      for(var i=0;i<arr.length;i++){ if(age<=arr[i][0]) return arr[i][1]; }
+    }
+    return male ? n.m : n.w;
+  }
+  function microTotals(){
+    var t={};
+    Object.keys(MICRO).forEach(function(id){
+      var n=document.getElementById("f_"+id); if(!n) return;
+      var v=parseFloat(n.value)||0; if(v<=0) return;
+      var m=MICRO[id];
+      for(var kk in m){ t[kk]=(t[kk]||0)+m[kk]*v; }
+    });
+    return t;
+  }
+  var USE = {
+    protein:"builds and repairs muscle and tissue, makes enzymes and hormones, and keeps you full",
+    fibre:"feeds gut bacteria, steadies blood sugar and cholesterol, and keeps digestion regular",
+    ca:"builds bones and teeth, and runs muscle contraction, nerves and blood clotting",
+    fe:"carries oxygen in the blood as haemoglobin; a shortfall brings fatigue and anaemia",
+    mg:"helps 300+ enzymes, nerve and muscle function, and energy production",
+    p:"builds bone and the cell's energy molecule (ATP), and every cell membrane",
+    k:"balances sodium, helps control blood pressure, and drives nerve and muscle signals",
+    na:"controls fluid balance and nerve signals \u2014 needed in small amounts, harmful in excess",
+    zn:"immunity, wound healing, taste, and DNA and hormone synthesis",
+    cu:"helps form red blood cells and connective tissue, and works alongside iron",
+    se:"an antioxidant that protects cells and supports thyroid hormones",
+    iod:"makes the thyroid hormones that set your metabolic rate",
+    mn:"supports bone formation and enzymes that handle carbohydrate and cholesterol",
+    va:"vision (especially at night), immunity, and skin and cell health",
+    vc:"makes collagen, heals wounds, acts as an antioxidant, and boosts iron absorption",
+    vd:"absorbs calcium for bone, and supports immunity and mood",
+    ve:"an antioxidant that protects cell membranes and skin",
+    vk:"lets blood clot and helps bind calcium into bone",
+    b1:"turns carbohydrate into energy and keeps nerves working",
+    b2:"releases energy from food and protects cells from damage",
+    b3:"energy metabolism, DNA repair, and healthy skin",
+    b5:"makes coenzyme A, used to release energy from food",
+    b6:"protein metabolism, brain chemicals, and making haemoglobin",
+    b9:"makes DNA and red blood cells; vital in early pregnancy to prevent birth defects",
+    b12:"makes red blood cells and the nerve coating; for vegetarians it comes only from dairy",
+    o3:"an anti-inflammatory fat for heart and brain; partly converts to EPA and DHA"
+  };
+  var DEF = {
+    protein:"muscle loss, weakness, slow healing, weaker immunity, and thin hair, skin and nails",
+    fibre:"constipation, higher blood sugar and cholesterol, and poorer gut health",
+    ca:"weak, brittle bones over years (osteoporosis) and fractures; a severe lack triggers muscle cramps",
+    fe:"iron-deficiency anaemia \u2014 tiredness, breathlessness, pale skin and poor concentration",
+    mg:"muscle cramps and twitches, fatigue, and an irregular heartbeat when very low",
+    p:"rare from diet; a real lack brings bone pain, weakness and fatigue",
+    k:"muscle weakness and cramps, and an irregular heartbeat when very low",
+    na:"usually the reverse problem (too much); a genuine lack causes headache, nausea and confusion",
+    zn:"weaker immunity, slow wound healing, hair loss, and dulled taste and smell",
+    cu:"anaemia that iron does not fix, low white-cell counts, and nerve problems (uncommon)",
+    se:"weaker immunity and, in severe cases, heart and thyroid trouble",
+    iod:"goitre (a swollen thyroid), an underactive thyroid, tiredness, and impaired growth in children",
+    mn:"uncommon; possibly weaker bones and disturbed metabolism",
+    va:"night blindness, dry eyes, and more frequent infections",
+    vc:"slow healing, bleeding gums and easy bruising \u2014 scurvy when severe",
+    vd:"weak bones (rickets in children, osteomalacia in adults), bone pain and muscle weakness",
+    ve:"uncommon; nerve and muscle damage when very low",
+    vk:"easy bruising and slow blood clotting",
+    b1:"fatigue and nerve problems, and beriberi when severe",
+    b2:"cracks at the corners of the mouth, a sore tongue, and skin problems",
+    b3:"in a severe lack, pellagra \u2014 skin rash, diarrhoea and confusion",
+    b5:"very rare; fatigue and tingling in the feet",
+    b6:"irritability, confusion, mouth sores and anaemia",
+    b9:"anaemia and tiredness; in pregnancy, serious spine and brain birth defects",
+    b12:"tiredness and anaemia plus nerve damage \u2014 numbness, tingling, memory and balance problems \u2014 which can become permanent if left too long",
+    o3:"over time, drier skin and less favourable heart and brain markers"
+  };
+  function row(host, name, unit, intake, target, o){
+    o=o||{};
+    var pct = target>0 ? (intake/target*100) : 0;
+    var cls;
+    if(o.kind==="limit") cls = pct>100 ? "ntlow" : "ntok";
+    else cls = pct>=100 ? "ntok" : (pct>=50 ? "ntmid" : "ntlow");
+    var det=el("details","ntrow "+cls);
+    var sm=el("summary","ntsum");
+    var top=el("div","nttop");
+    top.appendChild(el("div","ntname", name));
+    var lbl = fmtN(intake)+" / "+fmtN(target)+" "+unit+(o.kind==="limit"?" max":"")+"  \u00b7 "+Math.round(pct)+"%";
+    top.appendChild(el("div","ntval", lbl));
+    top.appendChild(el("span","ntcar","\u203a"));
+    sm.appendChild(top);
+    var bar=el("div","ntbar"); var bi=el("i"); bi.style.width=Math.min(100,Math.max(3,pct))+"%"; bar.appendChild(bi); sm.appendChild(bar);
+    det.appendChild(sm);
+    if(o.use)  det.appendChild(el("div","ntsrc","<b>In the body:</b> "+o.use+"."));
+    if(o.def)  det.appendChild(el("div","ntsrc","<b>Too little:</b> "+o.def+"."));
+    if(o.note) det.appendChild(el("div","ntnote", o.note));
+    if(o.src)  det.appendChild(el("div","ntsrc","<b>Food sources:</b> "+o.src+"."));
+    if(o.sup)  det.appendChild(el("div","ntsup","<b>Supplement option:</b> "+o.sup+". Information, not a prescription \u2014 check with a doctor first."));
+    host.appendChild(det);
+  }
+  function openMicros(){
+    var male = ($("sex").value !== "female");
+    var age  = parseFloat($("age").value)||0;
+    var weight = parseFloat($("weight").value)||0;
+    var d=null; try{ d=compute(); }catch(e){}
+    var tot = microTotals();
+    openSheet("Vitamins & minerals", function(body){
+      body.appendChild(el("p","tiny",
+        "Estimated from what you have logged today, against your ICMR-NIN 2020 target"
+        + (age? " for a "+age+"-year-old "+(male?"male":"female") : "")
+        + ". Food values are estimates from composition tables (IFCT 2017, USDA), scaled to "
+        + "these serving sizes \u2014 not lab measurements, and information rather than medical advice."));
+
+      var low=[];
+      NUT.forEach(function(n){
+        if(n.kind==="limit"||n.kind==="sun") return;
+        var t=rdaFor(n,age,male), have=tot[n.k]||0;
+        if(t>0 && have/t < 0.5) low.push(n.name);
+      });
+      if(low.length) body.appendChild(el("p","tiny","<b>Below half your target so far:</b> "+low.join(", ")+"."));
+
+      body.appendChild(el("div","ntgrp","Macros"));
+      var protHave=(d&&d.food)?d.food.p:0, fibHave=(d&&d.food)?d.food.fib:0;
+      row(body,"Protein","g",protHave, weight?Math.round(0.83*weight):(male?54:46),
+          {src:"dal, rajma, soya, paneer, curd, milk, whey, nuts", use:USE.protein, def:DEF.protein});
+      row(body,"Fibre","g",fibHave, male?30:25,
+          {src:"whole grains, pulses, vegetables, fruit, nuts", use:USE.fibre, def:DEF.fibre});
+
+      ["Minerals","Vitamins","Other"].forEach(function(grp){
+        body.appendChild(el("div","ntgrp",grp));
+        NUT.filter(function(n){return n.g===grp;}).forEach(function(n){
+          row(body, n.name, n.u, tot[n.k]||0, rdaFor(n,age,male),
+              {src:n.src, sup:n.sup, note:n.note, kind:n.kind, use:USE[n.k], def:DEF[n.k]});
+        });
+      });
+
+      var ref=el("details"); ref.className="ntrow"; ref.style.marginTop="12px";
+      ref.appendChild(el("summary",null,"Sources & references"));
+      var rl=el("div","ntsrc");
+      rl.innerHTML =
+        "Targets: ICMR-NIN, <i>Nutrient Requirements for Indians \u2014 Recommended Dietary Allowances (RDA) & EAR</i>, 2020.<br>"
+        + "Food composition: Longvah T et al., <i>Indian Food Composition Tables (IFCT)</i>, NIN-ICMR, 2017; and USDA FoodData Central (fdc.nal.usda.gov).<br>"
+        + "Resting metabolism: Mifflin MD, St Jeor ST et al., <i>A new predictive equation for resting energy expenditure</i>, Am J Clin Nutr 1990;51:241-247.<br>"
+        + "Per-food micronutrients are scaled to this app's serving sizes and are estimates, not measurements. Cooking losses and added salt are not modelled.";
+      ref.appendChild(rl); body.appendChild(ref);
+
+      var done=el("button","btn sm line full","Close"); done.type="button"; done.style.marginTop="12px";
+      done.addEventListener("click", closeSheet); body.appendChild(done);
+    });
+  }
+  function openRefs(){
+    openSheet("Sources & references", function(body){
+      body.appendChild(el("p","tiny","The methods behind the numbers, with the research they draw on. Everything here is an estimate for education, not medical advice."));
+      body.appendChild(el("div","ntgrp","Energy & calories"));
+      var e=el("div","ntsrc");
+      e.innerHTML =
+        "<b>Resting metabolism</b> \u2014 Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO. <i>A new predictive equation for resting energy expenditure in healthy individuals.</i> Am J Clin Nutr 1990;51(2):241-247.<br><br>"
+        + "<b>Activity (walking, running, cycling)</b> \u2014 ACSM metabolic equations, in <i>ACSM's Guidelines for Exercise Testing and Prescription</i>; and Ainsworth BE et al., <i>2011 Compendium of Physical Activities.</i> Med Sci Sports Exerc 2011;43(8):1575-1581.<br><br>"
+        + "<b>Digesting food (thermic effect)</b> \u2014 Westerterp KR. <i>Diet induced thermogenesis.</i> Nutr Metab (Lond) 2004;1:5.<br><br>"
+        + "<b>Afterburn from lifting (EPOC)</b> \u2014 LaForgia J, Withers RT, Gore CJ. <i>Effects of exercise intensity and duration on the excess post-exercise oxygen consumption.</i> J Sports Sci 2006;24(12):1247-1264.<br><br>"
+        + "<b>Energy-requirement framework</b> \u2014 FAO/WHO/UNU. <i>Human Energy Requirements.</i> 2004.";
+      body.appendChild(e);
+      body.appendChild(el("div","ntgrp","Nutrition & targets"));
+      var n=el("div","ntsrc");
+      n.innerHTML =
+        "<b>Daily targets (RDA)</b> \u2014 ICMR-NIN. <i>Nutrient Requirements for Indians \u2014 Recommended Dietary Allowances (RDA) & Estimated Average Requirements (EAR).</i> 2020.<br><br>"
+        + "<b>Food composition</b> \u2014 Longvah T, Ananthan R, Bhaskarachary K, Venkaiah K. <i>Indian Food Composition Tables (IFCT).</i> NIN-ICMR, 2017; and USDA FoodData Central (fdc.nal.usda.gov).<br><br>"
+        + "Per-food vitamin and mineral figures are scaled to this app's serving sizes and are estimates, not measurements. Cooking losses and added salt are not modelled.";
+      body.appendChild(n);
+      var done=el("button","btn sm line full","Close"); done.type="button"; done.style.marginTop="12px";
+      done.addEventListener("click", closeSheet); body.appendChild(done);
+    });
+  }
+  window.openRefs = openRefs;
+  var rb=document.getElementById("refsBtn");
+  if(rb) rb.addEventListener("click", function(e){ e.preventDefault(); openRefs(); });
+  window.openMicros = openMicros;
+  var mb=document.getElementById("openMicros");
+  if(mb) mb.addEventListener("click", function(e){ e.preventDefault(); openMicros(); });
+})();
+</script>
+<div id="translate-panel" aria-label="Choose a language">
+  <div class="tp-header">Translate</div>
+  <input type="text" id="tp-search" placeholder="Search language...">
+  <div class="tp-list" id="tp-list"></div>
+</div>
+<div id="google_translate_element"></div>
+<script>function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:'en',autoDisplay:false},'google_translate_element');}</script>
+<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+<script>
+/* Whole-page translation via the Google Website Translator, driven by our own
+   globe button + language panel (same approach as vishalrao.in). The choice is
+   kept in localStorage and re-applied on load, so it sticks between visits.
+   Needs a connection, like any online translator; offline it stays English. */
+(function(){
+  "use strict";
+  var LANGS=[['af','Afrikaans'],['sq','Albanian'],['am','Amharic'],['ar','Arabic'],['hy','Armenian'],['as','Assamese'],['ay','Aymara'],['az','Azerbaijani'],['bm','Bambara'],['eu','Basque'],['be','Belarusian'],['bn','Bengali'],['bho','Bhojpuri'],['bs','Bosnian'],['bg','Bulgarian'],['ca','Catalan'],['ceb','Cebuano'],['ny','Chichewa'],['zh-CN','Chinese (Simplified)'],['zh-TW','Chinese (Traditional)'],['co','Corsican'],['hr','Croatian'],['cs','Czech'],['da','Danish'],['dv','Dhivehi'],['doi','Dogri'],['nl','Dutch'],['en','English'],['eo','Esperanto'],['et','Estonian'],['ee','Ewe'],['fil','Filipino'],['fi','Finnish'],['fr','French'],['fy','Frisian'],['gl','Galician'],['ka','Georgian'],['de','German'],['el','Greek'],['gn','Guarani'],['gu','Gujarati'],['ht','Haitian Creole'],['ha','Hausa'],['haw','Hawaiian'],['he','Hebrew'],['hi','Hindi'],['hmn','Hmong'],['hu','Hungarian'],['is','Icelandic'],['ig','Igbo'],['ilo','Ilocano'],['id','Indonesian'],['ga','Irish'],['it','Italian'],['ja','Japanese'],['jv','Javanese'],['kn','Kannada'],['kk','Kazakh'],['km','Khmer'],['rw','Kinyarwanda'],['gom','Konkani'],['ko','Korean'],['kri','Krio'],['ku','Kurdish'],['ckb','Kurdish (Sorani)'],['ky','Kyrgyz'],['lo','Lao'],['la','Latin'],['lv','Latvian'],['ln','Lingala'],['lt','Lithuanian'],['lg','Luganda'],['lb','Luxembourgish'],['mk','Macedonian'],['mai','Maithili'],['mg','Malagasy'],['ms','Malay'],['ml','Malayalam'],['mt','Maltese'],['mi','Maori'],['mr','Marathi'],['mni-Mtei','Meiteilon (Manipuri)'],['lus','Mizo'],['mn','Mongolian'],['my','Myanmar (Burmese)'],['ne','Nepali'],['no','Norwegian'],['or','Odia (Oriya)'],['om','Oromo'],['ps','Pashto'],['fa','Persian'],['pl','Polish'],['pt','Portuguese'],['pa','Punjabi'],['qu','Quechua'],['ro','Romanian'],['ru','Russian'],['sm','Samoan'],['sa','Sanskrit'],['gd','Scots Gaelic'],['nso','Sepedi'],['sr','Serbian'],['st','Sesotho'],['sn','Shona'],['sd','Sindhi'],['si','Sinhala'],['sk','Slovak'],['sl','Slovenian'],['so','Somali'],['es','Spanish'],['su','Sundanese'],['sw','Swahili'],['sv','Swedish'],['tg','Tajik'],['ta','Tamil'],['tt','Tatar'],['te','Telugu'],['th','Thai'],['ti','Tigrinya'],['ts','Tsonga'],['tr','Turkish'],['tk','Turkmen'],['ak','Twi'],['uk','Ukrainian'],['ur','Urdu'],['ug','Uyghur'],['uz','Uzbek'],['vi','Vietnamese'],['cy','Welsh'],['xh','Xhosa'],['yi','Yiddish'],['yo','Yoruba'],['zu','Zulu']];
+  var STORAGE_KEY='caloLang';
+  var btn=document.getElementById('btn-globe'), panel=document.getElementById('translate-panel'),
+      search=document.getElementById('tp-search'), list=document.getElementById('tp-list');
+  if(!btn||!panel||!list||!search) return;
+  function currentLang(){ try{ return localStorage.getItem(STORAGE_KEY)||'en'; }catch(e){ return 'en'; } }
+  function renderList(filter){
+    var f=(filter||'').trim().toLowerCase(), active=currentLang();
+    list.innerHTML='';
+    LANGS.forEach(function(pair){
+      var code=pair[0], name=pair[1];
+      if(f && name.toLowerCase().indexOf(f)===-1) return;
+      var b=document.createElement('button');
+      b.type='button'; b.className='tp-lang'+(code===active?' active':''); b.textContent=name;
+      b.addEventListener('click', function(){ setLanguage(code); });
+      list.appendChild(b);
+    });
+  }
+  function setLanguage(code){ try{ localStorage.setItem(STORAGE_KEY,code); }catch(e){} panel.classList.remove('open'); applyLanguage(code); }
+  function applyLanguage(code){
+    if(code==='en'){
+      document.cookie='googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      document.cookie='googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain='+location.hostname+';';
+      if(document.querySelector('select.goog-te-combo')) location.reload();
+      return;
+    }
+    var tries=0;
+    (function tryApply(){
+      var combo=document.querySelector('select.goog-te-combo');
+      if(combo){ if(combo.value!==code){ combo.value=code; combo.dispatchEvent(new Event('change')); } }
+      else if(tries<40){ tries++; setTimeout(tryApply,250); }
+    })();
+  }
+  btn.addEventListener('click', function(e){
+    e.stopPropagation();
+    var opening=!panel.classList.contains('open');
+    panel.classList.toggle('open', opening);
+    if(opening){ search.value=''; renderList(''); search.focus(); }
+  });
+  document.addEventListener('click', function(e){
+    if(panel.classList.contains('open') && !panel.contains(e.target) && e.target!==btn && !btn.contains(e.target)) panel.classList.remove('open');
+  });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') panel.classList.remove('open'); });
+  search.addEventListener('input', function(){ renderList(search.value); });
+  renderList('');
+  var saved=currentLang();
+  if(saved && saved!=='en') applyLanguage(saved);
 })();
 </script>
 </body>
