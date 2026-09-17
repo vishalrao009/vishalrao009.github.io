@@ -16,9 +16,34 @@
 <meta property="og:description" content="A vegetarian calorie ledger. Log food, lifting and housework, and see where a surplus or deficit actually goes.">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23141917'/%3E%3Crect x='6' y='9' width='20' height='4' rx='2' fill='%23E0A64A'/%3E%3Crect x='6' y='15' width='14' height='4' rx='2' fill='%234FB3A6'/%3E%3Crect x='6' y='21' width='8' height='4' rx='2' fill='%23D4788F'/%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="ledger/icons/apple-touch-icon.png">
+<link rel="preload" as="font" type="font/woff2" href="ledger/fonts/plex-sans-400.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="ledger/fonts/fraunces-var-latin.woff2" crossorigin>
+<style>
+/* Typefaces are bundled with the app rather than fetched from Google. Two
+   reasons: the app has to render on a plane or a basement gym with no signal,
+   and a ledger that promises your data never leaves the phone should not be
+   announcing every launch to a third party. */
+@font-face{
+  font-family:"IBM Plex Sans";font-style:normal;font-weight:400;font-display:swap;
+  src:url(ledger/fonts/plex-sans-400.woff2) format("woff2");
+}
+@font-face{
+  font-family:"IBM Plex Sans";font-style:normal;font-weight:500;font-display:swap;
+  src:url(ledger/fonts/plex-sans-500.woff2) format("woff2");
+}
+@font-face{
+  font-family:"IBM Plex Sans";font-style:normal;font-weight:600;font-display:swap;
+  src:url(ledger/fonts/plex-sans-600.woff2) format("woff2");
+}
+@font-face{
+  /* One variable file covers 400-700 plus Fraunces' optical-size axis, which
+     the browser drives automatically from the rendered size. */
+  font-family:"Fraunces";font-style:normal;font-weight:100 900;font-display:swap;
+  src:url(ledger/fonts/fraunces-var-latin.woff2) format("woff2-variations");
+}
+</style>
 <style>
 :root{
   --bg:#EFF1EE; --card:#FAFBF9; --card2:#F2F4F1;
@@ -4986,7 +5011,10 @@ function openFoodPower(){
       ["\u2615","Chai","1 cup",90],
       ["\ud83e\udd44","Ghee","1 tsp",45],
     ];
-    const KWH_PHONE = 15 * 3600 / KCAL_J;            // ~15 Wh phone battery, in kcal
+    /* mAh is charge, not energy - it only becomes energy once multiplied by the
+       cell voltage. A typical 5000 mAh phone runs a 3.85 V nominal cell, so
+       5 Ah x 3.85 V = ~19 Wh. That is the number worth comparing food to. */
+    const KWH_PHONE = 19 * 3600 / KCAL_J;            // ~19 Wh phone battery, in kcal
     const list = el("div"); list.style.marginTop = "6px";
     FOODS.forEach(([emoji,name,portion,kcal]) => {
       const km = walkKmFor(kcal, weight);
@@ -4999,7 +5027,7 @@ function openFoodPower(){
         + `<div class="powfacts">`
         + `<span>\ud83d\udeb6 Walk <b>${km >= 10 ? Math.round(km) : n1(km)} km</b></span>`
         + `<span>\ud83d\udd25 Boil <b>${n1(boilL)} L</b> of water</span>`
-        + `<span>\ud83d\udd0b Charge a phone <b>${Math.round(charges)}\u00d7</b></span>`
+        + `<span>\ud83d\udd0b Charge a phone <b>${charges >= 10 ? Math.round(charges) : n1(charges)}\u00d7</b></span>`
         + `</div>`;
       list.appendChild(card);
     });
@@ -5007,7 +5035,8 @@ function openFoodPower(){
     body.appendChild(el("p","tiny",
       "Walking is the total energy of covering that distance on foot at 5 km/h \u2014 about 50 kcal a "
       + "kilometre for a 70 kg adult. Boiling assumes water from room temperature (25\u00b0C); the phone "
-      + "figure assumes a 15 Wh battery. Same energy your body takes from the food \u2014 just a reminder "
+      + "figure assumes a 5000 mAh cell at 3.85 V, about 19 Wh, and counts what the battery holds rather "
+      + "than what the charger draws. Same energy your body takes from the food \u2014 just a reminder "
       + "of how much is packed into a small plate."));
     const done = el("button","btn primary full","Got it"); done.type = "button";
     done.style.marginTop = "12px"; done.addEventListener("click", closeSheet);
@@ -5088,6 +5117,142 @@ try{
   throw e;
 }
 
+</script>
+<style>
+/* Install card. Sits above the tab bar and uses the app's own tokens so it
+   reads as part of the interface rather than as a browser banner. */
+#installCard{
+  position:fixed;left:12px;right:12px;
+  bottom:calc(var(--tabh) + 12px + env(safe-area-inset-bottom));
+  z-index:60;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--r);box-shadow:var(--shadow-lg);
+  padding:13px 14px;display:none;gap:10px;align-items:flex-start;
+  max-width:520px;margin:0 auto;
+}
+#installCard.show{display:flex}
+#installCard .ictext{flex:1;min-width:0}
+#installCard .ictitle{font-family:var(--serif);font-weight:600;font-size:15px}
+#installCard .icbody{color:var(--muted);font-size:13px;margin-top:2px}
+#installCard .icacts{display:flex;gap:8px;margin-top:10px}
+#installCard button{
+  border-radius:var(--r-sm);padding:7px 13px;font-size:14px;font-weight:500;
+  border:1px solid var(--line);background:var(--card2);
+}
+#installCard button.primary{background:var(--out);border-color:var(--out);color:#fff}
+@media (prefers-reduced-motion:no-preference){
+  #installCard.show{animation:icin .22s ease-out}
+  @keyframes icin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+}
+</style>
+<div id="installCard" role="dialog" aria-label="Install Energy ledger">
+  <div class="ictext">
+    <div class="ictitle" id="icTitle">Keep the ledger on your home screen</div>
+    <div class="icbody" id="icBody">Opens full screen and works with no signal.</div>
+    <div class="icacts">
+      <button type="button" class="primary" id="icGo">Install</button>
+      <button type="button" id="icNo">Not now</button>
+    </div>
+  </div>
+</div>
+<script>
+/* ---------------------------------------------------------------
+   INSTALLABILITY
+
+   Three platforms, three different truths:
+
+   Android / Chrome / Edge - fires beforeinstallprompt, so there is a
+     real one-tap install. Stash the event, fire it on tap.
+   Desktop Chrome / Edge - same event, installs as a windowed app.
+   iOS Safari - Apple exposes no install API at all. The only route is
+     Share then Add to Home Screen, so the card becomes instructions,
+     shown only to people actually on iOS Safari and not already installed.
+   --------------------------------------------------------------- */
+(function(){
+  "use strict";
+
+  var card  = document.getElementById("installCard");
+  var go    = document.getElementById("icGo");
+  var no    = document.getElementById("icNo");
+  var title = document.getElementById("icTitle");
+  var body  = document.getElementById("icBody");
+  var deferred = null;
+
+  function installed(){
+    return window.matchMedia("(display-mode: standalone)").matches ||
+           window.matchMedia("(display-mode: minimal-ui)").matches ||
+           window.navigator.standalone === true;
+  }
+  function muted(){
+    try { return localStorage.getItem("ledger.installDismissed") === "1"; }
+    catch(e){ return false; }
+  }
+  function mute(){
+    try { localStorage.setItem("ledger.installDismissed","1"); } catch(e){}
+  }
+  function show(){ if(!installed() && !muted()) card.classList.add("show"); }
+  function hide(){ card.classList.remove("show"); }
+
+  window.addEventListener("beforeinstallprompt", function(e){
+    e.preventDefault();
+    deferred = e;
+    setTimeout(show, 1200);
+  });
+
+  go.addEventListener("click", function(){
+    if(deferred){
+      deferred.prompt();
+      deferred.userChoice.then(function(){ deferred = null; hide(); });
+    } else {
+      hide();            // iOS: the card is instructions, so this just closes it
+      mute();
+    }
+  });
+  no.addEventListener("click", function(){ mute(); hide(); });
+  window.addEventListener("appinstalled", function(){ mute(); hide(); });
+
+  var ua  = navigator.userAgent;
+  var ios = /iPad|iPhone|iPod/.test(ua) ||
+            (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  var safari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+  if(ios && safari && !installed() && !muted()){
+    title.textContent = "Add the ledger to your home screen";
+    body.innerHTML = "Tap Share, then <b>Add to Home Screen</b>. It opens full " +
+                     "screen and works with no signal.";
+    go.textContent = "Got it";
+    setTimeout(show, 1600);
+  }
+
+  /* --- service worker: offline, and updates that actually land --- */
+  if("serviceWorker" in navigator){
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("sw.js").then(function(reg){
+        reg.addEventListener("updatefound", function(){
+          var w = reg.installing;
+          if(!w) return;
+          w.addEventListener("statechange", function(){
+            if(w.state === "installed" && navigator.serviceWorker.controller){
+              w.postMessage("skip-waiting");   // new build takes over next load
+            }
+          });
+        });
+      }).catch(function(err){
+        // Not fatal. The app still runs, it just will not work offline.
+        console.warn("Offline support unavailable:", err && err.message);
+      });
+    });
+  }
+
+  /* --- home-screen shortcuts (long-press the icon on Android) --- */
+  var action = new URLSearchParams(location.search).get("action");
+  var TARGET = { food:"qFood", train:"qTrain", chore:"qChore", mind:"qMind" };
+  if(action && TARGET[action]){
+    setTimeout(function(){
+      var btn = document.getElementById(TARGET[action]);
+      if(btn) btn.click();
+      history.replaceState(null, "", location.pathname);
+    }, 350);
+  }
+})();
 </script>
 </body>
 </html>
