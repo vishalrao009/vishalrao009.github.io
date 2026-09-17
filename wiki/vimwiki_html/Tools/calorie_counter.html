@@ -5724,15 +5724,60 @@ try{
     return { days: days, users: users };
   }
 
-  function upiUrl(){
-    var u = "upi://pay?pa=" + encodeURIComponent(UPI.vpa) +
+  function upiQuery(){
+    var q = "pa=" + encodeURIComponent(UPI.vpa) +
             "&pn=" + encodeURIComponent(UPI.name) +
             "&cu=INR&tn=" + encodeURIComponent(UPI.note);
-    if(UPI.amount) u += "&am=" + encodeURIComponent(UPI.amount);
-    return u;
+    if(UPI.amount) q += "&am=" + encodeURIComponent(UPI.amount);
+    return q;
   }
+  function upiUrl(){ return "upi://pay?" + upiQuery(); }
 
+  /* A bare upi:// link goes to whichever app Android has made the default
+     handler for it, which is how a payment ends up in WhatsApp when nobody
+     chose WhatsApp. Naming the app in the link fixes that: on Android an
+     intent URL carrying the package, elsewhere the app's own scheme. */
+  var UPI_APPS = [
+    { id:"bhim",     name:"BHIM",       pkg:"in.org.npci.upiapp",
+      scheme:"bhim",     path:"pay" },
+    { id:"gpay",     name:"Google Pay", pkg:"com.google.android.apps.nbu.paisa.user",
+      scheme:"tez",      path:"upi/pay" },
+    { id:"phonepe",  name:"PhonePe",    pkg:"com.phonepe.app",
+      scheme:"phonepe",  path:"pay" },
+    { id:"paytm",    name:"Paytm",      pkg:"net.one97.paytm",
+      scheme:"paytmmp",  path:"pay" },
+    { id:"whatsapp", name:"WhatsApp",   pkg:"com.whatsapp",
+      scheme:"whatsapp", path:"pay" }
+  ];
+  var isAndroid = /android/i.test(navigator.userAgent || "");
   var onPhone = window.matchMedia("(pointer: coarse)").matches;
+
+  function appUrl(app){
+    var q = upiQuery();
+    if(isAndroid){
+      /* browser_fallback_url means an app that is not installed lands on its
+         store page rather than on a dead end. */
+      return "intent://pay?" + q + "#Intent;scheme=upi;package=" + app.pkg
+           + ";S.browser_fallback_url="
+           + encodeURIComponent("https://play.google.com/store/apps/details?id=" + app.pkg)
+           + ";end";
+    }
+    return app.scheme + "://" + app.path + "?" + q;
+  }
+  function payWith(app){
+    /* The app never learns whether payment succeeded - UPI gives no callback
+       to a static page - so this only stops the reminder. */
+    setState({ status: "paid", at: Date.now() });
+    if(!app){ window.location.href = upiUrl(); return; }
+    window.location.href = appUrl(app);
+    if(!isAndroid){
+      /* Off Android there is no package to fall back on, so if the app's own
+         scheme goes nowhere the generic link gets a turn. */
+      setTimeout(function(){
+        if(!document.hidden) window.location.href = upiUrl();
+      }, 1600);
+    }
+  }
 
   function openSupport(){
     openSheet("Support Calo", function(body){
@@ -5781,18 +5826,35 @@ try{
       body.appendChild(wrap);
 
       if(onPhone){
-        var pay = el("a", "btn primary full", "Pay by UPI");
-        pay.href = upiUrl();
+        var pay = el("button", "btn primary full", "Pay by UPI");
+        pay.type = "button";
         pay.style.marginTop = "12px";
-        pay.style.display = "block";
-        pay.style.textAlign = "center";
-        pay.style.textDecoration = "none";
+
+        var pick = el("div", "hidden");
+        pick.style.marginTop = "10px";
+        pick.appendChild(el("p", "tiny", "Which app should open?"));
+        var grid = el("div", "qgrid");
+        UPI_APPS.forEach(function(app){
+          var chip = el("button", "qchip", app.name);
+          chip.type = "button";
+          chip.addEventListener("click", function(){ payWith(app); });
+          grid.appendChild(chip);
+        });
+        var any = el("button", "qchip", "Let my phone ask");
+        any.type = "button";
+        any.addEventListener("click", function(){ payWith(null); });
+        grid.appendChild(any);
+        pick.appendChild(grid);
+        pick.appendChild(el("p", "tiny",
+          "If the app you pick is not installed, its store page opens instead \u2014 "
+          + "and the QR code above works with any UPI app."));
+
         pay.addEventListener("click", function(){
-          /* The app never learns whether payment succeeded - UPI gives no
-             callback to a static page - so this only stops the reminder. */
-          setState({ status: "paid", at: Date.now() });
+          pay.classList.add("hidden");
+          pick.classList.remove("hidden");
         });
         body.appendChild(pay);
+        body.appendChild(pick);
       }
 
       var row = el("div", "btnrow"); row.style.marginTop = "12px";
@@ -5865,6 +5927,11 @@ try{
 (function(){
   "use strict";
 
+  var ua  = navigator.userAgent || "";
+  var ios = /iPad|iPhone|iPod/.test(ua) ||
+            (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  var safari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+
   var card  = document.getElementById("installCard");
   var go    = document.getElementById("icGo");
   var no    = document.getElementById("icNo");
@@ -5887,10 +5954,14 @@ try{
   function show(){ if(!installed() && !muted()) card.classList.add("show"); }
   function hide(){ card.classList.remove("show"); }
 
+  var readyFns = [];
   window.addEventListener("beforeinstallprompt", function(e){
     e.preventDefault();
     deferred = e;
     setTimeout(show, 1200);
+    /* The Settings sheet may already be open, showing "not available here",
+       so tell it the prompt has arrived. */
+    readyFns.forEach(function(fn){ try { fn(); } catch(err){} });
   });
 
   go.addEventListener("click", function(){
@@ -5905,10 +5976,6 @@ try{
   no.addEventListener("click", function(){ mute(); hide(); });
   window.addEventListener("appinstalled", function(){ mute(); hide(); });
 
-  var ua  = navigator.userAgent;
-  var ios = /iPad|iPhone|iPod/.test(ua) ||
-            (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  var safari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
   if(ios && safari && !installed() && !muted()){
     title.textContent = "Add Calo to your home screen";
     body.innerHTML = "Tap Share, then <b>Add to Home Screen</b>. It opens full " +
@@ -5917,14 +5984,59 @@ try{
     setTimeout(show, 1600);
   }
 
+  /* Why a one-tap install may not be on offer. A browser that will never fire
+     beforeinstallprompt should say so plainly rather than leave a button that
+     appears to do nothing at all. */
+  function reason(){
+    if(installed()) return "installed";
+    if(location.protocol === "file:") return "file";
+    if(location.protocol !== "https:" &&
+       !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) return "insecure";
+    if(ios) return safari ? "ios" : "ios-other";
+    if(/FBAN|FBAV|Instagram|Line\/|Twitter|WhatsApp|GSA\//i.test(ua)) return "inapp";
+    if(/Firefox\//.test(ua)) return "firefox";
+    return "manual";
+  }
+
+  /* With no prompt and no platform reason, the usual cause is that the manifest
+     or the service worker is not reachable from the address the page is served
+     at. Worth checking rather than guessing. */
+  function diagnose(cb){
+    var out = [], left = 2;
+    function done(){ if(--left === 0) cb(out); }
+    function check(url, label){
+      try {
+        fetch(url, { cache: "no-store" }).then(function(r){
+          if(!r.ok) out.push(label + " is missing here (" + r.status + ")");
+          done();
+        }).catch(function(){ out.push(label + " could not be loaded"); done(); });
+      } catch(e){ out.push(label + " could not be loaded"); done(); }
+    }
+    if(!window.fetch){ cb(out); return; }
+    check("manifest.webmanifest", "manifest.webmanifest");
+    check("sw.js", "sw.js");
+  }
+
   /* Let the Settings sheet drive install too. */
   window.caloInstall = {
     installed: installed,
     available: function(){ return !!deferred || (ios && safari && !installed()); },
+    reason: reason,
+    diagnose: diagnose,
+    onReady: function(fn){ if(typeof fn === "function") readyFns.push(fn); },
     prompt: function(){
-      if(deferred){ deferred.prompt(); deferred.userChoice.then(function(){ deferred = null; }); return "native"; }
-      if(ios && safari) return "ios";
-      return "manual";
+      if(deferred){
+        var e = deferred;
+        deferred = null;                       // an event can only be prompted once
+        try { e.prompt(); } catch(err){ return reason(); }
+        if(e.userChoice && e.userChoice.then){
+          e.userChoice.then(function(res){
+            if(res && res.outcome === "accepted"){ mute(); hide(); }
+          });
+        }
+        return "native";
+      }
+      return reason();
     }
   };
 
@@ -6316,19 +6428,58 @@ try{
         lft.appendChild(el("span","sublbl",
           "Reminders fire while the app is open. Install it and keep it running for background nudges."));
         r.appendChild(lft);
+
+        /* The answer belongs under this row. The sheet's shared status line is
+           several rows further down, off the bottom of the screen, which is why
+           tapping Install used to look like nothing had happened. */
+        var note = el("p","sublbl");
+        note.style.margin = "6px 2px 0";
+
+        var WHY = {
+          installed: "Already installed on this device.",
+          ios: "On iPhone: tap Share, then Add to Home Screen.",
+          "ios-other": "On iPhone only Safari can add an app to the home screen \u2014 "
+                     + "open this page in Safari, then Share, then Add to Home Screen.",
+          file: "This page is open as a local file, which cannot be installed. "
+              + "Open it from its web address instead.",
+          insecure: "Installing needs an https:// address; this page is not on one.",
+          inapp: "This in-app browser cannot install apps. Open the page in Chrome "
+               + "or Safari first, then try again.",
+          firefox: "Firefox: open the menu and choose Install. Desktop Firefox has no "
+                 + "install at all, so use Chrome or Edge there.",
+          manual: "No one-tap install on offer here. In Chrome or Edge, open the browser "
+                + "menu and choose Install app, or use the install icon in the address bar."
+        };
+
         if(ci && ci.installed && ci.installed()){
           r.appendChild(el("span","tiny","Installed ✓"));
+          body.appendChild(r);
         } else {
           var b = el("button","btn sm line","Install"); b.type = "button";
           b.addEventListener("click", function(){
             var res = ci ? ci.prompt() : "manual";
-            if(res === "ios") say("On iPhone: tap Share, then Add to Home Screen.");
-            else if(res === "manual") say("Open your browser menu and choose Install app / Add to Home Screen.");
-            else say("");
+            if(res === "native"){ note.textContent = "Your browser is asking now."; return; }
+            note.textContent = WHY[res] || WHY.manual;
+            /* Where no platform reason explains it, say what is actually missing
+               rather than leaving it to guesswork. */
+            if((res === "manual" || res === "firefox") && ci && ci.diagnose){
+              ci.diagnose(function(problems){
+                if(problems.length) note.textContent += " Also: " + problems.join("; ") + ".";
+              });
+            }
           });
           r.appendChild(b);
+          body.appendChild(r);
+
+          if(ci && ci.available && !ci.available()){
+            var why = ci.reason ? ci.reason() : "manual";
+            if(why !== "manual") note.textContent = WHY[why] || "";
+          }
+          if(ci && ci.onReady){
+            ci.onReady(function(){ note.textContent = "Ready \u2014 tap Install."; });
+          }
         }
-        body.appendChild(r);
+        body.appendChild(note);
       })();
 
       grp("Meal cut-off times");
