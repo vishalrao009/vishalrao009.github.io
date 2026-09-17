@@ -111,6 +111,13 @@ h1,h2,h3{margin:0}
   background:#fff;transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.25)}
 .swch input:checked + i{background:var(--in)}
 .swch input:checked + i:before{transform:translateX(18px)}
+.qgrid{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 2px}
+.qchip{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid var(--line);
+  border-radius:999px;background:var(--card2);color:var(--ink);font:inherit;font-size:14px;line-height:1;cursor:pointer}
+.qchip b{font-family:var(--serif);font-weight:700;color:var(--muted);min-width:12px;text-align:center}
+.qchip.on{border-color:var(--in)}
+.qchip.on b{color:var(--in)}
+.qchip:active{transform:scale(.97)}
 
 /* ---------------- app bar ---------------- */
 .appbar{
@@ -5993,27 +6000,105 @@ try{
     });
   }
 
+  /* ---- quick one-tap foods, tuned to the meal being nudged ----
+     [ food id, chip label, amount added per tap, unit shown ("" = plain count) ] */
+  var MEAL_QUICK = {
+    breakfast: [
+      ["chai","Chai",1,""], ["poha","Poha",1,""], ["oats","Oats",40,"g"],
+      ["bread","Bread",2,""], ["paratha","Paratha",1,""], ["banana","Banana",1,""],
+      ["milk_cow","Milk",200,"ml"]
+    ],
+    lunch: [
+      ["chapati","Chapati",1,""], ["rice","Rice",1,""], ["dal","Dal",1,""],
+      ["sabji_dry","Sabji",1,""], ["curd","Curd",100,"g"], ["rajma","Rajma",1,""],
+      ["salad","Salad",1,""]
+    ],
+    snacks: [
+      ["chai","Chai",1,""], ["banana","Banana",1,""], ["apple","Apple",1,""],
+      ["almond","Almonds",10,""], ["peanut","Peanuts",20,"g"], ["chana","Chana",30,"g"]
+    ],
+    dinner: [
+      ["chapati","Chapati",1,""], ["rice","Rice",1,""], ["dal","Dal",1,""],
+      ["sabji_gravy","Sabji",1,""], ["paneer","Paneer",50,"g"], ["curd","Curd",100,"g"],
+      ["salad","Salad",1,""]
+    ],
+    supper: [
+      ["milk_cow","Milk",200,"ml"], ["banana","Banana",1,""], ["curd","Curd",100,"g"],
+      ["chai","Chai",1,""], ["date","Dates",2,""], ["almond","Almonds",10,""]
+    ]
+  };
+  var QUICK_FALLBACK = [
+    ["chapati","Chapati",1,""], ["rice","Rice",1,""], ["dal","Dal",1,""],
+    ["banana","Banana",1,""], ["curd","Curd",100,"g"], ["milk_cow","Milk",200,"ml"]
+  ];
+
+  /* Union of the due meals' lists, first occurrence wins, order kept. */
+  function itemsForMeals(keys){
+    var seen = {}, out = [];
+    (keys || []).forEach(function(k){
+      (MEAL_QUICK[k] || []).forEach(function(it){
+        if(!seen[it[0]]){ seen[it[0]] = 1; out.push(it); }
+      });
+    });
+    if(!out.length) out = QUICK_FALLBACK.slice();
+    return out;
+  }
+  function cap(s){ return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+
+  function quickGrid(host, items){
+    var grid = el("div","qgrid");
+    items.forEach(function(q){
+      var id = q[0], label = q[1], amt = q[2], u = q[3];
+      if(!document.getElementById("f_"+id)) return;   // skip if this build lacks it
+      var b = el("button","qchip"); b.type = "button";
+      function paint(){
+        var n = document.getElementById("f_"+id);
+        var cur = n ? (parseFloat(n.value)||0) : 0;
+        var t = cur>0 ? (u ? cur+" "+u : String(cur)) : "+";
+        b.innerHTML = "<span>"+label+"</span><b>"+t+"</b>";
+        if(cur>0) b.classList.add("on"); else b.classList.remove("on");
+      }
+      b.addEventListener("click", function(){
+        var n = document.getElementById("f_"+id); if(!n) return;
+        var cur = parseFloat(n.value)||0, mx = parseFloat(n.max);
+        if(isNaN(mx)) mx = 1e9;
+        n.value = Math.min(mx, cur + amt);
+        var row = document.getElementById("row_"+id); if(row) row.classList.remove("hide");
+        n.dispatchEvent(new Event("input",{bubbles:true}));   // -> update() + save
+        paint();
+      });
+      paint();
+      grid.appendChild(b);
+    });
+    host.appendChild(grid);
+  }
+
   /* ---- meal / training nudge popup ---- */
-  function showNudge(mealLabels, gym){
+  function showNudge(mealKeys, gym){
+    mealKeys = mealKeys || [];
     openSheet("Anything new today?", function(body){
       var lines = [];
-      if(mealLabels.length) lines.push("It is past your " + listWords(mealLabels) + " time.");
+      if(mealKeys.length) lines.push("It is past your " + listWords(mealKeys) + " time.");
       if(gym) lines.push("It is past your usual training time — did you exercise?");
-      body.appendChild(el("p","tiny", lines.join(" ") + " Log it, or dismiss this."));
+      body.appendChild(el("p","tiny", lines.join(" ") + " Tap a quick option, add more, or log a workout."));
+      if(mealKeys.length){
+        body.appendChild(el("div","setgrp", listWords(mealKeys.map(cap)) + " — quick add"));
+        quickGrid(body, itemsForMeals(mealKeys));
+      }
 
       var row = el("div","btnrow"); row.style.marginTop = "12px";
-      if(mealLabels.length){
-        var f = el("button","btn sm primary","Log food"); f.type = "button";
+      if(mealKeys.length){
+        var f = el("button","btn sm line","More foods…"); f.type = "button";
         f.addEventListener("click", function(){ closeSheet(); var b = $("qFood"); if(b) b.click(); });
         row.appendChild(f);
       }
       if(gym){
-        var e2 = el("button","btn sm " + (mealLabels.length ? "line" : "primary"),"Log exercise");
+        var e2 = el("button","btn sm " + (mealKeys.length ? "line" : "primary"),"Log exercise");
         e2.type = "button";
         e2.addEventListener("click", function(){ closeSheet(); var b = $("qTrain"); if(b) b.click(); });
         row.appendChild(e2);
       }
-      var no = el("button","btn sm line","Not now"); no.type = "button";
+      var no = el("button","btn sm line","Done"); no.type = "button";
       no.addEventListener("click", closeSheet); row.appendChild(no);
       body.appendChild(row);
     });
@@ -6058,13 +6143,13 @@ try{
       return;
     }
     if(visible){
-      showNudge(mealLabels, dueGym);
+      showNudge(dueMeals, dueGym);
     } else {
       var bits = [];
       if(mealLabels.length) bits.push("past your " + listWords(mealLabels) + " time");
       if(dueGym) bits.push("past your training time");
       sysNotify("Anything new today?", "It is " + listWords(bits) + ". Tap to log it.",
-                function(){ showNudge(mealLabels, dueGym); });
+                function(){ showNudge(dueMeals, dueGym); });
     }
   }
 
