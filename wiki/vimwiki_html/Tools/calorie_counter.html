@@ -6267,7 +6267,7 @@ try{
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.17h";
+  var APP_VERSION = "2026.09.17i";
   var APP_BUILT   = "17 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
@@ -6278,10 +6278,26 @@ try{
      to be asked, since yanking the page out from under a half-entered meal is
      not an update, it is a bug. */
   var AUTO_KEY = "ledger.autoUpdate";
-  var openedAt = Date.now(), touched = false;
+  /* "Quiet" used to mean the first fifteen seconds after opening, with any tap
+     at all cancelling it for the rest of the session. That is far too brittle -
+     people open the app and immediately tap something, and from then on nothing
+     could ever install itself. What matters is not whether they have touched
+     the app at all, but whether they are touching it *now*: a swap is safe
+     whenever nobody has typed for a while and no sheet is open. Only real
+     gestures count; the app fires synthetic input events at itself all the
+     time, and those are not a person. */
+  var openedAt = Date.now(), lastTouch = 0;
   ["pointerdown","keydown","input"].forEach(function(ev){
-    document.addEventListener(ev, function(){ touched = true; }, { passive:true, capture:true });
+    document.addEventListener(ev, function(e){
+      if(e && e.isTrusted === false) return;
+      lastTouch = Date.now();
+    }, { passive:true, capture:true });
   });
+  function idleFor(ms){
+    if(document.querySelector(".sheet.on")) return false;   // mid-conversation
+    if(document.hidden) return true;                        // not even looking
+    return (Date.now() - Math.max(lastTouch, openedAt)) > ms;
+  }
   function autoOn(){
     try { return localStorage.getItem(AUTO_KEY) !== "0"; } catch(e){ return true; }
   }
@@ -6294,7 +6310,11 @@ try{
        would drop the person back into the app with their other phone's data
        still sitting in a link they have already used. */
     if(window.caloPendingTransfer) return false;
-    return autoOn() && !touched && (Date.now() - openedAt) < 15000;
+    if(!autoOn()) return false;
+    /* Either the app has just opened and not been touched, or nobody has
+       touched it for twenty seconds. */
+    if(lastTouch === 0 && (Date.now() - openedAt) < 15000) return true;
+    return idleFor(20000);
   }
   /* Whether a worker was already in charge when this page loaded. Without it,
      the very first install - where clients.claim() hands control to a page that
@@ -6325,8 +6345,26 @@ try{
     if(latest && latest === APP_VERSION){ swapSilently(w); return "latest"; }
     waiting = w;
     if(quietMoment()){ applyUpdate(); return "ready"; }
+    /* Busy right now: put the card up and keep watching. The moment the app is
+       idle - or has been put away - it goes in by itself, which is what
+       "update automatically" was supposed to mean. */
     showUpdate();
+    if(autoOn()) waitForQuiet();
     return "ready";
+  }
+  var quietTimer = null;
+  function waitForQuiet(){
+    if(quietTimer) return;
+    var until = Date.now() + 30*60e3;
+    quietTimer = setInterval(function(){
+      if(!waiting || applying || !autoOn() || Date.now() > until){
+        clearInterval(quietTimer); quietTimer = null; return;
+      }
+      if(window.caloPendingTransfer) return;
+      if(!idleFor(45000)) return;
+      clearInterval(quietTimer); quietTimer = null;
+      applyUpdate();
+    }, 15000);
   }
   function armWaiting(w){
     if(!w || w === waiting) return;
@@ -6443,15 +6481,31 @@ try{
         });
         /* A quiet look on the way back into the app, at most every six hours.
            An installed app can sit open for weeks otherwise. */
+        /* version.json is a couple of hundred bytes, so looking often costs
+           nothing. Coming back to the app after ten minutes away is the moment
+           people most expect it to be current. */
+        /* Coming back to the app is when people expect it to be current, and an
+           installed app is "opened" by being switched back to, not by being
+           navigated to. So anything more than a minute away counts as a fresh
+           open and gets a look, whatever the usual gap between checks. */
+        var hiddenSince = 0;
         document.addEventListener("visibilitychange", function(){
-          if(document.hidden || !autoOn()) return;
-          if(Date.now() - lastCheck < 6*3600e3) return;
-          /* Coming back to the app counts as a fresh open for the quiet-moment
-             test: nothing has been typed since. */
-          openedAt = Date.now(); touched = false;
+          if(document.hidden){ hiddenSince = Date.now(); return; }
+          if(!autoOn()) return;
+          var wasAway = hiddenSince && (Date.now() - hiddenSince) > 60e3;
+          hiddenSince = 0;
+          if(!wasAway && Date.now() - lastCheck < 10*60e3) return;
+          openedAt = Date.now(); lastTouch = 0;
           checkNow(function(){});
         });
         if(autoOn()) setTimeout(function(){ checkNow(function(){}); }, 4000);
+        /* An installed app can sit open for days without a single navigation,
+           which is exactly the case a background check exists for. */
+        setInterval(function(){
+          if(!autoOn() || document.hidden) return;
+          if(Date.now() - lastCheck < 10*60e3) return;
+          checkNow(function(){});
+        }, 2*60e3);
       }).catch(function(err){
         // Not fatal. The app still runs, it just will not work offline.
         console.warn("Offline support unavailable:", err && err.message);
@@ -7058,10 +7112,10 @@ try{
         body.appendChild(note);
 
         swrow("Update automatically",
-              "Looks for a new version while the app is open and takes it at a quiet moment, "
-              + "before anything has been typed; one found mid-use waits and asks first. Off "
-              + "means only the button above looks. Either way, opening the app online fetches "
-              + "the newest page \u2014 this matters most when it has been left open for days.",
+              "Looks when you open the app, when you come back to it, and every ten minutes "
+              + "while it is open. A new version goes in as soon as you are not in the middle "
+              + "of something \u2014 no sheet open and nothing typed for a minute \u2014 so it never "
+              + "swaps the page out under you. Off means only the button above looks.",
               cu ? cu.auto() : false,
               function(on){
                 if(cu) cu.setAuto(on);
