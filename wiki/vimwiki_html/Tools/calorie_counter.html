@@ -4897,7 +4897,14 @@ function applyBody(s){
   });
   if(typeof drawTypes === "function") drawTypes();
 }
-function snapshot(){ const s = {}; allControls().forEach(n => { s[n.id] = n.value; }); return s; }
+/* _at is not a control; restore() only looks up ids it owns, so it rides along
+   harmlessly. It is what lets two phones be merged later: without a stamp per
+   day there is no way to tell which copy of a Tuesday is the newer one. */
+function snapshot(){
+  const s = {}; allControls().forEach(n => { s[n.id] = n.value; });
+  s._at = Date.now();
+  return s;
+}
 function restore(s){
   if(!s) return;
   materialiseEntries(s);        // recreate any sets the saved day contains
@@ -6191,7 +6198,7 @@ try{
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.17f";
+  var APP_VERSION = "2026.09.17g";
   var APP_BUILT   = "17 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
@@ -6213,7 +6220,13 @@ try{
     try { localStorage.setItem(AUTO_KEY, on ? "1" : "0"); } catch(e){}
     if(on) setTimeout(function(){ checkNow(function(){}); }, 300);
   }
-  function quietMoment(){ return autoOn() && !touched && (Date.now() - openedAt) < 15000; }
+  function quietMoment(){
+    /* A transfer waiting to be brought in is not a quiet moment: reloading now
+       would drop the person back into the app with their other phone's data
+       still sitting in a link they have already used. */
+    if(window.caloPendingTransfer) return false;
+    return autoOn() && !touched && (Date.now() - openedAt) < 15000;
+  }
   /* Whether a worker was already in charge when this page loaded. Without it,
      the very first install - where clients.claim() hands control to a page that
      had none - looks exactly like an update and triggers a pointless reload. */
@@ -7070,6 +7083,29 @@ try{
         body.appendChild(note);
       })();
 
+      grp("Another phone");
+      (function(){
+        var ct = window.caloTransfer;
+        var r = el("div","setrow");
+        r.style.flexWrap = "wrap";
+        var lft = el("div");
+        lft.appendChild(el("label", null, "Move your data"));
+        lft.appendChild(el("span","sublbl",
+          "There is no account and no server here, so nothing syncs by itself. This hands "
+          + "everything to another phone directly, locked with a one-time code, and merges "
+          + "day by day at the other end \u2014 nothing on either phone is lost."));
+        r.appendChild(lft);
+        var row = el("div","qgrid");
+        row.style.margin = "0";
+        var a = el("button","qchip","Send from here"); a.type = "button";
+        a.addEventListener("click", function(){ if(ct) ct.send(); });
+        var b2 = el("button","qchip","Receive here"); b2.type = "button";
+        b2.addEventListener("click", function(){ if(ct) ct.receive(); });
+        row.appendChild(a); row.appendChild(b2);
+        r.appendChild(row);
+        body.appendChild(r);
+      })();
+
       grp("Appearance");
       (function(){
         var ct = window.caloTheme;
@@ -7232,6 +7268,414 @@ try{
     b12:"tiredness and anaemia plus nerve damage \u2014 numbness, tingling, memory and balance problems \u2014 which can become permanent if left too long",
     o3:"over time, drier skin and less favourable heart and brain markers"
   };
+  /* =================== MOVING TO ANOTHER PHONE ========================
+     There is no server behind this app and there is not going to be one, so
+     there is nothing to sync through. What there can be is a clean hand-off:
+     everything logged, packed, compressed, encrypted with a one-time code, and
+     carried to the other phone by whatever the person already uses - their own
+     WhatsApp, email, AirDrop, a cable. The code is shown on one screen and
+     typed on the other, so what travels through those channels is ciphertext.
+
+     Merging, not overwriting. Every saved day carries a stamp, so two phones
+     that were both used come back together day by day, newest wins, and
+     nothing already on the receiving phone is silently dropped.
+     ================================================================== */
+  var TRANSFER_PREFIX = "CALO1";
+  /* A transfer that arrived by link but has not been brought in yet. Held in
+     sessionStorage, not just in memory: the app can reload underneath it - an
+     update taking its quiet moment, for one - and the link is gone from the
+     address bar by then, so in memory alone it would simply be lost. */
+  var PENDING_KEY = "ledger.pendingTransfer";
+  var pendingTransfer = null;
+  try { pendingTransfer = sessionStorage.getItem(PENDING_KEY) || null; } catch(e){}
+  function setPending(v){
+    pendingTransfer = v || null;
+    try {
+      if(v) sessionStorage.setItem(PENDING_KEY, v);
+      else sessionStorage.removeItem(PENDING_KEY);
+    } catch(e){}
+    window.caloPendingTransfer = !!pendingTransfer;
+  }
+  window.caloPendingTransfer = !!pendingTransfer;
+
+  function b64u(bytes){
+    var s = "";
+    for(var i=0;i<bytes.length;i++) s += String.fromCharCode(bytes[i]);
+    return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+  }
+  function unb64u(str){
+    str = String(str).replace(/-/g,"+").replace(/_/g,"/").replace(/\s+/g,"");
+    while(str.length % 4) str += "=";
+    var bin = atob(str), out = new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  async function gzip(bytes){
+    if(typeof CompressionStream === "undefined") return { z:false, b:bytes };
+    try{
+      var cs = new CompressionStream("gzip");
+      var blob = await new Response(new Blob([bytes]).stream().pipeThrough(cs)).arrayBuffer();
+      return { z:true, b:new Uint8Array(blob) };
+    }catch(e){ return { z:false, b:bytes }; }
+  }
+  async function gunzip(bytes){
+    var ds = new DecompressionStream("gzip");
+    var buf = await new Response(new Blob([bytes]).stream().pipeThrough(ds)).arrayBuffer();
+    return new Uint8Array(buf);
+  }
+  async function keyFrom(pass, salt){
+    var enc = new TextEncoder();
+    var base = await crypto.subtle.importKey("raw", enc.encode(pass), "PBKDF2", false, ["deriveKey"]);
+    return crypto.subtle.deriveKey(
+      { name:"PBKDF2", salt:salt, iterations:250000, hash:"SHA-256" },
+      base, { name:"AES-GCM", length:256 }, false, ["encrypt","decrypt"]);
+  }
+  /* A one-time code, not a password anyone has to remember. Letters and digits
+     that cannot be mistaken for each other - no O/0, no I/1. */
+  function makeCode(){
+    var abc = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    var r = crypto.getRandomValues(new Uint8Array(9)), out = "";
+    for(var i=0;i<9;i++){
+      out += abc[r[i] % abc.length];
+      if(i === 2 || i === 5) out += "-";
+    }
+    return out;
+  }
+
+  function wholeStore(){
+    var out = { v:1, at:Date.now(), app:APP_VERSION_FOR_TRANSFER() };
+    try { out.store = JSON.parse(localStorage.getItem("energyLedger.v3") || "null"); } catch(e){}
+    try { out.supps = JSON.parse(localStorage.getItem("ledger.supps") || "null"); } catch(e){}
+    return out;
+  }
+  function APP_VERSION_FOR_TRANSFER(){
+    return (window.caloUpdate && window.caloUpdate.version) || "";
+  }
+
+  async function packUp(pass){
+    var json = JSON.stringify(wholeStore());
+    var raw = new TextEncoder().encode(json);
+    var packed = await gzip(raw);
+    var salt = crypto.getRandomValues(new Uint8Array(16));
+    var iv   = crypto.getRandomValues(new Uint8Array(12));
+    var key  = await keyFrom(pass, salt);
+    var ct   = new Uint8Array(await crypto.subtle.encrypt({ name:"AES-GCM", iv:iv }, key, packed.b));
+    var body = new Uint8Array(salt.length + iv.length + ct.length);
+    body.set(salt, 0); body.set(iv, salt.length); body.set(ct, salt.length + iv.length);
+    return TRANSFER_PREFIX + (packed.z ? "G" : "P") + "." + b64u(body);
+  }
+  async function unpack(code, pass){
+    code = String(code || "").trim().replace(/\s+/g,"");
+    var dot = code.indexOf(".");
+    if(dot < 0 || code.slice(0, TRANSFER_PREFIX.length) !== TRANSFER_PREFIX)
+      throw new Error("That does not look like a transfer code.");
+    var zipped = code[dot-1] === "G";
+    var body = unb64u(code.slice(dot+1));
+    var salt = body.slice(0,16), iv = body.slice(16,28), ct = body.slice(28);
+    var key = await keyFrom(pass, salt);
+    var plain;
+    try {
+      plain = new Uint8Array(await crypto.subtle.decrypt({ name:"AES-GCM", iv:iv }, key, ct));
+    } catch(e){ throw new Error("Wrong code, or the transfer was damaged on the way."); }
+    if(zipped) plain = await gunzip(plain);
+    return JSON.parse(new TextDecoder().decode(plain));
+  }
+
+  /* Day by day, newest wins. A day the receiving phone has and the sending one
+     does not is kept - the whole point is that neither phone loses anything. */
+  function mergeIn(incoming){
+    var report = { profiles:0, days:0, updated:0, kept:0, supps:0 };
+    if(!incoming || !incoming.store || !incoming.store.users) throw new Error("Nothing to merge.");
+    var local;
+    try { local = JSON.parse(localStorage.getItem("energyLedger.v3") || "null"); } catch(e){}
+    if(!local || !local.users) local = { users:{}, active:null };
+
+    Object.keys(incoming.store.users).forEach(function(id){
+      var them = incoming.store.users[id];
+      var mine = local.users[id];
+      if(!mine){
+        local.users[id] = them;
+        report.profiles++;
+        report.days += Object.keys(them.days || {}).length;
+        return;
+      }
+      mine.days = mine.days || {};
+      Object.keys(them.days || {}).forEach(function(k){
+        var t = them.days[k], m = mine.days[k];
+        if(!m){ mine.days[k] = t; report.days++; return; }
+        var ta = +t._at || 0, ma = +m._at || 0;
+        if(ta > ma){ mine.days[k] = t; report.updated++; }
+        else report.kept++;
+      });
+      /* Body details and the usual day follow whichever phone was used last. */
+      function newest(u){
+        var n = 0;
+        Object.keys(u.days || {}).forEach(function(k){ n = Math.max(n, +u.days[k]._at || 0); });
+        return n;
+      }
+      if(newest(them) > newest(mine)){
+        if(them.body) mine.body = them.body;
+        if(them.usual) mine.usual = them.usual;
+        if(them.name) mine.name = them.name;
+      }
+    });
+    if(!local.active) local.active = incoming.store.active || Object.keys(local.users)[0] || null;
+    localStorage.setItem("energyLedger.v3", JSON.stringify(local));
+    /* The app keeps the whole store in memory and writes it back on the next
+       interaction. Without handing it the merged copy as well, that stale
+       in-memory version would quietly overwrite everything that just arrived -
+       which is exactly what happened the first time this was tested. */
+    try {
+      if(typeof db !== "undefined"){
+        db = local;
+        if(typeof saveDb === "function") saveDb();
+        if(typeof refreshUsers === "function") refreshUsers();
+      }
+    } catch(e){}
+
+    if(incoming.supps){
+      var mineS = {};
+      try { mineS = JSON.parse(localStorage.getItem("ledger.supps") || "{}") || {}; } catch(e){}
+      Object.keys(incoming.supps).forEach(function(slot){
+        if(!mineS[slot]){ mineS[slot] = incoming.supps[slot]; report.supps++; }
+      });
+      localStorage.setItem("ledger.supps", JSON.stringify(mineS));
+    }
+    return report;
+  }
+
+  function countDays(){
+    var n = 0, u = 0;
+    try {
+      var db = JSON.parse(localStorage.getItem("energyLedger.v3") || "null");
+      Object.keys((db && db.users) || {}).forEach(function(k){
+        u++; n += Object.keys(db.users[k].days || {}).length;
+      });
+    } catch(e){}
+    return { days:n, users:u };
+  }
+
+  function openSendSheet(){
+    openSheet("Send to another phone", function(body){
+      var have = countDays();
+      body.appendChild(el("p","tiny",
+        "This packs up <b>" + have.days + " logged day" + (have.days === 1 ? "" : "s")
+        + "</b> across " + have.users + " profile" + (have.users === 1 ? "" : "s")
+        + ", locks it with a one-time code, and hands you the result to send however you "
+        + "like \u2014 your own chat, email, AirDrop, a cable. What travels is scrambled; "
+        + "the code below is what unlocks it, and it is shown here and nowhere else."));
+
+      var code = makeCode();
+      var codeBox = el("div","upiamt", code);
+      codeBox.style.textAlign = "center";
+      codeBox.style.letterSpacing = "0.08em";
+      codeBox.style.margin = "14px 0 2px";
+      body.appendChild(codeBox);
+      body.appendChild(el("p","tiny","Type this on the other phone. It is not stored anywhere."));
+
+      var status = el("p","formula");
+      body.appendChild(status);
+      var payload = null;
+
+      async function build(){
+        status.textContent = "Packing\u2026";
+        try {
+          payload = await packUp(code);
+          status.innerHTML = "Ready \u2014 <b>" + Math.ceil(payload.length/1024) + " KB</b>. "
+            + "Send it with one of these, then open it on the other phone and paste it into "
+            + "<i>Receive from another phone</i>.";
+          acts.style.display = "";
+        } catch(e){
+          status.textContent = "Could not pack this up: " + (e && e.message ? e.message : e);
+        }
+      }
+      var acts = el("div","btnrow");
+      acts.style.display = "none";
+      acts.style.marginTop = "10px";
+
+      var share = el("button","btn sm line","Share\u2026"); share.type = "button";
+      share.addEventListener("click", async function(){
+        var file;
+        try {
+          file = new File([payload], "calo-transfer.txt", { type:"text/plain" });
+        } catch(e){}
+        try {
+          if(file && navigator.canShare && navigator.canShare({ files:[file] })){
+            await navigator.share({ files:[file], title:"Calo transfer" });
+          } else if(navigator.share){
+            await navigator.share({ title:"Calo transfer", text:payload });
+          } else {
+            throw new Error("no share");
+          }
+        } catch(e){
+          status.textContent = "Sharing is not available here \u2014 copy the code or save the file instead.";
+        }
+      });
+      acts.appendChild(share);
+
+      var link = el("button","btn sm line","Copy link"); link.type = "button";
+      link.addEventListener("click", function(){
+        /* A year of logging comes to about three kilobytes, so the whole thing
+           fits in a link. Opening it on the other phone lands straight in the
+           receive sheet with the transfer already filled in. */
+        var url = location.origin + location.pathname + "#t=" + payload;
+        try {
+          navigator.clipboard.writeText(url);
+          link.textContent = "Link copied";
+          setTimeout(function(){ link.textContent = "Copy link"; }, 1600);
+        } catch(e){ status.textContent = "Could not reach the clipboard here."; }
+      });
+      acts.appendChild(link);
+
+      var copy = el("button","btn sm line","Copy"); copy.type = "button";
+      copy.addEventListener("click", function(){
+        try {
+          navigator.clipboard.writeText(payload);
+          copy.textContent = "Copied";
+          setTimeout(function(){ copy.textContent = "Copy"; }, 1500);
+        } catch(e){ status.textContent = "Could not reach the clipboard here."; }
+      });
+      acts.appendChild(copy);
+
+      var save = el("button","btn sm line","Save as a file"); save.type = "button";
+      save.addEventListener("click", function(){
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([payload], { type:"text/plain" }));
+        a.download = "calo-transfer.txt";
+        a.click();
+        setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
+      });
+      acts.appendChild(save);
+      body.appendChild(acts);
+      build();
+
+      body.appendChild(el("p","tiny",
+        "Nothing is deleted from this phone. The other phone merges what arrives with "
+        + "whatever it already has, day by day, and the newer version of a day wins."));
+      var done = el("button","btn sm line full","Close"); done.type = "button";
+      done.style.marginTop = "12px";
+      done.addEventListener("click", closeSheet);
+      body.appendChild(done);
+    });
+  }
+
+  function openReceiveSheet(){
+    openSheet("Receive from another phone", function(body){
+      body.appendChild(el("p","tiny",
+        "Paste what the other phone gave you, or pick the file it saved, then type the "
+        + "code shown there. Everything already on this phone is kept \u2014 days are merged "
+        + "one by one and the newer version of each day wins."));
+
+      var ta = document.createElement("textarea");
+      ta.rows = 4;
+      ta.placeholder = "Paste the transfer here";
+      if(pendingTransfer) ta.value = pendingTransfer;
+      ta.style.width = "100%"; ta.style.marginTop = "10px"; ta.style.fontSize = "13px";
+      ta.style.padding = "9px"; ta.style.borderRadius = "var(--r-sm)";
+      ta.style.border = "1px solid var(--line)";
+      ta.style.background = "var(--card2)"; ta.style.color = "var(--ink)";
+      ta.style.fontFamily = "var(--sans)";
+      body.appendChild(ta);
+
+      var file = document.createElement("input");
+      file.type = "file"; file.accept = ".txt,text/plain";
+      file.style.marginTop = "8px"; file.style.fontSize = "13px";
+      file.addEventListener("change", function(){
+        var f = file.files && file.files[0];
+        if(!f) return;
+        var r = new FileReader();
+        r.onload = function(){ ta.value = String(r.result || "").trim(); };
+        r.readAsText(f);
+      });
+      body.appendChild(file);
+
+      var pass = el("input");
+      pass.type = "text"; pass.placeholder = "Code from the other phone";
+      pass.style.width = "100%"; pass.style.marginTop = "10px"; pass.style.minHeight = "42px";
+      pass.style.padding = "0 10px"; pass.style.borderRadius = "var(--r-sm)";
+      pass.style.border = "1px solid var(--line)";
+      pass.style.background = "var(--card2)"; pass.style.color = "var(--ink)";
+      pass.style.fontSize = "16px"; pass.style.letterSpacing = "0.06em";
+      pass.setAttribute("autocapitalize","characters");
+      body.appendChild(pass);
+
+      var status = el("p","formula");
+      body.appendChild(status);
+
+      var go = el("button","btn primary full","Bring it in"); go.type = "button";
+      go.style.marginTop = "10px";
+      go.addEventListener("click", async function(){
+        var code = (ta.value || "").trim(), key = (pass.value || "").trim().toUpperCase();
+        if(!code){ status.textContent = "Paste the transfer first."; return; }
+        if(!key){ status.textContent = "Type the code from the other phone."; return; }
+        go.disabled = true; status.textContent = "Unlocking\u2026";
+        try {
+          var data = await unpack(code, key);
+          if(window.caloBackup) window.caloBackup();     // before anything is written
+          var r = mergeIn(data);
+          setPending(null);
+          status.innerHTML = "Done \u2014 <b>" + r.days + " new day" + (r.days === 1 ? "" : "s")
+            + "</b>, " + r.updated + " updated, " + r.kept + " already newer here"
+            + (r.profiles ? ", " + r.profiles + " new profile" + (r.profiles === 1 ? "" : "s") : "")
+            + (r.supps ? ", " + r.supps + " supplement" + (r.supps === 1 ? "" : "s") : "")
+            + ". Reloading\u2026";
+          setTimeout(function(){ location.reload(); }, 1200);
+        } catch(e){
+          go.disabled = false;
+          status.textContent = (e && e.message) ? e.message : "That did not work.";
+        }
+      });
+      body.appendChild(go);
+
+      var done = el("button","btn sm line full","Close"); done.type = "button";
+      done.style.marginTop = "10px";
+      done.addEventListener("click", closeSheet);
+      body.appendChild(done);
+    });
+  }
+
+  window.caloTransfer = { send: openSendSheet, receive: openReceiveSheet,
+                          pack: packUp, unpack: unpack, merge: mergeIn };
+
+  /* Arriving on a transfer link. The payload is taken out of the address bar
+     immediately - it should not sit in history or get shared onward by
+     accident - and the sheet opens with it already in place, waiting only for
+     the code. */
+  function transferFromHash(){
+    var h = location.hash || "";
+    if(h.indexOf("#t=") === 0){
+      setPending(h.slice(3));
+      try { history.replaceState(null, "", location.pathname); } catch(e){}
+    }
+  }
+  /* A link opened while the app is already up changes only the hash, which
+     does not re-run the page - so the same arrival has to be caught twice. */
+  window.addEventListener("hashchange", function(){
+    transferFromHash();
+    if(pendingTransfer && !document.querySelector(".sheet.on")) openReceiveSheet();
+  });
+  (function(){
+    transferFromHash();
+    if(!pendingTransfer) return;
+    /* The first-run wizard or a reminder nudge may own the screen when a
+       transfer link is opened. Wait for a clear moment rather than fighting
+       for it, and if one never comes the transfer is still sitting in the
+       receive sheet whenever it is opened by hand. */
+    var tries = 0;
+    (function waitForAGap(){
+      if(++tries > 12) return;
+      var busy = document.querySelector(".sheet.on")
+              || (document.getElementById("wiz") &&
+                  getComputedStyle(document.getElementById("wiz")).display !== "none");
+      if(busy){ setTimeout(waitForAGap, 900); return; }
+      openReceiveSheet();
+      setTimeout(function(){
+        var pass = document.querySelector(".sheet.on input[type=text]");
+        if(pass) pass.focus();
+      }, 150);
+    })();
+  })();
+
   /* =================== SUPPLEMENTS ===================================
      What one dose of each carries, on top of the calories already in the
      catalogue. These are the usual Indian pack strengths - read your own label,
