@@ -752,7 +752,7 @@ input,select{scroll-margin:84px 0 180px}
         <label class="btn sm line" style="position:relative;overflow:hidden">Import
           <input type="file" id="importFile" accept=".json,application/json"
                  style="position:absolute;inset:0;opacity:0;width:100%"></label>
-        <button class="btn sm line" id="delUser">Remove</button>
+        <button class="btn sm line" id="delUser">Delete profile</button>
         <button class="btn sm line" id="rerun">Walk me through it</button>
         <button class="btn sm line" id="startFresh">Start fresh</button>
       </div>
@@ -4731,6 +4731,21 @@ function switchToUser(name){
 }
 $("userSel").addEventListener("change", () => switchToUser($("userSel").value));
 
+/* Delete a whole profile and everything logged under it. It cannot be undone, so
+   both entry points (the You-tab button and the avatar sheet) confirm first. One
+   function keeps desktop and mobile identical. */
+function deleteProfile(name){
+  if(!db.users[name]) return;
+  const wasActive = (name === db.active);
+  delete db.users[name];
+  if(wasActive) db.active = Object.keys(db.users)[0] || null;
+  saveDb(); refreshUsers();
+  if(!Object.keys(db.users).length){ update(); wizOpen(true); }  // none left: start fresh
+  else if(wasActive){ openToday(); }                            // load whoever is now current
+  else { update(); }
+  noteStore(`Deleted ${name}.`);
+}
+
 /* Tapping the avatar shows every saved profile at once, so switching is one tap
    from anywhere rather than a trip to the You tab and a dropdown. */
 function openProfileSheet(){
@@ -4741,9 +4756,16 @@ function openProfileSheet(){
         "No profiles yet. Add someone to start logging."));
     } else {
       const list = el("div");
+      const TRASH = `<svg viewBox="0 0 24 24" style="width:19px;height:19px;stroke:currentColor;`
+        + `fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round">`
+        + `<path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7"/>`
+        + `<path d="M10 11v6M14 11v6"/></svg>`;
       names.forEach(n => {
         const active = (n === db.active);
+        const wrap = el("div");
+        wrap.style.cssText = "display:flex;align-items:center;border-bottom:1px solid var(--line)";
         const row = el("button","pick"); row.type = "button";
+        row.style.cssText = "flex:1;border-bottom:0;min-width:0";
         const left = el("span");
         left.style.cssText = "display:flex;align-items:center;gap:12px;min-width:0";
         const av = el("span",null,n.trim().charAt(0).toUpperCase());
@@ -4762,7 +4784,31 @@ function openProfileSheet(){
           closeSheet();
           showTab("today");
         });
-        list.appendChild(row);
+        /* One tap arms, a second confirms - a native confirm dialog would freeze
+           the sheet, so the button carries its own two-step confirm. */
+        const del = el("button"); del.type = "button";
+        del.setAttribute("aria-label", "Delete " + n);
+        del.style.cssText = "flex:none;width:44px;height:44px;border:0;background:transparent;"
+          + "color:var(--muted);display:flex;align-items:center;justify-content:center;border-radius:var(--r-sm)";
+        del.innerHTML = TRASH;
+        let armed = false, t = null;
+        del.addEventListener("click", ev => {
+          ev.stopPropagation();
+          if(!armed){
+            armed = true;
+            del.innerHTML = `<span style="font-size:12px;font-weight:600;color:var(--fat);white-space:nowrap">Delete?</span>`;
+            del.style.width = "74px";
+            clearTimeout(t);
+            t = setTimeout(() => { armed = false; del.innerHTML = TRASH; del.style.width = "44px"; }, 3500);
+            return;
+          }
+          clearTimeout(t);
+          deleteProfile(n);
+          if(Object.keys(db.users).length) openProfileSheet();   // re-render without it
+          else closeSheet();                                     // none left: wizard is open
+        });
+        wrap.append(row, del);
+        list.appendChild(wrap);
       });
       body.appendChild(list);
     }
@@ -4802,15 +4848,24 @@ $("loadUsual").addEventListener("click", () => {
   noteStore(`Loaded ${db.active}'s usual day.`);
   showTab("today");
 });
-$("delUser").addEventListener("click", () => {
-  if(!activeUser()) return;
-  const gone = db.active;
-  delete db.users[gone];
-  db.active = Object.keys(db.users)[0] || null;
-  saveDb(); refreshUsers();
-  if(activeUser()) openToday(); else update();
-  noteStore(`Removed ${gone}.`);
-});
+/* Two taps to delete the current profile, so a stray tap never wipes a person's
+   whole history. */
+(function(){
+  const btn = $("delUser");
+  let armed = false, t = null;
+  const reset = () => { armed = false; btn.textContent = "Delete profile"; };
+  btn.addEventListener("click", () => {
+    if(!activeUser()){ noteStore("No profile to delete."); return; }
+    if(!armed){
+      armed = true;
+      btn.textContent = `Delete ${db.active}? Tap again`;
+      clearTimeout(t); t = setTimeout(reset, 4000);
+      return;
+    }
+    clearTimeout(t); reset();
+    deleteProfile(db.active);
+  });
+})();
 /* Wipe what was logged today and nothing else: body details, settings and your
    saved usual day all survive, so the day can simply be entered again. */
 function clearToday(){
