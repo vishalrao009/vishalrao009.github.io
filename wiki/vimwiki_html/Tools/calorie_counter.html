@@ -793,6 +793,9 @@ input,select{scroll-margin:84px 0 180px}
         <button class="qbtn" id="qMind">
           <svg viewBox="0 0 24 24"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.4 1 2.5h6c0-1.1.4-1.9 1-2.5A6 6 0 0 0 12 3Z"/></svg>
           <span>Mental work</span></button>
+        <button class="qbtn" id="qSupp">
+          <svg viewBox="0 0 24 24"><path d="M10.5 3.5a5 5 0 0 1 7 7l-7 7a5 5 0 0 1-7-7Z"/><path d="M7 7l7 7"/></svg>
+          <span>Supplement</span></button>
       </div>
       <p class="tiny" id="quickNote"></p>
     </div>
@@ -1048,6 +1051,33 @@ const GROUPS = [
     ["ghee_cow","Desi ghee, cow","tsp",12,1,45,0,0,5,0],
     ["ghee_buf","Desi ghee, buffalo","tsp",12,1,46,0,0,5.1,0],
     ["butter","Butter","tsp",12,1,36,0,0,4,0],
+  ]},
+  /* Supplements sit in the food catalogue rather than in a system of their own:
+     they are things you take by the dose that carry nutrients, and everything
+     the app already does - rows, steppers, the day's totals, the micronutrient
+     sheet, saving with the day - then applies to them for free. Doses are the
+     common Indian pack strengths; anyone whose bottle says otherwise can set up
+     their own on the Food tab. */
+  { name:"Supplements", items:[
+    ["s_omega3_fish","Omega-3 fish oil, 1000 mg","capsule",12,1,9,0,0,1,0],
+    ["s_omega3_flax","Omega-3 flax oil, 1000 mg","capsule",12,1,9,0,0,1,0],
+    ["s_vitd1000","Vitamin D3, 1000 IU","capsule",10,1,0,0,0,0,0],
+    ["s_vitd60k","Vitamin D3, 60,000 IU sachet","sachet",4,1,0,0,0,0,0],
+    ["s_b12","Vitamin B12, 1500 mcg","tablet",4,1,0,0,0,0,0],
+    ["s_calcium","Calcium 500 mg + D3","tablet",4,1,0,0,0,0,0],
+    ["s_iron","Iron 60 mg + folic acid","tablet",4,1,0,0,0,0,0],
+    ["s_zinc","Zinc, 20 mg","tablet",4,1,0,0,0,0,0],
+    ["s_magnesium","Magnesium, 200 mg","tablet",4,1,0,0,0,0,0],
+    ["s_vitc","Vitamin C, 500 mg","tablet",6,1,0,0,0,0,0],
+    ["s_multi","Multivitamin, typical","tablet",4,1,0,0,0,0,0],
+    ["s_creatine","Creatine monohydrate","scoop",4,1,0,0,0,0,0],
+    ["s_ors","ORS sachet, made up to 1 litre","sachet",4,1,54,0,13.5,0,0],
+    ["s_plantpro","Plant protein, 30 g scoop","scoop",4,1,110,24,2,1.5,0],
+    ["s_mct","MCT oil","tsp",8,1,40,0,0,4.5,0],
+    ["s_c1","Your supplement 1","dose",20,1,0,0,0,0,0],
+    ["s_c2","Your supplement 2","dose",20,1,0,0,0,0,0],
+    ["s_c3","Your supplement 3","dose",20,1,0,0,0,0,0],
+    ["s_c4","Your supplement 4","dose",20,1,0,0,0,0,0],
   ]},
   { name:"Grains", items:[
     ["chapati","Chapati","piece",12,1,120,3.5,22,1,3],
@@ -1455,6 +1485,23 @@ const ALIAS = {
   jaggery:"gud gur", sugar:"cheeni shakkar", honey:"shahad", oil:"tel cooking",
   chai:"tea cha", oats:"oatmeal daliya", bread:"pav slice", butter:"makhan",
   whey:"protein powder shake",
+  s_omega3_fish:"omega 3 fish oil epa dha capsule supplement",
+  s_omega3_flax:"omega 3 flax alsi ala capsule supplement vegetarian",
+  s_vitd1000:"vitamin d3 cholecalciferol sunshine supplement",
+  s_vitd60k:"vitamin d3 60000 sachet weekly supplement",
+  s_b12:"vitamin b12 methylcobalamin cobalamin supplement",
+  s_calcium:"calcium citrate carbonate supplement bones",
+  s_iron:"iron ferrous folic acid ifa supplement anaemia",
+  s_zinc:"zinc supplement immunity",
+  s_magnesium:"magnesium glycinate citrate supplement cramps",
+  s_vitc:"vitamin c ascorbic acid supplement",
+  s_multi:"multivitamin multimineral supplement",
+  s_creatine:"creatine monohydrate supplement",
+  s_ors:"ors electrolyte rehydration sachet glucose",
+  s_plantpro:"plant protein pea soy vegan powder supplement",
+  s_mct:"mct oil coconut fat supplement",
+  s_c1:"custom supplement my own", s_c2:"custom supplement my own",
+  s_c3:"custom supplement my own", s_c4:"custom supplement my own",
 };
 
 const CATALOG = {food:[], rep:[], cond:[], chore:[]};
@@ -2739,6 +2786,7 @@ function update(){
      is computed from them. Cheap - it returns immediately unless the choice
      actually changed. */
   if(window.caloSabji) window.caloSabji.sync();
+  if(window.caloSupp) window.caloSupp.sync();
   const d = compute();
   const ready = d.ready;
   const inK = d.food.kcal;
@@ -5308,6 +5356,16 @@ $("qFood").addEventListener("click", () =>
   pickerSheet("food","Add what you ate","Search vegetarian foods",
     {hint:"Type what you ate \u2014 chapati, dal, curd, ghee, banana."}));
 
+/* Supplements are ordinary catalogue entries in their own group, so the button
+   is the same picker with the list narrowed. What you take is as much a part of
+   the day as what you eat - a D3 sachet moves the vitamin D row further than a
+   week of food can. */
+if($("qSupp")) $("qSupp").addEventListener("click", () =>
+  pickerSheet("food","Add a supplement","Search omega-3, vitamin D, B12, iron",
+    {filter: it => it.group === "Supplements",
+     hint:"Doses are the usual pack strengths \u2014 read your own label, and set up "
+        + "your own on the Food tab if it differs."}));
+
 /* One "Exercised" entry for everything you counted in reps or covered on foot or
    wheels. Walking, running and cycling live in the same list as lifting now, so
    there is no separate button - pick "Walking" and its distance and pace drop in
@@ -6133,10 +6191,29 @@ try{
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.17d";
+  var APP_VERSION = "2026.09.17f";
   var APP_BUILT   = "17 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
+  /* Automatic updating, on by default and switchable in Settings. "On" means:
+     look in the background, and if a new build turns up in the first seconds
+     after opening - before anything has been typed - just take it, because a
+     swap at that moment is invisible. Anything later raises the card and waits
+     to be asked, since yanking the page out from under a half-entered meal is
+     not an update, it is a bug. */
+  var AUTO_KEY = "ledger.autoUpdate";
+  var openedAt = Date.now(), touched = false;
+  ["pointerdown","keydown","input"].forEach(function(ev){
+    document.addEventListener(ev, function(){ touched = true; }, { passive:true, capture:true });
+  });
+  function autoOn(){
+    try { return localStorage.getItem(AUTO_KEY) !== "0"; } catch(e){ return true; }
+  }
+  function setAuto(on){
+    try { localStorage.setItem(AUTO_KEY, on ? "1" : "0"); } catch(e){}
+    if(on) setTimeout(function(){ checkNow(function(){}); }, 300);
+  }
+  function quietMoment(){ return autoOn() && !touched && (Date.now() - openedAt) < 15000; }
   /* Whether a worker was already in charge when this page loaded. Without it,
      the very first install - where clients.claim() hands control to a page that
      had none - looks exactly like an update and triggers a pointless reload. */
@@ -6165,6 +6242,7 @@ try{
     if(!w) return null;
     if(latest && latest === APP_VERSION){ swapSilently(w); return "latest"; }
     waiting = w;
+    if(quietMoment()){ applyUpdate(); return "ready"; }
     showUpdate();
     return "ready";
   }
@@ -6254,6 +6332,8 @@ try{
   window.caloUpdate = {
     version: APP_VERSION,
     built:   APP_BUILT,
+    auto:    autoOn,
+    setAuto: setAuto,
     pending: function(){ return !!waiting; },
     check:   checkNow,
     apply:   applyUpdate
@@ -6282,11 +6362,14 @@ try{
         /* A quiet look on the way back into the app, at most every six hours.
            An installed app can sit open for weeks otherwise. */
         document.addEventListener("visibilitychange", function(){
-          if(document.hidden) return;
+          if(document.hidden || !autoOn()) return;
           if(Date.now() - lastCheck < 6*3600e3) return;
+          /* Coming back to the app counts as a fresh open for the quiet-moment
+             test: nothing has been typed since. */
+          openedAt = Date.now(); touched = false;
           checkNow(function(){});
         });
-        setTimeout(function(){ checkNow(function(){}); }, 4000);
+        if(autoOn()) setTimeout(function(){ checkNow(function(){}); }, 4000);
       }).catch(function(err){
         // Not fatal. The app still runs, it just will not work offline.
         console.warn("Offline support unavailable:", err && err.message);
@@ -6891,6 +6974,19 @@ try{
         r.appendChild(b);
         body.appendChild(r);
         body.appendChild(note);
+
+        swrow("Update automatically",
+              "Looks for a new version while the app is open and takes it at a quiet moment, "
+              + "before anything has been typed; one found mid-use waits and asks first. Off "
+              + "means only the button above looks. Either way, opening the app online fetches "
+              + "the newest page \u2014 this matters most when it has been left open for days.",
+              cu ? cu.auto() : false,
+              function(on){
+                if(cu) cu.setAuto(on);
+                note.textContent = on
+                  ? "On \u2014 new versions arrive by themselves."
+                  : "Off \u2014 nothing is fetched until you tap Check now.";
+              });
       })();
 
       grp("Reminders");
@@ -7136,6 +7232,230 @@ try{
     b12:"tiredness and anaemia plus nerve damage \u2014 numbness, tingling, memory and balance problems \u2014 which can become permanent if left too long",
     o3:"over time, drier skin and less favourable heart and brain markers"
   };
+  /* =================== SUPPLEMENTS ===================================
+     What one dose of each carries, on top of the calories already in the
+     catalogue. These are the usual Indian pack strengths - read your own label,
+     because strengths vary, and set up your own below if it differs.
+
+     Note on omega-3: the target in this app is ALA, the plant form. A fish-oil
+     capsule gives EPA and DHA, which is what ALA is converted into, so it is
+     counted here rather than left out - generous to fish oil, but the shortfall
+     it is answering is the same one.
+     ================================================================== */
+  var SUPP_MICRO = {
+    s_omega3_fish: { o3:0.3 },
+    s_omega3_flax: { o3:0.5 },
+    s_vitd1000:    { vd:1000 },
+    s_vitd60k:     { vd:60000 },
+    s_b12:         { b12:1500 },
+    s_calcium:     { ca:500, vd:250 },
+    s_iron:        { fe:60, b9:500 },
+    s_zinc:        { zn:20 },
+    s_magnesium:   { mg:200 },
+    s_vitc:        { vc:500 },
+    s_multi:       { va:600, vc:60, vd:400, ve:15, vk:30, b1:1.4, b2:1.6, b3:18,
+                     b5:5, b6:2, b9:200, b12:1, zn:10, se:30, cu:0.5, mn:1.5, iod:100 },
+    s_creatine:    {},
+    s_ors:         { na:1030, k:780 },
+    s_plantpro:    { fe:4, ca:60, mg:40, k:150, na:180, zn:1.5 },
+    s_mct:         {}
+  };
+  Object.keys(SUPP_MICRO).forEach(function(k){ MICRO[k] = SUPP_MICRO[k]; });
+
+  /* Four slots for whatever is actually on the shelf. A slot stays "Your
+     supplement N" until it is filled in, and then takes the name, the dose
+     word and the numbers off the label. Kept in this browser with everything
+     else. */
+  var SUPP_KEY = "ledger.supps";
+  var SUPP_SLOTS = ["s_c1","s_c2","s_c3","s_c4"];
+  function loadSupps(){
+    try { return JSON.parse(localStorage.getItem(SUPP_KEY) || "{}") || {}; }
+    catch(e){ return {}; }
+  }
+  function saveSupps(o){
+    try { localStorage.setItem(SUPP_KEY, JSON.stringify(o)); } catch(e){}
+  }
+  function syncSupps(){
+    var all = loadSupps();
+    SUPP_SLOTS.forEach(function(id){
+      var fd = (typeof foodIndex !== "undefined") ? foodIndex[id] : null;
+      if(!fd) return;
+      var c = all[id];
+      var row = document.getElementById("row_" + id);
+      var entry = (typeof CATALOG !== "undefined")
+        ? CATALOG.food.filter(function(it){ return it.rowId === "row_" + id; })[0] : null;
+      if(!c){
+        MICRO[id] = {};
+        return;
+      }
+      fd.name = c.name; fd.unit = c.unit || "dose";
+      fd.kcal = +c.kcal || 0; fd.p = +c.p || 0; fd.c = +c.c || 0;
+      fd.f = +c.f || 0; fd.fib = +c.fib || 0;
+      MICRO[id] = {};
+      Object.keys(c.m || {}).forEach(function(k){ MICRO[id][k] = +c.m[k] || 0; });
+      if(entry){ entry.name = c.name; entry.meta = Math.round(fd.kcal) + " kcal per " + fd.unit; }
+      if(row){
+        var nm = row.querySelector(".nm");
+        if(nm){
+          nm.childNodes[0].nodeValue = c.name;
+          var small = nm.querySelector("small");
+          if(small) small.textContent = Math.round(fd.kcal) + " kcal per " + fd.unit;
+        }
+        var amt = row.querySelector(".val.amt");
+        var inp = document.getElementById("f_" + id);
+        if(amt && inp) amt.innerHTML = "<b>" + (parseFloat(inp.value)||0) + "</b> " + fd.unit;
+      }
+    });
+  }
+
+  /* The builder. Deliberately plain: a name, what one dose is called, the
+     calories and macros if it has any, then any nutrients off the label. */
+  function openSuppSheet(slot){
+    var all = loadSupps();
+    openSheet(slot ? "Your supplement" : "Your own supplements", function(body){
+      if(!slot){
+        body.appendChild(el("p","tiny",
+          "Four slots for what is actually on your shelf \u2014 a protein blend, a "
+          + "multivitamin nobody else has, a doctor's prescription. Fill one in and it "
+          + "behaves like any other entry: log the doses you took and they land in the "
+          + "day's calories, macros and micronutrients."));
+        SUPP_SLOTS.forEach(function(id){
+          var c = all[id];
+          var b = el("button","btn full line", c ? c.name + " \u2014 edit" : "Set up a supplement");
+          b.type = "button"; b.style.marginTop = "8px";
+          b.addEventListener("click", function(){ openSuppSheet(id); });
+          body.appendChild(b);
+        });
+        var done0 = el("button","btn sm line full","Close"); done0.type = "button";
+        done0.style.marginTop = "14px";
+        done0.addEventListener("click", closeSheet); body.appendChild(done0);
+        return;
+      }
+
+      var cur = all[slot] || { name:"", unit:"dose", kcal:0, p:0, c:0, f:0, fib:0, m:{} };
+      function field(label, val, hint){
+        var wrap = el("div","setrow");
+        var lft = el("div");
+        lft.appendChild(el("label", null, label));
+        if(hint) lft.appendChild(el("span","sublbl", hint));
+        wrap.appendChild(lft);
+        var inp = el("input");
+        inp.type = (typeof val === "number") ? "number" : "text";
+        if(inp.type === "number"){ inp.step = "any"; inp.min = "0"; }
+        inp.value = val;
+        inp.className = "num";
+        /* Names need room; numbers do not. */
+        var text = inp.type === "text";
+        inp.style.width = text ? "160px" : "96px";
+        if(text){ inp.style.textAlign = "left"; inp.style.padding = "0 9px";
+                  inp.style.fontFamily = "var(--sans)"; inp.style.fontSize = "14px"; }
+        inp.style.background = "var(--card2)";
+        inp.style.borderRadius = "var(--r-sm)"; inp.style.border = "1px solid var(--line)";
+        inp.style.minHeight = "38px";
+        wrap.appendChild(inp);
+        body.appendChild(wrap);
+        return inp;
+      }
+      body.appendChild(el("p","tiny",
+        "Copy what the label says for <b>one dose</b> \u2014 one capsule, one scoop, one "
+        + "tablet. Leave anything it does not carry at zero."));
+      var fName = field("Name", cur.name || "", "e.g. Vitamin D3 2000 IU");
+      var fUnit = field("One dose is called", cur.unit || "dose", "capsule, tablet, scoop, ml");
+      var fKcal = field("Calories per dose", +cur.kcal || 0);
+      var fP = field("Protein, g", +cur.p || 0);
+      var fC = field("Carbs, g", +cur.c || 0);
+      var fF = field("Fat, g", +cur.f || 0);
+
+      body.appendChild(el("div","ntgrp","Vitamins and minerals per dose"));
+      var m = {};
+      Object.keys(cur.m || {}).forEach(function(k){ m[k] = cur.m[k]; });
+      var list = el("div");
+      function drawList(){
+        list.innerHTML = "";
+        var keys = Object.keys(m);
+        if(!keys.length){ list.appendChild(el("p","tiny","Nothing added yet.")); return; }
+        keys.forEach(function(k){
+          var n = NUT.filter(function(x){ return x.k === k; })[0];
+          var r = el("div","setrow");
+          r.appendChild(el("div", null, (n ? n.name : k) + " \u2014 " + fmtN(m[k]) + " " + (n ? n.u : "")));
+          var rm = el("button","btn sm line","Remove"); rm.type = "button";
+          rm.addEventListener("click", function(){ delete m[k]; drawList(); });
+          r.appendChild(rm);
+          list.appendChild(r);
+        });
+      }
+      body.appendChild(list);
+      drawList();
+
+      var addRow = el("div","setrow");
+      var sel = el("select");
+      sel.className = "num";
+      sel.style.width = "auto"; sel.style.minHeight = "38px"; sel.style.padding = "0 8px";
+      sel.style.background = "var(--card2)"; sel.style.border = "1px solid var(--line)";
+      sel.style.borderRadius = "var(--r-sm)";
+      NUT.forEach(function(n){
+        var o = document.createElement("option");
+        o.value = n.k; o.textContent = n.name + " (" + n.u + ")";
+        sel.appendChild(o);
+      });
+      var amt = el("input"); amt.type = "number"; amt.step = "any"; amt.min = "0"; amt.value = "";
+      amt.className = "num"; amt.style.width = "84px"; amt.style.minHeight = "38px";
+      amt.style.background = "var(--card2)"; amt.style.border = "1px solid var(--line)";
+      amt.style.borderRadius = "var(--r-sm)";
+      var add = el("button","btn sm line","Add"); add.type = "button";
+      add.addEventListener("click", function(){
+        var v = parseFloat(amt.value);
+        if(!(v > 0)) return;
+        m[sel.value] = v; amt.value = ""; drawList();
+      });
+      addRow.appendChild(sel);
+      var right = el("div"); right.style.display = "flex"; right.style.gap = "8px";
+      right.appendChild(amt); right.appendChild(add);
+      addRow.appendChild(right);
+      body.appendChild(addRow);
+
+      var save = el("button","btn primary full","Save this supplement"); save.type = "button";
+      save.style.marginTop = "14px";
+      save.addEventListener("click", function(){
+        var name = (fName.value || "").trim();
+        if(!name){ fName.focus(); return; }
+        all[slot] = { name:name, unit:(fUnit.value || "dose").trim(),
+                      kcal:+fKcal.value || 0, p:+fP.value || 0, c:+fC.value || 0,
+                      f:+fF.value || 0, fib:0, m:m };
+        saveSupps(all); syncSupps();
+        if(typeof update === "function") update();
+        closeSheet();
+      });
+      body.appendChild(save);
+
+      if(all[slot]){
+        var del = el("button","btn sm line full","Clear this slot"); del.type = "button";
+        del.style.marginTop = "8px";
+        del.addEventListener("click", function(){
+          delete all[slot]; saveSupps(all);
+          var fd = foodIndex[slot];
+          if(fd){ fd.name = "Your supplement " + slot.slice(-1); fd.unit = "dose";
+                  fd.kcal = 0; fd.p = 0; fd.c = 0; fd.f = 0; fd.fib = 0; }
+          syncSupps();
+          if(typeof update === "function") update();
+          closeSheet();
+        });
+        body.appendChild(del);
+      }
+    });
+  }
+  window.caloSupp = { open: openSuppSheet, sync: syncSupps };
+  syncSupps();
+  (function(){
+    var slot = document.getElementById("slotFood");
+    if(!slot || !slot.parentNode) return;
+    var b = el("button","btn full line","Set up your own supplements");
+    b.type = "button";
+    b.style.marginTop = "10px";
+    b.addEventListener("click", function(e){ e.preventDefault(); openSuppSheet(); });
+    slot.parentNode.appendChild(b);
+  })();
+
   /* =================== WHAT IS IN THE SABJI ==========================
      "Sabji" as a single food is an average of a hundred different dishes, and
      the average is wrong for all of them: aloo is four times the calories of
@@ -7573,7 +7893,7 @@ try{
       var v = parseFloat(n.value) || 0; if(v <= 0) return;
       var fd = (typeof foodIndex !== "undefined") ? foodIndex[id] : null;
       out.push({ name: fd ? fd.name : id, unit: fd ? fd.unit : "serving",
-                 v: v, per: per, amt: v * per });
+                 v: v, per: per, amt: v * per, supp: id.indexOf("s_") === 0 });
     });
     return out.sort(function(a,b){ return b.amt - a.amt; });
   }
@@ -7625,6 +7945,14 @@ try{
              + Math.round(pct) + "% of it \u2014 " + fmtN(target - intake) + " " + unit + " short.";
       }
       wrap.appendChild(el("p","formula", line));
+    }
+    /* A weekly 60,000 IU sachet against a daily target reads as 10,000% and
+       means nothing without this. */
+    if(rows.some(function(r){ return r.supp; })){
+      wrap.appendChild(el("p","formula",
+        "Part of this came from a supplement. The percentage is for <b>today</b>: a weekly "
+        + "or monthly dose lands entirely on the day it is taken, and a daily target is the "
+        + "wrong ruler for it."));
     }
     return wrap;
   }
