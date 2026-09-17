@@ -5333,7 +5333,7 @@ try{
 <style>
 /* Install card. Sits above the tab bar and uses the app's own tokens so it
    reads as part of the interface rather than as a browser banner. */
-#installCard{
+#installCard,#updateCard{
   position:fixed;left:12px;right:12px;
   bottom:calc(var(--tabh) + 12px + env(safe-area-inset-bottom));
   z-index:60;background:var(--card);border:1px solid var(--line);
@@ -5341,21 +5341,31 @@ try{
   padding:13px 14px;display:none;gap:10px;align-items:flex-start;
   max-width:520px;margin:0 auto;
 }
-#installCard.show{display:flex}
-#installCard .ictext{flex:1;min-width:0}
-#installCard .ictitle{font-family:var(--serif);font-weight:600;font-size:15px}
-#installCard .icbody{color:var(--muted);font-size:13px;margin-top:2px}
-#installCard .icacts{display:flex;gap:8px;margin-top:10px}
-#installCard button{
+#installCard.show,#updateCard.show{display:flex}
+#installCard .ictext,#updateCard .ictext{flex:1;min-width:0}
+#installCard .ictitle,#updateCard .ictitle{font-family:var(--serif);font-weight:600;font-size:15px}
+#installCard .icbody,#updateCard .icbody{color:var(--muted);font-size:13px;margin-top:2px}
+#installCard .icacts,#updateCard .icacts{display:flex;gap:8px;margin-top:10px}
+#installCard button,#updateCard button{
   border-radius:var(--r-sm);padding:7px 13px;font-size:14px;font-weight:500;
   border:1px solid var(--line);background:var(--card2);
 }
-#installCard button.primary{background:var(--out);border-color:var(--out);color:#fff}
+#installCard button.primary,#updateCard button.primary{background:var(--out);border-color:var(--out);color:#fff}
 @media (prefers-reduced-motion:no-preference){
-  #installCard.show{animation:icin .22s ease-out}
+  #installCard.show,#updateCard.show{animation:icin .22s ease-out}
   @keyframes icin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 }
 </style>
+<div id="updateCard" role="dialog" aria-label="Update Calo">
+  <div class="ictext">
+    <div class="ictitle">A new version of Calo is ready</div>
+    <div class="icbody" id="upBody">It is already downloaded. Reloading swaps it in; your data is untouched.</div>
+    <div class="icacts">
+      <button type="button" class="primary" id="upGo">Reload now</button>
+      <button type="button" id="upNo">Later</button>
+    </div>
+  </div>
+</div>
 <div id="installCard" role="dialog" aria-label="Install Calo">
   <div class="ictext">
     <div class="ictitle" id="icTitle">Keep Calo on your home screen</div>
@@ -6069,18 +6079,144 @@ try{
   };
 
   /* --- service worker: offline, and updates that actually land --- */
+  /* ================= VERSION & UPDATES =================================
+     ONE NUMBER TO BUMP ON EVERY RELEASE. Set APP_VERSION below, put the same
+     string in sw.js (its VERSION) and in version.json, and re-upload all three.
+     The service worker caches under a name that carries the version, so a new
+     string means a fresh cache; version.json is what a running copy reads to
+     find out a newer build exists even when the worker is slow to notice.
+     ------------------------------------------------------------------- */
+  var APP_VERSION = "2026.09.17";
+  var APP_BUILT   = "17 Sep 2026";
+
+  var swReg = null, waiting = null, applying = false, reloaded = false, lastCheck = 0;
+  /* Whether a worker was already in charge when this page loaded. Without it,
+     the very first install - where clients.claim() hands control to a page that
+     had none - looks exactly like an update and triggers a pointless reload. */
+  var hadController = ("serviceWorker" in navigator) && !!navigator.serviceWorker.controller;
+  var upCard = document.getElementById("updateCard");
+  var upBody = document.getElementById("upBody");
+
+  function showUpdate(){ if(upCard) upCard.classList.add("show"); }
+  function hideUpdate(){ if(upCard) upCard.classList.remove("show"); }
+
+  /* A worker that has installed but is waiting behind this page is the new
+     build, sitting ready. Nothing is swapped until someone says so: replacing
+     the code under a page that is mid-edit is how a half-typed day gets lost. */
+  function armWaiting(w){
+    if(!w) return;
+    waiting = w;
+    showUpdate();
+  }
+  function reloadOnce(){
+    if(reloaded) return;
+    reloaded = true;
+    location.reload();
+  }
+  function applyUpdate(){
+    if(applying) return;
+    applying = true;
+    if(upBody) upBody.textContent = "Swapping it in\u2026";
+    if(waiting){
+      try { waiting.postMessage("skip-waiting"); } catch(e){}
+      try { waiting.postMessage({ type: "SKIP_WAITING" }); } catch(e){}
+    }
+    /* controllerchange fires once the new worker takes over; the timeout covers
+       an older sw.js that ignores the message. */
+    setTimeout(reloadOnce, 1400);
+  }
+  if("serviceWorker" in navigator){
+    navigator.serviceWorker.addEventListener("controllerchange", function(){
+      /* An update swapping in - either from this tab or another one that took
+         it - is worth following. A first claim is not. */
+      if(!applying && !hadController) return;
+      reloadOnce();
+    });
+  }
+
+  /* What the server currently publishes. Optional: without version.json the
+     check falls back to whatever the service worker reports. */
+  function publishedVersion(cb){
+    if(!window.fetch){ cb(null, false); return; }
+    fetch("version.json", { cache: "no-store" })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(j){ cb(j && j.version ? String(j.version) : null, false); })
+      /* A failed fetch and a missing file are different answers: one means the
+         check could not run, the other that there is nothing to compare. */
+      .catch(function(){ cb(null, true); });
+  }
+
+  /* States: "ready" (downloaded, waiting), "stale" (server has a different
+     version but the worker has not picked it up), "latest", "offline",
+     "unsupported". */
+  function checkNow(cb){
+    cb = cb || function(){};
+    lastCheck = Date.now();
+    publishedVersion(function(latest, netFail){
+      var newer = latest && latest !== APP_VERSION;
+      var offline = netFail && navigator.onLine === false;
+      if(offline){ cb({ state: "offline", latest: null }); return; }
+      if(!swReg){
+        cb({ state: latest ? (newer ? "stale" : "latest") : "unsupported", latest: latest });
+        return;
+      }
+      var done = false;
+      function finish(st){ if(done) return; done = true; cb({ state: st, latest: latest }); }
+      swReg.update().then(function(){
+        if(swReg.waiting){ armWaiting(swReg.waiting); finish("ready"); return; }
+        var w = swReg.installing;
+        if(w){
+          w.addEventListener("statechange", function(){
+            if(w.state === "installed"){
+              if(navigator.serviceWorker.controller){ armWaiting(swReg.waiting || w); finish("ready"); }
+              else finish("latest");
+            }
+            if(w.state === "redundant") finish("latest");
+          });
+          setTimeout(function(){ finish(newer ? "stale" : "latest"); }, 8000);
+          return;
+        }
+        finish(newer ? "stale" : "latest");
+      }).catch(function(){ finish("offline"); });
+    });
+  }
+
+  window.caloUpdate = {
+    version: APP_VERSION,
+    built:   APP_BUILT,
+    pending: function(){ return !!waiting; },
+    check:   checkNow,
+    apply:   applyUpdate
+  };
+
+  if(upCard){
+    var go = document.getElementById("upGo"), no = document.getElementById("upNo");
+    if(go) go.addEventListener("click", applyUpdate);
+    if(no) no.addEventListener("click", hideUpdate);
+  }
+
   if("serviceWorker" in navigator){
     window.addEventListener("load", function(){
       navigator.serviceWorker.register("sw.js").then(function(reg){
+        swReg = reg;
+        if(reg.waiting && navigator.serviceWorker.controller) armWaiting(reg.waiting);
         reg.addEventListener("updatefound", function(){
           var w = reg.installing;
           if(!w) return;
           w.addEventListener("statechange", function(){
-            if(w.state === "installed" && navigator.serviceWorker.controller){
-              w.postMessage("skip-waiting");   // new build takes over next load
-            }
+            /* A controller already running means this is an update rather than
+               the first install, so it is offered instead of applied. */
+            if(w.state === "installed" && navigator.serviceWorker.controller) armWaiting(reg.waiting || w);
           });
         });
+        /* A quiet look on the way back into the app, at most every six hours.
+           An installed app can sit open for weeks otherwise. */
+        document.addEventListener("visibilitychange", function(){
+          if(document.hidden) return;
+          if(Date.now() - lastCheck < 6*3600e3) return;
+          checkNow(function(){});
+        });
+        setTimeout(function(){ checkNow(function(){}); }, 4000);
       }).catch(function(err){
         // Not fatal. The app still runs, it just will not work offline.
         console.warn("Offline support unavailable:", err && err.message);
@@ -6699,6 +6835,61 @@ try{
           }
         }
         body.appendChild(note);
+      })();
+
+      grp("App version");
+      (function(){
+        var cu = window.caloUpdate;
+        var r = el("div","setrow");
+        var lft = el("div");
+        lft.appendChild(el("label", null, "Calo " + (cu ? cu.version : "\u2014")));
+        lft.appendChild(el("span","sublbl",
+          cu && cu.built ? "Released " + cu.built + ". Updates install themselves once you reload."
+                         : "Version could not be read."));
+        r.appendChild(lft);
+        var note = el("p","sublbl");
+        note.style.margin = "6px 2px 0";
+        var b = el("button","btn sm line","Check for updates");
+        b.type = "button";
+        function ready(){
+          b.textContent = "Reload to update";
+          b.classList.add("primary");
+          note.textContent = "A new version is downloaded and waiting. Reloading swaps it in; "
+                           + "nothing you have logged is touched.";
+        }
+        b.addEventListener("click", function(){
+          if(!cu){ note.textContent = "Updates are not available in this browser."; return; }
+          if(cu.pending()){ cu.apply(); return; }
+          b.disabled = true;
+          note.textContent = "Checking\u2026";
+          cu.check(function(res){
+            b.disabled = false;
+            if(res.state === "ready"){ ready(); return; }
+            if(res.state === "stale"){
+              b.textContent = "Reload to update";
+              note.textContent = "Version " + res.latest + " is published. Reload to pick it up \u2014 "
+                               + "if it does not arrive, the page may be held by an old cache, and "
+                               + "closing every tab of Calo and reopening clears that.";
+              b.onclick = function(){ location.reload(); };
+              return;
+            }
+            if(res.state === "offline"){
+              note.textContent = "No connection, so the check could not run. Everything still works offline.";
+              return;
+            }
+            if(res.state === "unsupported"){
+              note.textContent = "This browser has no service worker, so the app cannot update itself \u2014 "
+                               + "reload the page to get the newest version.";
+              return;
+            }
+            note.textContent = "You are on the newest version ("
+                             + (res.latest || cu.version) + "). Last checked just now.";
+          });
+        });
+        r.appendChild(b);
+        body.appendChild(r);
+        body.appendChild(note);
+        if(cu && cu.pending()) ready();
       })();
 
       grp("Appearance");
