@@ -821,6 +821,8 @@ input,select{scroll-margin:84px 0 180px}
 
   <!-- ============ FOOD ============ -->
   <section class="tabpane" id="pane-food">
+    <input type="hidden" id="sabjiDryVeg" value="">
+    <input type="hidden" id="sabjiGravyVeg" value="">
     <div class="card">
       <div class="cardhead"><h2>What you ate</h2><span class="sm" id="foodTot"></span></div>
       <div id="slotFood"><div class="rowlist" id="foodRows"></div></div>
@@ -1306,7 +1308,12 @@ const LOG_IDS = [];
 const LABELS  = {};
 const SETTING_IDS = ["weight","height","age","sex","job","train",
                      "rest","intensity","bandColor","bandLen","lower","water","sleep",
-                     "dayDone","fastH"];
+                     "dayDone","fastH",
+                     /* Which vegetables went into today's sabji, as comma-separated
+                        ids. Hidden inputs so a saved day carries them like any
+                        other field - the blend must come back with the day, or
+                        yesterday's numbers would be re-read against today's veg. */
+                     "sabjiDryVeg","sabjiGravyVeg"];
 const PINNED = new Set();     // things the user added this session
 /* Nothing is pinned by default. The profile is whatever the person searches
    for and adds, and nothing else. */
@@ -2719,6 +2726,11 @@ function compute(){
 let lastD = null, inDiff = false;
 
 function update(){
+  /* The sabji entries are not fixed foods: their per-katori figures are built
+     from whichever vegetables were chosen, so they are rebuilt before anything
+     is computed from them. Cheap - it returns immediately unless the choice
+     actually changed. */
+  if(window.caloSabji) window.caloSabji.sync();
   const d = compute();
   const ready = d.ready;
   const inK = d.food.kcal;
@@ -6086,10 +6098,10 @@ try{
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.17";
+  var APP_VERSION = "2026.09.17b";
   var APP_BUILT   = "17 Sep 2026";
 
-  var swReg = null, waiting = null, applying = false, reloaded = false, lastCheck = 0;
+  var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
   /* Whether a worker was already in charge when this page loaded. Without it,
      the very first install - where clients.claim() hands control to a page that
      had none - looks exactly like an update and triggers a pointless reload. */
@@ -6100,13 +6112,30 @@ try{
   function showUpdate(){ if(upCard) upCard.classList.add("show"); }
   function hideUpdate(){ if(upCard) upCard.classList.remove("show"); }
 
-  /* A worker that has installed but is waiting behind this page is the new
-     build, sitting ready. Nothing is swapped until someone says so: replacing
-     the code under a page that is mid-edit is how a half-typed day gets lost. */
-  function armWaiting(w){
-    if(!w) return;
+  function swapSilently(w){
+    silent = true;
+    try { w.postMessage("skip-waiting"); } catch(e){}
+    try { w.postMessage({ type: "SKIP_WAITING" }); } catch(e){}
+  }
+  /* A worker waiting behind this page does NOT always mean the person is
+     looking at old code. The page itself is fetched network-first, so on an
+     ordinary visit they already have the new build and it is only the worker
+     and its cache catching up behind them - interrupting that with a "new
+     version ready" card would be noise, and reloading would be worse. So when
+     the published version matches the one already running, the swap happens
+     quietly; only a page that really is behind raises the card. Nothing is ever
+     swapped under a page that is mid-entry without being asked.
+     Returns the state to report back to a manual check. */
+  function handleWaiting(w, latest){
+    if(!w) return null;
+    if(latest && latest === APP_VERSION){ swapSilently(w); return "latest"; }
     waiting = w;
     showUpdate();
+    return "ready";
+  }
+  function armWaiting(w){
+    if(!w || w === waiting) return;
+    publishedVersion(function(latest){ handleWaiting(w, latest); });
   }
   function reloadOnce(){
     if(reloaded) return;
@@ -6127,6 +6156,9 @@ try{
   }
   if("serviceWorker" in navigator){
     navigator.serviceWorker.addEventListener("controllerchange", function(){
+      /* A quiet swap of a worker that was only behind the page it serves needs
+         no reload - the page is already the new build. */
+      if(silent && !applying){ silent = false; waiting = null; return; }
       /* An update swapping in - either from this tab or another one that took
          it - is worth following. A first claim is not. */
       if(!applying && !hadController) return;
@@ -6163,12 +6195,12 @@ try{
       var done = false;
       function finish(st){ if(done) return; done = true; cb({ state: st, latest: latest }); }
       swReg.update().then(function(){
-        if(swReg.waiting){ armWaiting(swReg.waiting); finish("ready"); return; }
+        if(swReg.waiting){ finish(handleWaiting(swReg.waiting, latest) || "latest"); return; }
         var w = swReg.installing;
         if(w){
           w.addEventListener("statechange", function(){
             if(w.state === "installed"){
-              if(navigator.serviceWorker.controller){ armWaiting(swReg.waiting || w); finish("ready"); }
+              if(navigator.serviceWorker.controller) finish(handleWaiting(swReg.waiting || w, latest) || "latest");
               else finish("latest");
             }
             if(w.state === "redundant") finish("latest");
@@ -7054,6 +7086,201 @@ try{
     b12:"tiredness and anaemia plus nerve damage \u2014 numbness, tingling, memory and balance problems \u2014 which can become permanent if left too long",
     o3:"over time, drier skin and less favourable heart and brain markers"
   };
+  /* =================== WHAT IS IN THE SABJI ==========================
+     "Sabji" as a single food is an average of a hundred different dishes, and
+     the average is wrong for all of them: aloo is four times the calories of
+     lauki, palak carries 20x the iron of ghiya, and the micronutrient sheet is
+     only as honest as what actually went in the pan. So the two sabji entries
+     are composed rather than fixed - pick the vegetables and the per-katori
+     figures, macros and micronutrients alike, are rebuilt from them.
+
+     Values are per 100 g raw edible portion, from IFCT 2017 and USDA FoodData
+     Central. A figure that is not solid is left out rather than guessed: a
+     missing nutrient contributes nothing, which is the honest direction to be
+     wrong in, and the sheet says so.
+     ================================================================== */
+  var VEG = {
+    aloo:{n:"Potato",hi:"aloo",kcal:97,p:2.0,c:22.6,f:0.1,fib:1.7,m:{"ca":10,"fe":0.5,"mg":22,"p":60,"k":380,"na":5,"zn":0.3,"cu":0.1,"mn":0.15,"vc":17,"ve":0.01,"vk":2,"b1":0.08,"b2":0.03,"b3":1.1,"b5":0.5,"b6":0.3,"b9":12}},
+    gobhi:{n:"Cauliflower",hi:"phool gobhi",kcal:25,p:2.0,c:5.0,f:0.3,fib:2.0,m:{"ca":22,"fe":0.4,"mg":15,"p":44,"k":300,"na":30,"zn":0.3,"cu":0.04,"mn":0.16,"vc":48,"ve":0.08,"vk":16,"b1":0.05,"b2":0.06,"b3":0.5,"b5":0.65,"b6":0.18,"b9":57}},
+    patta_gobhi:{n:"Cabbage",hi:"patta gobhi",kcal:25,p:1.3,c:5.8,f:0.1,fib:2.5,m:{"ca":40,"fe":0.5,"mg":12,"p":26,"k":170,"na":18,"zn":0.18,"cu":0.02,"mn":0.16,"vc":36,"ve":0.15,"vk":76,"b1":0.06,"b2":0.04,"b3":0.23,"b6":0.12,"b9":43}},
+    gajar:{n:"Carrot",hi:"gajar",kcal:41,p:0.9,c:9.6,f:0.2,fib:2.8,m:{"ca":33,"fe":0.3,"mg":12,"p":35,"k":320,"na":69,"zn":0.24,"cu":0.05,"mn":0.14,"va":835,"vc":6,"ve":0.66,"vk":13,"b1":0.07,"b2":0.06,"b3":1.0,"b6":0.14,"b9":19}},
+    matar:{n:"Green peas",hi:"matar",kcal:81,p:5.4,c:14.0,f:0.4,fib:5.0,m:{"ca":25,"fe":1.5,"mg":33,"p":108,"k":244,"na":5,"zn":1.2,"cu":0.18,"mn":0.41,"va":38,"vc":40,"ve":0.13,"vk":25,"b1":0.27,"b2":0.13,"b3":2.1,"b5":0.1,"b6":0.17,"b9":65}},
+    palak:{n:"Spinach",hi:"palak",kcal:23,p:2.9,c:3.6,f:0.4,fib:2.2,m:{"ca":99,"fe":2.7,"mg":79,"p":49,"k":558,"na":79,"zn":0.53,"cu":0.13,"se":1,"mn":0.9,"va":469,"vc":28,"ve":2.0,"vk":483,"b1":0.08,"b2":0.19,"b3":0.72,"b5":0.07,"b6":0.2,"b9":194,"o3":0.14}},
+    methi:{n:"Fenugreek leaves",hi:"methi",kcal:49,p:4.4,c:6.0,f:0.9,fib:1.1,m:{"ca":395,"fe":1.9,"mg":67,"p":51,"k":350,"na":76,"zn":1.0,"mn":1.2,"va":380,"vc":52,"b1":0.04,"b2":0.31,"b3":0.8,"b9":60}},
+    bhindi:{n:"Okra",hi:"bhindi",kcal:33,p:1.9,c:7.0,f:0.2,fib:3.2,m:{"ca":82,"fe":0.6,"mg":57,"p":61,"k":299,"na":7,"zn":0.6,"cu":0.09,"mn":0.79,"va":36,"vc":23,"ve":0.27,"vk":31,"b1":0.2,"b2":0.06,"b3":1.0,"b5":0.25,"b6":0.22,"b9":60}},
+    baingan:{n:"Brinjal",hi:"baingan",kcal:25,p:1.0,c:5.9,f:0.2,fib:3.0,m:{"ca":9,"fe":0.23,"mg":14,"p":24,"k":229,"na":2,"zn":0.16,"cu":0.08,"mn":0.23,"vc":2.2,"ve":0.3,"vk":3.5,"b1":0.04,"b2":0.04,"b3":0.65,"b5":0.28,"b6":0.08,"b9":22}},
+    lauki:{n:"Bottle gourd",hi:"lauki ghiya",kcal:14,p:0.6,c:3.4,f:0.02,fib:0.5,m:{"ca":26,"fe":0.2,"mg":11,"p":13,"k":150,"na":2,"zn":0.7,"mn":0.07,"vc":10,"b1":0.03,"b2":0.02,"b3":0.3,"b9":6}},
+    turai:{n:"Ridge gourd",hi:"turai tori",kcal:20,p:1.2,c:4.4,f:0.1,fib:1.1,m:{"ca":18,"fe":0.5,"mg":14,"p":26,"k":139,"na":3,"vc":12,"b9":8}},
+    karela:{n:"Bitter gourd",hi:"karela",kcal:17,p:1.0,c:3.7,f:0.17,fib:2.8,m:{"ca":19,"fe":0.43,"mg":17,"p":31,"k":296,"na":5,"zn":0.8,"cu":0.03,"mn":0.09,"va":24,"vc":84,"vk":5,"b1":0.04,"b2":0.04,"b3":0.4,"b5":0.2,"b6":0.04,"b9":72}},
+    kaddu:{n:"Pumpkin",hi:"kaddu sitaphal",kcal:26,p:1.0,c:6.5,f:0.1,fib:0.5,m:{"ca":21,"fe":0.8,"mg":12,"p":44,"k":340,"na":1,"zn":0.32,"cu":0.13,"mn":0.13,"va":426,"vc":9,"ve":1.06,"vk":1.1,"b1":0.05,"b2":0.11,"b3":0.6,"b5":0.3,"b6":0.06,"b9":16}},
+    shimla:{n:"Capsicum",hi:"shimla mirch",kcal:20,p:0.9,c:4.6,f:0.2,fib:1.7,m:{"ca":10,"fe":0.34,"mg":10,"p":20,"k":175,"na":3,"zn":0.13,"cu":0.07,"mn":0.12,"va":18,"vc":80,"ve":0.37,"vk":7.4,"b1":0.06,"b2":0.03,"b3":0.48,"b6":0.22,"b9":10}},
+    tamatar:{n:"Tomato",hi:"tamatar",kcal:18,p:0.9,c:3.9,f:0.2,fib:1.2,m:{"ca":10,"fe":0.27,"mg":11,"p":24,"k":237,"na":5,"zn":0.17,"cu":0.06,"mn":0.11,"va":42,"vc":14,"ve":0.54,"vk":7.9,"b1":0.04,"b2":0.02,"b3":0.59,"b6":0.08,"b9":15}},
+    pyaz:{n:"Onion",hi:"pyaz",kcal:40,p:1.1,c:9.3,f:0.1,fib:1.7,m:{"ca":23,"fe":0.21,"mg":10,"p":29,"k":146,"na":4,"zn":0.17,"cu":0.04,"mn":0.13,"vc":7.4,"ve":0.02,"vk":0.4,"b1":0.05,"b2":0.03,"b3":0.12,"b6":0.12,"b9":19}},
+    beans:{n:"French beans",hi:"beans",kcal:31,p:1.8,c:7.0,f:0.1,fib:3.4,m:{"ca":37,"fe":1.0,"mg":25,"p":38,"k":211,"na":6,"zn":0.24,"cu":0.07,"mn":0.22,"va":35,"vc":12,"ve":0.41,"vk":43,"b1":0.08,"b2":0.1,"b3":0.75,"b6":0.14,"b9":33}},
+    gavar:{n:"Cluster beans",hi:"gavar guar",kcal:46,p:3.2,c:10.8,f:0.4,fib:3.2,m:{"ca":130,"fe":1.1,"mg":30,"p":50,"k":210,"vc":49,"b9":40}},
+    arbi:{n:"Colocasia",hi:"arbi",kcal:97,p:1.5,c:22.0,f:0.2,fib:4.1,m:{"ca":43,"fe":0.55,"mg":33,"p":84,"k":591,"na":11,"zn":0.23,"cu":0.17,"mn":0.38,"vc":4.5,"ve":2.4,"vk":1.0,"b1":0.1,"b2":0.03,"b3":0.6,"b6":0.28,"b9":22}},
+    shakarkandi:{n:"Sweet potato",hi:"shakarkandi",kcal:86,p:1.6,c:20.1,f:0.1,fib:3.0,m:{"ca":30,"fe":0.6,"mg":25,"p":47,"k":337,"na":55,"zn":0.3,"cu":0.15,"mn":0.26,"va":709,"vc":2.4,"ve":0.26,"vk":1.8,"b1":0.08,"b2":0.06,"b3":0.56,"b6":0.21,"b9":11}},
+    mushroom:{n:"Mushroom",hi:"khumb",kcal:22,p:3.1,c:3.3,f:0.3,fib:1.0,m:{"ca":3,"fe":0.5,"mg":9,"p":86,"k":318,"na":5,"zn":0.52,"cu":0.32,"se":9.3,"mn":0.05,"vd":7,"ve":0.01,"b1":0.08,"b2":0.4,"b3":3.6,"b5":1.5,"b6":0.1,"b9":17}},
+    kathal:{n:"Raw jackfruit",hi:"kathal",kcal:95,p:1.7,c:23.2,f:0.6,fib:1.5,m:{"ca":24,"fe":0.23,"mg":29,"p":21,"k":448,"zn":0.13,"cu":0.08,"mn":0.04,"va":5,"vc":13.7,"b1":0.1,"b2":0.055,"b3":0.92,"b6":0.33,"b9":24}},
+    sahjan:{n:"Drumstick",hi:"sahjan moringa",kcal:37,p:2.1,c:8.5,f:0.2,fib:3.2,m:{"ca":30,"fe":0.36,"mg":45,"p":50,"k":461,"na":42,"zn":0.45,"cu":0.08,"mn":0.26,"va":4,"vc":141,"b1":0.05,"b2":0.07,"b3":0.62,"b6":0.12,"b9":44}},
+    mooli:{n:"Radish",hi:"mooli",kcal:16,p:0.7,c:3.4,f:0.1,fib:1.6,m:{"ca":25,"fe":0.34,"mg":10,"p":20,"k":233,"na":39,"zn":0.28,"cu":0.05,"mn":0.07,"vc":14.8,"vk":1.3,"b1":0.01,"b2":0.04,"b3":0.25,"b6":0.07,"b9":25}},
+    chukandar:{n:"Beetroot",hi:"chukandar",kcal:43,p:1.6,c:9.6,f:0.2,fib:2.8,m:{"ca":16,"fe":0.8,"mg":23,"p":40,"k":325,"na":78,"zn":0.35,"cu":0.08,"mn":0.33,"vc":4.9,"b1":0.03,"b2":0.04,"b3":0.33,"b6":0.07,"b9":109}},
+    bhutta:{n:"Sweet corn",hi:"bhutta makai",kcal:86,p:3.3,c:19.0,f:1.4,fib:2.0,m:{"ca":2,"fe":0.5,"mg":37,"p":89,"k":270,"na":15,"zn":0.46,"cu":0.05,"mn":0.16,"va":9,"vc":6.8,"ve":0.07,"vk":0.3,"b1":0.16,"b2":0.06,"b3":1.8,"b5":0.7,"b6":0.09,"b9":42}},
+    sem:{n:"Flat beans",hi:"sem",kcal:45,p:2.7,c:9.7,f:0.2,fib:3.4,m:{"ca":50,"fe":1.0,"mg":40,"p":40,"k":250,"vc":12,"b9":45}},
+    tinda:{n:"Tinda",hi:"tinda",kcal:21,p:1.4,c:4.3,f:0.2,fib:1.0,m:{"ca":25,"fe":0.6,"mg":12,"p":20,"k":140,"vc":18,"b9":10}}
+  };
+
+  /* One katori of sabji, as this app portions it. Gravy carries less vegetable
+     because the onion-tomato base takes the room, and more oil. */
+  var SABJI = {
+    sabji_dry:   { input:"sabjiDryVeg",   veg:150, base:0,  oil:5, na:300, label:"Dry sabji" },
+    sabji_gravy: { input:"sabjiGravyVeg", veg:130, base:40, oil:8, na:375, label:"Gravy sabji" }
+  };
+  var OIL_KCAL = 9, BASE_SPLIT = ["pyaz","tamatar"];
+
+  function vegIds(kind){
+    var n = document.getElementById(SABJI[kind].input);
+    if(!n || !n.value) return [];
+    return n.value.split(",").filter(function(id){ return !!VEG[id]; });
+  }
+  /* grams of each vegetable in one katori, the chosen ones sharing the
+     vegetable weight and the gravy base split between onion and tomato. */
+  function vegGrams(kind, ids){
+    var cfg = SABJI[kind], g = {};
+    if(ids.length){
+      var each = cfg.veg / ids.length;
+      ids.forEach(function(id){ g[id] = (g[id]||0) + each; });
+    }
+    if(cfg.base){
+      BASE_SPLIT.forEach(function(id){ g[id] = (g[id]||0) + cfg.base/BASE_SPLIT.length; });
+    }
+    return g;
+  }
+  function blend(kind, ids){
+    var cfg = SABJI[kind];
+    var out = { kcal:0, p:0, c:0, f:0, fib:0, m:{} };
+    var g = vegGrams(kind, ids);
+    Object.keys(g).forEach(function(id){
+      var v = VEG[id], w = g[id]/100;
+      out.kcal += v.kcal*w; out.p += v.p*w; out.c += v.c*w; out.f += v.f*w; out.fib += v.fib*w;
+      for(var k in v.m) out.m[k] = (out.m[k]||0) + v.m[k]*w;
+    });
+    /* Cooking oil, and the salt that goes in with it. */
+    out.kcal += cfg.oil * OIL_KCAL;
+    out.f    += cfg.oil;
+    out.m.ve = (out.m.ve||0) + 0.75*cfg.oil/5;
+    out.m.vk = (out.m.vk||0) + 0.5*cfg.oil/5;
+    out.m.o3 = (out.m.o3||0) + 0.05*cfg.oil/5;
+    out.m.na = (out.m.na||0) + cfg.na;
+    return out;
+  }
+
+  var lastSync = {};
+  function syncSabji(){
+    Object.keys(SABJI).forEach(function(kind){
+      var n = document.getElementById(SABJI[kind].input);
+      var key = n ? n.value : "";
+      if(lastSync[kind] === key) return;
+      lastSync[kind] = key;
+      var ids = vegIds(kind);
+      var fd = (typeof foodIndex !== "undefined") ? foodIndex[kind] : null;
+      if(!fd) return;
+      if(!ids.length && !GENERIC[kind]) return;
+      var b = ids.length ? blend(kind, ids) : GENERIC[kind];
+      fd.kcal = Math.round(b.kcal*10)/10;
+      fd.p = Math.round(b.p*100)/100; fd.c = Math.round(b.c*100)/100;
+      fd.f = Math.round(b.f*100)/100; fd.fib = Math.round(b.fib*100)/100;
+      MICRO[kind] = {};
+      for(var k in b.m) MICRO[kind][k] = b.m[k];
+      /* The row caption on the Food tab quotes kcal per katori, so it has to
+         move with the blend or it would quietly lie. */
+      var cap = document.querySelector("#row_" + kind + " .nm small");
+      if(cap) cap.textContent = Math.round(fd.kcal) + " kcal per katori"
+        + (ids.length ? " \u00b7 " + ids.map(function(id){ return VEG[id].n.toLowerCase(); }).join(", ") : "");
+    });
+  }
+  /* The original averaged figures, kept as the fallback for anyone who never
+     opens the chooser. */
+  var GENERIC = {
+    sabji_dry:   { kcal:130, p:3, c:12, f:7,  fib:4, m:JSON.parse(JSON.stringify(MICRO.sabji_dry || {})) },
+    sabji_gravy: { kcal:180, p:4, c:14, f:11, fib:4, m:JSON.parse(JSON.stringify(MICRO.sabji_gravy || {})) }
+  };
+
+  function openSabjiSheet(){
+    openSheet("What is in your sabji?", function(body){
+      body.appendChild(el("p","tiny",
+        "Sabji is not one food. Pick what actually went in the pan and every number "
+        + "that follows \u2014 calories, protein, carbs, fat, fibre and all the vitamins "
+        + "and minerals \u2014 is rebuilt from those vegetables instead of from an average "
+        + "of everything Indians cook."));
+
+      Object.keys(SABJI).forEach(function(kind){
+        var cfg = SABJI[kind];
+        var chosen = vegIds(kind);
+        body.appendChild(el("div","ntgrp", cfg.label));
+        var out = el("p","formula");
+        var grid = el("div","qgrid");
+
+        function paint(){
+          var b = blend(kind, chosen);
+          out.innerHTML = chosen.length
+            ? "<b>" + Math.round(b.kcal) + " kcal</b> a katori \u00b7 protein " + n1(b.p)
+              + " g, carbs " + n1(b.c) + " g, fat " + n1(b.f) + " g, fibre " + n1(b.fib) + " g."
+              + " Iron " + n1(b.m.fe||0) + " mg, calcium " + Math.round(b.m.ca||0)
+              + " mg, vitamin C " + Math.round(b.m.vc||0) + " mg, folate " + Math.round(b.m.b9||0) + " \u00b5g."
+            : "Nothing picked, so this falls back to a generic Indian sabji \u2014 "
+              + GENERIC[kind].kcal + " kcal a katori. Pick the vegetables for real numbers.";
+        }
+        function save(){
+          var n = document.getElementById(cfg.input);
+          if(!n) return;
+          n.value = chosen.join(",");
+          syncSabji();
+          n.dispatchEvent(new Event("input", { bubbles:true }));
+        }
+        Object.keys(VEG).forEach(function(id){
+          var chip = el("button","qchip" + (chosen.indexOf(id) >= 0 ? " on" : ""), VEG[id].n);
+          chip.type = "button";
+          chip.title = VEG[id].hi;
+          chip.addEventListener("click", function(){
+            var i = chosen.indexOf(id);
+            if(i >= 0) chosen.splice(i,1); else chosen.push(id);
+            chip.classList.toggle("on", i < 0);
+            paint(); save();
+          });
+          grid.appendChild(chip);
+        });
+        body.appendChild(grid);
+        paint();
+        body.appendChild(out);
+      });
+
+      body.appendChild(el("p","tiny",
+        "A katori is taken as 150 g of vegetable for a dry sabji, or 130 g plus a 40 g "
+        + "onion-tomato base for a gravy, with 5 ml and 8 ml of oil. Pick several and the "
+        + "weight is split between them. Composition is per 100 g raw from IFCT 2017 and "
+        + "USDA FoodData Central; cooking losses are not modelled, and a nutrient that is "
+        + "not well established for a vegetable is left out rather than guessed, so these "
+        + "totals lean low rather than high."));
+
+      var done = el("button","btn primary full","Done"); done.type = "button";
+      done.style.marginTop = "12px";
+      done.addEventListener("click", closeSheet);
+      body.appendChild(done);
+    });
+  }
+  window.caloSabji = { sync: syncSabji, open: openSabjiSheet, veg: VEG };
+  (function(){
+    var slot = document.getElementById("slotFood");
+    if(!slot || !slot.parentNode) return;
+    var b = el("button","btn full line","What is in your sabji?");
+    b.type = "button";
+    b.style.marginTop = "10px";
+    b.addEventListener("click", function(e){ e.preventDefault(); openSabjiSheet(); });
+    slot.parentNode.appendChild(b);
+  })();
+  syncSabji();
+
   function fmtPer(v){
     v = +v || 0;
     if(v >= 10)   return "" + (Math.round(v*10)/10);
