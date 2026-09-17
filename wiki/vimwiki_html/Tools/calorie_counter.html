@@ -137,6 +137,11 @@ h1,h2,h3{margin:0}
 .ntrow[open] .ntcar{transform:rotate(90deg)}
 .ntsum:hover .ntname{color:var(--in)}
 .ntsrc{font-size:12.5px;color:var(--ink);margin-top:5px;line-height:1.5}
+/* Every citation is a link out to the paper or report itself (DOI where there
+   is one), so a claim can be checked rather than taken on trust. */
+.ntsrc a,.reflink{color:var(--out);text-decoration:underline;
+  text-decoration-thickness:1px;text-underline-offset:2px}
+.ntsrc a:active,.reflink:active{opacity:.6}
 .ntsup{font-size:12.5px;color:var(--ink);margin-top:5px;padding:7px 9px;background:var(--card2);border-radius:var(--r-sm);line-height:1.5}
 .ntnote{font-size:12px;color:var(--muted);margin-top:4px;font-style:italic}
 /* ---- translate (globe) ---- */
@@ -236,6 +241,15 @@ body{top:0!important}
 .macro.m-c .mg{color:var(--in)}      .macro.m-c .mbar i{background:var(--in)}
 .macro.m-f .mg{color:var(--fat)}     .macro.m-f .mbar i{background:var(--fat)}
 .macro.m-p .mg{color:var(--lean)}    .macro.m-p .mbar i{background:var(--lean)}
+/* Vitamins and minerals sit with the macros rather than at the foot of the
+   page: same card, full width under the three, tapping opens the full list. */
+.macro.m-n{grid-column:1 / -1;min-height:0;display:grid;
+  grid-template-columns:1fr auto;column-gap:10px;align-items:center}
+.macro.m-n .ml{grid-column:1;grid-row:1}
+.macro.m-n .ms{grid-column:1;grid-row:2;margin-top:0}
+.macro.m-n .mg{grid-column:2;grid-row:1 / span 2;margin-top:0;color:var(--out);white-space:nowrap}
+.macro.m-n .mbar{grid-column:1 / -1;grid-row:3}
+.macro.m-n .mbar i{background:var(--out)}
 .macrohint{font-size:10.5px;color:var(--muted);margin-top:7px;display:block}
 
 .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:13px}
@@ -676,8 +690,15 @@ input,select{scroll-margin:84px 0 180px}
           <span class="ml">Protein</span><span class="mg" id="macPg">&mdash;</span>
           <span class="ms" id="macPs"></span>
           <span class="mbar"><i id="macPb" style="width:0"></i></span></button>
+        <button class="macro m-n" type="button" id="openMicros"
+                aria-label="Vitamins and minerals today, tap for the full list">
+          <span class="ml">Vitamins &amp; minerals</span>
+          <span class="mg" id="macNg">&mdash;</span>
+          <span class="ms" id="macNs">nothing logged yet</span>
+          <span class="mbar"><i id="macNb" style="width:0"></i></span></button>
       </div>
-      <span class="macrohint">Tap any of the three for the breakdown, food by food.</span>
+      <span class="macrohint">Tap carbs, fat or protein for the breakdown food by food,
+        or the row under them for every vitamin and mineral.</span>
     </div>
 
     <div class="tiles">
@@ -754,7 +775,6 @@ input,select{scroll-margin:84px 0 180px}
     </div>
 
     <button class="btn full line" id="openCalc">Show every step of the arithmetic</button>
-    <button class="btn full line" id="openMicros" style="margin-top:9px">Vitamins &amp; minerals</button>
     <button class="btn full line" id="refsBtn" style="margin-top:9px">Sources &amp; references</button>
 
     <div class="privacy">
@@ -2804,6 +2824,7 @@ function update(){
       : (ready ? "none eaten yet" : "nothing logged yet");
     $("mac"+M.tag+"b").style.width = Math.min(100, share*100).toFixed(1)+"%";
   });
+  if(window.paintMicroTile) window.paintMicroTile();
 
   renderDaySoFar(d);
   renderCloseRow(ready, done, d, usualIn, inK);
@@ -6493,9 +6514,9 @@ try{
       ref.appendChild(el("summary",null,"Sources & references"));
       var rl=el("div","ntsrc");
       rl.innerHTML =
-        "Targets: ICMR-NIN, <i>Nutrient Requirements for Indians \u2014 Recommended Dietary Allowances (RDA) & EAR</i>, 2020.<br>"
-        + "Food composition: Longvah T et al., <i>Indian Food Composition Tables (IFCT)</i>, NIN-ICMR, 2017; and USDA FoodData Central (fdc.nal.usda.gov).<br>"
-        + "Resting metabolism: Mifflin MD, St Jeor ST et al., <i>A new predictive equation for resting energy expenditure</i>, Am J Clin Nutr 1990;51:241-247.<br>"
+        "Targets: ICMR-NIN, <i><a class='reflink' href='https://www.nin.res.in/RDA_Full_Report_2020.html' target='_blank' rel='noopener noreferrer'>Nutrient Requirements for Indians \u2014 Recommended Dietary Allowances (RDA) & EAR</a></i>, 2020.<br>"
+        + "Food composition: Longvah T et al., <i><a class='reflink' href='https://www.ifct2017.com/' target='_blank' rel='noopener noreferrer'>Indian Food Composition Tables (IFCT)</a></i>, NIN-ICMR, 2017; and <a class='reflink' href='https://fdc.nal.usda.gov/' target='_blank' rel='noopener noreferrer'>USDA FoodData Central</a>.<br>"
+        + "Resting metabolism: Mifflin MD, St Jeor ST et al., <i><a class='reflink' href='https://doi.org/10.1093/ajcn/51.2.241' target='_blank' rel='noopener noreferrer'>A new predictive equation for resting energy expenditure</a></i>, Am J Clin Nutr 1990;51:241-247.<br>"
         + "Per-food micronutrients are scaled to this app's serving sizes and are estimates, not measurements. Cooking losses and added salt are not modelled.";
       ref.appendChild(rl); body.appendChild(ref);
 
@@ -6509,17 +6530,17 @@ try{
       body.appendChild(el("div","ntgrp","Energy & calories"));
       var e=el("div","ntsrc");
       e.innerHTML =
-        "<b>Resting metabolism</b> \u2014 Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO. <i>A new predictive equation for resting energy expenditure in healthy individuals.</i> Am J Clin Nutr 1990;51(2):241-247.<br><br>"
-        + "<b>Activity (walking, running, cycling)</b> \u2014 ACSM metabolic equations, in <i>ACSM's Guidelines for Exercise Testing and Prescription</i>; and Ainsworth BE et al., <i>2011 Compendium of Physical Activities.</i> Med Sci Sports Exerc 2011;43(8):1575-1581.<br><br>"
-        + "<b>Digesting food (thermic effect)</b> \u2014 Westerterp KR. <i>Diet induced thermogenesis.</i> Nutr Metab (Lond) 2004;1:5.<br><br>"
-        + "<b>Afterburn from lifting (EPOC)</b> \u2014 LaForgia J, Withers RT, Gore CJ. <i>Effects of exercise intensity and duration on the excess post-exercise oxygen consumption.</i> J Sports Sci 2006;24(12):1247-1264.<br><br>"
-        + "<b>Energy-requirement framework</b> \u2014 FAO/WHO/UNU. <i>Human Energy Requirements.</i> 2004.";
+        "<b>Resting metabolism</b> \u2014 Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO. <i><a class='reflink' href='https://doi.org/10.1093/ajcn/51.2.241' target='_blank' rel='noopener noreferrer'>A new predictive equation for resting energy expenditure in healthy individuals.</a></i> Am J Clin Nutr 1990;51(2):241-247. doi:10.1093/ajcn/51.2.241<br><br>"
+        + "<b>Activity (walking, running, cycling)</b> \u2014 ACSM metabolic equations, in <i><a class='reflink' href='https://www.acsm.org/education-resources/books/guidelines-exercise-testing-prescription' target='_blank' rel='noopener noreferrer'>ACSM's Guidelines for Exercise Testing and Prescription</a></i>; and Ainsworth BE et al., <i><a class='reflink' href='https://doi.org/10.1249/MSS.0b013e31821ece12' target='_blank' rel='noopener noreferrer'>2011 Compendium of Physical Activities.</a></i> Med Sci Sports Exerc 2011;43(8):1575-1581. doi:10.1249/MSS.0b013e31821ece12<br><br>"
+        + "<b>Digesting food (thermic effect)</b> \u2014 Westerterp KR. <i><a class='reflink' href='https://doi.org/10.1186/1743-7075-1-5' target='_blank' rel='noopener noreferrer'>Diet induced thermogenesis.</a></i> Nutr Metab (Lond) 2004;1:5. doi:10.1186/1743-7075-1-5<br><br>"
+        + "<b>Afterburn from lifting (EPOC)</b> \u2014 LaForgia J, Withers RT, Gore CJ. <i><a class='reflink' href='https://doi.org/10.1080/02640410600552064' target='_blank' rel='noopener noreferrer'>Effects of exercise intensity and duration on the excess post-exercise oxygen consumption.</a></i> J Sports Sci 2006;24(12):1247-1264. doi:10.1080/02640410600552064<br><br>"
+        + "<b>Energy-requirement framework</b> \u2014 FAO/WHO/UNU. <i><a class='reflink' href='https://www.fao.org/4/y5686e/y5686e00.htm' target='_blank' rel='noopener noreferrer'>Human Energy Requirements.</a></i> 2004.";
       body.appendChild(e);
       body.appendChild(el("div","ntgrp","Nutrition & targets"));
       var n=el("div","ntsrc");
       n.innerHTML =
-        "<b>Daily targets (RDA)</b> \u2014 ICMR-NIN. <i>Nutrient Requirements for Indians \u2014 Recommended Dietary Allowances (RDA) & Estimated Average Requirements (EAR).</i> 2020.<br><br>"
-        + "<b>Food composition</b> \u2014 Longvah T, Ananthan R, Bhaskarachary K, Venkaiah K. <i>Indian Food Composition Tables (IFCT).</i> NIN-ICMR, 2017; and USDA FoodData Central (fdc.nal.usda.gov).<br><br>"
+        "<b>Daily targets (RDA)</b> \u2014 ICMR-NIN. <i><a class='reflink' href='https://www.nin.res.in/RDA_Full_Report_2020.html' target='_blank' rel='noopener noreferrer'>Nutrient Requirements for Indians \u2014 Recommended Dietary Allowances (RDA) & Estimated Average Requirements (EAR).</a></i> 2020.<br><br>"
+        + "<b>Food composition</b> \u2014 Longvah T, Ananthan R, Bhaskarachary K, Venkaiah K. <i><a class='reflink' href='https://www.ifct2017.com/' target='_blank' rel='noopener noreferrer'>Indian Food Composition Tables (IFCT).</a></i> NIN-ICMR, 2017; and <a class='reflink' href='https://fdc.nal.usda.gov/' target='_blank' rel='noopener noreferrer'>USDA FoodData Central (fdc.nal.usda.gov)</a>.<br><br>"
         + "Per-food vitamin and mineral figures are scaled to this app's serving sizes and are estimates, not measurements. Cooking losses and added salt are not modelled.";
       body.appendChild(n);
       var done=el("button","btn sm line full","Close"); done.type="button"; done.style.marginTop="12px";
@@ -6529,6 +6550,40 @@ try{
   window.openRefs = openRefs;
   var rb=document.getElementById("refsBtn");
   if(rb) rb.addEventListener("click", function(e){ e.preventDefault(); openRefs(); });
+  /* The front-page tile: how many targets today's food has actually met, and
+     how far along the rest are, so the row says something without being opened. */
+  function microSummary(){
+    var male = ($("sex").value !== "female");
+    var age  = parseFloat($("age").value)||0;
+    var tot  = microTotals();
+    var n=0, met=0, low=0, sum=0;
+    NUT.forEach(function(x){
+      if(x.kind==="limit" || x.kind==="sun") return;   // sodium is a ceiling, vitamin D comes from sun
+      var t=rdaFor(x,age,male); if(!(t>0)) return;
+      var pct=(tot[x.k]||0)/t;
+      n++; sum += Math.min(1,pct);
+      if(pct>=1) met++; else if(pct<0.5) low++;
+    });
+    return {n:n, met:met, low:low, avg:n?sum/n:0, empty:Object.keys(tot).length===0};
+  }
+  function paintMicroTile(){
+    var g=document.getElementById("macNg"); if(!g) return;
+    var sub=document.getElementById("macNs"), bar=document.getElementById("macNb");
+    var m=microSummary();
+    if(m.empty || !m.n){
+      g.textContent="\u2014";
+      if(sub) sub.textContent="nothing logged yet";
+      if(bar) bar.style.width="0";
+      return;
+    }
+    g.textContent=m.met+"/"+m.n;
+    if(sub) sub.textContent="targets met so far"
+      + (m.low ? " \u00b7 "+m.low+" under half" : "");
+    if(bar) bar.style.width=Math.min(100,m.avg*100).toFixed(1)+"%";
+  }
+  window.paintMicroTile = paintMicroTile;
+  try{ paintMicroTile(); }catch(e){}
+
   window.openMicros = openMicros;
   var mb=document.getElementById("openMicros");
   if(mb) mb.addEventListener("click", function(e){ e.preventDefault(); openMicros(); });
