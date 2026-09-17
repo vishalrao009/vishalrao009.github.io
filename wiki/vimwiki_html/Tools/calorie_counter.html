@@ -304,6 +304,13 @@ body{top:0!important}
 .lrow .val{font-size:11.5px;color:var(--muted);text-align:right;grid-column:2}
 .lrow .val b{font-family:var(--serif);font-size:13.5px;color:var(--ink);font-weight:600}
 .lrow.dim .nm,.lrow.dim .val{opacity:.55}
+/* The "what is in it" line under a food that has options. Part of the row, so
+   the question is asked where the food is logged rather than behind a button
+   on some other screen. */
+.varline{grid-column:1/3;justify-self:start;background:none;border:0;padding:2px 0 0;
+  font:inherit;font-size:11.5px;color:var(--muted);text-align:left;cursor:pointer}
+.varline span{color:var(--in);border-bottom:1px dotted currentColor}
+.varline:active{opacity:.6}
 .subrow{grid-column:1/3;display:flex;flex-wrap:wrap;gap:9px;align-items:center}
 .subrow .sl{font-size:11px;color:var(--muted);width:100%;margin-bottom:-4px}
 
@@ -823,6 +830,7 @@ input,select{scroll-margin:84px 0 180px}
   <section class="tabpane" id="pane-food">
     <input type="hidden" id="sabjiDryVeg" value="">
     <input type="hidden" id="sabjiGravyVeg" value="">
+    <input type="hidden" id="chapatiKind" value="">
     <div class="card">
       <div class="cardhead"><h2>What you ate</h2><span class="sm" id="foodTot"></span></div>
       <div id="slotFood"><div class="rowlist" id="foodRows"></div></div>
@@ -1313,7 +1321,7 @@ const SETTING_IDS = ["weight","height","age","sex","job","train",
                         ids. Hidden inputs so a saved day carries them like any
                         other field - the blend must come back with the day, or
                         yesterday's numbers would be re-read against today's veg. */
-                     "sabjiDryVeg","sabjiGravyVeg"];
+                     "sabjiDryVeg","sabjiGravyVeg","chapatiKind"];
 const PINNED = new Set();     // things the user added this session
 /* Nothing is pinned by default. The profile is whatever the person searches
    for and adds, and nothing else. */
@@ -4777,9 +4785,36 @@ if(location.hash === "#reset"){
   try{
     localStorage.removeItem("energyLedger.v3");
     localStorage.removeItem("energyLedger.v2");
+    localStorage.removeItem("ledger.backup");   // or the net below would undo the reset
   }catch(e){}
   try{ history.replaceState(null,"",location.pathname); }catch(e){}
 }
+
+/* ---- a safety net across updates -------------------------------------
+   Everything logged lives in this browser's localStorage, and swapping the
+   app file never touches it. But "never" is a claim, and the cost of being
+   wrong is somebody's month of entries, so the update flow copies the store
+   just before it swaps the code in. If the app then comes back to find the
+   store gone and a fresh copy sitting beside it, it puts it back. Only a copy
+   from the last hour counts, so a deliberate wipe stays wiped. */
+const BACKUP_KEY = "ledger.backup";
+window.caloBackup = function(){
+  try{
+    const data = localStorage.getItem("energyLedger.v3");
+    if(data) localStorage.setItem(BACKUP_KEY, JSON.stringify({ at: Date.now(), data: data }));
+  }catch(e){}
+};
+(function restoreIfWiped(){
+  try{
+    if(localStorage.getItem("energyLedger.v3")) return;      // nothing to put right
+    const raw = localStorage.getItem(BACKUP_KEY);
+    if(!raw) return;
+    const b = JSON.parse(raw);
+    if(!b || !b.data || Date.now() - (b.at || 0) > 36e5) return;
+    localStorage.setItem("energyLedger.v3", b.data);
+    window.caloRestored = true;
+  }catch(e){}
+})();
 
 const STORE = "energyLedger.v3";
 const OLD_STORE = "energyLedger.v2";
@@ -6098,7 +6133,7 @@ try{
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.17b";
+  var APP_VERSION = "2026.09.17d";
   var APP_BUILT   = "17 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
@@ -6140,11 +6175,14 @@ try{
   function reloadOnce(){
     if(reloaded) return;
     reloaded = true;
+    if(window.caloBackup) window.caloBackup();
     location.reload();
   }
   function applyUpdate(){
     if(applying) return;
     applying = true;
+    /* Belt and braces before the code changes underneath us. */
+    if(window.caloBackup) window.caloBackup();
     if(upBody) upBody.textContent = "Swapping it in\u2026";
     if(waiting){
       try { waiting.postMessage("skip-waiting"); } catch(e){}
@@ -6788,6 +6826,73 @@ try{
         + "workout, and at the end of the day it shows what you ate and burned. Clear a "
         + "time to switch that one off. All of it is saved with this profile."));
 
+      grp("App version");
+      (function(){
+        var cu = window.caloUpdate;
+        var r = el("div","setrow");
+        var lft = el("div");
+        lft.appendChild(el("label", null, "Calo " + (cu ? cu.version : "\u2014")));
+        lft.appendChild(el("span","sublbl",
+          (cu && cu.built ? "Released " + cu.built + ". " : "")
+          + "Checking fetches the newest build and installs it. Everything you have "
+          + "logged stays where it is \u2014 it lives in this browser, not in the app file."));
+        r.appendChild(lft);
+        var note = el("p","sublbl");
+        note.style.margin = "6px 2px 0";
+        if(window.caloRestored){
+          note.textContent = "Your logged days were put back from the copy made before the "
+                           + "last update.";
+        }
+        var b = el("button","btn sm line","Check now");
+        b.type = "button";
+        b.style.whiteSpace = "nowrap";
+
+        /* One tap does the whole thing: look, fetch, install. Two taps to get a
+           version people have already agreed they want is one tap too many. */
+        function install(what, how){
+          note.textContent = what;
+          b.textContent = "Installing\u2026";
+          b.disabled = true;
+          setTimeout(how, 400);          // let the line paint before the reload
+        }
+        b.addEventListener("click", function(){
+          if(!cu){ note.textContent = "Updates are not available in this browser."; return; }
+          if(cu.pending()){ install("Installing the version already downloaded\u2026", cu.apply); return; }
+          b.disabled = true;
+          note.textContent = "Checking\u2026";
+          cu.check(function(res){
+            b.disabled = false;
+            if(res.state === "ready"){
+              install("Version " + (res.latest || "new") + " downloaded. Installing it now \u2014 "
+                    + "the app will reload and your data stays.", cu.apply);
+              return;
+            }
+            if(res.state === "stale"){
+              /* The worker has not noticed, but the page itself is fetched
+                 network-first, so a reload is enough to land on the new build. */
+              install("Version " + res.latest + " is published. Fetching it now \u2014 "
+                    + "the app will reload and your data stays.",
+                    function(){ if(window.caloBackup) window.caloBackup(); location.reload(); });
+              return;
+            }
+            if(res.state === "offline"){
+              note.textContent = "No connection, so the check could not run. Everything still works offline.";
+              return;
+            }
+            if(res.state === "unsupported"){
+              note.textContent = "This browser has no service worker, so the app cannot update itself \u2014 "
+                               + "reload the page to get the newest version.";
+              return;
+            }
+            note.textContent = "You are on the newest version ("
+                             + (res.latest || cu.version) + "). Nothing to fetch.";
+          });
+        });
+        r.appendChild(b);
+        body.appendChild(r);
+        body.appendChild(note);
+      })();
+
       grp("Reminders");
       swrow("Reminders on", "", c.on, function(v){ c.on = v; persist(); setTimesEnabled(v); });
       swrow("System notifications",
@@ -6867,61 +6972,6 @@ try{
           }
         }
         body.appendChild(note);
-      })();
-
-      grp("App version");
-      (function(){
-        var cu = window.caloUpdate;
-        var r = el("div","setrow");
-        var lft = el("div");
-        lft.appendChild(el("label", null, "Calo " + (cu ? cu.version : "\u2014")));
-        lft.appendChild(el("span","sublbl",
-          cu && cu.built ? "Released " + cu.built + ". Updates install themselves once you reload."
-                         : "Version could not be read."));
-        r.appendChild(lft);
-        var note = el("p","sublbl");
-        note.style.margin = "6px 2px 0";
-        var b = el("button","btn sm line","Check for updates");
-        b.type = "button";
-        function ready(){
-          b.textContent = "Reload to update";
-          b.classList.add("primary");
-          note.textContent = "A new version is downloaded and waiting. Reloading swaps it in; "
-                           + "nothing you have logged is touched.";
-        }
-        b.addEventListener("click", function(){
-          if(!cu){ note.textContent = "Updates are not available in this browser."; return; }
-          if(cu.pending()){ cu.apply(); return; }
-          b.disabled = true;
-          note.textContent = "Checking\u2026";
-          cu.check(function(res){
-            b.disabled = false;
-            if(res.state === "ready"){ ready(); return; }
-            if(res.state === "stale"){
-              b.textContent = "Reload to update";
-              note.textContent = "Version " + res.latest + " is published. Reload to pick it up \u2014 "
-                               + "if it does not arrive, the page may be held by an old cache, and "
-                               + "closing every tab of Calo and reopening clears that.";
-              b.onclick = function(){ location.reload(); };
-              return;
-            }
-            if(res.state === "offline"){
-              note.textContent = "No connection, so the check could not run. Everything still works offline.";
-              return;
-            }
-            if(res.state === "unsupported"){
-              note.textContent = "This browser has no service worker, so the app cannot update itself \u2014 "
-                               + "reload the page to get the newest version.";
-              return;
-            }
-            note.textContent = "You are on the newest version ("
-                             + (res.latest || cu.version) + "). Last checked just now.";
-          });
-        });
-        r.appendChild(b);
-        body.appendChild(r);
-        body.appendChild(note);
-        if(cu && cu.pending()) ready();
       })();
 
       grp("Appearance");
@@ -7269,7 +7319,230 @@ try{
       body.appendChild(done);
     });
   }
-  window.caloSabji = { sync: syncSabji, open: openSabjiSheet, veg: VEG };
+  /* =================== WHICH ROTI =====================================
+     "Chapati" is a wheat roti, but a bajra roti carries twice the iron, a ragi
+     one ten times the calcium, and a missi roti half again the protein. One
+     entry cannot answer for all of them.
+
+     These are handled as ratios rather than as fresh absolute figures: each
+     flour is scaled off the app's own wheat chapati by its composition
+     relative to wholemeal wheat, per 100 g, and then by how much flour the
+     roti actually takes. Wheat therefore comes out exactly as before - nobody's
+     history shifts under them - while the differences between flours are the
+     real ones. Where a flour has no solid figure for a nutrient it inherits
+     wheat's, which is the least misleading way to be ignorant.
+     Composition: IFCT 2017 and USDA FoodData Central, per 100 g flour.
+     ================================================================== */
+  var FLOUR = {
+    atta:  { n:"Wheat (atta)", kcal:340, p:12.1, c:69.4, f:1.7, fib:11.2,
+      m:{ca:34,fe:3.6,mg:137,p:357,k:363,na:2,zn:2.6,cu:0.41,se:61,mn:3.8,ve:0.71,vk:1.9,
+         b1:0.50,b2:0.17,b3:4.96,b5:0.60,b6:0.34,b9:44,o3:0.07} },
+    bajra: { n:"Bajra (pearl millet)", kcal:348, p:11.6, c:61.8, f:5.0, fib:11.5,
+      m:{ca:42,fe:8.0,mg:137,p:296,k:307,na:10,zn:3.1,cu:0.8,mn:1.2,ve:0.5,
+         b1:0.33,b2:0.25,b3:2.3,b6:0.27,b9:45,o3:0.12} },
+    jowar: { n:"Jowar (sorghum)", kcal:349, p:10.4, c:67.7, f:1.9, fib:9.7,
+      m:{ca:25,fe:4.0,mg:171,p:222,k:328,na:7,zn:1.6,cu:0.35,mn:1.2,ve:0.5,
+         b1:0.35,b2:0.14,b3:2.1,b6:0.2,b9:39,o3:0.05} },
+    ragi:  { n:"Ragi (finger millet)", kcal:328, p:7.3, c:66.8, f:1.3, fib:11.2,
+      m:{ca:344,fe:3.9,mg:137,p:283,k:408,na:11,zn:2.3,cu:0.47,mn:5.5,ve:0.2,
+         b1:0.42,b2:0.19,b3:1.1,b9:18} },
+    makki: { n:"Makki (maize)", kcal:361, p:9.4, c:69.0, f:3.8, fib:7.3,
+      m:{ca:10,fe:2.3,mg:127,p:348,k:287,na:5,zn:2.6,cu:0.3,mn:0.5,va:11,ve:0.4,
+         b1:0.42,b2:0.10,b3:1.9,b6:0.3,b9:25} },
+    besan: { n:"Besan (gram flour)", kcal:387, p:22.4, c:57.8, f:6.7, fib:10.8,
+      m:{ca:56,fe:4.9,mg:166,p:318,k:846,na:64,zn:2.8,cu:0.9,mn:1.7,ve:0.35,
+         b1:0.49,b2:0.15,b3:1.5,b6:0.5,b9:437,o3:0.11} }
+  };
+  /* Each roti: the flours it is made of (by weight), how much flour goes into
+     one piece, and any oil worked into the dough. Wheat at 35 g is the piece
+     the app has always meant by "chapati". */
+  var ROTI = {
+    wheat:      { n:"Chapati (wheat)", mix:{atta:1},                 g:35, oil:0 },
+    missi:      { n:"Missi roti",      mix:{atta:0.6, besan:0.4},    g:45, oil:2 },
+    bajra:      { n:"Bajra roti",      mix:{bajra:1},                g:45, oil:0 },
+    jowar:      { n:"Jowar roti",      mix:{jowar:1},                g:45, oil:0 },
+    ragi:       { n:"Ragi roti",       mix:{ragi:1},                 g:45, oil:0 },
+    makki:      { n:"Makki roti",      mix:{makki:1},                g:45, oil:2 },
+    multigrain: { n:"Multigrain roti", mix:{atta:0.4, bajra:0.2, jowar:0.2, ragi:0.2}, g:40, oil:0 },
+    phulka:     { n:"Phulka (small, no oil)", mix:{atta:1},          g:25, oil:0 }
+  };
+  var WHEAT_PIECE = { kcal:120, p:3.5, c:22, f:1, fib:3,
+                      m:JSON.parse(JSON.stringify(MICRO.chapati || {})) };
+  var WHEAT_G = 35;
+
+  function rotiProfile(kind){
+    var r = ROTI[kind] || ROTI.wheat;
+    var ref = FLOUR.atta, scale = r.g / WHEAT_G;
+    /* Weighted composition of the mix, per 100 g. */
+    function mixVal(get){
+      var t = 0;
+      for(var fl in r.mix) t += get(FLOUR[fl]) * r.mix[fl];
+      return t;
+    }
+    var out = { kcal:0, p:0, c:0, f:0, fib:0, m:{} };
+    ["kcal","p","c","f","fib"].forEach(function(k){
+      var base = ref[k] || 0;
+      var ratio = base ? mixVal(function(fl){ return fl[k] || 0; }) / base : 1;
+      out[k] = WHEAT_PIECE[k] * ratio * scale;
+    });
+    Object.keys(WHEAT_PIECE.m).forEach(function(k){
+      var base = ref.m[k];
+      var ratio = 1;
+      if(base){
+        /* A flour with no figure for this nutrient stands in at wheat's level
+           rather than at zero. */
+        var got = 0;
+        for(var fl in r.mix) got += (FLOUR[fl].m[k] !== undefined ? FLOUR[fl].m[k] : base) * r.mix[fl];
+        ratio = got / base;
+      }
+      out.m[k] = WHEAT_PIECE.m[k] * ratio * scale;
+    });
+    if(r.oil){
+      out.kcal += r.oil * OIL_KCAL;
+      out.f    += r.oil;
+      out.m.ve = (out.m.ve||0) + 0.75*r.oil/5;
+      out.m.vk = (out.m.vk||0) + 0.5*r.oil/5;
+      out.m.o3 = (out.m.o3||0) + 0.05*r.oil/5;
+    }
+    return out;
+  }
+  function rotiKind(){
+    var n = document.getElementById("chapatiKind");
+    var v = n ? n.value : "";
+    return ROTI[v] ? v : "wheat";
+  }
+  var lastRoti = null;
+  function syncRoti(){
+    var kind = rotiKind();
+    if(lastRoti === kind) return;
+    lastRoti = kind;
+    var fd = (typeof foodIndex !== "undefined") ? foodIndex.chapati : null;
+    if(!fd) return;
+    var b = rotiProfile(kind);
+    fd.kcal = Math.round(b.kcal*10)/10;
+    fd.p = Math.round(b.p*100)/100; fd.c = Math.round(b.c*100)/100;
+    fd.f = Math.round(b.f*100)/100; fd.fib = Math.round(b.fib*100)/100;
+    fd.name = ROTI[kind].n;
+    MICRO.chapati = {};
+    for(var k in b.m) MICRO.chapati[k] = b.m[k];
+    var nm = document.querySelector("#row_chapati .nm");
+    if(nm){
+      var small = nm.querySelector("small");
+      nm.childNodes[0].nodeValue = ROTI[kind].n;
+      if(small) small.textContent = Math.round(fd.kcal) + " kcal per piece \u00b7 "
+        + ROTI[kind].g + " g flour";
+    }
+  }
+
+  /* =================== ASKING, IN THE ROW ITSELF ======================
+     A food with options should ask for them where it is logged, not behind a
+     button somewhere else. Each of these rows carries its own line - what is
+     in it now, and a tap to change - and the first time an amount is entered
+     the chooser opens by itself, because that is the moment the answer is
+     actually known.
+     ================================================================== */
+  var CHOOSERS = {
+    sabji_dry:   { input:"sabjiDryVeg",   open:function(){ openSabjiSheet(); },
+                   summary:function(){
+                     var ids = vegIds("sabji_dry");
+                     return ids.length ? ids.map(function(i){ return VEG[i].n.toLowerCase(); }).join(", ")
+                                       : "a generic mixed sabji"; } },
+    sabji_gravy: { input:"sabjiGravyVeg", open:function(){ openSabjiSheet(); },
+                   summary:function(){
+                     var ids = vegIds("sabji_gravy");
+                     return ids.length ? ids.map(function(i){ return VEG[i].n.toLowerCase(); }).join(", ")
+                                       : "a generic mixed sabji"; } },
+    chapati:     { input:"chapatiKind",   open:function(){ openRotiSheet(); },
+                   summary:function(){ return ROTI[rotiKind()].n.toLowerCase(); } }
+  };
+
+  function openRotiSheet(){
+    openSheet("Which roti?", function(body){
+      body.appendChild(el("p","tiny",
+        "Wheat, bajra, jowar, ragi, missi \u2014 they are not the same food. A bajra roti "
+        + "carries about twice the iron of a wheat one, a ragi roti roughly ten times the "
+        + "calcium, and a missi roti half again the protein. Pick what you actually ate and "
+        + "the calories, macros and micronutrients all follow it."));
+      var out = el("p","formula");
+      var grid = el("div","qgrid");
+      var chips = [];
+      function paint(){
+        var k = rotiKind(), b = rotiProfile(k), r = ROTI[k];
+        chips.forEach(function(c){ c.classList.toggle("on", c.getAttribute("data-roti") === k); });
+        out.innerHTML = "<b>" + Math.round(b.kcal) + " kcal</b> a piece, from " + r.g + " g of flour"
+          + (r.oil ? " with " + r.oil + " g oil" : "") + " \u00b7 protein " + n1(b.p)
+          + " g, carbs " + n1(b.c) + " g, fat " + n1(b.f) + " g, fibre " + n1(b.fib) + " g."
+          + " Iron " + n1(b.m.fe||0) + " mg, calcium " + Math.round(b.m.ca||0)
+          + " mg, magnesium " + Math.round(b.m.mg||0) + " mg.";
+      }
+      Object.keys(ROTI).forEach(function(k){
+        var chip = el("button","qchip", ROTI[k].n);
+        chip.type = "button";
+        chip.setAttribute("data-roti", k);
+        chip.addEventListener("click", function(){
+          var n = document.getElementById("chapatiKind");
+          if(!n) return;
+          n.value = k;
+          syncRoti(); paint(); refreshChooserLines();
+          n.dispatchEvent(new Event("input", { bubbles:true }));
+        });
+        chips.push(chip); grid.appendChild(chip);
+      });
+      body.appendChild(grid);
+      paint();
+      body.appendChild(out);
+      body.appendChild(el("p","tiny",
+        "Each flour is scaled off this app's own wheat chapati by its composition per 100 g "
+        + "(IFCT 2017, USDA), so wheat reads exactly as it always has and the differences "
+        + "between flours are the real ones. A nutrient with no solid figure for a flour "
+        + "stands in at wheat's level rather than at zero."));
+      var done = el("button","btn primary full","Done"); done.type = "button";
+      done.style.marginTop = "12px";
+      done.addEventListener("click", closeSheet);
+      body.appendChild(done);
+    });
+  }
+
+  function refreshChooserLines(){
+    Object.keys(CHOOSERS).forEach(function(id){
+      var line = document.getElementById("chooser_" + id);
+      if(line) line.innerHTML = "<span>" + CHOOSERS[id].summary() + "</span> \u00b7 change";
+    });
+  }
+  (function wireChoosers(){
+    Object.keys(CHOOSERS).forEach(function(id){
+      var row = document.getElementById("row_" + id);
+      var amt = document.getElementById("f_" + id);
+      if(!row || !amt) return;
+      var line = el("button","varline");
+      line.type = "button";
+      line.id = "chooser_" + id;
+      line.addEventListener("click", function(e){ e.preventDefault(); CHOOSERS[id].open(); });
+      row.appendChild(line);
+      /* The first time an amount is put against this food, ask - that is the
+         moment the answer is known and the moment it changes the numbers. */
+      var asked = false;
+      amt.addEventListener("input", function(){
+        if(asked) return;
+        if(!(parseFloat(amt.value) > 0)) return;
+        var chosen = document.getElementById(CHOOSERS[id].input);
+        if(chosen && chosen.value) { asked = true; return; }
+        asked = true;
+        setTimeout(function(){
+          /* Never steal a sheet the person is already looking at - a reminder
+             nudge can land in the same second. The line in the row keeps
+             asking quietly in that case. */
+          if(document.querySelector(".sheet.on")) return;
+          CHOOSERS[id].open();
+        }, 250);
+      });
+    });
+    refreshChooserLines();
+  })();
+
+  window.caloSabji = { sync: function(){ syncSabji(); syncRoti(); refreshChooserLines(); },
+                       open: openSabjiSheet, openRoti: openRotiSheet,
+                       veg: VEG, roti: ROTI };
   (function(){
     var slot = document.getElementById("slotFood");
     if(!slot || !slot.parentNode) return;
