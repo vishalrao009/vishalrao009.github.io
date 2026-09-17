@@ -94,6 +94,24 @@ h1,h2,h3{margin:0}
   .upiwrap{flex-direction:column;align-items:flex-start}
   .upiqr{width:150px;flex-basis:auto;align-self:center}
 }
+/* ---------------- reminders / settings ---------------- */
+.setgrp{margin:15px 0 3px;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:10px 0;border-bottom:1px solid var(--line)}
+.setrow > div{min-width:0}
+.setrow label{font-size:14.5px}
+.setrow .sublbl{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.setrow input[type=time]{font:inherit;font-size:15px;padding:6px 9px;border:1px solid var(--line);
+  border-radius:var(--r-sm);background:var(--card2);color:var(--ink);min-width:120px}
+.setrow input[type=time]:disabled{opacity:.4}
+.swch{position:relative;width:44px;height:26px;flex:none;margin:0}
+.swch input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+.swch i{position:absolute;inset:0;background:var(--line);border-radius:999px;transition:background .15s}
+.swch i:before{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;
+  background:#fff;transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.swch input:checked + i{background:var(--in)}
+.swch input:checked + i:before{transform:translateX(18px)}
+
 /* ---------------- app bar ---------------- */
 .appbar{
   position:sticky;top:0;z-index:30;background:var(--bg);
@@ -560,6 +578,12 @@ input,select{scroll-margin:84px 0 180px}
   <button class="iconbtn" id="factsBtn" aria-label="The power in your food">
     <svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg>
   </button>
+  <button class="iconbtn" id="settingsBtn" aria-label="Reminders and settings">
+    <svg viewBox="0 0 24 24" style="fill:none;stroke:var(--in);stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+  </button>
+  <button class="iconbtn" id="supportBtn" aria-label="Support Calo">
+    <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+  </button>
   <button class="avatar" id="avatar" aria-label="Profiles">&mdash;</button>
 </header>
 
@@ -803,7 +827,7 @@ input,select{scroll-margin:84px 0 180px}
         </div>
       </div>
       <p class="note" id="storeNote"></p>
-      <p class="tiny" style="margin-top:8px">Free to use and yours to keep. <a href="#" id="supportLink">Support it for ₹10</a>.</p>
+      <p class="tiny" style="margin-top:8px">Free to use and yours to keep. <a href="#" id="supportLink">Support this project</a>.</p>
     </div>
 
     <div class="card">
@@ -5570,7 +5594,7 @@ try{
    const UPI = {
      vpa:    "vishalslppilani-1@oksbi",  // <- your UPI id
      name:   "Vishal Rao",            // <- payee name as it should appear
-     amount: "10.00",
+     amount: "",              // blank = the payer types any amount
      note:   "Calo"
    };
    const ASK_AFTER_DAYS = 3;          // days logged before the ask appears
@@ -5604,10 +5628,11 @@ try{
   }
 
   function upiUrl(){
-    return "upi://pay?pa=" + encodeURIComponent(UPI.vpa) +
-           "&pn=" + encodeURIComponent(UPI.name) +
-           "&am=" + encodeURIComponent(UPI.amount) +
-           "&cu=INR&tn=" + encodeURIComponent(UPI.note);
+    var u = "upi://pay?pa=" + encodeURIComponent(UPI.vpa) +
+            "&pn=" + encodeURIComponent(UPI.name) +
+            "&cu=INR&tn=" + encodeURIComponent(UPI.note);
+    if(UPI.amount) u += "&am=" + encodeURIComponent(UPI.amount);
+    return u;
   }
 
   var onPhone = window.matchMedia("(pointer: coarse)").matches;
@@ -5632,8 +5657,9 @@ try{
       }
 
       body.appendChild(el("p", "tiny",
-        "If it has been useful, \u20b910 is the asking price. It is an " +
-        "honest ask rather than a lock \u2014 the app keeps working either way."));
+        "If it has been useful, you are welcome to chip in any amount you " +
+        "like \u2014 it is an honest ask rather than a lock, and the app " +
+        "keeps working either way."));
 
       var wrap = el("div"); wrap.className = "upiwrap";
 
@@ -5641,7 +5667,7 @@ try{
       try {
         qbox.innerHTML = QR.svg(upiUrl(), {
           quiet: 2, bg: "#ffffff", fg: "#111111",
-          label: "UPI QR code for \u20b9" + UPI.amount + " to " + UPI.name
+          label: "UPI QR code to pay " + UPI.name
         });
       } catch(e){
         qbox.appendChild(el("p", "tiny", "Could not draw the QR code."));
@@ -5649,7 +5675,7 @@ try{
       wrap.appendChild(qbox);
 
       var side = el("div"); side.className = "upiside";
-      side.appendChild(el("div", "upiamt", "\u20b9" + UPI.amount));
+      side.appendChild(el("div", "upiamt", "Any amount"));
       side.appendChild(el("div", "upivpa", UPI.vpa));
       side.appendChild(el("p", "tiny",
         onPhone ? "Scan with any UPI app, or tap below."
@@ -5658,7 +5684,7 @@ try{
       body.appendChild(wrap);
 
       if(onPhone){
-        var pay = el("a", "btn primary full", "Pay \u20b9" + UPI.amount + " by UPI");
+        var pay = el("a", "btn primary full", "Pay by UPI");
         pay.href = upiUrl();
         pay.style.marginTop = "12px";
         pay.style.display = "block";
@@ -5711,6 +5737,9 @@ try{
   var link = document.getElementById("supportLink");
   if(link) link.addEventListener("click", function(e){ e.preventDefault(); openSupport(); });
 
+  var sbtn = document.getElementById("supportBtn");
+  if(sbtn) sbtn.addEventListener("click", function(e){ e.preventDefault(); openSupport(); });
+
   /* The prompt. Waits until the app has proved itself, then asks once. */
   function maybeAsk(){
     var st = state();
@@ -5720,7 +5749,7 @@ try{
     if(usage().days < ASK_AFTER_DAYS) return;
     setTimeout(openSupport, 2500);
   }
-  setTimeout(maybeAsk, 1200);
+  /* No automatic nag any more \u2014 the Support icon in the top bar is the only entry point. */
 })();
 </script>
 <script>
@@ -5791,6 +5820,17 @@ try{
     setTimeout(show, 1600);
   }
 
+  /* Let the Settings sheet drive install too. */
+  window.caloInstall = {
+    installed: installed,
+    available: function(){ return !!deferred || (ios && safari && !installed()); },
+    prompt: function(){
+      if(deferred){ deferred.prompt(); deferred.userChoice.then(function(){ deferred = null; }); return "native"; }
+      if(ios && safari) return "ios";
+      return "manual";
+    }
+  };
+
   /* --- service worker: offline, and updates that actually land --- */
   if("serviceWorker" in navigator){
     window.addEventListener("load", function(){
@@ -5820,6 +5860,336 @@ try{
       if(btn) btn.click();
       history.replaceState(null, "", location.pathname);
     }, 350);
+  }
+})();
+</script>
+<script>
+/* ---------------------------------------------------------------
+   REMINDERS & SETTINGS
+
+   Meal-time and training nudges plus an end-of-day summary. All of
+   it is opt-in and editable and is stored with the active profile.
+   A static page can only fire while it is open, so the Settings
+   sheet asks people to install the app and leave it running for
+   the reminders to reach them in the background.
+   --------------------------------------------------------------- */
+(function(){
+  "use strict";
+
+  var MEALS = [
+    ["breakfast", "Breakfast by", "10:00"],
+    ["lunch",     "Lunch by",     "15:00"],
+    ["snacks",    "Snacks by",    "18:00"],
+    ["dinner",    "Dinner by",    "22:00"],
+    ["supper",    "Supper by",    "23:30"]
+  ];
+  var GYM_DEF = "19:00", DAYEND_DEF = "23:45";
+  var FKEY = "ledger.remind.fired";
+
+  function defaults(){
+    var t = {};
+    MEALS.forEach(function(m){ t[m[0]] = m[2]; });
+    t.gym = GYM_DEF; t.dayend = DAYEND_DEF;
+    return { on:true, notify:false, times:t };
+  }
+  function cfg(){
+    var u = (typeof activeUser === "function") ? activeUser() : null;
+    if(!u) return null;
+    if(!u.reminders) u.reminders = defaults();
+    if(!u.reminders.times) u.reminders.times = defaults().times;
+    return u.reminders;
+  }
+  function persist(){ try{ saveDb(); }catch(e){} }
+
+  function firedState(){
+    var st = null;
+    try{ st = JSON.parse(localStorage.getItem(FKEY) || "null"); }catch(e){ st = null; }
+    var day = todayKey(), who = (db && db.active) || "";
+    if(!st || st.date !== day || st.user !== who) st = { date:day, user:who, done:{} };
+    if(!st.done) st.done = {};
+    return st;
+  }
+  function saveFired(st){ try{ localStorage.setItem(FKEY, JSON.stringify(st)); }catch(e){} }
+
+  function toMin(t){
+    if(!t || !/^\d{1,2}:\d{2}$/.test(t)) return null;
+    var p = t.split(":"); return (+p[0])*60 + (+p[1]);
+  }
+  function nowMin(){ var d = new Date(); return d.getHours()*60 + d.getMinutes(); }
+  function listWords(a){
+    if(!a.length) return "";
+    if(a.length === 1) return a[0];
+    return a.slice(0,-1).join(", ") + " and " + a[a.length-1];
+  }
+
+  /* ---- notifications ---- */
+  function canNotify(){ return ("Notification" in window); }
+  function notifyGranted(){ return canNotify() && Notification.permission === "granted"; }
+  function askNotify(cb){
+    if(!canNotify()){ cb(false); return; }
+    if(Notification.permission === "granted"){ cb(true); return; }
+    if(Notification.permission === "denied"){ cb(false); return; }
+    var done = false;
+    function fin(p){ if(done) return; done = true; cb(p === "granted"); }
+    try{
+      var r = Notification.requestPermission(fin);
+      if(r && r.then) r.then(fin).catch(function(){ if(!done){ done = true; cb(false); } });
+    }catch(e){ if(!done){ done = true; cb(false); } }
+  }
+  function sysNotify(title, text, onClick){
+    if(!notifyGranted()) return false;
+    try{
+      var n = new Notification(title, { body:text, tag:"calo-remind" });
+      n.onclick = function(){ try{ window.focus(); }catch(e){} n.close(); if(onClick) onClick(); };
+      return true;
+    }catch(e){ return false; }
+  }
+
+  /* ---- end-of-day summary popup ---- */
+  function showSummary(){
+    if(typeof compute !== "function") return;
+    var d = compute();
+    openSheet("Your day", function(body){
+      if(!d.ready){
+        body.appendChild(el("p","tiny",
+          "Set your height, weight, age and sex first, and the day's numbers appear here."));
+        var c0 = el("button","btn sm line full","Close"); c0.type = "button";
+        c0.style.marginTop = "12px"; c0.addEventListener("click", closeSheet);
+        body.appendChild(c0); return;
+      }
+      body.appendChild(el("p","tiny",
+        "A wrap-up of today. Everything stayed on your device."));
+
+      var grid = el("div");
+      grid.style.cssText = "display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0";
+      function tile(lbl, val, sub){
+        var card = el("div");
+        card.style.cssText = "background:var(--card2);border-radius:var(--r-sm);padding:11px 12px";
+        card.appendChild(el("div","tiny", lbl));
+        var b = el("div");
+        b.style.cssText = "font-family:var(--serif);font-weight:700;font-size:22px;margin-top:2px";
+        b.textContent = val; card.appendChild(b);
+        if(sub) card.appendChild(el("div","tiny", sub));
+        grid.appendChild(card);
+      }
+      tile("Eaten", kc(d.food.kcal) + " kcal");
+      tile("Burned so far", kc(d.outSoFar) + " kcal", "about " + kc(d.out) + " by midnight");
+      body.appendChild(grid);
+
+      var bal = d.balanceSoFar, word = bal >= 0 ? "surplus" : "deficit";
+      body.appendChild(el("p","tiny",
+        "Net so far: a " + word + " of " + kc(Math.abs(bal)) + " kcal, eaten minus burned."));
+      body.appendChild(el("p","tiny",
+        "Protein " + n1(d.food.p) + " g · carbs " + n1(d.food.c) + " g · fat "
+        + n1(d.food.f) + " g · fibre " + n1(d.food.fib) + " g."));
+
+      var row = el("div","btnrow"); row.style.marginTop = "12px";
+      var add = el("button","btn sm primary","Log something else"); add.type = "button";
+      add.addEventListener("click", function(){ closeSheet(); var b = $("qFood"); if(b) b.click(); });
+      row.appendChild(add);
+      var ok = el("button","btn sm line","Close"); ok.type = "button";
+      ok.addEventListener("click", closeSheet); row.appendChild(ok);
+      body.appendChild(row);
+    });
+  }
+
+  /* ---- meal / training nudge popup ---- */
+  function showNudge(mealLabels, gym){
+    openSheet("Anything new today?", function(body){
+      var lines = [];
+      if(mealLabels.length) lines.push("It is past your " + listWords(mealLabels) + " time.");
+      if(gym) lines.push("It is past your usual training time — did you exercise?");
+      body.appendChild(el("p","tiny", lines.join(" ") + " Log it, or dismiss this."));
+
+      var row = el("div","btnrow"); row.style.marginTop = "12px";
+      if(mealLabels.length){
+        var f = el("button","btn sm primary","Log food"); f.type = "button";
+        f.addEventListener("click", function(){ closeSheet(); var b = $("qFood"); if(b) b.click(); });
+        row.appendChild(f);
+      }
+      if(gym){
+        var e2 = el("button","btn sm " + (mealLabels.length ? "line" : "primary"),"Log exercise");
+        e2.type = "button";
+        e2.addEventListener("click", function(){ closeSheet(); var b = $("qTrain"); if(b) b.click(); });
+        row.appendChild(e2);
+      }
+      var no = el("button","btn sm line","Not now"); no.type = "button";
+      no.addEventListener("click", closeSheet); row.appendChild(no);
+      body.appendChild(row);
+    });
+  }
+
+  /* ---- the periodic check ---- */
+  function check(){
+    if(sheetOpen) return;
+    var w = document.getElementById("wiz");
+    if(w && !w.hidden) return;                 // never interrupt onboarding
+    if(!db || !db.active) return;
+    var c = cfg(); if(!c || !c.on) return;
+    var d; try{ d = compute(); }catch(e){ return; }
+    if(!d || !d.ready) return;                 // no profile yet, nothing to nudge
+
+    var visible = !document.hidden;
+    var canPush = !visible && notifyGranted();
+    if(!visible && !canPush) return;           // no way to reach the user right now
+
+    var now = nowMin(), fs = firedState(), t = c.times || {};
+    var dueMeals = [], dueGym = false, dueEnd = false;
+    MEALS.forEach(function(m){
+      var mn = toMin(t[m[0]]);
+      if(mn !== null && now >= mn && !fs.done[m[0]]) dueMeals.push(m[0]);
+    });
+    var gymMn = toMin(t.gym);    if(gymMn !== null && now >= gymMn && !fs.done.gym) dueGym = true;
+    var endMn = toMin(t.dayend); if(endMn !== null && now >= endMn && !fs.done.dayend) dueEnd = true;
+    if(!dueMeals.length && !dueGym && !dueEnd) return;
+
+    dueMeals.forEach(function(k){ fs.done[k] = 1; });   // each nudge happens once a day
+    if(dueGym) fs.done.gym = 1;
+    if(dueEnd) fs.done.dayend = 1;
+    saveFired(fs);
+
+    var labelMap = {};
+    MEALS.forEach(function(m){ labelMap[m[0]] = m[1].replace(/ by$/,"").toLowerCase(); });
+    var mealLabels = dueMeals.map(function(k){ return labelMap[k]; });
+
+    if(dueEnd){
+      if(visible) showSummary();
+      else sysNotify("Your day — Calo", "Tap to see today's calories in and out.", showSummary);
+      return;
+    }
+    if(visible){
+      showNudge(mealLabels, dueGym);
+    } else {
+      var bits = [];
+      if(mealLabels.length) bits.push("past your " + listWords(mealLabels) + " time");
+      if(dueGym) bits.push("past your training time");
+      sysNotify("Anything new today?", "It is " + listWords(bits) + ". Tap to log it.",
+                function(){ showNudge(mealLabels, dueGym); });
+    }
+  }
+
+  /* ---- the Settings sheet ---- */
+  function openSettings(){
+    openSheet("Reminders & settings", function(body){
+      var c = cfg();
+      if(!c){
+        body.appendChild(el("p","tiny",
+          "Create a profile first, then your reminder times are saved with it."));
+        var ok0 = el("button","btn sm line full","Close"); ok0.type = "button";
+        ok0.style.marginTop = "12px"; ok0.addEventListener("click", closeSheet);
+        body.appendChild(ok0); return;
+      }
+      var t = c.times;
+      var status = el("p","tiny"); status.style.minHeight = "2px";
+      function say(m){ status.textContent = m || ""; }
+
+      function grp(txt){ body.appendChild(el("div","setgrp", txt)); }
+      function swrow(label, sub, checked, onChange){
+        var r = el("div","setrow");
+        var lft = el("div");
+        lft.appendChild(el("label", null, label));
+        if(sub) lft.appendChild(el("span","sublbl", sub));
+        r.appendChild(lft);
+        var sw = el("label","swch");
+        var inp = el("input"); inp.type = "checkbox"; inp.checked = !!checked;
+        sw.appendChild(inp); sw.appendChild(el("i"));
+        inp.addEventListener("change", function(){ onChange(inp.checked, inp); });
+        r.appendChild(sw); body.appendChild(r);
+      }
+      function timeRow(label, key){
+        var r = el("div","setrow");
+        r.appendChild(el("label", null, label));
+        var inp = el("input"); inp.type = "time"; inp.value = t[key] || "";
+        inp.className = "rtime"; inp.disabled = !c.on;
+        inp.addEventListener("change", function(){ t[key] = inp.value || ""; persist(); });
+        r.appendChild(inp); body.appendChild(r);
+      }
+      function setTimesEnabled(on){
+        var xs = body.querySelectorAll("input.rtime");
+        for(var i=0;i<xs.length;i++) xs[i].disabled = !on;
+      }
+
+      body.appendChild(el("p","tiny",
+        "Set a time for each. Once it passes, the app nudges you to log that meal or "
+        + "workout, and at the end of the day it shows what you ate and burned. Clear a "
+        + "time to switch that one off. All of it is saved with this profile."));
+
+      grp("Reminders");
+      swrow("Reminders on", "", c.on, function(v){ c.on = v; persist(); setTimesEnabled(v); });
+      swrow("System notifications",
+        "A banner even when the app is in the background",
+        c.notify && notifyGranted(),
+        function(v, inp){
+          if(v){
+            askNotify(function(ok){
+              c.notify = ok; persist();
+              if(ok){ say("Notifications on."); }
+              else {
+                inp.checked = false;
+                say(canNotify() ? "The browser is blocking notifications for this site."
+                                : "This browser has no notification support.");
+              }
+            });
+          } else { c.notify = false; persist(); say(""); }
+        });
+
+      (function(){
+        var ci = window.caloInstall;
+        var r = el("div","setrow");
+        var lft = el("div");
+        lft.appendChild(el("label", null, "Install the app"));
+        lft.appendChild(el("span","sublbl",
+          "Reminders fire while the app is open. Install it and keep it running for background nudges."));
+        r.appendChild(lft);
+        if(ci && ci.installed && ci.installed()){
+          r.appendChild(el("span","tiny","Installed ✓"));
+        } else {
+          var b = el("button","btn sm line","Install"); b.type = "button";
+          b.addEventListener("click", function(){
+            var res = ci ? ci.prompt() : "manual";
+            if(res === "ios") say("On iPhone: tap Share, then Add to Home Screen.");
+            else if(res === "manual") say("Open your browser menu and choose Install app / Add to Home Screen.");
+            else say("");
+          });
+          r.appendChild(b);
+        }
+        body.appendChild(r);
+      })();
+
+      grp("Meal cut-off times");
+      MEALS.forEach(function(m){ timeRow(m[1], m[0]); });
+
+      grp("Training & summary");
+      timeRow("Gym / training by", "gym");
+      timeRow("End-of-day summary at", "dayend");
+
+      body.appendChild(status);
+
+      var row = el("div","btnrow"); row.style.marginTop = "6px";
+      var test = el("button","btn sm line","Show today's summary"); test.type = "button";
+      test.addEventListener("click", function(){ closeSheet(); setTimeout(showSummary, 60); });
+      row.appendChild(test);
+      var done = el("button","btn sm primary","Done"); done.type = "button";
+      done.addEventListener("click", function(){ persist(); closeSheet(); });
+      row.appendChild(done);
+      body.appendChild(row);
+    });
+  }
+
+  window.openSettings = openSettings;
+  var gear = document.getElementById("settingsBtn");
+  if(gear) gear.addEventListener("click", function(e){ e.preventDefault(); openSettings(); });
+
+  function schedule(){
+    check();
+    setInterval(check, 60000);
+    document.addEventListener("visibilitychange", function(){ if(!document.hidden) check(); });
+    window.addEventListener("focus", check);
+  }
+  if(document.readyState === "loading"){
+    window.addEventListener("load", function(){ setTimeout(schedule, 1500); });
+  } else {
+    setTimeout(schedule, 1500);
   }
 })();
 </script>
