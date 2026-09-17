@@ -1,5 +1,5 @@
 /* ---------------------------------------------------------------
-   Energy ledger - service worker
+   Calo - service worker
    Lives at /wiki/vimwiki_html/Tools/sw.js
 
    IMPORTANT: a service worker's scope is the folder it is served
@@ -19,7 +19,7 @@
    --------------------------------------------------------------- */
 
 const CACHE_VERSION = "v1";
-const CACHE = `energy-ledger-${CACHE_VERSION}`;
+const CACHE = `calo-${CACHE_VERSION}`;
 
 const PAGE = "calorie_counter.html";
 
@@ -58,7 +58,11 @@ self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys()
       .then(keys => Promise.all(
-        keys.filter(k => k.startsWith("energy-ledger-") && k !== CACHE)
+        /* Both prefixes: anyone who installed this before the rename still
+           has an energy-ledger-* cache sitting on their device, and nothing
+           else will ever clean it up. */
+        keys.filter(k => (k.startsWith("calo-") || k.startsWith("energy-ledger-"))
+                         && k !== CACHE)
             .map(k => caches.delete(k))
       ))
       .then(() => self.clients.claim())
