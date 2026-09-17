@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Energy ledger</title>
-<meta name="description" content="A vegetarian calorie and energy ledger. Log food, lifting and housework, and see whether the difference becomes fat or muscle. All data stays in your browser.">
+<title>Calo</title>
+<meta name="description" content="Calo is a vegetarian calorie and energy tracker. Log food, lifting and housework, and see whether the difference becomes fat or muscle. All data stays in your browser.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#EFF1EE" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#141917" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Ledger">
+<meta name="apple-mobile-web-app-title" content="Calo">
 <meta name="mobile-web-app-capable" content="yes">
-<meta property="og:title" content="Energy ledger">
-<meta property="og:description" content="A vegetarian calorie ledger. Log food, lifting and housework, and see where a surplus or deficit actually goes.">
+<meta property="og:title" content="Calo">
+<meta property="og:description" content="A vegetarian calorie tracker. Log food, lifting and housework, and see where a surplus or deficit actually goes.">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23141917'/%3E%3Crect x='6' y='9' width='20' height='4' rx='2' fill='%23E0A64A'/%3E%3Crect x='6' y='15' width='14' height='4' rx='2' fill='%234FB3A6'/%3E%3Crect x='6' y='21' width='8' height='4' rx='2' fill='%23D4788F'/%3E%3C/svg%3E">
 <link rel="manifest" href="manifest.webmanifest">
@@ -23,7 +23,7 @@
 <style>
 /* Typefaces are bundled with the app rather than fetched from Google. Two
    reasons: the app has to render on a plane or a basement gym with no signal,
-   and a ledger that promises your data never leaves the phone should not be
+   and an app that promises your data never leaves the phone should not be
    announcing every launch to a third party. */
 @font-face{
   font-family:"IBM Plex Sans";font-style:normal;font-weight:400;font-display:swap;
@@ -81,6 +81,19 @@ button{font-family:var(--sans);font-size:15px;cursor:pointer;color:inherit}
 :focus-visible{outline:2px solid var(--out);outline-offset:2px}
 h1,h2,h3{margin:0}
 
+
+/* ---- support / UPI block ---- */
+.upiwrap{display:flex;gap:14px;align-items:center;margin-top:12px;
+  background:var(--card2);border:1px solid var(--line);border-radius:var(--r);padding:12px}
+.upiqr{width:132px;flex:0 0 132px;background:#fff;border-radius:var(--r-sm);padding:6px;line-height:0}
+.upiqr svg{width:100%;height:auto;display:block}
+.upiside{min-width:0}
+.upiamt{font-family:var(--serif);font-weight:700;font-size:26px;line-height:1.1}
+.upivpa{font-size:13px;color:var(--muted);word-break:break-all;margin:2px 0 6px}
+@media (max-width:420px){
+  .upiwrap{flex-direction:column;align-items:flex-start}
+  .upiqr{width:150px;flex-basis:auto;align-self:center}
+}
 /* ---------------- app bar ---------------- */
 .appbar{
   position:sticky;top:0;z-index:30;background:var(--bg);
@@ -541,7 +554,7 @@ input,select{scroll-margin:84px 0 180px}
 
 <header class="appbar" id="appbar">
   <div class="ttl">
-    <h1 id="barTitle">Energy ledger</h1>
+    <h1 id="barTitle">Calo</h1>
     <div class="sub" id="barSub">Set yourself up to begin</div>
   </div>
   <button class="iconbtn" id="factsBtn" aria-label="The power in your food">
@@ -555,7 +568,7 @@ input,select{scroll-margin:84px 0 180px}
   <!-- ============ TODAY ============ -->
   <section class="tabpane on" id="pane-today">
     <div class="gate hidden" id="gate">
-      Nothing can be worked out until the ledger knows your height, weight, age and sex.
+      Nothing can be worked out until Calo knows your height, weight, age and sex.
       Resting metabolism is the largest number of the day and it is built entirely from those four.
       <div style="margin-top:10px"><button class="btn sm primary" id="goSetup">Set them now</button></div>
     </div>
@@ -790,6 +803,7 @@ input,select{scroll-margin:84px 0 180px}
         </div>
       </div>
       <p class="note" id="storeNote"></p>
+      <p class="tiny" style="margin-top:8px">Free to use and yours to keep. <a href="#" id="supportLink">Support it for ₹10</a>.</p>
     </div>
 
     <div class="card">
@@ -2146,7 +2160,7 @@ function showTab(t){
   document.querySelectorAll(".tabbtn").forEach(b => b.classList.toggle("on", b.dataset.t === t));
   $("strip").classList.toggle("hidden", t === "today");
   window.scrollTo({top:0});
-  const titles = {today:"Energy ledger", food:"What you ate", move:"What you did", you:"You"};
+  const titles = {today:"Calo", food:"What you ate", move:"What you did", you:"You"};
   $("barTitle").textContent = titles[t];
 }
 document.querySelectorAll(".tabbtn").forEach(b =>
@@ -2664,17 +2678,35 @@ function update(){
     $("tileFat").textContent  = (fatG>=0?"+":"\u2212")+Math.abs(fatG).toFixed(0)+" g";
     $("tileFatU").textContent = when;
 
-    if(src.p && src.p.surplus){
-      $("tileLeanL").textContent = "Muscle built";
-      $("tileLean").textContent  = leanG >= 0.5 ? "+"+leanG.toFixed(1)+" g" : "none yet";
-      $("tileLeanU").textContent = leanG >= 0.5 ? when
-        : (d.st.reps>0 ? "signal too weak to build" : "no training signal");
+    /* Muscle is reported as a rate across closed days, not as today's running
+       figure. See tissueRate() for why a mid-day number is not meaningful. */
+    const rate = tissueRate(7);
+    if(rate && rate.short){
+      $("tileLeanL").textContent = "Muscle";
+      $("tileLean").textContent  = "\u2014";
+      $("tileLeanU").textContent = rate.have === 0
+        ? "needs a few closed days"
+        : "needs " + (3 - rate.have) + " more closed day"
+          + ((3 - rate.have) === 1 ? "" : "s");
+    } else if(rate){
+      const r = rate.leanG, span = "per day, last " + rate.days + " days";
+      if(r >= 0.5){
+        $("tileLeanL").textContent = "Muscle built";
+        $("tileLean").textContent  = "+" + r.toFixed(1) + " g";
+        $("tileLeanU").textContent = span;
+      } else if(r <= -0.5){
+        $("tileLeanL").textContent = "Muscle";
+        $("tileLean").textContent  = "\u2212" + Math.abs(r).toFixed(1) + " g";
+        $("tileLeanU").textContent = span;
+      } else {
+        $("tileLeanL").textContent = "Muscle";
+        $("tileLean").textContent  = "held";
+        $("tileLeanU").textContent = span;
+      }
     } else {
       $("tileLeanL").textContent = "Muscle";
-      $("tileLean").textContent  = leanG < -0.5 ? "\u2212"+Math.abs(leanG).toFixed(1)+" g" : "held";
-      $("tileLeanU").textContent = leanG < -0.5
-        ? (d.fastSpare > 0 ? when + ", fasting spares some" : when)
-        : (d.lifted ? "spared by training" : "deficit too small to matter");
+      $("tileLean").textContent  = "\u2014";
+      $("tileLeanU").textContent = "needs a few closed days";
     }
   }
   /* What the day is heading for, shown alongside the running figure so an early
@@ -2850,6 +2882,37 @@ function monthHistory(force){
   compute();                                       // repaint the live day
   histCache = rows; histAt = now;
   return rows;
+}
+
+
+/* ---- trailing tissue rate ------------------------------------------------
+   Why the muscle tile does not read off today alone.
+
+   Partitioning is a daily model: a lean-loss ratio per day, a growth ceiling
+   in grams per day. Run it against a balance that has only reached 11am and
+   it compares a partial intake against a burn that accrues with the clock.
+   Before every meal that balance is negative and after every meal it is less
+   negative, so the reading sawtooths all day and crosses zero whenever you
+   eat. One chapati is about 120 kcal, which is roughly 3 g of modelled lean
+   tissue - genuinely enough to move a daily figure, which is exactly why a
+   daily figure should not be quoted mid-afternoon.
+
+   Real protein turnover does swing this way over hours: net breakdown while
+   fasted, net synthesis after a protein-containing meal. But nothing about
+   that is measurable in grams on the day it happens, and it is not what this
+   model computes. What the model can honestly say is a rate across days, so
+   that is what gets shown. Today still counts - once it is closed.            */
+function tissueRate(want){
+  const rows = monthHistory();
+  if(!rows) return null;
+  const use = rows.filter(r => r.closed || !r.today).slice(-(want || 7));
+  if(use.length < 3) return {short:true, have:use.length};
+  const n = use.length;
+  return {
+    days: n,
+    leanG: use.reduce((a,r) => a + r.lean, 0) / n * 1000,
+    fatG:  use.reduce((a,r) => a + r.fat,  0) / n * 1000
+  };
 }
 
 /* A small bar chart of daily balance with the running fat total drawn over it.
@@ -4930,7 +4993,7 @@ $("exportBtn").addEventListener("click", () => {
   const blob = new Blob([JSON.stringify(db,null,2)], {type:"application/json"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "energy-ledger-profiles.json";
+  a.download = "calo-profiles.json";
   document.body.appendChild(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 200);
   noteStore("Exported every profile as a JSON file.");
@@ -5144,9 +5207,9 @@ try{
   @keyframes icin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 }
 </style>
-<div id="installCard" role="dialog" aria-label="Install Energy ledger">
+<div id="installCard" role="dialog" aria-label="Install Calo">
   <div class="ictext">
-    <div class="ictitle" id="icTitle">Keep the ledger on your home screen</div>
+    <div class="ictitle" id="icTitle">Keep Calo on your home screen</div>
     <div class="icbody" id="icBody">Opens full screen and works with no signal.</div>
     <div class="icacts">
       <button type="button" class="primary" id="icGo">Install</button>
@@ -5154,6 +5217,512 @@ try{
     </div>
   </div>
 </div>
+<script>
+/* ---------------------------------------------------------------
+   Minimal QR encoder - byte mode, error correction level M.
+
+   Written in full rather than pulled from a CDN or an image API for
+   two reasons: the app has to work with no signal, and sending the
+   payee's UPI id to someone else's server to have a picture drawn
+   would undo the app's whole no-network promise.
+
+   Level M recovers ~15% of a damaged code, which is the right
+   trade for something printed small or displayed on a phone screen
+   that someone else is photographing.
+   --------------------------------------------------------------- */
+(function (root) {
+  "use strict";
+
+  /* ---- GF(256) tables, primitive polynomial 0x11D ---- */
+  var EXP = new Uint8Array(512), LOG = new Uint8Array(256);
+  (function () {
+    for (var i = 0, x = 1; i < 255; i++) {
+      EXP[i] = x; LOG[x] = i;
+      x <<= 1; if (x & 0x100) x ^= 0x11D;
+    }
+    for (var j = 255; j < 512; j++) EXP[j] = EXP[j - 255];
+  })();
+
+  function gmul(a, b) {
+    return (a === 0 || b === 0) ? 0 : EXP[LOG[a] + LOG[b]];
+  }
+
+  /* Generator polynomial for `n` error-correction codewords. */
+  function genPoly(n) {
+    var p = [1];
+    for (var i = 0; i < n; i++) {
+      var q = p.concat([0]);
+      for (var j = 0; j < p.length; j++) q[j + 1] ^= gmul(p[j], EXP[i]);
+      p = q;
+    }
+    return p;
+  }
+
+  function ecBytes(data, n) {
+    var g = genPoly(n), res = new Array(data.length + n).fill(0);
+    for (var i = 0; i < data.length; i++) res[i] = data[i];
+    for (var i2 = 0; i2 < data.length; i2++) {
+      var f = res[i2];
+      if (!f) continue;
+      for (var j = 0; j < g.length; j++) res[i2 + j] ^= gmul(g[j], f);
+    }
+    return res.slice(data.length);
+  }
+
+  /* ---- per-version tables, EC level M only ----
+     [total data codewords, EC codewords per block, blocks in group 1,
+      data codewords in a group-1 block, blocks in group 2,
+      data codewords in a group-2 block]                              */
+  var V = {
+    1:  [16,  10, 1, 16, 0, 0],
+    2:  [28,  16, 1, 28, 0, 0],
+    3:  [44,  26, 1, 44, 0, 0],
+    4:  [64,  18, 2, 32, 0, 0],
+    5:  [86,  24, 2, 43, 0, 0],
+    6:  [108, 16, 4, 27, 0, 0],
+    7:  [124, 18, 4, 31, 0, 0],
+    8:  [154, 22, 2, 38, 2, 39],
+    9:  [182, 22, 3, 36, 2, 37],
+    10: [216, 26, 4, 43, 1, 44]
+  };
+
+  var ALIGN = {
+    1: [], 2: [6, 18], 3: [6, 22], 4: [6, 26], 5: [6, 30], 6: [6, 34],
+    7: [6, 22, 38], 8: [6, 24, 42], 9: [6, 26, 46], 10: [6, 28, 50]
+  };
+
+  var VERSION_BITS = { 7: 0x07C94, 8: 0x085BC, 9: 0x09A99, 10: 0x0A4D3 };
+
+  /* Format information, EC level M, indexed by mask. */
+  var FORMAT = [0x5412, 0x5125, 0x5E7C, 0x5B4B, 0x45F9, 0x40CE, 0x4F97, 0x4AA0];
+
+  function utf8(str) {
+    var out = [], s = encodeURIComponent(str);
+    for (var i = 0; i < s.length; i++) {
+      if (s[i] === "%") { out.push(parseInt(s.substr(i + 1, 2), 16)); i += 2; }
+      else out.push(s.charCodeAt(i));
+    }
+    return out;
+  }
+
+  function pickVersion(len) {
+    for (var v = 1; v <= 10; v++) {
+      var cclen = v < 10 ? 8 : 16;                   // byte-mode count length
+      var need = Math.ceil((4 + cclen + len * 8) / 8);
+      if (need <= V[v][0]) return v;
+    }
+    throw new Error("QR payload too long (" + len + " bytes, max ~216)");
+  }
+
+  function bitstream(bytes, version) {
+    var bits = [];
+    function push(val, n) { for (var i = n - 1; i >= 0; i--) bits.push((val >> i) & 1); }
+
+    push(4, 4);                                       // byte mode
+    push(bytes.length, version < 10 ? 8 : 16);
+    bytes.forEach(function (b) { push(b, 8); });
+
+    var cap = V[version][0] * 8;
+    for (var t = 0; t < 4 && bits.length < cap; t++) bits.push(0);   // terminator
+    while (bits.length % 8) bits.push(0);
+
+    var words = [];
+    for (var i = 0; i < bits.length; i += 8) {
+      var b = 0;
+      for (var j = 0; j < 8; j++) b = (b << 1) | bits[i + j];
+      words.push(b);
+    }
+    var pad = [0xEC, 0x11], k = 0;
+    while (words.length < V[version][0]) words.push(pad[k++ % 2]);
+    return words;
+  }
+
+  /* Split into blocks, compute EC, then interleave as the spec requires. */
+  function codewords(words, version) {
+    var spec = V[version], ecLen = spec[1];
+    var blocks = [], at = 0;
+    for (var g = 0; g < 2; g++) {
+      var count = spec[2 + g * 2], size = spec[3 + g * 2];
+      for (var i = 0; i < count; i++) {
+        var d = words.slice(at, at + size); at += size;
+        blocks.push({ d: d, e: ecBytes(d, ecLen) });
+      }
+    }
+    var out = [], max = Math.max.apply(null, blocks.map(function (b) { return b.d.length; }));
+    for (var c = 0; c < max; c++)
+      blocks.forEach(function (b) { if (c < b.d.length) out.push(b.d[c]); });
+    for (var c2 = 0; c2 < ecLen; c2++)
+      blocks.forEach(function (b) { out.push(b.e[c2]); });
+    return out;
+  }
+
+  function build(version) {
+    var n = version * 4 + 17;
+    var m = [], fn = [];                              // module value, is-function-pattern
+    for (var i = 0; i < n; i++) { m.push(new Array(n).fill(0)); fn.push(new Array(n).fill(0)); }
+
+    function finder(r, c) {
+      for (var dr = -1; dr <= 7; dr++) for (var dc = -1; dc <= 7; dc++) {
+        var rr = r + dr, cc = c + dc;
+        if (rr < 0 || rr >= n || cc < 0 || cc >= n) continue;
+        var on = (dr >= 0 && dr <= 6 && (dc === 0 || dc === 6)) ||
+                 (dc >= 0 && dc <= 6 && (dr === 0 || dr === 6)) ||
+                 (dr >= 2 && dr <= 4 && dc >= 2 && dc <= 4);
+        m[rr][cc] = on ? 1 : 0; fn[rr][cc] = 1;
+      }
+    }
+    finder(0, 0); finder(0, n - 7); finder(n - 7, 0);
+
+    for (var i2 = 8; i2 < n - 8; i2++) {              // timing patterns
+      var v = (i2 % 2 === 0) ? 1 : 0;
+      m[6][i2] = v; fn[6][i2] = 1;
+      m[i2][6] = v; fn[i2][6] = 1;
+    }
+
+    var ap = ALIGN[version], last = ap.length - 1;
+    for (var a = 0; a <= last; a++) for (var b = 0; b <= last; b++) {
+      /* Only the three that collide with finder patterns are omitted.
+         Centres sitting on a timing line are legitimate and must be
+         drawn - skipping those was silently shrinking the data area. */
+      if ((a === 0 && b === 0) || (a === 0 && b === last) || (a === last && b === 0)) continue;
+      var r = ap[a], c = ap[b];
+      for (var dr = -2; dr <= 2; dr++) for (var dc = -2; dc <= 2; dc++) {
+        m[r + dr][c + dc] =
+          (Math.abs(dr) === 2 || Math.abs(dc) === 2 || (dr === 0 && dc === 0)) ? 1 : 0;
+        fn[r + dr][c + dc] = 1;
+      }
+    }
+
+    m[n - 8][8] = 1; fn[n - 8][8] = 1;                 // dark module
+
+    for (var i3 = 0; i3 < 9; i3++) {                   // reserve format areas
+      if (!fn[8][i3]) { fn[8][i3] = 1; }
+      if (!fn[i3][8]) { fn[i3][8] = 1; }
+    }
+    for (var i4 = 0; i4 < 8; i4++) { fn[8][n - 1 - i4] = 1; fn[n - 1 - i4][8] = 1; }
+
+    if (version >= 7) {
+      var vb = VERSION_BITS[version];
+      for (var i5 = 0; i5 < 18; i5++) {
+        var bit = (vb >> i5) & 1;
+        var r2 = Math.floor(i5 / 3), c2 = i5 % 3;
+        m[r2][n - 11 + c2] = bit; fn[r2][n - 11 + c2] = 1;
+        m[n - 11 + c2][r2] = bit; fn[n - 11 + c2][r2] = 1;
+      }
+    }
+    return { m: m, fn: fn, n: n };
+  }
+
+  function place(grid, data) {
+    var m = grid.m, fn = grid.fn, n = grid.n;
+    var bit = 0, up = true;
+    for (var col = n - 1; col > 0; col -= 2) {
+      if (col === 6) col--;                            // skip the timing column
+      for (var i = 0; i < n; i++) {
+        var row = up ? n - 1 - i : i;
+        for (var k = 0; k < 2; k++) {
+          var c = col - k;
+          if (fn[row][c]) continue;
+          var v = 0;
+          if (bit < data.length * 8) {
+            v = (data[bit >> 3] >> (7 - (bit & 7))) & 1;
+          }
+          m[row][c] = v; bit++;
+        }
+      }
+      up = !up;
+    }
+  }
+
+  function maskFn(k) {
+    return [
+      function (r, c) { return (r + c) % 2 === 0; },
+      function (r)    { return r % 2 === 0; },
+      function (r, c) { return c % 3 === 0; },
+      function (r, c) { return (r + c) % 3 === 0; },
+      function (r, c) { return (Math.floor(r / 2) + Math.floor(c / 3)) % 2 === 0; },
+      function (r, c) { return (r * c) % 2 + (r * c) % 3 === 0; },
+      function (r, c) { return ((r * c) % 2 + (r * c) % 3) % 2 === 0; },
+      function (r, c) { return ((r + c) % 2 + (r * c) % 3) % 2 === 0; }
+    ][k];
+  }
+
+  function penalty(m, n) {
+    var p = 0, i, j, run, dark = 0;
+
+    for (i = 0; i < n; i++) {                          // rule 1: runs of 5+
+      run = 1;
+      for (j = 1; j < n; j++) {
+        if (m[i][j] === m[i][j - 1]) { run++; }
+        else { if (run >= 5) p += 3 + (run - 5); run = 1; }
+      }
+      if (run >= 5) p += 3 + (run - 5);
+      run = 1;
+      for (j = 1; j < n; j++) {
+        if (m[j][i] === m[j - 1][i]) { run++; }
+        else { if (run >= 5) p += 3 + (run - 5); run = 1; }
+      }
+      if (run >= 5) p += 3 + (run - 5);
+    }
+
+    for (i = 0; i < n - 1; i++)                        // rule 2: 2x2 blocks
+      for (j = 0; j < n - 1; j++) {
+        var s = m[i][j] + m[i][j + 1] + m[i + 1][j] + m[i + 1][j + 1];
+        if (s === 0 || s === 4) p += 3;
+      }
+
+    var pat1 = [1,0,1,1,1,0,1,0,0,0,0], pat2 = [0,0,0,0,1,0,1,1,1,0,1];
+    function has(arr, at, pat) {
+      for (var q = 0; q < 11; q++) if (arr[at + q] !== pat[q]) return false;
+      return true;
+    }
+    for (i = 0; i < n; i++) {                          // rule 3: finder-like
+      var rowArr = m[i], colArr = [];
+      for (j = 0; j < n; j++) colArr.push(m[j][i]);
+      for (j = 0; j + 11 <= n; j++) {
+        if (has(rowArr, j, pat1) || has(rowArr, j, pat2)) p += 40;
+        if (has(colArr, j, pat1) || has(colArr, j, pat2)) p += 40;
+      }
+    }
+
+    for (i = 0; i < n; i++) for (j = 0; j < n; j++) dark += m[i][j];
+    p += Math.floor(Math.abs(dark * 100 / (n * n) - 50) / 5) * 10;   // rule 4
+    return p;
+  }
+
+  function applyFormat(m, n, mask) {
+    var f = FORMAT[mask];
+    for (var i = 0; i < 15; i++) {
+      var bit = (f >> i) & 1;
+
+      /* Vertical run: down the left of the top-left finder, continuing
+         beside the bottom-left one. */
+      if (i < 6)      m[i][8] = bit;
+      else if (i < 8) m[i + 1][8] = bit;          // step over the timing row
+      else            m[n - 15 + i][8] = bit;
+
+      /* Horizontal run: in from the right edge, then left of the
+         top-left finder. Note this runs the opposite way to the
+         vertical one - the two copies are not simple mirrors. */
+      if (i < 8)      m[8][n - 1 - i] = bit;
+      else if (i < 9) m[8][7] = bit;              // steps over the timing column
+      else            m[8][14 - i] = bit;
+    }
+    /* Written last, because the vertical run above passes straight over
+       this module and would otherwise erase it. */
+    m[n - 8][8] = 1;
+  }
+
+  /* Returns { size, modules } where modules[r][c] is 0 or 1. */
+  function encode(text) {
+    var bytes = utf8(text);
+    var version = pickVersion(bytes.length);
+    var data = codewords(bitstream(bytes, version), version);
+
+    var best = null;
+    for (var k = 0; k < 8; k++) {
+      var g = build(version);
+      place(g, data);
+      var f = maskFn(k);
+      for (var r = 0; r < g.n; r++) for (var c = 0; c < g.n; c++)
+        if (!g.fn[r][c] && f(r, c)) g.m[r][c] ^= 1;
+      applyFormat(g.m, g.n, k);
+      var sc = penalty(g.m, g.n);
+      if (!best || sc < best.score) best = { score: sc, m: g.m, n: g.n };
+    }
+    return { size: best.n, modules: best.m };
+  }
+
+  /* SVG as one path: far fewer nodes than a rect per module. */
+  function svg(text, opts) {
+    opts = opts || {};
+    var q = opts.quiet == null ? 4 : opts.quiet;
+    var qr = encode(text), n = qr.size, total = n + q * 2;
+    var d = "";
+    for (var r = 0; r < n; r++) {
+      for (var c = 0; c < n; c++) {
+        if (qr.modules[r][c]) d += "M" + (c + q) + " " + (r + q) + "h1v1h-1z";
+      }
+    }
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + total + ' ' + total +
+           '" shape-rendering="crispEdges" role="img" aria-label="' +
+           (opts.label || "QR code") + '">' +
+           '<rect width="' + total + '" height="' + total + '" fill="' +
+           (opts.bg || "#ffffff") + '"/>' +
+           '<path d="' + d + '" fill="' + (opts.fg || "#000000") + '"/></svg>';
+  }
+
+  root.QR = { encode: encode, svg: svg };
+})(window);
+
+</script>
+<script>
+/* ---------------------------------------------------------------
+   SUPPORTING CALO
+
+   An honest ask, not a paywall. The app is one HTML file on a public
+   URL - anyone can read the source and keep a copy - so there is
+   nothing here to enforce and no pretence that there is. The ask
+   only appears once someone has actually used the thing for a few
+   days, and it shows them their own numbers rather than a pitch.
+
+   ====== EDIT THIS ======================================== */
+   const UPI = {
+     vpa:    "vishalslppilani-1@oksbi",  // <- your UPI id
+     name:   "Vishal Rao",            // <- payee name as it should appear
+     amount: "10.00",
+     note:   "Calo"
+   };
+   const ASK_AFTER_DAYS = 3;          // days logged before the ask appears
+   const SNOOZE_DAYS    = 30;         // gap after "not now"
+/* ======================================================== */
+
+(function(){
+  "use strict";
+
+  var K_STATE = "ledger.support";     // {status:"paid"|"later", at:<ms>}
+
+  function state(){
+    try { return JSON.parse(localStorage.getItem(K_STATE) || "null") || {}; }
+    catch(e){ return {}; }
+  }
+  function setState(o){
+    try { localStorage.setItem(K_STATE, JSON.stringify(o)); } catch(e){}
+  }
+
+  /* How much has this person actually logged? Counts distinct dates across
+     every profile, which is the honest measure of use. */
+  function usage(){
+    var days = 0, users = 0;
+    try {
+      Object.values(db.users || {}).forEach(function(u){
+        users++;
+        days += Object.keys(u.days || {}).length;
+      });
+    } catch(e){}
+    return { days: days, users: users };
+  }
+
+  function upiUrl(){
+    return "upi://pay?pa=" + encodeURIComponent(UPI.vpa) +
+           "&pn=" + encodeURIComponent(UPI.name) +
+           "&am=" + encodeURIComponent(UPI.amount) +
+           "&cu=INR&tn=" + encodeURIComponent(UPI.note);
+  }
+
+  var onPhone = window.matchMedia("(pointer: coarse)").matches;
+
+  function openSupport(){
+    openSheet("Support Calo", function(body){
+      var u = usage();
+      var st = state();
+
+      if(st.status === "paid"){
+        body.appendChild(el("p", "tiny",
+          "You already chipped in \u2014 thank you. Nothing further to do."));
+      }
+
+      /* Their own numbers, not a sales pitch. */
+      if(u.days > 0){
+        body.appendChild(el("p", "tiny",
+          "You have logged " + u.days + (u.days === 1 ? " day" : " days") +
+          (u.users > 1 ? " across " + u.users + " profiles" : "") +
+          ". Everything stayed on your device, there were no ads, and " +
+          "nothing was sold to anyone."));
+      }
+
+      body.appendChild(el("p", "tiny",
+        "If it has been useful, \u20b910 is the asking price. It is an " +
+        "honest ask rather than a lock \u2014 the app keeps working either way."));
+
+      var wrap = el("div"); wrap.className = "upiwrap";
+
+      var qbox = el("div"); qbox.className = "upiqr";
+      try {
+        qbox.innerHTML = QR.svg(upiUrl(), {
+          quiet: 2, bg: "#ffffff", fg: "#111111",
+          label: "UPI QR code for \u20b9" + UPI.amount + " to " + UPI.name
+        });
+      } catch(e){
+        qbox.appendChild(el("p", "tiny", "Could not draw the QR code."));
+      }
+      wrap.appendChild(qbox);
+
+      var side = el("div"); side.className = "upiside";
+      side.appendChild(el("div", "upiamt", "\u20b9" + UPI.amount));
+      side.appendChild(el("div", "upivpa", UPI.vpa));
+      side.appendChild(el("p", "tiny",
+        onPhone ? "Scan with any UPI app, or tap below."
+                : "Scan with GPay, PhonePe, Paytm or any UPI app."));
+      wrap.appendChild(side);
+      body.appendChild(wrap);
+
+      if(onPhone){
+        var pay = el("a", "btn primary full", "Pay \u20b9" + UPI.amount + " by UPI");
+        pay.href = upiUrl();
+        pay.style.marginTop = "12px";
+        pay.style.display = "block";
+        pay.style.textAlign = "center";
+        pay.style.textDecoration = "none";
+        pay.addEventListener("click", function(){
+          /* The app never learns whether payment succeeded - UPI gives no
+             callback to a static page - so this only stops the reminder. */
+          setState({ status: "paid", at: Date.now() });
+        });
+        body.appendChild(pay);
+      }
+
+      var row = el("div", "btnrow"); row.style.marginTop = "12px";
+
+      if(st.status !== "paid"){
+        var done = el("button", "btn sm line", "I have paid");
+        done.type = "button";
+        done.addEventListener("click", function(){
+          setState({ status: "paid", at: Date.now() });
+          closeSheet();
+          noteStore("Thank you.");
+        });
+        row.appendChild(done);
+
+        var later = el("button", "btn sm line", "Not now");
+        later.type = "button";
+        later.addEventListener("click", function(){
+          setState({ status: "later", at: Date.now() });
+          closeSheet();
+        });
+        row.appendChild(later);
+      } else {
+        var close = el("button", "btn sm line", "Close");
+        close.type = "button";
+        close.addEventListener("click", closeSheet);
+        row.appendChild(close);
+      }
+      body.appendChild(row);
+
+      body.appendChild(el("p", "tiny",
+        "This is a personal project, not a registered business, and there " +
+        "are no refunds to process because nothing is being withheld. The " +
+        "numbers it produces are estimates, not medical or dietary advice."));
+    });
+  }
+
+  window.openSupport = openSupport;
+
+  var link = document.getElementById("supportLink");
+  if(link) link.addEventListener("click", function(e){ e.preventDefault(); openSupport(); });
+
+  /* The prompt. Waits until the app has proved itself, then asks once. */
+  function maybeAsk(){
+    var st = state();
+    if(st.status === "paid") return;
+    if(st.status === "later" &&
+       Date.now() - (st.at || 0) < SNOOZE_DAYS * 864e5) return;
+    if(usage().days < ASK_AFTER_DAYS) return;
+    setTimeout(openSupport, 2500);
+  }
+  setTimeout(maybeAsk, 1200);
+})();
+</script>
 <script>
 /* ---------------------------------------------------------------
    INSTALLABILITY
@@ -5215,7 +5784,7 @@ try{
             (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   var safari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
   if(ios && safari && !installed() && !muted()){
-    title.textContent = "Add the ledger to your home screen";
+    title.textContent = "Add Calo to your home screen";
     body.innerHTML = "Tap Share, then <b>Add to Home Screen</b>. It opens full " +
                      "screen and works with no signal.";
     go.textContent = "Got it";
