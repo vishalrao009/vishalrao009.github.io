@@ -71,20 +71,6 @@ h1,h2,h3{margin:0}
 .avatar{width:38px;height:38px;border-radius:50%;background:var(--card);border:1px solid var(--line);
   font-family:var(--serif);font-weight:600;font-size:16px;display:flex;align-items:center;
   justify-content:center;flex:none;padding:0}
-.iconbtn{width:38px;height:38px;border-radius:50%;background:var(--card);border:1px solid var(--line);
-  display:flex;align-items:center;justify-content:center;flex:none;padding:0}
-.iconbtn:active{background:var(--card2)}
-.iconbtn svg{width:20px;height:20px;stroke:none;fill:var(--in)}
-
-/* ---------------- "power in your food" facts ---------------- */
-.powcard{background:var(--card2);border-radius:var(--r-sm);padding:12px 13px;margin-bottom:9px}
-.powhead{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}
-.powname{font-size:14.5px;font-weight:500}
-.powname small{color:var(--muted);font-size:11.5px;font-weight:400;margin-left:4px}
-.powkcal{font-family:var(--serif);font-size:15px;font-weight:600;color:var(--in);white-space:nowrap}
-.powfacts{display:grid;gap:6px;font-size:13px;color:var(--muted)}
-.powfacts span{display:flex;gap:8px;align-items:baseline}
-.powfacts b{color:var(--ink);font-family:var(--serif);font-weight:600}
 
 /* ---------------- layout ---------------- */
 .page{max-width:620px;margin:0 auto;padding:4px 16px 26px}
@@ -247,10 +233,6 @@ h1,h2,h3{margin:0}
 .sfoot{flex:none;display:flex;gap:10px;padding:10px 18px
   calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);
   background:var(--card)}
-/* A class display rule beats the plain [hidden] attribute, so the footer has to
-   be told to hide explicitly - otherwise its "Save & add another / Done" bar
-   leaks onto every sheet that has no picker, with dead buttons. */
-.sfoot[hidden]{display:none}
 .sfoot .btn{flex:1;justify-content:center;min-height:48px;font-size:15px}
 .search{width:100%;padding:12px 14px;font-size:16px;border:0;border-radius:var(--r-sm);
   background:var(--card2);color:var(--ink);font-family:var(--sans);margin-bottom:6px;
@@ -305,8 +287,6 @@ h1,h2,h3{margin:0}
   border-radius:var(--r-sm);background:var(--card2);color:var(--ink);font-family:var(--sans);
   min-height:46px}
 .field.wide{grid-column:1/3}
-/* Brief flash when a typed value is snapped back into its allowed range. */
-.field input.clamped{box-shadow:inset 0 0 0 1.5px var(--fat);transition:box-shadow .2s}
 .note{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:11px}
 .note b{color:var(--ink);font-weight:600}
 .calc{font-size:13px}
@@ -519,9 +499,6 @@ input,select{scroll-margin:84px 0 180px}
     <h1 id="barTitle">Energy ledger</h1>
     <div class="sub" id="barSub">Set yourself up to begin</div>
   </div>
-  <button class="iconbtn" id="factsBtn" aria-label="The power in your food">
-    <svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg>
-  </button>
   <button class="avatar" id="avatar" aria-label="Profiles">&mdash;</button>
 </header>
 
@@ -1587,22 +1564,6 @@ function fieldNum(host, id, label, ph, min, max, step){
   const i = el("input"); i.type="number"; i.id=id; i.placeholder=ph;
   i.min=min; i.max=max; i.step=step; i.value="";
   i.setAttribute("inputmode","decimal");
-  /* A number field's min/max only guard its spinner, not what someone types, so
-     without this a height of 333 cm sails straight into the maths. Snap an
-     out-of-range entry back into the allowed band when the field is left. */
-  i.addEventListener("change", () => {
-    const v = i.value.trim();
-    if(v === "") return;
-    let n = parseFloat(v);
-    if(!isFinite(n)){ i.value = ""; if(window.update) update(); return; }
-    const clamped = Math.min(+max, Math.max(+min, n));
-    if(clamped !== n){
-      i.value = String(clamped);
-      i.classList.add("clamped");
-      setTimeout(() => i.classList.remove("clamped"), 900);
-    }
-    if(window.update) update();
-  });
   f.appendChild(i); host.appendChild(f);
 }
 fieldNum($("bodyFields"),"weight","Weight","kg",30,200,0.1);
@@ -2395,16 +2356,8 @@ function readMental(){
 }
 
 function compute(){
-  /* Clamp the body basics to plausible human ranges before anything is worked
-     out. The fields carry min/max, but a typed value ignores them until the
-     field blurs, so without this a half-finished or absurd entry (e.g. 333 cm)
-     would drive the whole day's maths for a moment. Zero/blank stays zero so the
-     "add your details" gate still shows. */
-  const band = (v,lo,hi) => v>0 ? Math.min(hi, Math.max(lo, v)) : 0;
-  const weight=band(+$("weight").value||0, 30, 200),
-        height=band(+$("height").value||0, 120, 230),
-        age=band(+$("age").value||0, 14, 90),
-        male=$("sex").value!=="female",
+  const weight=+$("weight").value||0, height=+$("height").value||0,
+        age=+$("age").value||0, male=$("sex").value!=="female",
         ready = weight>0 && height>0 && age>0 && $("sex").value!=="",
         neatRate=+$("job").value || 0.18, level=$("train").value || "intermediate",
         water=+$("water").value, sleep=+$("sleep").value,
@@ -4867,73 +4820,6 @@ document.body.append(rt, mu);
 
 /* Log from the front page. Each opens the same search sheet, which stages the
    item with its number box focused, so nothing needs another tab. */
-/* ---------------------------------------------------------------
-   THE POWER IN YOUR FOOD
-   Translates a food's energy into things you can picture: how far it
-   would carry you walking, how much water it would boil, how many
-   phone charges it holds. A food Calorie is one kcal, which is the
-   heat that raises a litre of water by one degree - the anchor fact
-   the whole panel is built on.
-   --------------------------------------------------------------- */
-function walkKmFor(kcal, weight){
-  const pace = 5;                                   // an easy 5 km/h walk
-  const met  = gaitMet("walk", pace).met;           // ~3.4 MET, gross (includes the 1-MET baseline)
-  /* Total energy of covering 1 km on foot: MET x 3.5 x kg / 200 per minute,
-     times the minutes a kilometre takes at this pace. This is the honest
-     "walk it off" figure - roughly 50 kcal/km for a 70 kg adult, so about
-     2 km per 100 kcal, not the ~3.5 km an effort-above-rest figure would give. */
-  const kcalPerKm = met * 3.5 * weight / 200 * (60/pace);
-  return kcalPerKm > 0 ? kcal/kcalPerKm : 0;
-}
-function openFoodPower(){
-  openSheet("The power in your food", body => {
-    const d = compute();
-    const ready = d.ready && d.weight > 0;
-    const weight = ready ? d.weight : 70;
-    const who = ready ? `you (${n1(weight)} kg)` : "a 70 kg adult";
-    body.appendChild(el("p","tiny",
-      "One food Calorie is a kilocalorie \u2014 the heat that raises a litre of water by 1\u00b0C. "
-      + `Here is what the energy in everyday foods could do instead. Walking is for ${who} at an easy 5 km/h.`));
-
-    /* kcal values are the app's own food figures, so they match the tracker. */
-    const FOODS = [
-      ["\ud83e\udd5b","Glass of milk","200 ml, whole",124],
-      ["\ud83e\uded3","Chapati","1 piece",120],
-      ["\ud83c\udf5a","Rice","1 katori",200],
-      ["\ud83c\udf4c","Banana","1 medium",105],
-      ["\u2615","Chai","1 cup",90],
-      ["\ud83e\udd44","Ghee","1 tsp",45],
-    ];
-    const KWH_PHONE = 15 * 3600 / KCAL_J;            // ~15 Wh phone battery, in kcal
-    const list = el("div"); list.style.marginTop = "6px";
-    FOODS.forEach(([emoji,name,portion,kcal]) => {
-      const km = walkKmFor(kcal, weight);
-      const boilL = kcal / 75;                        // 25\u00b0C tap water to a 100\u00b0C boil
-      const charges = kcal / KWH_PHONE;
-      const card = el("div","powcard");
-      card.innerHTML =
-          `<div class="powhead"><span class="powname">${emoji} ${name}<small>${portion}</small></span>`
-        + `<b class="powkcal">${kc(kcal)} kcal</b></div>`
-        + `<div class="powfacts">`
-        + `<span>\ud83d\udeb6 Walk <b>${km >= 10 ? Math.round(km) : n1(km)} km</b></span>`
-        + `<span>\ud83d\udd25 Boil <b>${n1(boilL)} L</b> of water</span>`
-        + `<span>\ud83d\udd0b Charge a phone <b>${Math.round(charges)}\u00d7</b></span>`
-        + `</div>`;
-      list.appendChild(card);
-    });
-    body.appendChild(list);
-    body.appendChild(el("p","tiny",
-      "Walking is the total energy of covering that distance on foot at 5 km/h \u2014 about 50 kcal a "
-      + "kilometre for a 70 kg adult. Boiling assumes water from room temperature (25\u00b0C); the phone "
-      + "figure assumes a 15 Wh battery. Same energy your body takes from the food \u2014 just a reminder "
-      + "of how much is packed into a small plate."));
-    const done = el("button","btn primary full","Got it"); done.type = "button";
-    done.style.marginTop = "12px"; done.addEventListener("click", closeSheet);
-    body.appendChild(done);
-  });
-}
-$("factsBtn").addEventListener("click", openFoodPower);
-
 $("qFood").addEventListener("click", () =>
   pickerSheet("food","Add what you ate","Search vegetarian foods",
     {hint:"Type what you ate \u2014 chapati, dal, curd, ghee, banana."}));
