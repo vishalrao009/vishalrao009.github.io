@@ -1101,6 +1101,36 @@ const GROUPS = [
     ["salad","Raw salad","bowl",4,1,45,2,8,0.3,3],
     ["potato","Potato, boiled","g",500,25,0.87,0.02,0.20,0.001,0.02],
   ]},
+  /* Juices are logged in millilitres because a glass is not a unit - a 200 ml
+     tumbler of sugarcane juice is 146 kcal and a 500 ml roadside glass is 365,
+     and the difference is most of a meal. Salads are per bowl, which is the way
+     they are actually served. */
+  { name:"Juices and drinks", items:[
+    ["j_orange","Orange juice, fresh","ml",2000,50,0.45,0.007,0.104,0.002,0.002],
+    ["j_mosambi","Mosambi juice, fresh","ml",2000,50,0.43,0.006,0.1,0.001,0.002],
+    ["j_sugarcane","Sugarcane juice","ml",2000,50,0.73,0.002,0.18,0.001,0.001],
+    ["j_coconut","Tender coconut water","ml",2000,50,0.19,0.007,0.037,0.002,0.011],
+    ["j_nimbu","Nimbu pani, with sugar","ml",2000,50,0.38,0.001,0.096,0.0,0.001],
+    ["j_nimbu_plain","Lemon water, no sugar","ml",2000,50,0.06,0.001,0.016,0.0,0.001],
+    ["j_packaged","Packaged fruit juice","ml",2000,50,0.5,0.002,0.12,0.001,0.001],
+    ["j_apple","Apple juice","ml",2000,50,0.46,0.001,0.113,0.001,0.002],
+    ["j_pomegranate","Pomegranate juice","ml",2000,50,0.54,0.0015,0.131,0.003,0.001],
+    ["j_watermelon","Watermelon juice","ml",2000,50,0.3,0.006,0.075,0.002,0.002],
+    ["j_carrot","Carrot juice","ml",2000,50,0.4,0.009,0.093,0.0015,0.008],
+    ["j_amla","Amla juice, diluted","ml",2000,50,0.25,0.003,0.06,0.001,0.008],
+    ["j_banana_shake","Banana shake","ml",2000,50,0.9,0.028,0.15,0.023,0.006],
+    ["j_lassi","Lassi, sweet","ml",2000,50,0.9,0.026,0.14,0.025,0.0],
+    ["j_chaas","Chaas, salted buttermilk","ml",2000,50,0.2,0.012,0.024,0.006,0.0],
+  ]},
+  { name:"Salads", items:[
+    ["sal_green","Green salad, no dressing","bowl",6,1,30,1.2,6.5,0.2,2.4],
+    ["sal_kachumber","Kachumber, with lemon","bowl",6,1,40,1.4,7.5,0.3,2.5],
+    ["sal_sprouts","Sprouts salad","bowl",6,1,120,8.0,20.0,0.8,6.0],
+    ["sal_chana","Chana chaat salad","bowl",6,1,180,9.0,28.0,3.5,8.0],
+    ["sal_paneer","Paneer salad","bowl",6,1,200,12.0,10.0,13.0,2.5],
+    ["sal_fruit","Fruit salad","bowl",6,1,95,1.0,24.0,0.4,3.2],
+    ["sal_raita","Raita, vegetable","katori",6,1,60,3.0,6.0,2.4,0.8],
+  ]},
   { name:"Fruit", items:[
     ["banana","Banana","piece",8,1,105,1.3,27,0.4,3.1],
     ["apple","Apple","piece",5,1,95,0.5,25,0.3,4.4],
@@ -1502,6 +1532,19 @@ const ALIAS = {
   s_mct:"mct oil coconut fat supplement",
   s_c1:"custom supplement my own", s_c2:"custom supplement my own",
   s_c3:"custom supplement my own", s_c4:"custom supplement my own",
+  j_orange:"orange juice santra fresh", j_mosambi:"mosambi sweet lime juice",
+  j_sugarcane:"ganne ka ras sugarcane juice", j_coconut:"nariyal pani coconut water tender",
+  j_nimbu:"nimbu pani lemonade shikanji sweet", j_nimbu_plain:"lemon water nimbu plain",
+  j_packaged:"packaged juice tetra pack tropicana real",
+  j_apple:"apple juice seb", j_pomegranate:"anar juice pomegranate",
+  j_watermelon:"tarbooz watermelon juice", j_carrot:"gajar carrot juice",
+  j_amla:"amla juice gooseberry vitamin c",
+  j_banana_shake:"banana shake milkshake kela", j_lassi:"lassi sweet curd drink",
+  j_chaas:"chaas buttermilk mattha salted",
+  sal_green:"green salad raw vegetables", sal_kachumber:"kachumber cucumber tomato onion",
+  sal_sprouts:"sprouts salad moong chaat", sal_chana:"chana chaat salad chickpea",
+  sal_paneer:"paneer salad cottage cheese", sal_fruit:"fruit salad chaat",
+  sal_raita:"raita curd vegetable dahi",
 };
 
 const CATALOG = {food:[], rep:[], cond:[], chore:[]};
@@ -6174,6 +6217,32 @@ try{
     reason: reason,
     diagnose: diagnose,
     onReady: function(fn){ if(typeof fn === "function") readyFns.push(fn); },
+    /* Chrome decides when to offer the install prompt, and it often arrives a
+       second or two after load - or only once the service worker has taken
+       control, which on a first visit can be later still. Declaring "no
+       install available" the instant a button is tapped was wrong: this waits
+       a little for the event before giving up. */
+    waitForPrompt: function(ms){
+      return new Promise(function(resolve){
+        if(deferred) return resolve(true);
+        var done = false;
+        var t = setTimeout(function(){ if(!done){ done = true; resolve(!!deferred); } }, ms || 3500);
+        readyFns.push(function(){
+          if(done) return;
+          done = true; clearTimeout(t); resolve(true);
+        });
+      });
+    },
+    /* Chrome will tell us whether this very app is already installed, but only
+       if the manifest claims itself under related_applications. */
+    alreadyInstalled: async function(){
+      if(installed()) return true;
+      try {
+        if(!navigator.getInstalledRelatedApps) return false;
+        var apps = await navigator.getInstalledRelatedApps();
+        return apps.some(function(a){ return a.platform === "webapp"; });
+      } catch(e){ return false; }
+    },
     prompt: function(){
       if(deferred){
         var e = deferred;
@@ -6198,7 +6267,7 @@ try{
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.17g";
+  var APP_VERSION = "2026.09.17h";
   var APP_BUILT   = "17 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
@@ -7048,8 +7117,10 @@ try{
                + "or Safari first, then try again.",
           firefox: "Firefox: open the menu and choose Install. Desktop Firefox has no "
                  + "install at all, so use Chrome or Edge there.",
-          manual: "No one-tap install on offer here. In Chrome or Edge, open the browser "
-                + "menu and choose Install app, or use the install icon in the address bar."
+          manual: "Your browser has not offered the one-tap install yet \u2014 no web page is "
+                + "allowed to open that dialog by itself. On Android Chrome: tap \u22ee at the "
+                + "top right, then Add to Home screen. On a computer: the install icon sits at "
+                + "the right of the address bar. It usually appears on the second visit."
         };
 
         if(ci && ci.installed && ci.installed()){
@@ -7057,13 +7128,26 @@ try{
           body.appendChild(r);
         } else {
           var b = el("button","btn sm line","Install"); b.type = "button";
-          b.addEventListener("click", function(){
-            var res = ci ? ci.prompt() : "manual";
-            if(res === "native"){ note.textContent = "Your browser is asking now."; return; }
-            note.textContent = WHY[res] || WHY.manual;
-            /* Where no platform reason explains it, say what is actually missing
-               rather than leaving it to guesswork. */
-            if((res === "manual" || res === "firefox") && ci && ci.diagnose){
+          b.style.whiteSpace = "nowrap";
+          b.addEventListener("click", async function(){
+            if(!ci){ note.textContent = "Updates are not available in this browser."; return; }
+            /* One tap, and it waits for the browser rather than blaming it. */
+            b.disabled = true;
+            note.textContent = "Asking your browser\u2026";
+            var ok = ci.waitForPrompt ? await ci.waitForPrompt(3500) : false;
+            b.disabled = false;
+            if(ok){
+              var res = ci.prompt();
+              if(res === "native"){ note.textContent = "Your browser is asking now \u2014 choose Install."; return; }
+            }
+            if(ci.alreadyInstalled && await ci.alreadyInstalled()){
+              note.textContent = "Calo is already installed on this device \u2014 open it from your "
+                               + "home screen rather than the browser.";
+              return;
+            }
+            var why = ci.reason ? ci.reason() : "manual";
+            note.textContent = WHY[why] || WHY.manual;
+            if((why === "manual" || why === "firefox") && ci.diagnose){
               ci.diagnose(function(problems){
                 if(problems.length) note.textContent += " Also: " + problems.join("; ") + ".";
               });
@@ -7705,6 +7789,34 @@ try{
     s_mct:         {}
   };
   Object.keys(SUPP_MICRO).forEach(function(k){ MICRO[k] = SUPP_MICRO[k]; });
+
+  /* Juices per millilitre, salads per bowl - the same basis as their entries in
+     the catalogue. IFCT 2017 and USDA FoodData Central. */
+  var DRINK_MICRO = {
+    j_orange:{"ca":0.11,"fe":0.002,"mg":0.11,"p":0.17,"k":2.0,"na":0.01,"zn":0.0005,"cu":0.0004,"vc":0.5,"ve":0.0004,"b1":0.0009,"b2":0.0003,"b3":0.004,"b5":0.0019,"b6":0.0004,"b9":0.3,"va":0.1},
+    j_mosambi:{"ca":0.13,"fe":0.002,"mg":0.09,"p":0.14,"k":1.8,"na":0.01,"vc":0.3,"b9":0.2,"b1":0.0003,"b2":0.0002,"b3":0.002},
+    j_sugarcane:{"ca":0.18,"fe":0.011,"mg":0.13,"p":0.23,"k":1.5,"na":0.13,"zn":0.001,"mn":0.001,"vc":0.01,"b2":0.0004,"b3":0.002},
+    j_coconut:{"ca":0.24,"fe":0.0029,"mg":0.25,"p":0.2,"k":2.5,"na":1.05,"zn":0.001,"cu":0.0004,"mn":0.0014,"vc":0.024,"b1":0.0003,"b2":0.0006,"b3":0.0008,"b5":0.0004,"b6":0.0003,"b9":0.03},
+    j_nimbu:{"ca":0.04,"k":0.2,"na":0.06,"vc":0.08},
+    j_nimbu_plain:{"ca":0.04,"k":0.2,"na":0.04,"vc":0.08},
+    j_packaged:{"ca":0.08,"k":0.8,"na":0.06,"vc":0.3,"b9":0.05},
+    j_apple:{"ca":0.08,"fe":0.0012,"mg":0.05,"p":0.07,"k":1.01,"na":0.04,"vc":0.01,"b9":0.01},
+    j_pomegranate:{"ca":0.11,"fe":0.001,"mg":0.07,"p":0.11,"k":2.14,"na":0.09,"vk":0.1,"b9":0.24,"vc":0.001},
+    j_watermelon:{"ca":0.07,"fe":0.0024,"mg":0.1,"p":0.11,"k":1.12,"na":0.01,"vc":0.08,"va":0.28,"b6":0.0005,"b9":0.03},
+    j_carrot:{"ca":0.24,"fe":0.0046,"mg":0.14,"p":0.42,"k":2.92,"na":0.66,"zn":0.0018,"cu":0.0005,"mn":0.0013,"va":9.56,"vc":0.085,"ve":0.0116,"vk":0.155,"b1":0.0009,"b2":0.0006,"b3":0.0039,"b6":0.0022,"b9":0.04},
+    j_amla:{"ca":0.15,"fe":0.006,"k":1.0,"vc":3.0,"b9":0.05},
+    j_banana_shake:{"ca":0.9,"fe":0.002,"mg":0.25,"p":0.75,"k":2.5,"na":0.35,"zn":0.003,"iod":0.08,"va":0.3,"vc":0.02,"vd":0.015,"b1":0.0004,"b2":0.0014,"b3":0.003,"b5":0.0035,"b6":0.0015,"b9":0.08,"b12":0.003},
+    j_lassi:{"ca":1.0,"fe":0.0005,"mg":0.11,"p":0.85,"k":1.3,"na":0.4,"zn":0.004,"iod":0.09,"va":0.25,"vd":0.015,"b2":0.0014,"b5":0.0035,"b6":0.0004,"b9":0.06,"b12":0.003},
+    j_chaas:{"ca":0.5,"mg":0.08,"p":0.45,"k":1.0,"na":2.0,"zn":0.002,"iod":0.06,"vd":0.008,"b2":0.0008,"b5":0.002,"b9":0.04,"b12":0.002},
+    sal_green:{"ca":30.0,"fe":0.7,"mg":17.0,"p":35.0,"k":300.0,"na":15.0,"zn":0.3,"cu":0.06,"mn":0.2,"va":180.0,"vc":25.0,"ve":0.4,"vk":60.0,"b1":0.06,"b2":0.05,"b3":0.6,"b6":0.15,"b9":35.0},
+    sal_kachumber:{"ca":32.0,"fe":0.8,"mg":18.0,"p":38.0,"k":330.0,"na":180.0,"zn":0.3,"cu":0.07,"mn":0.2,"va":120.0,"vc":35.0,"ve":0.5,"vk":25.0,"b1":0.07,"b2":0.05,"b3":0.7,"b6":0.17,"b9":38.0},
+    sal_sprouts:{"ca":55.0,"fe":3.0,"mg":60.0,"p":160.0,"k":380.0,"na":160.0,"zn":1.4,"cu":0.3,"mn":0.4,"va":40.0,"vc":25.0,"ve":0.3,"vk":20.0,"b1":0.3,"b2":0.18,"b3":1.3,"b5":0.4,"b6":0.2,"b9":120.0},
+    sal_chana:{"ca":70.0,"fe":2.8,"mg":70.0,"p":180.0,"k":400.0,"na":350.0,"zn":1.6,"cu":0.35,"mn":0.9,"va":60.0,"vc":15.0,"ve":0.6,"vk":15.0,"b1":0.15,"b2":0.09,"b3":0.8,"b5":0.4,"b6":0.18,"b9":150.0},
+    sal_paneer:{"ca":350.0,"fe":0.9,"mg":35.0,"p":280.0,"k":280.0,"na":250.0,"zn":1.3,"se":8.0,"iod":5.0,"va":200.0,"vc":25.0,"vd":2.0,"ve":0.6,"vk":45.0,"b2":0.2,"b3":0.5,"b5":0.4,"b6":0.15,"b9":40.0,"b12":0.6},
+    sal_fruit:{"ca":25.0,"fe":0.5,"mg":22.0,"p":28.0,"k":380.0,"na":6.0,"zn":0.2,"cu":0.09,"mn":0.2,"va":60.0,"vc":45.0,"ve":0.5,"vk":5.0,"b1":0.06,"b2":0.06,"b3":0.6,"b5":0.3,"b6":0.2,"b9":30.0},
+    sal_raita:{"ca":130.0,"fe":0.3,"mg":18.0,"p":100.0,"k":200.0,"na":220.0,"zn":0.5,"iod":8.0,"va":40.0,"vc":6.0,"vd":1.5,"b2":0.15,"b5":0.4,"b6":0.06,"b9":12.0,"b12":0.35}
+  };
+  Object.keys(DRINK_MICRO).forEach(function(k){ MICRO[k] = DRINK_MICRO[k]; });
 
   /* Four slots for whatever is actually on the shelf. A slot stays "Your
      supplement N" until it is filled in, and then takes the name, the dose
