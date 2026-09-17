@@ -3776,12 +3776,8 @@ function calcTissue(d, which){
       deficit, it does not protect it &mdash; the split still shows lean loss, and the
       big-deficit penalty is only partly offset. And the strongest growth-hormone data comes
       from fasts of two days and longer; what happens across a single 16&ndash;24 h window is
-      less firmly pinned down, so treat this term as directionally right rather than precise.</p>
-      <p class="formula">Worth being clear about the direction, because the common version of
-      this has it backwards: protein loss is <b>highest in the first day</b>, when the brain's
-      glucose starts being made from amino acids, and falls as ketones take over. Muscle is not
-      untouched until hour 24 and then suddenly at risk. <i>A fast, hour by hour</i>, on the You
-      tab, lays out the whole sequence.</p>`;
+      less firmly pinned down, so treat this term as directionally right rather than precise.
+      I could not search the web here, so check the specifics if they matter to you.</p>`;
   }
   h += `<p class="formula">Figures are ${when}. ` + (pt && pt.surplus
     ? `Fat is stored at ${KCAL_FAT} kcal per kg and lean tissue costs ${KCAL_LEAN_GAIN} kcal per kg
@@ -6383,140 +6379,6 @@ try{
     }
   }
 
-  /* ---- what a fast actually does, hour by hour ----------------------
-     Two beliefs travel together and only one of them holds up: that fat loss
-     "starts" a few hours after the last meal, and that muscle is safe until a
-     day or two in. The first is a fuel-mix change described as an on switch;
-     the second is backwards. Once liver glycogen runs low the brain's glucose
-     has to be made from amino acids, so protein loss is at its worst in the
-     first day and falls as ketones take over. The app's own numbers already
-     work this way - the protein-sparing term ramps in from 12 h - so this
-     sheet says out loud what the arithmetic is doing. */
-  var FAST_STAGES = [
-    { to: 4,
-      name: "0\u20134 h \u00b7 still absorbing the meal",
-      fuel: "Glucose and fat from the food itself. Insulin is high, and high insulin switches "
-          + "fat release out of the fat cells off \u2014 not down, off.",
-      cost: "Nothing is being drawn from your reserves yet." },
-    { to: 8,
-      name: "4\u20138 h \u00b7 insulin falls, fat comes back on",
-      fuel: "Liver glycogen holds blood sugar steady while fat release resumes and climbs as "
-          + "insulin drops.",
-      cost: "Fat becomes the main fuel somewhere in this window. This is the grain of truth in "
-          + "\u201cfat burning starts after 4 to 8 hours\u201d." },
-    { to: 12,
-      name: "8\u201312 h \u00b7 mostly running on fat",
-      fuel: "Most energy now comes from fat. The liver keeps supplying glucose for the brain and "
-          + "red blood cells, which cannot use fat.",
-      cost: "Liver glycogen is running down, and making glucose from amino acids has already "
-          + "begun." },
-    { to: 24,
-      name: "12\u201324 h \u00b7 the liver runs dry, protein pays for the glucose",
-      fuel: "Liver glycogen \u2014 only about 80\u2013110 g to begin with \u2014 is largely gone. "
-          + "Gluconeogenesis takes over, and its raw material is largely amino acids. "
-          + "Muscle glycogen cannot help: it has no way out of the muscle into the blood.",
-      cost: "This is where protein loss is fastest, not where it starts. The first day is the "
-          + "expensive one." },
-    { to: 48,
-      name: "24\u201348 h \u00b7 ketones rise, muscle gets spared",
-      fuel: "Ketones made from fat start covering part of the brain's demand, and growth hormone "
-          + "secretion climbs several-fold.",
-      cost: "Nitrogen losses measured across fasts start high and fall from here. The longer it "
-          + "runs, the smaller the muscle share of what is lost." },
-    { to: 1e9,
-      name: "Beyond 48 h \u00b7 the adaptation deepens",
-      fuel: "The brain shifts further onto ketones and total glucose demand drops.",
-      cost: "Protein loss keeps falling but never reaches zero. Adaptation slows the cost, it "
-          + "does not remove it." }
-  ];
-
-  function openFastSheet(){
-    var h = 0;
-    try { h = parseFloat(($("fastH")||{}).value) || 0; } catch(e){}
-    openSheet("A fast, hour by hour", function(body){
-      body.appendChild(el("p","tiny",
-        h > 0 ? "You have logged <b>" + n1(h) + " h</b> since your last meal. The stage you are in "
-              + "is marked below."
-              : "Set <b>Hours since your last meal</b> on the You tab and this marks where you are."));
-
-      var prev = 0;
-      FAST_STAGES.forEach(function(st){
-        var on = h > prev && h <= st.to;
-        var det = el("details","ntrow" + (on ? " ntok" : ""));
-        det.open = on;
-        var sm = el("summary","ntsum");
-        var top = el("div","nttop");
-        top.appendChild(el("div","ntname", st.name));
-        if(on) top.appendChild(el("div","ntval","you are here"));
-        top.appendChild(el("span","ntcar","\u203a"));
-        sm.appendChild(top);
-        det.appendChild(sm);
-        det.appendChild(el("div","ntsrc","<b>Fuelled by:</b> " + st.fuel));
-        det.appendChild(el("div","ntsrc","<b>What it costs:</b> " + st.cost));
-        body.appendChild(det);
-        prev = st.to;
-      });
-
-      body.appendChild(el("div","ntgrp","The two common claims"));
-      body.appendChild(el("p","formula",
-        "<b>\u201cFat loss begins 4 to 8 hours after the last meal.\u201d</b> Half right. Fat release "
-        + "is held down by insulin after a meal and picks up as insulin falls, so fat does take "
-        + "over as the main fuel somewhere in that window. But that is a change of fuel, not the "
-        + "start of fat loss. Whether a day removes fat is settled by the day's energy balance: "
-        + "sixteen fasted hours followed by a surplus stores fat, and eating three meals inside a "
-        + "deficit removes it."));
-      body.appendChild(el("p","formula",
-        "<b>\u201cMuscle is only lost after 24 to 48 hours.\u201d</b> Backwards, and it is the more "
-        + "costly of the two to believe. The brain needs glucose it cannot get from fat, so once "
-        + "liver glycogen runs low the body makes it from amino acids \u2014 protein loss is at its "
-        + "highest in the first day or two and <b>falls</b> as ketones take over the load. Fasting "
-        + "spares muscle compared with the same deficit taken with food, and a longer fast spares "
-        + "more than a shorter one, but nothing gives you a free first day."));
-
-      body.appendChild(el("div","ntgrp","What this app does with it"));
-      body.appendChild(el("p","formula",
-        "The split between fat and lean tissue starts at 20% lean, then moves: lifting and protein "
-        + "at or above 1.6 g/kg cut it, a deficit over 750 kcal raises it, and hours fasted cut it "
-        + "again \u2014 up to 8 points, ramped in from 12 h and full at 24 h rather than switching at "
-        + "one exact hour, because glycogen runs out across that window and not on a stopwatch. "
-        + "Every step of that is shown in <i>Show every step of the arithmetic</i>."));
-
-      var ref = el("details","ntrow"); ref.style.marginTop = "12px";
-      ref.appendChild(el("summary",null,"Where this comes from"));
-      ref.appendChild(el("div","ntsrc",
-        "Cahill GF Jr. <i><a class='reflink' href='https://doi.org/10.1146/annurev.nutr.26.061505.111258' target='_blank' rel='noopener noreferrer'>Fuel metabolism in starvation.</a></i> Annu Rev Nutr "
-        + "2006;26:1\u201322 \u2014 the fuel sequence, and the fall in nitrogen loss as a fast "
-        + "lengthens.<br><br>"
-        + "Rothman DL, Magnusson I, Katz LD, Shulman RG, Shulman GI. <i><a class='reflink' href='https://doi.org/10.1126/science.1948033' target='_blank' rel='noopener noreferrer'>Quantitation of hepatic glycogenolysis and gluconeogenesis in fasting humans with 13C NMR.</a></i> "
-        + "Science 1991;254:573\u2013576 \u2014 liver glycogen measured as it empties, with "
-        + "gluconeogenesis supplying most of the glucose well inside the first day.<br><br>"
-        + "Owen OE, Morgan AP, Kemp HG, Sullivan JM, Herrera MG, Cahill GF Jr. <i><a class='reflink' href='https://www.jci.org/articles/view/105650' target='_blank' rel='noopener noreferrer'>Brain metabolism during fasting.</a></i> "
-        + "J Clin Invest 1967;46:1589\u20131595 \u2014 the brain's switch onto ketones, which is "
-        + "what spares protein later on. Free full text."));
-      body.appendChild(ref);
-
-      body.appendChild(el("p","tiny",
-        "General physiology, not advice for any particular person. A very low intake or a long "
-        + "fast is worth talking through with a doctor, especially with any medication or "
-        + "existing condition in the picture."));
-
-      var done = el("button","btn sm line full","Close"); done.type = "button";
-      done.style.marginTop = "12px";
-      done.addEventListener("click", closeSheet);
-      body.appendChild(done);
-    });
-  }
-  window.openFastSheet = openFastSheet;
-  (function(){
-    var slot = document.getElementById("slotRecov");
-    if(!slot || !slot.parentNode) return;
-    var b = el("button","btn full line","What a fast does, hour by hour");
-    b.type = "button";
-    b.style.marginTop = "10px";
-    b.addEventListener("click", function(e){ e.preventDefault(); openFastSheet(); });
-    slot.parentNode.appendChild(b);
-  })();
-
   /* ---- light / dark, chosen or inherited ----------------------------
      The page already follows the phone through prefers-color-scheme. This adds
      a pin: "light" or "dark" overrides the phone, "system" hands it back. The
@@ -7037,9 +6899,6 @@ try{
         + "<b>Activity (walking, running, cycling)</b> \u2014 ACSM metabolic equations, in <i><a class='reflink' href='https://www.acsm.org/education-resources/books/guidelines-exercise-testing-prescription' target='_blank' rel='noopener noreferrer'>ACSM's Guidelines for Exercise Testing and Prescription</a></i>; and Ainsworth BE et al., <i><a class='reflink' href='https://pubmed.ncbi.nlm.nih.gov/21681120/' target='_blank' rel='noopener noreferrer'>2011 Compendium of Physical Activities.</a></i> Med Sci Sports Exerc 2011;43(8):1575-1581. doi:10.1249/MSS.0b013e31821ece12 (PMID 21681120)<br><br>"
         + "<b>Digesting food (thermic effect)</b> \u2014 Westerterp KR. <i><a class='reflink' href='https://pubmed.ncbi.nlm.nih.gov/15507147/' target='_blank' rel='noopener noreferrer'>Diet induced thermogenesis.</a></i> Nutr Metab (Lond) 2004;1:5. doi:10.1186/1743-7075-1-5 (PMID 15507147, free full text)<br><br>"
         + "<b>Afterburn from lifting (EPOC)</b> \u2014 LaForgia J, Withers RT, Gore CJ. <i><a class='reflink' href='https://pubmed.ncbi.nlm.nih.gov/17101527/' target='_blank' rel='noopener noreferrer'>Effects of exercise intensity and duration on the excess post-exercise oxygen consumption.</a></i> J Sports Sci 2006;24(12):1247-1264. doi:10.1080/02640410600552064 (PMID 17101527)<br><br>"
-        + "<b>Fasting and what it costs</b> \u2014 Cahill GF Jr. <i><a class='reflink' href='https://doi.org/10.1146/annurev.nutr.26.061505.111258' target='_blank' rel='noopener noreferrer'>Fuel metabolism in starvation.</a></i> Annu Rev Nutr 2006;26:1-22; "
-        + "Rothman DL et al. <i><a class='reflink' href='https://doi.org/10.1126/science.1948033' target='_blank' rel='noopener noreferrer'>Quantitation of hepatic glycogenolysis and gluconeogenesis in fasting humans with 13C NMR.</a></i> Science 1991;254:573-576; "
-        + "Owen OE et al. <i><a class='reflink' href='https://www.jci.org/articles/view/105650' target='_blank' rel='noopener noreferrer'>Brain metabolism during fasting.</a></i> J Clin Invest 1967;46:1589-1595.<br><br>"
         + "<b>Energy-requirement framework</b> \u2014 FAO/WHO/UNU. <i><a class='reflink' href='https://www.fao.org/4/y5686e/y5686e00.htm' target='_blank' rel='noopener noreferrer'>Human Energy Requirements.</a></i> 2004.";
       body.appendChild(e);
       body.appendChild(el("div","ntgrp","Nutrition & targets"));
