@@ -6454,7 +6454,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.18m";
+  var APP_VERSION = "2026.09.18o";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
@@ -6707,10 +6707,10 @@ body.editing-day{padding-top:38px}
   /* --- home-screen shortcuts (long-press the icon on Android) --- */
   var action = new URLSearchParams(location.search).get("action");
   var TARGET = { food:"qFood", train:"qTrain", chore:"qChore", mind:"qMind" };
-  if(action && TARGET[action]){
+  if(action){
     setTimeout(function(){
-      var btn = document.getElementById(TARGET[action]);
-      if(btn) btn.click();
+      if(TARGET[action]){ var btn = document.getElementById(TARGET[action]); if(btn) btn.click(); }
+      else if(window.remindOpen){ window.remindOpen(action); }
       history.replaceState(null, "", location.pathname);
     }, 350);
   }
@@ -6789,11 +6789,23 @@ body.editing-day{padding-top:38px}
       if(r && r.then) r.then(fin).catch(function(){ if(!done){ done = true; cb(false); } });
     }catch(e){ if(!done){ done = true; cb(false); } }
   }
-  function sysNotify(title, text, onClick){
+  function sysNotify(title, text, action){
     if(!notifyGranted()) return false;
+    /* Through the service worker when there is one: a page-created Notification
+       only runs its onclick while this page is still alive, so on a phone that
+       launched fresh from the tap nothing would open. The worker catches the
+       click even then. */
+    try{
+      if("serviceWorker" in navigator && navigator.serviceWorker && navigator.serviceWorker.ready){
+        navigator.serviceWorker.ready.then(function(reg){
+          try{ reg.showNotification(title, { body:text, tag:"calo-remind", data:{ action:action } }); }catch(e){}
+        }).catch(function(){});
+        return true;
+      }
+    }catch(e){}
     try{
       var n = new Notification(title, { body:text, tag:"calo-remind" });
-      n.onclick = function(){ try{ window.focus(); }catch(e){} n.close(); if(onClick) onClick(); };
+      n.onclick = function(){ try{ window.focus(); }catch(e){} n.close(); if(window.remindOpen) window.remindOpen(action); };
       return true;
     }catch(e){ return false; }
   }
@@ -6951,6 +6963,34 @@ body.editing-day{padding-top:38px}
     });
   }
 
+  /* Opening from a tapped reminder - warm (a message from the service worker)
+     or cold (launched with ?action=...). Recomputes what is due right now so
+     the quick-add shows the right meal suggestions even on a fresh start. */
+  function remindOpen(action){
+    try{
+      if(action === "summary"){ if(typeof showSummary === "function") showSummary(); return; }
+      if(action === "supp"){
+        var low = (typeof suppLow === "function") ? suppLow() : [];
+        if(low.length) showSuppNudge(low); else if(window.openMicros) openMicros();
+        return;
+      }
+      var c = cfg() || {}, t = c.times || {}, now = nowMin(), due = [];
+      MEALS.forEach(function(m){ var mn = toMin(t[m[0]]); if(mn !== null && now >= mn) due.push(m[0]); });
+      if(!due.length) due = MEALS.map(function(m){ return m[0]; });
+      var gymMn = toMin(t.gym); var gym = (gymMn !== null && now >= gymMn);
+      showNudge(due, gym);
+    }catch(e){ var b = document.getElementById("qFood"); if(b) b.click(); }
+  }
+  window.remindOpen = remindOpen;
+  if("serviceWorker" in navigator){
+    try{
+      navigator.serviceWorker.addEventListener("message", function(ev){
+        var d = ev && ev.data;
+        if(d && d.type === "remind") remindOpen(d.action || "meals");
+      });
+    }catch(e){}
+  }
+
   /* ---- the periodic check ---- */
   var SUPP_WARN = 3;
   function suppLow(){
@@ -7008,7 +7048,7 @@ body.editing-day{padding-top:38px}
 
     if(dueEnd){
       if(visible) showSummary();
-      else sysNotify("Your day — EatNmove", "Tap to see today's calories in and out.", showSummary);
+      else sysNotify("Your day — EatNmove", "Tap to see today's calories in and out.", "summary");
       return;
     }
     if(dueMeals.length || dueGym){
@@ -7018,8 +7058,7 @@ body.editing-day{padding-top:38px}
         var bits = [];
         if(mealLabels.length) bits.push("past your " + listWords(mealLabels) + " time");
         if(dueGym) bits.push("past your training time");
-        sysNotify("Anything new today?", "It is " + listWords(bits) + ". Tap to log it.",
-                  function(){ showNudge(dueMeals, dueGym); });
+        sysNotify("Anything new today?", "It is " + listWords(bits) + ". Tap to log it.", "meals");
       }
       return;
     }
@@ -7027,8 +7066,7 @@ body.editing-day{padding-top:38px}
       lowSupp.forEach(function(x){ fs.done["s_"+x.key]=1; });
       saveFired(fs);
       if(visible) showSuppNudge(lowSupp);
-      else sysNotify("Top-up running low", "Your "+suppText(lowSupp)+" supplement cover is nearly out. Tap to re-dose.",
-                     function(){ if(window.openMicros) openMicros(); });
+      else sysNotify("Top-up running low", "Your "+suppText(lowSupp)+" supplement cover is nearly out. Tap to re-dose.", "supp");
     }
   }
 
@@ -8053,38 +8091,91 @@ body.editing-day{padding-top:38px}
     });
     return t;
   }
-  /* ---- storable nutrients: a big dose carries forward ----
-     Fat-soluble vitamins (A, D, E) and B12/folate are stored, so one dose
-     covers several days. Days covered = round(dose / daily target), capped
-     per nutrient so a huge dose is not read as endless cover. A rough, honest
-     estimate, not a prescription. Stored on the profile as u.supps. */
-  var STORE = { vd:60, b12:30, va:60, ve:21, b9:30 };
-  var DEFDOSE = { vd:60000, b12:1500, va:3000, ve:200, b9:5000 };   // common single doses, prefilled
+  /* ---- storable nutrients: a reserve the body carries, in days of cover ----
+     Fat-soluble vitamins (A, D, E, K) plus B12, folate, C and iron are stored.
+     The reserve is built day by day from what is logged: a day above target
+     adds the surplus, a day below draws it down, and a supplement dose adds
+     dose/target days - all capped at the body's real capacity so a mega-dose is
+     not read as endless. Research-based caps (days a full store lasts with zero
+     intake): B12 ~1 yr, A ~6 mo, iron/folate ~4 mo, D ~3 mo, C ~2 mo, E ~6 wk,
+     K ~1 wk. A rough, honest estimate, not a prescription. Stored on the profile
+     as u.supps (a dose log) and u.suppDefaults (your usual amounts). */
+  var CAP = { b12:365, va:180, fe:120, b9:120, vd:90, vc:60, ve:40, vk:7 };
+  var DEFDOSE = { vd:60000, b12:1500, va:3000, ve:200, b9:5000, vc:500, fe:60, vk:100 };
   function NByKey(k){ for(var i=0;i<NUT.length;i++){ if(NUT[i].k===k) return NUT[i]; } return null; }
+  function ageNow(){ return parseFloat($("age").value)||0; }
+  function maleNow(){ return $("sex").value!=="female"; }
+  function targetFor(key){ return rdaFor(NByKey(key), ageNow(), maleNow()); }
   function supps(){ var u=(typeof activeUser==="function")?activeUser():null; if(!u) return {}; if(!u.supps) u.supps={}; return u.supps; }
+  function suppDefault(key){ var u=(typeof activeUser==="function")?activeUser():null; return (u && u.suppDefaults && u.suppDefaults[key]!=null) ? u.suppDefaults[key] : DEFDOSE[key]; }
+  function setSuppDefault(key, v){ var u=(typeof activeUser==="function")?activeUser():null; if(!u) return; if(!u.suppDefaults) u.suppDefaults={}; u.suppDefaults[key]=v; }
   function dDiff(a,b){ return Math.round((Date.parse(b+"T00:00")-Date.parse(a+"T00:00"))/864e5); }
+  /* Every logged dose of a storable nutrient. Older single-dose data (one
+     object) is read as a one-item log so nothing already saved is lost. */
+  function doseList(key){
+    var sp=supps()[key]; if(!sp) return [];
+    if(Object.prototype.toString.call(sp)==="[object Array]") return sp;
+    if(sp.amt!=null) return [{ amt:+sp.amt, at:sp.at }];
+    return [];
+  }
+  /* One storable nutrient's intake on a saved day, from its stored food amounts. */
+  function intakeOf(snap, key){
+    var s=0;
+    for(var id in MICRO){ var m=MICRO[id]; if(m[key]!=null){ var v=parseFloat(snap["f_"+id])||0; if(v>0) s+=m[key]*v; } }
+    return s;
+  }
+  /* The running reserve, in days of cover, how fast it is draining, and when it
+     runs out - the basis for the low-reserve reminder. */
+  function reserveFor(key){
+    if(!CAP[key]) return null;
+    var u=(typeof activeUser==="function")?activeUser():null; if(!u) return null;
+    var target=targetFor(key); if(!(target>0)) return null;
+    var cap=CAP[key], today=dayKey();
+    var doses={};
+    doseList(key).forEach(function(d){ if(d && d.at && d.at<=today && d.amt>0) doses[d.at]=(doses[d.at]||0)+d.amt/target; });
+    var keys=Object.keys(u.days||{}).filter(function(k){ return k<today; });
+    Object.keys(doses).forEach(function(dk){ if(dk<today && keys.indexOf(dk)<0) keys.push(dk); });
+    keys.sort();
+    var reserve=0, recent=[];
+    keys.forEach(function(dk){
+      var snap=u.days[dk];
+      if(snap){
+        var frac=intakeOf(snap,key)/target;
+        reserve=Math.max(0, Math.min(cap, reserve+(frac-1)));
+        recent.push(Math.max(0, 1-frac));
+      }
+      if(doses[dk]) reserve=Math.min(cap, reserve+doses[dk]);
+    });
+    /* Today is still in progress, so its partial intake must not read as a
+       deficit; only a dose actually taken today counts right away. */
+    if(doses[today]) reserve=Math.min(cap, reserve+doses[today]);
+    var win=recent.slice(-14);
+    var deficit=win.length ? win.reduce(function(a,b){ return a+b; },0)/win.length : 0;
+    var daysLeft=deficit>0.02 ? reserve/deficit : Infinity;
+    return { key:key, reserve:reserve, cap:cap, target:target, deficit:deficit, daysLeft:daysLeft };
+  }
+  /* "Covered" for the UI: at least a day of stored reserve. */
   function coverage(key){
-    if(!STORE[key]) return null;
-    var sp=supps()[key]; if(!sp) return null;
-    var e=dDiff(sp.at, dayKey()); if(e<0 || e>=sp.days) return null;
-    return { daysLeft: sp.days-e, amt: sp.amt, at: sp.at, days: sp.days };
+    if(!CAP[key]) return null;
+    var r=reserveFor(key); if(!r || r.reserve<1) return null;
+    return { reserve:Math.round(r.reserve), daysLeft:(r.daysLeft===Infinity?null:Math.max(0,Math.round(r.daysLeft))), depleting:r.deficit>0.02 };
   }
   function logSupp(key, amt, at){
-    if(!STORE[key] || !(amt>0)) return 0;
+    if(!CAP[key] || !(amt>0)) return 0;
     at = at || dayKey();
-    var male=($("sex").value!=="female"), age=parseFloat($("age").value)||0;
-    var rda=rdaFor(NByKey(key), age, male) || 1;
-    var days=Math.max(1, Math.min(STORE[key], Math.round(amt/rda)));
-    supps()[key]={ amt:amt, at:at, days:days };
+    var list=doseList(key); list.push({ amt:+amt, at:at });
+    supps()[key]=list;
     try{ saveDb(); }catch(e){}
-    return days;
+    var target=targetFor(key)||1;
+    return Math.max(1, Math.min(CAP[key], Math.round(amt/target)));
   }
   function clearSupp(key){ var sp=supps(); if(sp[key]){ delete sp[key]; try{ saveDb(); }catch(e){} } }
   function suppStatus(){
     var out=[];
-    Object.keys(STORE).forEach(function(k){
-      var cov=coverage(k);
-      if(cov){ var nn=NByKey(k); out.push({ key:k, name:nn?nn.name:k, daysLeft:cov.daysLeft, at:cov.at, days:cov.days }); }
+    Object.keys(CAP).forEach(function(k){
+      var r=reserveFor(k); if(!r || r.reserve<1 || r.daysLeft===Infinity) return;
+      var nn=NByKey(k);
+      out.push({ key:k, name:nn?nn.name:k, daysLeft:Math.max(0,Math.round(r.daysLeft)), reserve:Math.round(r.reserve) });
     });
     return out;
   }
@@ -9434,23 +9525,26 @@ body.editing-day{padding-top:38px}
     if(o.storable){
       var box=el("div","ntsupp");
       if(cov){
-        box.appendChild(el("div","ntok2","<b>Topped up \u2713</b> Covers about "+cov.daysLeft+" more day"+(cov.daysLeft===1?"":"s")+", from your "+fmtN(cov.amt)+" "+unit+" dose on "+cov.at+"."));
-        var clr=el("button","btn sm line","Clear top-up"); clr.type="button"; clr.style.marginTop="7px";
+        var rline="<b>Reserve \u2713</b> About "+cov.reserve+" day"+(cov.reserve===1?"":"s")+" of stored cover"
+          + (cov.depleting && cov.daysLeft!=null ? ", running low in about "+cov.daysLeft+" day"+(cov.daysLeft===1?"":"s")+" at your recent intake." : ".");
+        box.appendChild(el("div","ntok2", rline));
+        var clr=el("button","btn sm line","Clear reserve"); clr.type="button"; clr.style.marginTop="7px";
         clr.addEventListener("click", function(){ clearSupp(o.key); if(window.paintMicroTile) paintMicroTile(); if(window.openMicros) openMicros(); });
         box.appendChild(clr);
       } else {
-        box.appendChild(el("div","ntnote","Storable \u2014 a supplement or large dose carries forward. Pick the day you took it and the amount; it counts for about dose \u00f7 target days (up to "+STORE[o.key]+")."));
-        var drow=el("div","ntsupprow");
-        var dt=el("input"); dt.type="date"; dt.className="ntsuppdate"; dt.value=dayKey(); dt.max=todayKey();
-        drow.appendChild(el("span","ntsuppunit","taken on")); drow.appendChild(dt); box.appendChild(drow);
-        var wrap=el("div","ntsupprow");
-        var inp=el("input"); inp.type="number"; inp.min="0"; inp.step="any"; inp.className="ntsuppin";
-        inp.value=(DEFDOSE[o.key]!=null?String(DEFDOSE[o.key]):""); inp.setAttribute("inputmode","decimal"); inp.setAttribute("aria-label","amount in "+unit);
-        var ul=el("span","ntsuppunit", unit);
-        var add=el("button","btn sm primary","Add"); add.type="button";
-        add.addEventListener("click", function(){ var v=parseFloat(inp.value)||0; if(v<=0){ inp.focus(); return; } var when=dt.value||dayKey(); logSupp(o.key, v, when); if(window.paintMicroTile) paintMicroTile(); if(window.openMicros) openMicros(); });
-        wrap.appendChild(inp); wrap.appendChild(ul); wrap.appendChild(add); box.appendChild(wrap);
+        box.appendChild(el("div","ntnote","Storable \u2014 the body keeps a reserve of this. A logged dose builds it for about dose \u00f7 target days (up to "+CAP[o.key]+"), and eating above target tops it up too."));
       }
+      box.appendChild(el("div","ntnote","Log a dose \u2014 set the amount to your actual dose (it is remembered as your usual):"));
+      var drow=el("div","ntsupprow");
+      var dt=el("input"); dt.type="date"; dt.className="ntsuppdate"; dt.value=dayKey(); dt.max=todayKey();
+      drow.appendChild(el("span","ntsuppunit","taken on")); drow.appendChild(dt); box.appendChild(drow);
+      var wrap=el("div","ntsupprow");
+      var inp=el("input"); inp.type="number"; inp.min="0"; inp.step="any"; inp.className="ntsuppin";
+      var dv=suppDefault(o.key); inp.value=(dv!=null?String(dv):""); inp.setAttribute("inputmode","decimal"); inp.setAttribute("aria-label","amount in "+unit);
+      var ul=el("span","ntsuppunit", unit);
+      var add=el("button","btn sm primary","Add"); add.type="button";
+      add.addEventListener("click", function(){ var v=parseFloat(inp.value)||0; if(v<=0){ inp.focus(); return; } var when=dt.value||dayKey(); setSuppDefault(o.key, v); logSupp(o.key, v, when); if(window.paintMicroTile) paintMicroTile(); if(window.openMicros) openMicros(); });
+      wrap.appendChild(inp); wrap.appendChild(ul); wrap.appendChild(add); box.appendChild(wrap);
       det.appendChild(box);
     }
     host.appendChild(det);
@@ -9480,9 +9574,10 @@ body.editing-day{padding-top:38px}
         "Tap any nutrient for its arithmetic \u2014 which foods supplied it today, "
         + "how much each one gave, and how that lands against your target."));
       body.appendChild(el("p","tiny",
-        "Vitamins A, D, E and B12/folate are stored by the body, so a supplement or "
-        + "big dose carries forward. Open one of them to log a dose \u2014 it then counts "
-        + "as met for about dose \u00f7 target days."));
+        "Vitamins A, D, E, K and B12, folate, C and iron are stored by the body, so a "
+        + "supplement, a big dose, or simply eating above target builds a reserve that "
+        + "carries forward. Open one to log a dose and see the days of cover you have "
+        + "\u2014 and you get a reminder when a reserve is running low."));
 
       body.appendChild(el("div","ntgrp","Macros"));
       var protHave=(d&&d.food)?d.food.p:0, fibHave=(d&&d.food)?d.food.fib:0;
@@ -9507,7 +9602,7 @@ body.editing-day{padding-top:38px}
         NUT.filter(function(n){return n.g===grp;}).forEach(function(n){
           row(body, n.name, n.u, tot[n.k]||0, rdaFor(n,age,male),
               {src:n.src, sup:n.sup, note:n.note, kind:n.kind, use:USE[n.k], def:DEF[n.k],
-               rows: contributions(n.k), key:n.k, storable: !!STORE[n.k]});
+               rows: contributions(n.k), key:n.k, storable: !!CAP[n.k]});
         });
       });
 
