@@ -476,6 +476,15 @@ body{top:0!important}
 .qbtn svg{width:22px;height:22px;stroke:var(--out);fill:none;stroke-width:1.7;
   stroke-linecap:round;stroke-linejoin:round;flex:none}
 @media(max-width:380px){ .quick{grid-template-columns:1fr} }
+.collapsebtn{border:0;background:transparent;padding:6px;margin:-4px -6px -4px 0;cursor:pointer;
+  color:var(--muted);align-self:center;min-height:32px;line-height:0}
+.collapsebtn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
+#quickCard.collapsed .collapsebtn svg{transform:rotate(-90deg)}
+#quickCard.collapsed .quick,#quickCard.collapsed #quickNote{display:none}
+.headright{display:flex;align-items:center;gap:8px}
+#diffCard.collapsed .collapsebtn svg{transform:rotate(-90deg)}
+#diffCard.collapsed #diffBody,#diffCard.collapsed #diffActs{display:none}
 .bignum{font-family:var(--serif);font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:1}
 .hchart{width:100%;height:auto;display:block;margin:12px 0 2px;overflow:visible}
 .hstats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:13px;
@@ -813,7 +822,8 @@ input,select{scroll-margin:84px 0 180px}
     </div>
 
     <div class="card" id="quickCard">
-      <div class="cardhead"><h2 id="quickTitle">Anything else today?</h2></div>
+      <div class="cardhead"><h2 id="quickTitle">Anything else today?</h2>
+        <button class="collapsebtn" id="quickCollapse" type="button" aria-label="Collapse"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button></div>
       <div class="quick">
         <button class="qbtn" id="qFood">
           <svg viewBox="0 0 24 24"><path d="M4 12h16a8 8 0 0 1-16 0Z"/><path d="M6 8c0-2 1.5-3 3-3s2 .8 3 .8S13.5 5 15 5s3 1 3 3"/></svg>
@@ -830,13 +840,16 @@ input,select{scroll-margin:84px 0 180px}
         <button class="qbtn" id="qSupp">
           <svg viewBox="0 0 24 24"><path d="M10.5 3.5a5 5 0 0 1 7 7l-7 7a5 5 0 0 1-7-7Z"/><path d="M7 7l7 7"/></svg>
           <span>Supplement</span></button>
+        <button class="qbtn" id="qSport">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16M6.5 6.5c2 2.5 9 2.5 11 0M6.5 17.5c2-2.5 9-2.5 11 0"/></svg>
+          <span>Sports</span></button>
       </div>
       <p class="tiny" id="quickNote"></p>
     </div>
 
     <div class="card" id="diffCard">
       <div class="cardhead"><h2 id="diffTitle">Today</h2>
-        <span class="sm" id="diffDate"></span></div>
+        <span class="headright"><span class="sm" id="diffDate"></span><button class="collapsebtn" id="diffCollapse" type="button" aria-label="Collapse"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button></span></div>
       <div id="diffBody"></div>
       <div class="btnrow" id="diffActs" style="margin-top:12px"></div>
       <input type="hidden" id="dayDone" value="0">
@@ -2224,6 +2237,11 @@ function sheetActions(opts){
 }
 function openSheet(title, buildBody){
   const sh = $("sheet");
+  /* Any row borrowed into the previous sheet (e.g. a food staged in the picker)
+     must go home before this body is cleared - otherwise clearing it destroys
+     that row and the next recompute reads a null input. This is why opening the
+     "what is in your sabji?" chooser over a staged sabji row used to crash. */
+  restoreRows();
   $("sheetTitle").textContent = title;
   $("sheetBody").innerHTML = "";
   sheetActions(null);
@@ -2555,12 +2573,13 @@ function restingRate(weight, height, age, male, bodyFat){
 function readFood(){
   let kcal=0,p=0,c=0,f=0,fib=0; const groupTot={}, lines=[], items=[];
   for(const id in foodIndex){
-    const fd = foodIndex[id], v = +$("f_"+id).value, k = v*fd.kcal;
+    const fd = foodIndex[id], inp = $("f_"+id), row = $("row_"+id);
+    if(!inp || !row) continue;            // row briefly out of the DOM (mid sheet-swap)
+    const v = +inp.value, k = v*fd.kcal;
     kcal+=k; p+=v*fd.p; c+=v*fd.c; f+=v*fd.f; fib+=v*fd.fib;
     groupTot[fd.group] = (groupTot[fd.group]||0)+k;
-    const row = $("row_"+id);
     row.classList.toggle("zero", v===0); row.classList.toggle("on", v>0);
-    $("f_"+id).classList.toggle("hot", v>0);
+    inp.classList.toggle("hot", v>0);
     row.querySelector(".amt").innerHTML =
       `<b>${v%1?v.toFixed(1):v}</b> ${fd.unit}`+(v>0?`<br>${kc(k)} kcal`:"");
     if(v>0){
@@ -5668,6 +5687,30 @@ $("qTrain").addEventListener("click", () => {
   });
 });
 
+$("qSport").addEventListener("click", () => {
+  openSheet("Add a sport", body => {
+    const q = buildPicker("rep", body, "Search sports: cricket, football, badminton", null, {
+      filter: it => it.split === "sport",
+      hint: "Pick your sport, choose easy / medium / hard, then set the minutes."
+    });
+    focusNow(q);
+  });
+});
+
+/* Let people fold away a card with the arrow in its corner; the choice sticks. */
+function wireCollapse(cardId, btnId, key){
+  var card = document.getElementById(cardId), btn = document.getElementById(btnId);
+  if(!card || !btn) return;
+  try{ if(localStorage.getItem(key) === "1") card.classList.add("collapsed"); }catch(e){}
+  btn.addEventListener("click", function(){
+    var c = card.classList.toggle("collapsed");
+    btn.setAttribute("aria-label", c ? "Expand" : "Collapse");
+    try{ localStorage.setItem(key, c ? "1" : "0"); }catch(e){}
+  });
+}
+wireCollapse("quickCard", "quickCollapse", "ledger.quickCollapsed");
+wireCollapse("diffCard",  "diffCollapse",  "ledger.diffCollapsed");
+
 $("qChore").addEventListener("click", () =>
   pickerSheet("chore","Add housework","Search chores",
     {hint:"Cooking, chapatis, utensils, sweeping, stairs."}));
@@ -6520,7 +6563,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.18q";
+  var APP_VERSION = "2026.09.18r";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
