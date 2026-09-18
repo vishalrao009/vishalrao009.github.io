@@ -4026,14 +4026,16 @@ function renderToday(){
   if(!u){
     $("diffTitle").textContent = "Get started";
     body.innerHTML = `<p class="lead">Fill in your body details, log a typical day, then save it
-      as your usual. After that this screen opens with your day already filled in and you only
-      change what was different.</p>`;
+      as your usual. After that, this screen shows what is different today compared with your usual
+      day. Each new day starts empty by default; if your days are much alike you can switch on
+      starting from your usual day in Settings.</p>`;
     return;
   }
   if(!u.usual){
     $("diffTitle").textContent = "No usual day yet";
     body.innerHTML = `<p class="lead">Log a typical day across the Food and Move tabs, then save it
-      as ${db.active}'s usual day. From then on it loads itself and you only adjust what changed.</p>`;
+      as ${db.active}'s usual day. From then on this screen shows what is different today versus your
+      usual &mdash; and in Settings you can have each new day start already filled in from it.</p>`;
     acts.appendChild(mkBtn("Save today as my usual day","primary",() => $("saveUsual").click()));
     acts.appendChild(clearBtnFront());
     return;
@@ -4048,7 +4050,7 @@ function renderToday(){
   acts.appendChild(clearBtnFront());
 
   if(!diffs.length){
-    body.innerHTML = `<p class="lead">This is ${db.active}'s usual day, loaded and ready. Change
+    body.innerHTML = `<p class="lead">Your day currently matches ${db.active}'s usual day. Change
       whatever was different &mdash; an extra chapati, a session skipped, a longer walk &mdash;
       and everything updates as you go.</p>`;
     return;
@@ -5193,10 +5195,14 @@ function refreshUsers(){
     ? db.active + " \u00b7 " + prettyDate()
     : "Set yourself up to begin";
 }
+function startFromUsual(){
+  var u = activeUser();
+  return !!(u && u.autoUsual);   // off by default: a fresh day starts empty
+}
 function openToday(){
   const u = activeUser();
   if(!u) return;
-  restore(u.days[dayKey()] || u.usual || null);
+  restore(u.days[dayKey()] || (startFromUsual() ? u.usual : null) || null);
   noteDayOnScreen();
   /* Opening the app the next morning is the usual way a finished day gets
      noticed, so any earlier day left hanging is filed now. */
@@ -7579,7 +7585,7 @@ body.editing-day{padding-top:38px}
     var u = activeUser();
     try { if(u){ u.days[dayKey()] = snapshot(); saveDb(); } } catch(e){}
     editDay = null;
-    if(u) restoreDay(u.days[todayKey()] || u.usual || null);
+    if(u) restoreDay(u.days[todayKey()] || (startFromUsual() ? u.usual : null) || null);
     noteDayOnScreen();
     paintEditBar();
     if(typeof refreshVisibility === "function") refreshVisibility();
@@ -7836,6 +7842,19 @@ body.editing-day{padding-top:38px}
                 }
               });
       })();
+      swrow("Start each day from my usual day",
+            "Off by default \u2014 each new day starts empty, since most people eat and train "
+            + "differently from one day to the next. Turn this on only if your days are much the "
+            + "same: a new morning then opens already filled in from your saved usual day, and you "
+            + "just change what was different. Either way, \"What's different today\" still compares "
+            + "your day against your usual, and Load usual day always works on demand.",
+            startFromUsual(),
+            function(on){
+              var u = activeUser(); if(!u) return;
+              u.autoUsual = on; try{ saveDb(); }catch(e){}
+              say(on ? "On \u2014 new days open already filled in from your usual day."
+                     : "Off \u2014 new days start empty.");
+            });
       (function(){
         var r = el("div","setrow");
         var lft = el("div");
