@@ -18,7 +18,7 @@
    network-first and the cached copy is only a fallback.
    --------------------------------------------------------------- */
 
-const CACHE_VERSION = "v7";
+const CACHE_VERSION = "v9";
 const CACHE = `eatnmove-${CACHE_VERSION}`;
 
 const PAGE = "calorie_counter.html";
@@ -109,6 +109,22 @@ self.addEventListener("fetch", event => {
 
   /* --- anything else in Tools/ belongs to the rest of the wiki ---
      Returning without calling respondWith leaves it completely alone. */
+});
+
+self.addEventListener("notificationclick", event => {
+  event.notification.close();
+  const action = (event.notification.data && event.notification.data.action) || "meals";
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
+      for (const c of list) {
+        if (c.url && bare(c.url) === PAGE_URL) {
+          try { c.postMessage({ type: "remind", action }); } catch (e) {}
+          return c.focus();
+        }
+      }
+      return self.clients.openWindow(PAGE_URL + "?action=" + action);
+    })
+  );
 });
 
 self.addEventListener("message", event => {
