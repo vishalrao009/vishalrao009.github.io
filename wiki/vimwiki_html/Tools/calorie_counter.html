@@ -6445,7 +6445,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.18h";
+  var APP_VERSION = "2026.09.18i";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
@@ -8166,6 +8166,20 @@ body.editing-day{padding-top:38px}
   }
   window.caloPendingTransfer = !!pendingTransfer;
 
+  /* A self-unlocking link carries its own one-time code, so the other phone
+     needs to type nothing. That code rides alongside the payload and is held
+     here the same careful way, surviving a reload. */
+  var PENDING_CODE_KEY = "ledger.pendingCode";
+  var pendingCode = null;
+  try { pendingCode = sessionStorage.getItem(PENDING_CODE_KEY) || null; } catch(e){}
+  function setPendingCode(v){
+    pendingCode = v || null;
+    try {
+      if(v) sessionStorage.setItem(PENDING_CODE_KEY, v);
+      else sessionStorage.removeItem(PENDING_CODE_KEY);
+    } catch(e){}
+  }
+
   function b64u(bytes){
     var s = "";
     for(var i=0;i<bytes.length;i++) s += String.fromCharCode(bytes[i]);
@@ -8344,14 +8358,21 @@ body.editing-day{padding-top:38px}
       var status = el("p","formula");
       body.appendChild(status);
       var payload = null;
+      /* One link that carries both the data and its code, so the other phone
+         types nothing. The code alphabet and the base64url payload avoid "~",
+         which keeps it a clean separator. */
+      function selfLink(){
+        return location.origin + location.pathname + "#i=" + code + "~" + payload;
+      }
 
       async function build(){
         status.textContent = "Packing\u2026";
         try {
           payload = await packUp(code);
-          status.innerHTML = "Ready \u2014 <b>" + Math.ceil(payload.length/1024) + " KB</b>. "
-            + "Send it with one of these, then open it on the other phone and paste it into "
-            + "<i>Receive from another phone</i>.";
+          status.innerHTML = "Ready. The easy way: tap <b>Share link</b> or <b>Copy link</b> "
+            + "and send that to your other phone \u2014 opening the link there just asks a "
+            + "yes/no and nothing needs typing. To keep the code separate instead, use "
+            + "<b>Copy</b> or <b>Save as a file</b> and type the code above on the other phone.";
           acts.style.display = "";
         } catch(e){
           status.textContent = "Could not pack this up: " + (e && e.message ? e.message : e);
@@ -8361,22 +8382,23 @@ body.editing-day{padding-top:38px}
       acts.style.display = "none";
       acts.style.marginTop = "10px";
 
-      var share = el("button","btn sm line","Share\u2026"); share.type = "button";
+      var share = el("button","btn sm line","Share link\u2026"); share.type = "button";
       share.addEventListener("click", async function(){
-        var file;
+        var url = selfLink();
         try {
-          file = new File([payload], "calo-transfer.txt", { type:"text/plain" });
-        } catch(e){}
-        try {
-          if(file && navigator.canShare && navigator.canShare({ files:[file] })){
-            await navigator.share({ files:[file], title:"EatNmove transfer" });
-          } else if(navigator.share){
-            await navigator.share({ title:"EatNmove transfer", text:payload });
+          if(navigator.share){
+            await navigator.share({ title:"EatNmove transfer", text:url });
           } else {
             throw new Error("no share");
           }
         } catch(e){
-          status.textContent = "Sharing is not available here \u2014 copy the code or save the file instead.";
+          if(e && e.name === "AbortError") return;   // the user just closed the share card
+          try {
+            navigator.clipboard.writeText(url);
+            status.textContent = "Sharing is not available here \u2014 the link is copied instead. Paste it to your other phone.";
+          } catch(e2){
+            status.textContent = "Sharing is not available here \u2014 use Copy link or Save as a file.";
+          }
         }
       });
       acts.appendChild(share);
@@ -8386,7 +8408,7 @@ body.editing-day{padding-top:38px}
         /* A year of logging comes to about three kilobytes, so the whole thing
            fits in a link. Opening it on the other phone lands straight in the
            receive sheet with the transfer already filled in. */
-        var url = location.origin + location.pathname + "#t=" + payload;
+        var url = selfLink();
         try {
           navigator.clipboard.writeText(url);
           link.textContent = "Link copied";
@@ -8511,16 +8533,93 @@ body.editing-day{padding-top:38px}
      the code. */
   function transferFromHash(){
     var h = location.hash || "";
+    if(h.indexOf("#i=") === 0){
+      /* Self-unlocking link: the one-time code, then a "~", then the payload.
+         The code alphabet and the base64url payload never contain "~", so the
+         first one is a clean separator. */
+      var rest = h.slice(3), sep = rest.indexOf("~");
+      if(sep > 0){
+        setPendingCode(rest.slice(0, sep));
+        setPending(rest.slice(sep + 1));
+      }
+      try { history.replaceState(null, "", location.pathname); } catch(e){}
+      return;
+    }
     if(h.indexOf("#t=") === 0){
+      setPendingCode(null);
       setPending(h.slice(3));
       try { history.replaceState(null, "", location.pathname); } catch(e){}
     }
+  }
+
+  /* When the link carried its own code there is nothing to type - just a plain
+     yes or no. The data is unlocked quietly first so the question can say how
+     much is coming, and nothing is written to this phone until "Yes". */
+  function openConfirmSheet(){
+    openSheet("Bring in data from your other phone?", function(body){
+      var status = el("p","formula");
+      body.appendChild(status);
+      var acts = el("div","btnrow");
+      acts.style.marginTop = "12px";
+      acts.style.display = "none";
+      var yes = el("button","btn primary","Yes, bring it in"); yes.type = "button";
+      var no  = el("button","btn sm line","No, not now");      no.type  = "button";
+      var data = null;
+
+      (async function(){
+        status.textContent = "Reading the transfer\u2026";
+        try {
+          data = await unpack(pendingTransfer, pendingCode);
+          var n = 0, u = 0;
+          Object.keys((data.store && data.store.users) || {}).forEach(function(k){
+            u++; n += Object.keys(data.store.users[k].days || {}).length;
+          });
+          status.innerHTML = "Your other phone is sending <b>" + n + " logged day"
+            + (n === 1 ? "" : "s") + "</b> across " + u + " profile" + (u === 1 ? "" : "s")
+            + ". Nothing already here is deleted \u2014 days are merged one by one and the "
+            + "newer version of each day wins.";
+          acts.style.display = "";
+        } catch(e){
+          status.textContent = "This link could not be read \u2014 it may have been cut short "
+            + "on the way. You can still receive it by hand from Settings \u2192 Another phone.";
+          setPending(null); setPendingCode(null);
+        }
+      })();
+
+      yes.addEventListener("click", function(){
+        if(!data) return;
+        yes.disabled = true; no.disabled = true;
+        status.textContent = "Bringing it in\u2026";
+        try {
+          if(window.caloBackup) window.caloBackup();   // before anything is written
+          var r = mergeIn(data);
+          setPending(null); setPendingCode(null);
+          status.innerHTML = "Done \u2014 <b>" + r.days + " new day" + (r.days === 1 ? "" : "s")
+            + "</b>, " + r.updated + " updated, " + r.kept + " already newer here"
+            + (r.profiles ? ", " + r.profiles + " new profile" + (r.profiles === 1 ? "" : "s") : "")
+            + (r.supps ? ", " + r.supps + " supplement" + (r.supps === 1 ? "" : "s") : "")
+            + ". Reloading\u2026";
+          setTimeout(function(){ location.reload(); }, 1200);
+        } catch(e){
+          yes.disabled = false; no.disabled = false;
+          status.textContent = (e && e.message) ? e.message : "That did not work.";
+        }
+      });
+      no.addEventListener("click", function(){
+        setPending(null); setPendingCode(null);
+        closeSheet();
+      });
+      acts.appendChild(yes); acts.appendChild(no);
+      body.appendChild(acts);
+    });
   }
   /* A link opened while the app is already up changes only the hash, which
      does not re-run the page - so the same arrival has to be caught twice. */
   window.addEventListener("hashchange", function(){
     transferFromHash();
-    if(pendingTransfer && !document.querySelector(".sheet.on")) openReceiveSheet();
+    if(pendingTransfer && !document.querySelector(".sheet.on")){
+      if(pendingCode) openConfirmSheet(); else openReceiveSheet();
+    }
   });
   (function(){
     transferFromHash();
@@ -8536,6 +8635,7 @@ body.editing-day{padding-top:38px}
               || (document.getElementById("wiz") &&
                   getComputedStyle(document.getElementById("wiz")).display !== "none");
       if(busy){ setTimeout(waitForAGap, 900); return; }
+      if(pendingCode){ openConfirmSheet(); return; }
       openReceiveSheet();
       setTimeout(function(){
         var pass = document.querySelector(".sheet.on input[type=text]");
