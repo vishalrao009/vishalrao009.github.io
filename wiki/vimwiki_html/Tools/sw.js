@@ -1,5 +1,5 @@
 /* ---------------------------------------------------------------
-   Calo - service worker
+   EatNmove - service worker
    Lives at /wiki/vimwiki_html/Tools/sw.js
 
    IMPORTANT: a service worker's scope is the folder it is served
@@ -18,8 +18,8 @@
    network-first and the cached copy is only a fallback.
    --------------------------------------------------------------- */
 
-const CACHE_VERSION = "v1";
-const CACHE = `calo-${CACHE_VERSION}`;
+const CACHE_VERSION = "v2";
+const CACHE = `eatnmove-${CACHE_VERSION}`;
 
 const PAGE = "calorie_counter.html";
 
@@ -61,7 +61,7 @@ self.addEventListener("activate", event => {
         /* Both prefixes: anyone who installed this before the rename still
            has an energy-ledger-* cache sitting on their device, and nothing
            else will ever clean it up. */
-        keys.filter(k => (k.startsWith("calo-") || k.startsWith("energy-ledger-"))
+        keys.filter(k => (k.startsWith("eatnmove-") || k.startsWith("calo-") || k.startsWith("energy-ledger-"))
                          && k !== CACHE)
             .map(k => caches.delete(k))
       ))
