@@ -173,6 +173,12 @@ h1,h2,h3{margin:0}
 .ntsrc a:active,.reflink:active{opacity:.6}
 .ntsup{font-size:12.5px;color:var(--ink);margin-top:5px;padding:7px 9px;background:var(--card2);border-radius:var(--r-sm);line-height:1.5}
 .ntnote{font-size:12px;color:var(--muted);margin-top:4px;font-style:italic}
+.ntsupp{margin-top:8px;padding:9px 10px;background:var(--card2);border-radius:var(--r-sm)}
+.ntsupprow{display:flex;gap:8px;margin-top:8px}
+.ntsuppin{flex:1;min-width:0;font:inherit;font-size:15px;padding:6px 9px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--card);color:var(--ink)}
+.ntok2{font-size:12.5px;color:var(--ink);line-height:1.5}
+.ntsuppdate{font:inherit;font-size:15px;padding:6px 9px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--card);color:var(--ink)}
+.ntsuppunit{align-self:center;font-size:13px;color:var(--muted)}
 /* ---- translate (globe) ---- */
 #translate-panel{display:none;flex-direction:column;position:fixed;right:12px;top:60px;width:242px;max-height:62vh;
   background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);box-shadow:var(--shadow);z-index:1200;overflow:hidden}
@@ -6439,7 +6445,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.18f";
+  var APP_VERSION = "2026.09.18h";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
@@ -6936,6 +6942,27 @@ body.editing-day{padding-top:38px}
   }
 
   /* ---- the periodic check ---- */
+  var SUPP_WARN = 3;
+  function suppLow(){
+    if(typeof window.suppStatus !== "function") return [];
+    return (window.suppStatus()||[]).filter(function(x){ return x.daysLeft <= SUPP_WARN; });
+  }
+  function suppText(list){
+    return list.map(function(x){ return x.name+" ("+x.daysLeft+" day"+(x.daysLeft===1?"":"s")+" left)"; }).join(", ");
+  }
+  function showSuppNudge(list){
+    openSheet("Top-up running low", function(body){
+      body.appendChild(el("p","tiny","Your stored supplement cover is nearly out for: "+suppText(list)
+        +". After that these read low again \u2014 a good time for your next dose. Information, not medical advice."));
+      var row=el("div","btnrow"); row.style.marginTop="12px";
+      var op=el("button","btn sm primary","Open vitamins & minerals"); op.type="button";
+      op.addEventListener("click", function(){ closeSheet(); if(window.openMicros) setTimeout(openMicros,60); });
+      row.appendChild(op);
+      var no=el("button","btn sm line","Dismiss"); no.type="button";
+      no.addEventListener("click", closeSheet); row.appendChild(no);
+      body.appendChild(row);
+    });
+  }
   function check(){
     if(sheetOpen) return;
     var w = document.getElementById("wiz");
@@ -6957,7 +6984,8 @@ body.editing-day{padding-top:38px}
     });
     var gymMn = toMin(t.gym);    if(gymMn !== null && now >= gymMn && !fs.done.gym) dueGym = true;
     var endMn = toMin(t.dayend); if(endMn !== null && now >= endMn && !fs.done.dayend) dueEnd = true;
-    if(!dueMeals.length && !dueGym && !dueEnd) return;
+    var lowSupp = suppLow().filter(function(x){ return !fs.done["s_"+x.key]; });
+    if(!dueMeals.length && !dueGym && !dueEnd && !lowSupp.length) return;
 
     dueMeals.forEach(function(k){ fs.done[k] = 1; });   // each nudge happens once a day
     if(dueGym) fs.done.gym = 1;
@@ -6973,14 +7001,24 @@ body.editing-day{padding-top:38px}
       else sysNotify("Your day — EatNmove", "Tap to see today's calories in and out.", showSummary);
       return;
     }
-    if(visible){
-      showNudge(dueMeals, dueGym);
-    } else {
-      var bits = [];
-      if(mealLabels.length) bits.push("past your " + listWords(mealLabels) + " time");
-      if(dueGym) bits.push("past your training time");
-      sysNotify("Anything new today?", "It is " + listWords(bits) + ". Tap to log it.",
-                function(){ showNudge(dueMeals, dueGym); });
+    if(dueMeals.length || dueGym){
+      if(visible){
+        showNudge(dueMeals, dueGym);
+      } else {
+        var bits = [];
+        if(mealLabels.length) bits.push("past your " + listWords(mealLabels) + " time");
+        if(dueGym) bits.push("past your training time");
+        sysNotify("Anything new today?", "It is " + listWords(bits) + ". Tap to log it.",
+                  function(){ showNudge(dueMeals, dueGym); });
+      }
+      return;
+    }
+    if(lowSupp.length){
+      lowSupp.forEach(function(x){ fs.done["s_"+x.key]=1; });
+      saveFired(fs);
+      if(visible) showSuppNudge(lowSupp);
+      else sysNotify("Top-up running low", "Your "+suppText(lowSupp)+" supplement cover is nearly out. Tap to re-dose.",
+                     function(){ if(window.openMicros) openMicros(); });
     }
   }
 
@@ -8005,6 +8043,43 @@ body.editing-day{padding-top:38px}
     });
     return t;
   }
+  /* ---- storable nutrients: a big dose carries forward ----
+     Fat-soluble vitamins (A, D, E) and B12/folate are stored, so one dose
+     covers several days. Days covered = round(dose / daily target), capped
+     per nutrient so a huge dose is not read as endless cover. A rough, honest
+     estimate, not a prescription. Stored on the profile as u.supps. */
+  var STORE = { vd:60, b12:30, va:60, ve:21, b9:30 };
+  var DEFDOSE = { vd:60000, b12:1500, va:3000, ve:200, b9:5000 };   // common single doses, prefilled
+  function NByKey(k){ for(var i=0;i<NUT.length;i++){ if(NUT[i].k===k) return NUT[i]; } return null; }
+  function supps(){ var u=(typeof activeUser==="function")?activeUser():null; if(!u) return {}; if(!u.supps) u.supps={}; return u.supps; }
+  function dDiff(a,b){ return Math.round((Date.parse(b+"T00:00")-Date.parse(a+"T00:00"))/864e5); }
+  function coverage(key){
+    if(!STORE[key]) return null;
+    var sp=supps()[key]; if(!sp) return null;
+    var e=dDiff(sp.at, dayKey()); if(e<0 || e>=sp.days) return null;
+    return { daysLeft: sp.days-e, amt: sp.amt, at: sp.at, days: sp.days };
+  }
+  function logSupp(key, amt, at){
+    if(!STORE[key] || !(amt>0)) return 0;
+    at = at || dayKey();
+    var male=($("sex").value!=="female"), age=parseFloat($("age").value)||0;
+    var rda=rdaFor(NByKey(key), age, male) || 1;
+    var days=Math.max(1, Math.min(STORE[key], Math.round(amt/rda)));
+    supps()[key]={ amt:amt, at:at, days:days };
+    try{ saveDb(); }catch(e){}
+    return days;
+  }
+  function clearSupp(key){ var sp=supps(); if(sp[key]){ delete sp[key]; try{ saveDb(); }catch(e){} } }
+  function suppStatus(){
+    var out=[];
+    Object.keys(STORE).forEach(function(k){
+      var cov=coverage(k);
+      if(cov){ var nn=NByKey(k); out.push({ key:k, name:nn?nn.name:k, daysLeft:cov.daysLeft, at:cov.at, days:cov.days }); }
+    });
+    return out;
+  }
+  window.suppStatus = suppStatus;
+
   var USE = {
     protein:"builds and repairs muscle and tissue, makes enzymes and hormones, and keeps you full",
     fibre:"feeds gut bacteria, steadies blood sugar and cholesterol, and keeps digestion regular",
@@ -9228,15 +9303,18 @@ body.editing-day{padding-top:38px}
     var cls;
     if(o.kind==="limit") cls = pct>100 ? "ntlow" : "ntok";
     else cls = pct>=100 ? "ntok" : (pct>=50 ? "ntmid" : "ntlow");
+    var cov = o.key ? coverage(o.key) : null;
+    if(cov) cls = "ntok";
     var det=el("details","ntrow "+cls);
     var sm=el("summary","ntsum");
     var top=el("div","nttop");
     top.appendChild(el("div","ntname", name));
-    var lbl = fmtN(intake)+" / "+fmtN(target)+" "+unit+(o.kind==="limit"?" max":"")+"  \u00b7 "+Math.round(pct)+"%";
+    var lbl = fmtN(intake)+" / "+fmtN(target)+" "+unit+(o.kind==="limit"?" max":"")
+              + "  \u00b7 " + (cov ? "topped up \u2713" : Math.round(pct)+"%");
     top.appendChild(el("div","ntval", lbl));
     top.appendChild(el("span","ntcar","\u203a"));
     sm.appendChild(top);
-    var bar=el("div","ntbar"); var bi=el("i"); bi.style.width=Math.min(100,Math.max(3,pct))+"%"; bar.appendChild(bi); sm.appendChild(bar);
+    var bar=el("div","ntbar"); var bi=el("i"); bi.style.width=(cov?100:Math.min(100,Math.max(3,pct)))+"%"; bar.appendChild(bi); sm.appendChild(bar);
     det.appendChild(sm);
     if(o.rows) det.appendChild(workings(o.rows, unit, intake, target, o));
     if(o.use)  det.appendChild(el("div","ntsrc","<b>In the body:</b> "+o.use+"."));
@@ -9244,6 +9322,28 @@ body.editing-day{padding-top:38px}
     if(o.note) det.appendChild(el("div","ntnote", o.note));
     if(o.src)  det.appendChild(el("div","ntsrc","<b>Food sources:</b> "+o.src+"."));
     if(o.sup)  det.appendChild(el("div","ntsup","<b>Supplement option:</b> "+o.sup+". Information, not a prescription \u2014 check with a doctor first."));
+    if(o.storable){
+      var box=el("div","ntsupp");
+      if(cov){
+        box.appendChild(el("div","ntok2","<b>Topped up \u2713</b> Covers about "+cov.daysLeft+" more day"+(cov.daysLeft===1?"":"s")+", from your "+fmtN(cov.amt)+" "+unit+" dose on "+cov.at+"."));
+        var clr=el("button","btn sm line","Clear top-up"); clr.type="button"; clr.style.marginTop="7px";
+        clr.addEventListener("click", function(){ clearSupp(o.key); if(window.paintMicroTile) paintMicroTile(); if(window.openMicros) openMicros(); });
+        box.appendChild(clr);
+      } else {
+        box.appendChild(el("div","ntnote","Storable \u2014 a supplement or large dose carries forward. Pick the day you took it and the amount; it counts for about dose \u00f7 target days (up to "+STORE[o.key]+")."));
+        var drow=el("div","ntsupprow");
+        var dt=el("input"); dt.type="date"; dt.className="ntsuppdate"; dt.value=dayKey(); dt.max=todayKey();
+        drow.appendChild(el("span","ntsuppunit","taken on")); drow.appendChild(dt); box.appendChild(drow);
+        var wrap=el("div","ntsupprow");
+        var inp=el("input"); inp.type="number"; inp.min="0"; inp.step="any"; inp.className="ntsuppin";
+        inp.value=(DEFDOSE[o.key]!=null?String(DEFDOSE[o.key]):""); inp.setAttribute("inputmode","decimal"); inp.setAttribute("aria-label","amount in "+unit);
+        var ul=el("span","ntsuppunit", unit);
+        var add=el("button","btn sm primary","Add"); add.type="button";
+        add.addEventListener("click", function(){ var v=parseFloat(inp.value)||0; if(v<=0){ inp.focus(); return; } var when=dt.value||dayKey(); logSupp(o.key, v, when); if(window.paintMicroTile) paintMicroTile(); if(window.openMicros) openMicros(); });
+        wrap.appendChild(inp); wrap.appendChild(ul); wrap.appendChild(add); box.appendChild(wrap);
+      }
+      det.appendChild(box);
+    }
     host.appendChild(det);
   }
   function openMicros(){
@@ -9262,6 +9362,7 @@ body.editing-day{padding-top:38px}
       var low=[];
       NUT.forEach(function(n){
         if(n.kind==="limit"||n.kind==="sun") return;
+        if(coverage(n.k)) return;
         var t=rdaFor(n,age,male), have=tot[n.k]||0;
         if(t>0 && have/t < 0.5) low.push(n.name);
       });
@@ -9269,6 +9370,10 @@ body.editing-day{padding-top:38px}
       body.appendChild(el("p","tiny",
         "Tap any nutrient for its arithmetic \u2014 which foods supplied it today, "
         + "how much each one gave, and how that lands against your target."));
+      body.appendChild(el("p","tiny",
+        "Vitamins A, D, E and B12/folate are stored by the body, so a supplement or "
+        + "big dose carries forward. Open one of them to log a dose \u2014 it then counts "
+        + "as met for about dose \u00f7 target days."));
 
       body.appendChild(el("div","ntgrp","Macros"));
       var protHave=(d&&d.food)?d.food.p:0, fibHave=(d&&d.food)?d.food.fib:0;
@@ -9293,7 +9398,7 @@ body.editing-day{padding-top:38px}
         NUT.filter(function(n){return n.g===grp;}).forEach(function(n){
           row(body, n.name, n.u, tot[n.k]||0, rdaFor(n,age,male),
               {src:n.src, sup:n.sup, note:n.note, kind:n.kind, use:USE[n.k], def:DEF[n.k],
-               rows: contributions(n.k)});
+               rows: contributions(n.k), key:n.k, storable: !!STORE[n.k]});
         });
       });
 
@@ -9351,6 +9456,7 @@ body.editing-day{padding-top:38px}
       if(x.kind==="limit" || x.kind==="sun") return;   // sodium is a ceiling, vitamin D comes from sun
       var t=rdaFor(x,age,male); if(!(t>0)) return;
       var pct=(tot[x.k]||0)/t;
+      if(coverage(x.k)) pct=Math.max(pct,1);
       n++; sum += Math.min(1,pct);
       if(pct>=1) met++; else if(pct<0.5) low++;
     });
