@@ -632,6 +632,9 @@ input,select{scroll-margin:84px 0 180px}
 .band-gold:before{background:#B08A3E}
 .chip:active{opacity:.75}
 
+.intwrap{margin-bottom:2px}
+.intsel{min-height:38px;padding:0 10px;border-radius:var(--r-sm);border:1px solid var(--line);
+  background:var(--card2);color:var(--ink);font-size:15px;font-family:var(--sans);width:100%}
 /* ---------------- walkthrough ---------------- */
 .wiz{position:fixed;inset:0;z-index:70;background:var(--bg);display:flex;flex-direction:column}
 .wiz[hidden]{display:none}
@@ -1261,6 +1264,26 @@ const COND = [
   ["c_yoga","Yoga or stretching",2.5,120],
   ["c_sport","Sport or game",7.0,180],
 ];
+
+/* Sports: MET by how hard you go (Compendium of Physical Activities). You give
+   the minutes and pick easy / medium / hard, and the burn follows from
+   MET x body weight x time - the same engine holds and conditioning use.
+   Fifth field is where it is usually played, for the search text. */
+const SPORTS = [
+  ["sp_cricket","Cricket",      {easy:3.8, med:5.0, hard:7.0},  300, "out"],
+  ["sp_football","Football",    {easy:5.0, med:7.0, hard:10.0}, 300, "out"],
+  ["sp_hockey","Hockey",        {easy:6.0, med:7.8, hard:9.0},  240, "out"],
+  ["sp_tennis","Tennis",        {easy:5.0, med:7.0, hard:8.0},  240, "out"],
+  ["sp_basketball","Basketball",{easy:4.5, med:6.5, hard:8.0},  240, "out"],
+  ["sp_volleyball","Volleyball",{easy:3.0, med:4.0, hard:6.0},  240, "out"],
+  ["sp_skating","Skating",      {easy:5.5, med:7.0, hard:9.0},  240, "out"],
+  ["sp_badminton","Badminton",  {easy:4.5, med:5.5, hard:7.0},  240, "in"],
+  ["sp_tt","Table tennis",      {easy:3.0, med:4.0, hard:5.0},  240, "in"],
+  ["sp_swim","Swimming",        {easy:5.0, med:7.0, hard:9.8},  240, "both"],
+];
+const SPORT_MET = {};
+SPORTS.forEach(function(sp){ SPORT_MET[sp[0]] = sp[2]; });
+function sportMet(id){ var lvl=($("spl_"+id)||{}).value || "med"; var m=SPORT_MET[id]||{}; return m[lvl]!=null?m[lvl]:(m.med||5); }
 /* Distance-based, so pace matters. The pace box runs from a shuffle to a sprint
    on both rows, because what your legs are actually doing is decided by the
    speed, not by which row you happened to type it into. */
@@ -1509,7 +1532,7 @@ const SPLIT = {
   burpee:"full", other:"full",
 };
 const SPLIT_NAMES = {push:"Push", pull:"Pull", legs:"Legs", core:"Core", full:"Full body",
-                     cardio:"Cardio"};
+                     cardio:"Cardio", sport:"Sport"};
 /* Movements where a band makes no sense: you cannot band a jump landing, and
    distance work is not a resistance movement at all. */
 const NO_BAND = new Set(["jsquat","burpee","calf"]);
@@ -1599,9 +1622,9 @@ function reg(kind, rowId, ctlIds, name, group, meta, split, alias){
 /* ---- little pictures: an emoji per food and exercise, chosen to resemble it,
         shown in the lists and on the quick-add chips so items are easy to spot ---- */
 window.EN_FOOD_ICON = {milk_cow:"🥛",milk_buf:"🥛",milk_toned:"🥛",curd:"🥣",curd_toned:"🥣",paneer:"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' style='height:1em;width:1em;vertical-align:-.15em'><rect x='3.5' y='9' width='9.5' height='9.5' rx='1.4' fill='#fbf6ea' stroke='#d7c9ab' stroke-width='1'/><rect x='11' y='4.5' width='9.5' height='9.5' rx='1.4' fill='#fffdf6' stroke='#d7c9ab' stroke-width='1'/><path d='M11 4.5l1.8-1.3 9 .3-1.8 1.5z' fill='#f3ead5' stroke='#d7c9ab' stroke-width='.8'/></svg>",ghee_cow:"🧈",ghee_buf:"🧈",butter:"🧈",s_omega3_flax:"🌱",s_vitd1000:"💊",s_vitd60k:"💊",s_b12:"💊",s_calcium:"💊",s_iron:"💊",s_zinc:"💊",s_magnesium:"💊",s_vitc:"💊",s_multi:"💊",s_creatine:"💪",s_ors:"💧",s_plantpro:"🥤",s_mct:"🥥",s_c1:"💊",s_c2:"💊",s_c3:"💊",s_c4:"💊",chapati:"🫓",rice:"🍚",poha:"🥣",oats:"🥣",bread:"🍞",paratha:"🫓",dal:"🍲",rajma:"🍛",sprouts:"🌱",soya:"🫘",chana:"🫘",whey:"🥤",sabji_dry:"🥘",sabji_gravy:"🍛",salad:"🥗",potato:"🥔",j_orange:"🍊",j_mosambi:"🍋",j_sugarcane:"🥤",j_coconut:"🥥",j_nimbu:"🍋",j_nimbu_plain:"🍋",j_packaged:"🧃",j_apple:"🍎",j_pomegranate:"🧃",j_watermelon:"🍉",j_carrot:"🥕",j_amla:"🧃",j_banana_shake:"🥤",j_lassi:"🥛",j_chaas:"🥛",sal_green:"🥗",sal_kachumber:"🥗",sal_sprouts:"🥗",sal_chana:"🥗",sal_paneer:"🥗",sal_fruit:"🍓",sal_raita:"🥣",banana:"🍌",apple:"🍎",orange:"🍊",mango:"🥭",papaya:"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' style='height:1em;width:1em;vertical-align:-.15em'><path d='M12 2C8 5 7 9 7 12s1 7 5 10c4-3 5-7 5-10s-1-7-5-10z' fill='#ef9a2e'/><path d='M12 4.5C9 7 8 10 8 12s1 5 4 7.5c3-2.5 4-5.5 4-7.5s-1-5-4-7.5z' fill='#f6bd63'/><g fill='#241408'><circle cx='12' cy='9' r='.85'/><circle cx='10.7' cy='11' r='.85'/><circle cx='13.3' cy='11' r='.85'/><circle cx='12' cy='13' r='.85'/><circle cx='11' cy='15' r='.75'/><circle cx='13' cy='15' r='.75'/></g></svg>",almond:"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' style='height:1em;width:1em;vertical-align:-.15em'><path d='M12 2.5c4 3.2 5.6 8 5.6 12.2 0 4-2.4 6.8-5.6 6.8s-5.6-2.8-5.6-6.8C6.4 10.5 8 5.7 12 2.5z' fill='#e7bd85' stroke='#b3823f' stroke-width='1'/><path d='M12 5.5v13' stroke='#b3823f' stroke-width='.8' fill='none' opacity='.8'/></svg>",cashew:"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' style='height:1em;width:1em;vertical-align:-.15em'><path d='M15 3.5c-4.4 0-7.5 3.4-7.5 8.5s3.1 8.5 7.5 8.5c1.7 0 2.8-1 2.8-2.1 0-1-.9-1.6-2.2-1.9C11.6 15.9 10 14.2 10 12s1.6-3.9 3.6-4.5c1.3-.4 2.2-1 2.2-2C15.8 4.4 14.7 3.5 15 3.5z' fill='#ecc784' stroke='#c69a4c' stroke-width='.9'/></svg>",walnut:"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' style='height:1em;width:1em;vertical-align:-.15em'><ellipse cx='12' cy='12' rx='8' ry='9' fill='#c68a4e' stroke='#8d5c2c' stroke-width='1'/><path d='M12 3.2v17.6' stroke='#8d5c2c' stroke-width='1'/><path d='M9.2 6.5c-1.6 2.3-1.6 8.7 0 11M14.8 6.5c1.6 2.3 1.6 8.7 0 11' stroke='#8d5c2c' stroke-width='.7' fill='none' opacity='.65'/></svg>",peanut:"🥜",raisin:"🍇",date:"🌴",oil:"🫗",sugar:"🍬",jaggery:"🟤",honey:"🍯",chai:"☕",misc:"🍽️"};
-window.EN_EX_ICON = {pushup:"<circle cx='4.5' cy='9' r='1.6'/><path d='M6 10 L18 13.5M9.5 11 V14M15 12.5 V14M4 16 H20'/>",pullup:"<path d='M3 4 H21M8 4 V6.5M16 4 V6.5'/><circle cx='12' cy='8.5' r='1.6'/><path d='M12 10.1 V16M12 12 L9.2 14M12 12 L14.8 14M12 16 L10.5 20M12 16 L13.5 20'/>",dip:"<path d='M3 7 H9M15 7 H21'/><circle cx='12' cy='8' r='1.5'/><path d='M9 7 L11 9.5M15 7 L13 9.5M12 9.5 V15M12 15 L10.3 19M12 15 L13.7 19'/>",squat:"<circle cx='12' cy='4' r='1.8'/><path d='M4 8 H20M4 6.4 V9.6M20 6.4 V9.6M5.6 6.9 V9.1M18.4 6.9 V9.1M12 8 V13M12 13 L8.5 16 V20M12 13 L15.5 16 V20'/>",lunge:"<circle cx='10.5' cy='4.5' r='1.6'/><path d='M10.5 6.1 V12M10.5 12 L6 18 V20M10.5 12 L15.5 15 V20M10.5 8 L13.5 10'/>",stepup:"<path d='M13 15 H21 V20 H13Z'/><circle cx='7' cy='6' r='1.6'/><path d='M7 7.6 V12M7 12 L4.5 18M7 12 L13 15M7 9 L9.8 11'/>",jsquat:"<circle cx='12' cy='5' r='1.6'/><path d='M12 6.6 V12M12 8 L8 5M12 8 L16 5M12 12 L9 16M12 12 L15 16'/><path d='M6 20 H10M14 20 H18'/>",burpee:"<circle cx='8.5' cy='6' r='1.5'/><path d='M8.5 7.5 V12M8.5 9 L5.5 11M8.5 9 L11.5 11M8.5 12 L6.5 16M8.5 12 L10.5 16M4 18 H20'/><path d='M15 5 C19 7.5 19 12.5 15 15M15 5 L13.6 6.4M15 5 L16.8 6'/>",glute:"<path d='M3 17 H6M18 17 H21M6 17 C7.5 10.5 16.5 10.5 18 17M6 17 V19M18 17 V19'/><circle cx='4' cy='15.3' r='1.4'/>",calf:"<path d='M7 17 H13 L15 19 H7Z'/><path d='M9 17 V9'/><path d='M18 15 V7M18 7 L16.5 8.5M18 7 L19.5 8.5'/>",situp:"<path d='M3 19 H8M8 19 L11 14.5 L14 19 H8'/><circle cx='13.5' cy='8.5' r='1.6'/><path d='M13.5 10 L11 14.5M13.5 11 L17 13'/>",legraise:"<path d='M3 18 H8'/><circle cx='4.5' cy='16.5' r='1.4'/><path d='M6 18 L14 18 L18.5 8M18.5 8 L17.3 10M18.5 8 L20.3 9.2'/>",deadlift:"<circle cx='7' cy='5' r='1.6'/><path d='M7 6.6 L9 11 L9 20M9 11 L13 12M13 12 L13 20'/><path d='M4 12 H20M4 10.4 V13.6M20 10.4 V13.6'/>",bench:"<path d='M3 16 H15M5 16 V19M13 16 V19'/><circle cx='6' cy='13.5' r='1.4'/><path d='M7.2 14 L11 14 L11 10M11 12 L9 10M11 12 L13 10'/><path d='M4 8 H18M4 6.4 V9.6M18 6.4 V9.6'/>",ohp:"<circle cx='12' cy='9' r='1.6'/><path d='M12 10.6 V16M12 16 L9.5 20M12 16 L14.5 20M12 12 L9 8M12 12 L15 8'/><path d='M4 6 H20M4 4.4 V7.6M20 4.4 V7.6'/>",row:"<circle cx='4.5' cy='8' r='1.5'/><path d='M6 8.5 H16'/><path d='M9 9 V18M13 9 V18M11 9 V13'/><path d='M7 13 H15M7 11.4 V14.6M15 11.4 V14.6'/>",pulldown:"<path d='M3 3 H21M8 3 L10 8M16 3 L14 8M8 7 H16'/><circle cx='12' cy='9.5' r='1.5'/><path d='M12 11 V16M10 8 L12 11M14 8 L12 11M12 16 L9 20M12 16 L15 20'/>",curl:"<path d='M8 4 V10M8 10 C8 13 10 14.6 12.4 15.1'/><circle cx='14.6' cy='15.6' r='2.1'/>",tri_ext:"<path d='M8 20 V11 L11 7M11 7 L14 10'/><circle cx='15.5' cy='11' r='2.1'/>",other:"<path d='M2.5 10.5v3M5 8.5v7M19 8.5v7M21.5 10.5v3M5 12h14'/>",b_tri:"<circle cx='5' cy='12' r='2'/><circle cx='19' cy='12' r='2'/><path d='M7 12 H17'/><path d='M9 10.2 Q12 14 15 10.2'/>",b_sho:"<circle cx='5' cy='12' r='2'/><circle cx='19' cy='12' r='2'/><path d='M7 12 H17'/><path d='M9 10.2 Q12 14 15 10.2'/>",b_row:"<circle cx='5' cy='12' r='2'/><circle cx='19' cy='12' r='2'/><path d='M7 12 H17'/><path d='M9 10.2 Q12 14 15 10.2'/>",b_curl:"<circle cx='5' cy='12' r='2'/><circle cx='19' cy='12' r='2'/><path d='M7 12 H17'/><path d='M9 10.2 Q12 14 15 10.2'/>",b_leg:"<circle cx='5' cy='12' r='2'/><circle cx='19' cy='12' r='2'/><path d='M7 12 H17'/><path d='M9 10.2 Q12 14 15 10.2'/>",hold_plank:"<circle cx='4.5' cy='9' r='1.6'/><path d='M6 10 H17 L20 14M8 11 V14 H5.5'/>",hold_wall:"<path d='M4 3 V21'/><circle cx='7.5' cy='7' r='1.5'/><path d='M7.5 8.5 V13 H13 V19M4 13 H7.5'/>",hold_hang:"<path d='M3 4 H21M9 4 V6.5M15 4 V6.5'/><circle cx='12' cy='8.5' r='1.6'/><path d='M12 10.1 V20'/>",hold_lsit:"<circle cx='6' cy='6' r='1.6'/><path d='M6 7.6 V13M6 13 H18'/><path d='M3.5 13 V16.5M9 13 V16.5'/>",c_skip:"<circle cx='12' cy='5' r='1.6'/><path d='M12 6.6 V12M9 13 H15M9.5 12.6 L8 17M14.5 12.6 L16 17'/><path d='M6 9 C3.5 14 6 19 12 19 C18 19 20.5 14 18 9'/>",c_hiit:"<circle cx='12' cy='13.5' r='6.5'/><path d='M12 13.5 V9.5M10 4 H14M12 4 V7M17.5 8 L19 6.5'/>",c_mtn:"<circle cx='4.5' cy='8' r='1.6'/><path d='M6 8.6 L17 12 L20 13M9 9.6 V13M13 11 L11 15M4 16 H20'/>",c_jj:"<circle cx='12' cy='4.5' r='1.7'/><path d='M12 6 V13M12 8 L6 6M12 8 L18 6M12 13 L8 19M12 13 L16 19'/>",c_yoga:"<circle cx='12' cy='6' r='1.9'/><path d='M12 8 V13M12 13 L7 16.5 H17Z M8 11 L12 13 L16 11'/>",c_sport:"<circle cx='12' cy='12' r='8'/><path d='M12 8 L15 10.5 L14 14 H10 L9 10.5Z'/><path d='M12 4.2 V8M15 10.5 L18.7 9.4M14 14 L16.4 17M10 14 L7.6 17M9 10.5 L5.3 9.4'/>",walk:"<circle cx='12' cy='4.5' r='1.7'/><path d='M12 6.2 V12M12 12 L9 19M12 12 L15 17 L14 20M12 8 L9 11M12 8 L15 10'/>",run:"<circle cx='14' cy='4.5' r='1.7'/><path d='M13 6.5 L10.5 11 L13.5 13 L13 18M10.5 11 L6.5 12.5M13.5 13 L17.5 11.5M13 18 L9.5 20'/>",cycle:"<circle cx='6' cy='16.5' r='3.3'/><circle cx='18' cy='16.5' r='3.3'/><path d='M6 16.5 L10 10 H15 L12.5 16.5M10 10 L12 16.5M15 10 H17'/>"};
+window.EN_EX_ICON = {pushup:"<circle cx='4.5' cy='9' r='1.6'/><path d='M6 10 L18 13.5M9.5 11 V14M15 12.5 V14M4 16 H20'/>",pullup:"<path d='M3 4 H21M8 4 V6.5M16 4 V6.5'/><circle cx='12' cy='8.5' r='1.6'/><path d='M12 10.1 V16M12 12 L9.2 14M12 12 L14.8 14M12 16 L10.5 20M12 16 L13.5 20'/>",dip:"<path d='M3 7 H9M15 7 H21'/><circle cx='12' cy='8' r='1.5'/><path d='M9 7 L11 9.5M15 7 L13 9.5M12 9.5 V15M12 15 L10.3 19M12 15 L13.7 19'/>",squat:"<circle cx='12' cy='4' r='1.8'/><path d='M4 8 H20M4 6.4 V9.6M20 6.4 V9.6M5.6 6.9 V9.1M18.4 6.9 V9.1M12 8 V13M12 13 L8.5 16 V20M12 13 L15.5 16 V20'/>",lunge:"<circle cx='10.5' cy='4.5' r='1.6'/><path d='M10.5 6.1 V12M10.5 12 L6 18 V20M10.5 12 L15.5 15 V20M10.5 8 L13.5 10'/>",stepup:"<path d='M13 15 H21 V20 H13Z'/><circle cx='7' cy='6' r='1.6'/><path d='M7 7.6 V12M7 12 L4.5 18M7 12 L13 15M7 9 L9.8 11'/>",jsquat:"<circle cx='12' cy='5' r='1.6'/><path d='M12 6.6 V12M12 8 L8 5M12 8 L16 5M12 12 L9 16M12 12 L15 16'/><path d='M6 20 H10M14 20 H18'/>",burpee:"<circle cx='8.5' cy='6' r='1.5'/><path d='M8.5 7.5 V12M8.5 9 L5.5 11M8.5 9 L11.5 11M8.5 12 L6.5 16M8.5 12 L10.5 16M4 18 H20'/><path d='M15 5 C19 7.5 19 12.5 15 15M15 5 L13.6 6.4M15 5 L16.8 6'/>",glute:"<path d='M3 17 H6M18 17 H21M6 17 C7.5 10.5 16.5 10.5 18 17M6 17 V19M18 17 V19'/><circle cx='4' cy='15.3' r='1.4'/>",calf:"<path d='M7 17 H13 L15 19 H7Z'/><path d='M9 17 V9'/><path d='M18 15 V7M18 7 L16.5 8.5M18 7 L19.5 8.5'/>",situp:"<path d='M3 19 H8M8 19 L11 14.5 L14 19 H8'/><circle cx='13.5' cy='8.5' r='1.6'/><path d='M13.5 10 L11 14.5M13.5 11 L17 13'/>",legraise:"<path d='M3 18 H8'/><circle cx='4.5' cy='16.5' r='1.4'/><path d='M6 18 L14 18 L18.5 8M18.5 8 L17.3 10M18.5 8 L20.3 9.2'/>",deadlift:"<circle cx='7' cy='5' r='1.6'/><path d='M7 6.6 L9 11 L9 20M9 11 L13 12M13 12 L13 20'/><path d='M4 12 H20M4 10.4 V13.6M20 10.4 V13.6'/>",bench:"<path d='M3 16 H15M5 16 V19M13 16 V19'/><circle cx='6' cy='13.5' r='1.4'/><path d='M7.2 14 L11 14 L11 10M11 12 L9 10M11 12 L13 10'/><path d='M4 8 H18M4 6.4 V9.6M18 6.4 V9.6'/>",ohp:"<circle cx='12' cy='9' r='1.6'/><path d='M12 10.6 V16M12 16 L9.5 20M12 16 L14.5 20M12 12 L9 8M12 12 L15 8'/><path d='M4 6 H20M4 4.4 V7.6M20 4.4 V7.6'/>",row:"<circle cx='4.5' cy='8' r='1.5'/><path d='M6 8.5 H16'/><path d='M9 9 V18M13 9 V18M11 9 V13'/><path d='M7 13 H15M7 11.4 V14.6M15 11.4 V14.6'/>",pulldown:"<path d='M3 3 H21M8 3 L10 8M16 3 L14 8M8 7 H16'/><circle cx='12' cy='9.5' r='1.5'/><path d='M12 11 V16M10 8 L12 11M14 8 L12 11M12 16 L9 20M12 16 L15 20'/>",curl:"<path d='M8 4 V10M8 10 C8 13 10 14.6 12.4 15.1'/><circle cx='14.6' cy='15.6' r='2.1'/>",tri_ext:"<path d='M8 20 V11 L11 7M11 7 L14 10'/><circle cx='15.5' cy='11' r='2.1'/>",other:"<path d='M2.5 10.5v3M5 8.5v7M19 8.5v7M21.5 10.5v3M5 12h14'/>",b_tri:"<circle cx='5' cy='12' r='2'/><circle cx='19' cy='12' r='2'/><path d='M7 12 H17'/><path d='M9 10.2 Q12 14 15 10.2'/>",b_sho:"<circle cx='5' cy='12' r='2'/><circle cx='19' cy='12' r='2'/><path d='M7 12 H17'/><path d='M9 10.2 Q12 14 15 10.2'/>",b_row:"<circle cx='5' cy='12' r='2'/><circle cx='19' cy='12' r='2'/><path d='M7 12 H17'/><path d='M9 10.2 Q12 14 15 10.2'/>",b_curl:"<circle cx='5' cy='12' r='2'/><circle cx='19' cy='12' r='2'/><path d='M7 12 H17'/><path d='M9 10.2 Q12 14 15 10.2'/>",b_leg:"<circle cx='5' cy='12' r='2'/><circle cx='19' cy='12' r='2'/><path d='M7 12 H17'/><path d='M9 10.2 Q12 14 15 10.2'/>",hold_plank:"<circle cx='4.5' cy='9' r='1.6'/><path d='M6 10 H17 L20 14M8 11 V14 H5.5'/>",hold_wall:"<path d='M4 3 V21'/><circle cx='7.5' cy='7' r='1.5'/><path d='M7.5 8.5 V13 H13 V19M4 13 H7.5'/>",hold_hang:"<path d='M3 4 H21M9 4 V6.5M15 4 V6.5'/><circle cx='12' cy='8.5' r='1.6'/><path d='M12 10.1 V20'/>",hold_lsit:"<circle cx='6' cy='6' r='1.6'/><path d='M6 7.6 V13M6 13 H18'/><path d='M3.5 13 V16.5M9 13 V16.5'/>",c_skip:"<circle cx='12' cy='5' r='1.6'/><path d='M12 6.6 V12M9 13 H15M9.5 12.6 L8 17M14.5 12.6 L16 17'/><path d='M6 9 C3.5 14 6 19 12 19 C18 19 20.5 14 18 9'/>",c_hiit:"<circle cx='12' cy='13.5' r='6.5'/><path d='M12 13.5 V9.5M10 4 H14M12 4 V7M17.5 8 L19 6.5'/>",c_mtn:"<circle cx='4.5' cy='8' r='1.6'/><path d='M6 8.6 L17 12 L20 13M9 9.6 V13M13 11 L11 15M4 16 H20'/>",c_jj:"<circle cx='12' cy='4.5' r='1.7'/><path d='M12 6 V13M12 8 L6 6M12 8 L18 6M12 13 L8 19M12 13 L16 19'/>",c_yoga:"<circle cx='12' cy='6' r='1.9'/><path d='M12 8 V13M12 13 L7 16.5 H17Z M8 11 L12 13 L16 11'/>",c_sport:"<circle cx='12' cy='12' r='8'/><path d='M12 8 L15 10.5 L14 14 H10 L9 10.5Z'/><path d='M12 4.2 V8M15 10.5 L18.7 9.4M14 14 L16.4 17M10 14 L7.6 17M9 10.5 L5.3 9.4'/>",walk:"<circle cx='12' cy='4.5' r='1.7'/><path d='M12 6.2 V12M12 12 L9 19M12 12 L15 17 L14 20M12 8 L9 11M12 8 L15 10'/>",run:"<circle cx='14' cy='4.5' r='1.7'/><path d='M13 6.5 L10.5 11 L13.5 13 L13 18M10.5 11 L6.5 12.5M13.5 13 L17.5 11.5M13 18 L9.5 20'/>",cycle:"<circle cx='6' cy='16.5' r='3.3'/><circle cx='18' cy='16.5' r='3.3'/><path d='M6 16.5 L10 10 H15 L12.5 16.5M10 10 L12 16.5M15 10 H17'/>",sp_cricket:"🏏",sp_football:"⚽",sp_hockey:"🏑",sp_tennis:"🎾",sp_basketball:"🏀",sp_volleyball:"🏐",sp_skating:"🛼",sp_badminton:"🏸",sp_tt:"🏓",sp_swim:"🏊"};
 window.foodIcon = function(id){ var e = window.EN_FOOD_ICON[id]; return e ? e + " " : ""; };
-window.exIcon = function(id){ var p = window.EN_EX_ICON[id]; if(!p) return ""; return "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' "+"stroke-linecap='round' stroke-linejoin='round' "+"style='height:38px;width:38px;vertical-align:middle;margin-right:3px;flex:0 0 auto'>"+p+"</svg> "; };
+window.exIcon = function(id){ var p = window.EN_EX_ICON[id]; if(!p) return ""; if(p.charAt(0) !== "<") return "<span style='font-size:30px;line-height:1;vertical-align:middle;margin-right:3px;display:inline-block'>"+p+"</span> "; return "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' "+"stroke-linecap='round' stroke-linejoin='round' "+"style='height:38px;width:38px;vertical-align:middle;margin-right:3px;flex:0 0 auto'>"+p+"</svg> "; };
 
 const foodIndex = {};
 GROUPS.forEach(g => {
@@ -1814,6 +1837,35 @@ function timedRows(host, list, group){
 }
 timedRows($("holdRows"), HOLDS, "Holds");
 timedRows($("condRows"), COND, "Conditioning");
+
+/* Sports live in the same exercise picker as everything else, under a "Sport"
+   chip. Each has minutes and an easy/medium/hard control that swaps in the right
+   MET; the row's home is the conditioning list. */
+function sportsRows(host){
+  SPORTS.forEach(function(sp){
+    var id=sp[0], name=sp[1], place=sp[4];
+    var row=el("div","lrow hide"); row.id="row_"+id;
+    row.appendChild(el("div","nm", window.exIcon(id)+name+"<small id='splmet_"+id+"'>"+sportMet(id)+" MET</small>"));
+    row.appendChild(el("div","val","<b>0</b> min"));
+    var sub=el("div","subrow");
+    var iw=el("div","intwrap"); iw.appendChild(el("div","sl","How hard"));
+    var sel=el("select"); sel.id="spl_"+id; sel.className="intsel";
+    [["easy","Easy"],["med","Medium"],["hard","Hard"]].forEach(function(p){ var o=el("option"); o.value=p[0]; o.textContent=p[1]; if(p[0]==="med") o.selected=true; sel.appendChild(o); });
+    SETTING_IDS.push("spl_"+id);
+    sel.addEventListener("change", function(){ var lab=document.getElementById("splmet_"+id); if(lab) lab.textContent=sportMet(id)+" MET"; update(); });
+    iw.appendChild(sel); sub.appendChild(iw);
+    var mw=el("div"); mw.appendChild(el("div","sl","Minutes"));
+    mw.appendChild(mkStep({id:"t_"+id, min:0, max:sp[3], step:5, value:0, move:true, unit:"min", aria:name+", minutes"}));
+    sub.appendChild(mw);
+    row.appendChild(sub);
+    var amt=el("span"); amt.id="a_"+id; amt.className="hidden"; row.appendChild(amt);
+    host.appendChild(row); noteHome(host, row);
+    reg("rep","row_"+id,["t_"+id], name, "Sports",
+        (place==="in"?"indoor":place==="both"?"indoor or outdoor":"outdoor"), "sport",
+        name+" sport game match play "+(place==="in"?"indoor":"outdoor"));
+  });
+}
+sportsRows($("condRows"));
 
 const CARDIO_ALIAS = {walk:"walking steps stroll", run:"running jog jogging",
                       cycle:"cycling bike bicycle riding"};
@@ -2234,7 +2286,15 @@ function buildPicker(kind, body, placeholder, after, opts){
     const fin  = el("button","btn primary","Done");
     more.type = fin.type = "button";
     more.addEventListener("click", finish);
-    fin.addEventListener("click", () => { finish(); if(sheetOpen) closeSheet(); });
+    fin.addEventListener("click", () => {
+      finish();
+      if(sheetOpen){ closeSheet(); return; }
+      /* In the first-run walkthrough there is no sheet to close, so "Done"
+         means this item is set - move on to the next step, which is different
+         from "Save & add another". */
+      var wz = document.getElementById("wiz");
+      if(wz && !wz.hidden && typeof wizNext === "function") wizNext();
+    });
     bar.append(more, fin);
     stage.appendChild(bar);
 
@@ -2318,7 +2378,7 @@ function buildPicker(kind, body, placeholder, after, opts){
 function splitChips(host, onChange, keys){
   const chosen = new Set();
   const wrap = el("div","chips");
-  (keys || ["push","pull","legs","core","cardio"]).forEach(k => {
+  (keys || ["push","pull","legs","core","cardio","sport"]).forEach(k => {
     const b = el("button","chip", SPLIT_NAMES[k]);
     b.type = "button";
     b.addEventListener("click", () => {
@@ -2587,7 +2647,7 @@ function readStrength(weight, heightCm){
 
 function readTimed(weight){
   let kcal=0, minutes=0; const lines=[], burn={};
-  HOLDS.concat(COND).forEach(([id,name,met]) => {
+  const one = (id,name,met) => {
     const m = +$("t_"+id).value;
     $("t_"+id).classList.toggle("hot", m>0);
     const row = $("row_"+id);
@@ -2597,6 +2657,12 @@ function readTimed(weight){
     if(!m) return;
     kcal += k; minutes += m; burn["t_"+id] = k;
     lines.push({label:name, work:`(${met} &minus; 1) MET &times; 3.5 &times; ${weight} kg / 200 &times; ${m} min`, kcal:k});
+  };
+  HOLDS.concat(COND).forEach(([id,name,met]) => one(id,name,met));
+  SPORTS.forEach(([id,name]) => {
+    var mv = sportMet(id);
+    var lab = document.getElementById("splmet_"+id); if(lab) lab.textContent = mv+" MET";
+    one(id, name, mv);
   });
   return {kcal, minutes, lines, burn};
 }
@@ -3132,7 +3198,7 @@ function syncRowValues(){
   };
   REPS.forEach(ex => mirror("a_"+ex.id, "exrow_"+ex.id));
   BANDS.forEach(b => mirror("a_"+b.id, "row_"+b.id));
-  HOLDS.concat(COND).forEach(([id]) => mirror("a_"+id, "row_"+id));
+  HOLDS.concat(COND).concat(SPORTS).forEach(([id]) => mirror("a_"+id, "row_"+id));
   CARDIO.forEach(([id]) => mirror("a_"+id, "row_"+id));
   CHORES.forEach(([id]) => mirror("a_"+id, "row_"+id));
 }
@@ -6454,7 +6520,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.18o";
+  var APP_VERSION = "2026.09.18q";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
