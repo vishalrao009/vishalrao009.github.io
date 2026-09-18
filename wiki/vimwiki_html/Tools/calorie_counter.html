@@ -1597,6 +1597,14 @@ function reg(kind, rowId, ctlIds, name, group, meta, split, alias){
 }
 
 /* ---------- food ---------- */
+
+/* ---- little pictures: an emoji per food and exercise, chosen to resemble it,
+        shown in the lists and on the quick-add chips so items are easy to spot ---- */
+window.EN_FOOD_ICON = {milk_cow:"🥛",milk_buf:"🥛",milk_toned:"🥛",curd:"🥣",curd_toned:"🥣",paneer:"🧀",ghee_cow:"🧈",ghee_buf:"🧈",butter:"🧈",s_omega3_fish:"🌿",s_omega3_flax:"🌱",s_vitd1000:"💊",s_vitd60k:"💊",s_b12:"💊",s_calcium:"💊",s_iron:"💊",s_zinc:"💊",s_magnesium:"💊",s_vitc:"💊",s_multi:"💊",s_creatine:"💪",s_ors:"💧",s_plantpro:"🥤",s_mct:"🥥",s_c1:"💊",s_c2:"💊",s_c3:"💊",s_c4:"💊",chapati:"🫓",rice:"🍚",poha:"🥣",oats:"🥣",bread:"🍞",paratha:"🫓",dal:"🍲",rajma:"🍛",sprouts:"🌱",soya:"🫘",chana:"🫘",whey:"🥤",sabji_dry:"🥘",sabji_gravy:"🍛",salad:"🥗",potato:"🥔",j_orange:"🍊",j_mosambi:"🍋",j_sugarcane:"🥤",j_coconut:"🥥",j_nimbu:"🍋",j_nimbu_plain:"🍋",j_packaged:"🧃",j_apple:"🍎",j_pomegranate:"🧃",j_watermelon:"🍉",j_carrot:"🥕",j_amla:"🧃",j_banana_shake:"🥤",j_lassi:"🥛",j_chaas:"🥛",sal_green:"🥗",sal_kachumber:"🥗",sal_sprouts:"🥗",sal_chana:"🥗",sal_paneer:"🥗",sal_fruit:"🍓",sal_raita:"🥣",banana:"🍌",apple:"🍎",orange:"🍊",mango:"🥭",papaya:"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' style='height:1em;width:1em;vertical-align:-.15em'><path d='M12 2C8 5 7 9 7 12s1 7 5 10c4-3 5-7 5-10s-1-7-5-10z' fill='#ef9a2e'/><path d='M12 4.5C9 7 8 10 8 12s1 5 4 7.5c3-2.5 4-5.5 4-7.5s-1-5-4-7.5z' fill='#f6bd63'/><g fill='#241408'><circle cx='12' cy='9' r='.85'/><circle cx='10.7' cy='11' r='.85'/><circle cx='13.3' cy='11' r='.85'/><circle cx='12' cy='13' r='.85'/><circle cx='11' cy='15' r='.75'/><circle cx='13' cy='15' r='.75'/></g></svg>",almond:"🥜",cashew:"🥜",walnut:"🌰",peanut:"🥜",raisin:"🍇",date:"🌴",oil:"🫗",sugar:"🍬",jaggery:"🟤",honey:"🍯",chai:"☕",misc:"🍽️"};
+window.EN_EX_ICON = {pushup:"🤸",pullup:"💪",dip:"💪",squat:"🏋️",lunge:"🚶",stepup:"🚶",jsquat:"🚶",burpee:"🤸",glute:"🍑",calf:"🚶",situp:"🤸",legraise:"🚶",deadlift:"🏋️",bench:"🏋️",ohp:"🏋️",row:"🏋️",pulldown:"🏋️",curl:"💪",tri_ext:"💪",other:"🏋️",b_tri:"💪",b_sho:"💪",b_row:"💪",b_curl:"💪",b_leg:"🚶",hold_plank:"🧘",hold_wall:"🧘",hold_hang:"🧗",hold_lsit:"🤸",c_skip:"🪢",c_hiit:"🔥",c_mtn:"🏔️",c_jj:"🤸",c_yoga:"🧘",c_sport:"⚽",walk:"🚶",run:"🏃",cycle:"🚴"};
+window.foodIcon = function(id){ var e = window.EN_FOOD_ICON[id]; return e ? e + " " : ""; };
+window.exIcon = function(id){ var e = window.EN_EX_ICON[id]; return e ? e + " " : ""; };
+
 const foodIndex = {};
 GROUPS.forEach(g => {
   g.items.forEach(([id,name,unit,max,step,kcal,p,c,f,fib]) => {
@@ -1605,7 +1613,7 @@ GROUPS.forEach(g => {
     const size = PORTION[unit] ? " \u00b7 " + PORTION[unit] : "";
     const per = unit==="kcal" ? "" :
       `<small>${Math.round(kcal*(step>1?step:1))} kcal per ${step>1?step+" "+unit:unit}${size}</small>`;
-    row.appendChild(el("div","nm", name+per));
+    row.appendChild(el("div","nm", window.foodIcon(id)+name+per));
     row.appendChild(el("div","val amt",`<b>0</b> ${unit}`));
     const sub = el("div","subrow");
     sub.appendChild(mkStep({id:"f_"+id, min:0, max:max, step:step, value:0,
@@ -1750,7 +1758,7 @@ function buildExercise(ex, bandOnly){
   const modes = modesFor(ex, bandOnly);
   const row = el("div","lrow hide"); row.id = (bandOnly?"row_":"exrow_")+ex.id;
   row.setAttribute("data-name", (ex.name+" "+(ex.hint||"")+(bandOnly?" band":"")).toLowerCase());
-  row.appendChild(el("div","nm", ex.name
+  row.appendChild(el("div","nm", window.exIcon(ex.id)+ex.name
     + (ex.hint?`<small>${ex.hint}</small>`:(bandOnly?"<small>band only</small>":""))));
   row.appendChild(el("div","val",`<b>0</b> reps`));
 
@@ -1795,7 +1803,7 @@ BANDS.forEach(b => buildExercise(b, true));
 function timedRows(host, list, group){
   list.forEach(([id,name,met,max]) => {
     const row = el("div","lrow hide"); row.id="row_"+id;
-    row.appendChild(el("div","nm", name+`<small>${met} MET</small>`));
+    row.appendChild(el("div","nm", window.exIcon(id)+name+`<small>${met} MET</small>`));
     row.appendChild(el("div","val",`<b>0</b> min`));
     const sub = el("div","subrow");
     sub.appendChild(mkStep({id:"t_"+id, min:0, max:max, step:5, value:0, move:true,
@@ -1813,7 +1821,7 @@ const CARDIO_ALIAS = {walk:"walking steps stroll", run:"running jog jogging",
                       cycle:"cycling bike bicycle riding"};
 CARDIO.forEach(([id,name,pmin,pmax,pdef,punit,dmax,dstep]) => {
   const row = el("div","lrow hide"); row.id="row_"+id;
-  row.appendChild(el("div","nm", name));
+  row.appendChild(el("div","nm", window.exIcon(id)+name));
   row.appendChild(el("div","val",`<b>0</b> km`));
   const sub = el("div","subrow");
   const dw = el("div"); dw.appendChild(el("div","sl","Distance"));
@@ -2284,7 +2292,10 @@ function buildPicker(kind, body, placeholder, after, opts){
       if(item.group !== group){ group = item.group; list.appendChild(el("div","pickgroup",group)); }
       const b = el("button","pick");
       b.type = "button";
-      b.innerHTML = `<span>${item.name}${item.meta?` <span class="pk">${item.meta}</span>`:""}</span>`
+      var _bid = item.rowId.replace(/^exrow_/,"").replace(/^row_/,"");
+      var _ic = kind==="food" ? (window.foodIcon?window.foodIcon(_bid):"")
+                              : (window.exIcon?window.exIcon(_bid):"");
+      b.innerHTML = `<span>${_ic}${item.name}${item.meta?` <span class="pk">${item.meta}</span>`:""}</span>`
                   + `<span class="plus">${already ? "\u2713" : "+"}</span>`;
       b.addEventListener("click", () => openItem(item));
       list.appendChild(b); shown++;
@@ -6445,7 +6456,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.18i";
+  var APP_VERSION = "2026.09.18k";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
@@ -6886,6 +6897,7 @@ body.editing-day{padding-top:38px}
     var grid = el("div","qgrid");
     items.forEach(function(q){
       var id = q[0], label = q[1], amt = q[2], u = q[3];
+      label = (window.foodIcon ? window.foodIcon(q[0]) : "") + label;
       if(!document.getElementById("f_"+id)) return;   // skip if this build lacks it
       var b = el("button","qchip"); b.type = "button";
       function paint(){
