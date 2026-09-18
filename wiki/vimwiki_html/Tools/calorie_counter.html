@@ -4581,6 +4581,39 @@ const STEPS = [
       f.appendChild(i); c.appendChild(f); b.appendChild(c);
       b.appendChild(el("p","tiny","This just labels your profile on this device. There are no "
         + "accounts and no passwords."));
+      /* Offer to install right at the start, not only later in Settings. */
+      (function(){
+        var ci = window.caloInstall;
+        if(ci && ci.installed && ci.installed()) return;
+        var box = el("div","wizcard");
+        box.appendChild(el("label", null, "Install the app (optional)"));
+        box.appendChild(el("p","tiny","Add it to your home screen so it opens full screen, works with no "
+          + "signal, and can nudge you at meal times. You can also do this later from Settings."));
+        var ib = el("button","btn sm line full","Install on this phone"); ib.type = "button"; ib.style.marginTop = "9px";
+        var note = el("p","tiny"); note.style.margin = "7px 2px 0";
+        var WHY = {
+          ios: "On iPhone: tap Share, then Add to Home Screen.",
+          "ios-other": "On iPhone, open this page in Safari, then Share, then Add to Home Screen.",
+          file: "Open the page from its web address to install it.",
+          insecure: "Installing needs an https:// address.",
+          inapp: "Open the page in Chrome or Safari first, then try again.",
+          firefox: "Firefox: open the menu and choose Install, or use Chrome or Edge.",
+          manual: "Your browser has not offered one-tap install yet \u2014 it often appears on the "
+                + "second visit. On Android Chrome you can also tap the three dots, then Add to Home screen. "
+                + "(Note: a private/Incognito window never offers install.)"
+        };
+        ib.addEventListener("click", async function(){
+          if(!ci){ note.textContent = "Install is not available in this browser."; return; }
+          ib.disabled = true; note.textContent = "Asking your browser\u2026";
+          var ok = ci.waitForPrompt ? await ci.waitForPrompt(3500) : false;
+          ib.disabled = false;
+          if(ok){ var res = ci.prompt(); if(res === "native"){ note.textContent = "Your browser is asking now \u2014 choose Install."; return; } }
+          if(ci.alreadyInstalled && await ci.alreadyInstalled()){ note.textContent = "Already installed \u2014 open it from your home screen."; return; }
+          note.textContent = WHY[ci.reason ? ci.reason() : "manual"] || WHY.manual;
+        });
+        box.appendChild(ib); box.appendChild(note);
+        b.appendChild(box);
+      })();
       i.addEventListener("keydown", ev => { if(ev.key === "Enter"){ ev.preventDefault(); wizNext(); } });
       focusNow(i);
     },
@@ -4900,6 +4933,7 @@ function drawStep(){
   const body = $("wizBody"), foot = $("wizFoot");
   giveBack(); restoreRows();        // return anything the previous step borrowed
   body.innerHTML = ""; foot.innerHTML = "";
+  foot.style.display = s.bare ? "none" : "flex";   // no button on a bare step, so no empty white bar
 
   body.appendChild(el("h2","wizq",s.q));
   if(s.sub) body.appendChild(el("p","wizsub",s.sub));
@@ -6563,7 +6597,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.18r";
+  var APP_VERSION = "2026.09.18s";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
