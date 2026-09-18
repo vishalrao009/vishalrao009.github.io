@@ -304,6 +304,23 @@ body{top:0!important}
 .lrow .val{font-size:11.5px;color:var(--muted);text-align:right;grid-column:2}
 .lrow .val b{font-family:var(--serif);font-size:13.5px;color:var(--ink);font-weight:600}
 .lrow.dim .nm,.lrow.dim .val{opacity:.55}
+/* ---- progress charts ----
+   One measure per chart. Reps and kilograms never share a y-axis: two scales on
+   one frame is the single most misleading thing a chart can do, and "my reps
+   went up" would be indistinguishable from "the axis rescaled". */
+.chartwrap{margin:10px 0 2px}
+.charthead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:2px}
+.charthead .ct{font-size:13px;font-weight:500}
+.charthead .cv{font-size:11.5px;color:var(--muted)}
+.chartwrap svg{width:100%;height:auto;display:block;overflow:visible}
+.chartwrap .grid{stroke:var(--line);stroke-width:1}
+.chartwrap .axis{stroke:var(--line);stroke-width:1}
+.chartwrap .lbl{font-size:8.5px;fill:var(--muted)}
+.chartwrap .pt{cursor:pointer}
+.chartread{font-size:11.5px;color:var(--muted);min-height:16px;margin-top:3px}
+.chartread b{color:var(--ink);font-family:var(--serif)}
+.exgrid{display:flex;flex-wrap:wrap;gap:7px;margin:4px 0 8px}
+
 /* The "what is in it" line under a food that has options. Part of the row, so
    the question is asked where the food is logged rather than behind a button
    on some other screen. */
@@ -682,6 +699,9 @@ input,select{scroll-margin:84px 0 180px}
   <button class="iconbtn" id="btn-globe" aria-label="Translate this page">
     <svg viewBox="0 0 24 24" style="fill:none;stroke:var(--in);stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/><path d="M5.3 6.5c1.9 1 4.2 1.6 6.7 1.6s4.8-.6 6.7-1.6"/><path d="M5.3 17.5c1.9-1 4.2-1.6 6.7-1.6s4.8.6 6.7 1.6"/></svg>
   </button>
+  <button class="iconbtn" id="progressBtn" aria-label="Training progress">
+    <svg viewBox="0 0 24 24" style="fill:none;stroke:var(--in);stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M3 20h18"/><path d="M3 20V4"/><path d="M6 16l4-5 3 3 5-7"/><circle cx="6" cy="16" r="1.2" style="fill:var(--in)"/><circle cx="10" cy="11" r="1.2" style="fill:var(--in)"/><circle cx="13" cy="14" r="1.2" style="fill:var(--in)"/><circle cx="18" cy="7" r="1.2" style="fill:var(--in)"/></svg>
+  </button>
   <button class="iconbtn" id="settingsBtn" aria-label="Reminders and settings">
     <svg viewBox="0 0 24 24" style="fill:none;stroke:var(--in);stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
   </button>
@@ -814,7 +834,8 @@ input,select{scroll-margin:84px 0 180px}
     </div>
 
     <div class="card" id="histCard">
-      <div class="cardhead"><h2>This month</h2></div>
+      <div class="cardhead"><h2>This month</h2>
+        <button type="button" class="btn sm line" id="openHistory">Day by day</button></div>
       <div id="histBody"></div>
     </div>
 
@@ -4076,8 +4097,11 @@ function tbl(rows, sumLabel, sumVal, unit){
   return h+"</tbody></table>";
 }
 
-function renderCalcInto(p, d){
-
+/* wholeDay: for a day that is over. The "accrued by now" rows read the clock,
+   which is meaningful for today and nonsense for last Tuesday - a finished day
+   did not stop at 7am because that is the time it happens to be now. */
+function renderCalcInto(p, d, opts){
+  const wholeDay = !!(opts && opts.wholeDay);
   const ecc = d.st.ecc;
   let h = "";
 
@@ -4096,14 +4120,14 @@ function renderCalcInto(p, d){
         + `(${d.weight} kg at ${n1(d.bodyFat)}% fat). Mifflin&ndash;St Jeor would say ${kc(d.rr.mifflin)}.`
       : `Mifflin&ndash;St Jeor: 10 &times; ${d.weight} + 6.25 &times; ${d.height} &minus; 5 &times; ${d.age} ${d.male?"+ 5":"&minus; 161"}`,
     val:kc(d.bmr)+" kcal"});
-  out.push({label:"Resting, accrued by now",
+  if(!wholeDay) out.push({label:"Resting, accrued by now",
     work:`${kc(d.bmr)} &times; ${(d.prog.rest*100).toFixed(0)}% of the clock elapsed &mdash; `
        + `resting burn ticks through the night too, so it runs against the 24-hour day`,
     val:kc(d.bmr*d.prog.rest)+" kcal"});
   out.push({label:"Everyday moving, whole day",
     work:`${kc(d.bmr)} &times; ${d.neatRate} for the part of your day you did not log`,
     val:kc(d.neat)+" kcal"});
-  out.push({label:"Moving, accrued by now",
+  if(!wholeDay) out.push({label:"Moving, accrued by now",
     work:`${kc(d.neat)} &times; ${(d.prog.awake*100).toFixed(0)}% of your waking hours gone &mdash; `
        + `this one only accrues while you are up`,
     val:kc(d.neat*d.prog.awake)+" kcal"});
@@ -4128,7 +4152,9 @@ function renderCalcInto(p, d){
   d.mental.lines.forEach(l => out.push({label:l.label, work:l.work, val:n1(l.kcal)+" kcal"}));
   if(d.brainSleep) out.push({label:"Brain, asleep", work:`the resting rate charges 20 W of brain for all 24 h; it runs ~17% lower asleep &mdash; 3.4 W &times; ${n1(d.sleep)} h`, val:kc(d.brainSleep)+" kcal"});
   if(d.sleepAdj) out.push({label:"Short sleep", work:"up to 2% off the resting rate, ramped in from 6 h down to 4.5 h", val:kc(d.sleepAdj)+" kcal"});
-  h += tbl(out, "Used so far", kc(d.outSoFar)+" kcal");
+  h += wholeDay
+      ? tbl(out, "Used, whole day", kc(d.out)+" kcal")
+      : tbl(out, "Used so far", kc(d.outSoFar)+" kcal");
   h += `<p class="formula">The whole-day figure is <b>${kc(d.out)} kcal</b>. The ledger compares your
     food against the <em>so far</em> number, because measuring a morning's eating against a full
     day's burning would show a deficit on every normal day before lunch. The tissue figures below
@@ -4308,10 +4334,13 @@ function renderCalcInto(p, d){
 
   h += `<h3>Where the difference went</h3>`;
   const bal = d.balance;
-  const bl = [{label:"Balance so far", work:`${kc(d.food.kcal)} taken in &minus; ${kc(d.outSoFar)} spent by now`,
-               val:(d.balanceSoFar>=0?"+":"\u2212")+kc(Math.abs(d.balanceSoFar))+" kcal"},
-              {label:"Balance, whole day", work:`${kc(d.food.kcal)} taken in &minus; ${kc(d.out)} used`,
-               val:(bal>=0?"+":"\u2212")+kc(Math.abs(bal))+" kcal"}];
+  const bl = [];
+  if(!wholeDay) bl.push({label:"Balance so far",
+               work:`${kc(d.food.kcal)} taken in &minus; ${kc(d.outSoFar)} spent by now`,
+               val:(d.balanceSoFar>=0?"+":"\u2212")+kc(Math.abs(d.balanceSoFar))+" kcal"});
+  bl.push({label:wholeDay ? "Balance for the day" : "Balance, whole day",
+           work:`${kc(d.food.kcal)} taken in &minus; ${kc(d.out)} used`,
+           val:(bal>=0?"+":"\u2212")+kc(Math.abs(bal))+" kcal"});
   if(bal>=0){
     const pt = d.part;
     bl.push({label:"Muscle the signal allows",
@@ -4823,7 +4852,7 @@ function wizOpen(fresh){
    already asking for the new name. */
 function startNewProfile(){
   if(activeUser()){
-    activeUser().days[todayKey()] = snapshot();
+    activeUser().days[dayKey()] = snapshot();
     activeUser().body = bodySnapshot();
     saveDb();
   }
@@ -4914,11 +4943,121 @@ let canStore = true;
 try{ localStorage.setItem("__t","1"); localStorage.removeItem("__t"); }
 catch(e){ canStore = false; }
 
+/* Which day the controls on screen belong to. Normally today; while someone is
+   filling in a day they missed, the day they picked. Every save and restore
+   goes through this, so nothing can write yesterday's food into today. */
+let editDay = null;
+function dayKey(){ return editDay || todayKey(); }
 function todayKey(){
   const d = new Date();
   return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 }
+/* ---- midnight, in an app that is never reloaded --------------------
+   A home-screen web app on iOS is not a page visit: iOS keeps it in memory
+   for days, so reopening it resumes the same running copy. Every save asks
+   todayKey() afresh, but the controls on screen still hold the day they were
+   restored with - so after midnight the app showed yesterday's calories and,
+   worse, the next save copied yesterday's food into today. The day has to be
+   watched, not assumed. */
+let dayOnScreen = null;                     // set once the first day is restored
+function noteDayOnScreen(){ dayOnScreen = dayKey(); }
+/* ---- closing the day without being asked ---------------------------
+   Closing a day is what fixes the fat and muscle figures at the finished-day
+   projection and files the day in the history; left open, they keep drifting
+   with the clock. Nobody is holding their phone at 23:59 to press the button,
+   so this does it for them - at 23:59 if the app happens to be open, and
+   otherwise on the way past midnight, when any earlier day that was logged
+   and never closed is closed where it stands. */
+const AUTOCLOSE_KEY = "ledger.autoClose";
+function autoCloseOn(){
+  try { return localStorage.getItem(AUTOCLOSE_KEY) !== "0"; } catch(e){ return true; }
+}
+function setAutoClose(on){
+  try { localStorage.setItem(AUTOCLOSE_KEY, on ? "1" : "0"); } catch(e){}
+}
+function dayHasAnything(snap){
+  if(!snap) return false;
+  return Object.keys(snap).some(function(k){
+    if(k === "_at" || k === "dayDone") return false;
+    if(LOG_IDS.indexOf(k) === -1) return false;
+    return (parseFloat(snap[k]) || 0) > 0;
+  });
+}
+/* Days already in the store that were logged and never closed. Today is left
+   alone - it is not over yet. */
+function closeStaleDays(){
+  if(!autoCloseOn()) return 0;
+  const u = activeUser();
+  if(!u || !u.days) return 0;
+  const today = todayKey();
+  let n = 0;
+  Object.keys(u.days).forEach(function(k){
+    if(k >= today) return;
+    const snap = u.days[k];
+    if(!snap || String(snap.dayDone || "0") === "1") return;
+    if(!dayHasAnything(snap)) return;             // nothing logged: nothing to file
+    snap.dayDone = "1";
+    n++;
+  });
+  if(n) saveDb();
+  return n;
+}
+function maybeCloseTonight(){
+  if(!autoCloseOn() || editDay) return;
+  const now = new Date();
+  if(now.getHours() !== 23 || now.getMinutes() < 59) return;
+  if($("dayDone") && $("dayDone").value === "1") return;
+  if(!dayHasAnything(snapshot())) return;
+  $("dayDone").value = "1";
+  update();
+  rememberLast();
+}
+
+function checkDayRollover(){
+  if(editDay) return;                       // filling in a past day on purpose
+  if(!dayOnScreen || dayOnScreen === todayKey()) return;
+  /* Put what is on screen back into the day it actually belongs to before
+     anything else touches it. */
+  try {
+    const u = activeUser();
+    if(u){ u.days[dayOnScreen] = snapshot(); u.body = bodySnapshot(); saveDb(); }
+  } catch(e){}
+  /* Then start the new day from scratch. A reload is the honest way: the whole
+     startup path - which day to restore, which rows to show, the tiles, the
+     history - already does exactly this correctly on a cold open. */
+  /* The day that just ended gets filed before the new one starts. */
+  try {
+    if(autoCloseOn()){
+      const u2 = activeUser();
+      if(u2 && u2.days[dayOnScreen] && dayHasAnything(u2.days[dayOnScreen])){
+        u2.days[dayOnScreen].dayDone = "1";
+        saveDb();
+      }
+    }
+  } catch(e){}
+  dayOnScreen = null;
+  location.reload();
+}
+setInterval(function(){ maybeCloseTonight(); checkDayRollover(); }, 30000);
+document.addEventListener("visibilitychange", function(){
+  if(document.hidden) return;
+  maybeCloseTonight();
+  checkDayRollover();
+  closeStaleDays();
+});
+window.addEventListener("focus", checkDayRollover);
+
 function prettyDate(){
+  /* While a past day is being filled in, every date on screen should name that
+     day - the header and the day card included - or the numbers read as if
+     they were today's. */
+  if(editDay){
+    const parts = String(editDay).split("-");
+    try{
+      return new Date(+parts[0], +parts[1]-1, +parts[2])
+        .toLocaleDateString(undefined,{weekday:"short", day:"numeric", month:"short"});
+    }catch(e){ return editDay; }
+  }
   try{ return new Date().toLocaleDateString(undefined,{weekday:"short", day:"numeric", month:"short"}); }
   catch(e){ return todayKey(); }
 }
@@ -5057,7 +5196,11 @@ function refreshUsers(){
 function openToday(){
   const u = activeUser();
   if(!u) return;
-  restore(u.days[todayKey()] || u.usual || null);
+  restore(u.days[dayKey()] || u.usual || null);
+  noteDayOnScreen();
+  /* Opening the app the next morning is the usual way a finished day gets
+     noticed, so any earlier day left hanging is filed now. */
+  try { closeStaleDays(); } catch(e){}
   applyBody(u.body);            // the profile's own details always win
   if(!bodyReady() && u.usual) applyBody(u.usual);   // fall back to an older day
   update();
@@ -5072,7 +5215,7 @@ function rememberLast(){
   saveTimer = setTimeout(() => {
     const body = bodySnapshot();
     if(Object.keys(body).some(k => String(body[k]).trim() !== "")) u.body = body;
-    u.days[todayKey()] = snapshot();
+    u.days[dayKey()] = snapshot();
     const keys = Object.keys(u.days).sort();
     while(keys.length > 90) delete u.days[keys.shift()];
     saveDb();
@@ -5087,7 +5230,7 @@ $("createUser").addEventListener("click", () => {
   const name = $("newName").value.trim();
   if(!name) return;
   if(db.users[name]){ noteStore(`A profile called ${name} already exists.`); return; }
-  if(activeUser()){ activeUser().days[todayKey()] = snapshot(); activeUser().body = bodySnapshot(); }
+  if(activeUser()){ activeUser().days[dayKey()] = snapshot(); activeUser().body = bodySnapshot(); }
   db.users[name] = {usual:null, days:{}, body:null};
   db.active = name; saveDb(); refreshUsers();
   // a new person starts blank rather than inheriting the last profile
@@ -5106,7 +5249,7 @@ $("createUser").addEventListener("click", () => {
    avatar's quick-switch sheet. */
 function switchToUser(name){
   if(!db.users[name] || name === db.active) return;
-  if(activeUser()){ activeUser().days[todayKey()] = snapshot(); activeUser().body = bodySnapshot(); }
+  if(activeUser()){ activeUser().days[dayKey()] = snapshot(); activeUser().body = bodySnapshot(); }
   db.active = name;
   saveDb(); refreshUsers(); openToday();
   noteStore(`Switched to ${db.active}.`);
@@ -5261,7 +5404,7 @@ function clearToday(){
     }
   });
   const u = activeUser();
-  if(u){ u.days[todayKey()] = snapshot(); saveDb(); }
+  if(u){ u.days[dayKey()] = snapshot(); saveDb(); }
   update(); renderToday(); refreshVisibility();
   histCache = null;
 }
@@ -5282,7 +5425,7 @@ function clearToday(){
   });
 })();
 $("exportBtn").addEventListener("click", () => {
-  if(activeUser()) activeUser().days[todayKey()] = snapshot();
+  if(activeUser()) activeUser().days[dayKey()] = snapshot();
   saveDb();
   const blob = new Blob([JSON.stringify(db,null,2)], {type:"application/json"});
   const a = document.createElement("a");
@@ -5317,7 +5460,7 @@ rt.addEventListener("click", () => {
   const u = activeUser();
   if(!u || !u.usual) return;
   restore(u.usual);
-  u.days[todayKey()] = snapshot(); saveDb(); renderToday();
+  u.days[dayKey()] = snapshot(); saveDb(); renderToday();
   noteStore("Today reset to your usual day.");
 });
 const mu = el("button"); mu.id = "makeUsual_"; mu.className = "hidden";
@@ -5488,6 +5631,19 @@ try{
 <style>
 /* Install card. Sits above the tab bar and uses the app's own tokens so it
    reads as part of the interface rather than as a browser banner. */
+/* Unmissable, because everything logged while it is up goes into another day. */
+#editDayBar{
+  position:fixed;left:0;right:0;top:0;z-index:70;display:none;
+  align-items:center;justify-content:space-between;gap:10px;
+  padding:calc(7px + env(safe-area-inset-top)) 14px 7px;
+  background:var(--in);color:#fff;font-size:13px;font-weight:500;
+}
+#editDayBar.show{display:flex}
+#editDayBar button{
+  border:0;background:rgba(255,255,255,.22);color:#fff;font:inherit;font-size:12.5px;
+  padding:6px 11px;border-radius:999px;
+}
+body.editing-day{padding-top:38px}
 #installCard,#updateCard{
   position:fixed;left:12px;right:12px;
   bottom:calc(var(--tabh) + 12px + env(safe-area-inset-bottom));
@@ -5511,6 +5667,10 @@ try{
   @keyframes icin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 }
 </style>
+<div id="editDayBar" role="status">
+  <span id="editDayText">Filling in a past day</span>
+  <button type="button" id="editDayBack">Back to today</button>
+</div>
 <div id="updateCard" role="dialog" aria-label="Update Calo">
   <div class="ictext">
     <div class="ictitle">A new version of Calo is ready</div>
@@ -6267,8 +6427,8 @@ try{
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.17i";
-  var APP_BUILT   = "17 Sep 2026";
+  var APP_VERSION = "2026.09.18d";
+  var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
   /* Automatic updating, on by default and switchable in Settings. "On" means:
@@ -6310,6 +6470,10 @@ try{
        would drop the person back into the app with their other phone's data
        still sitting in a link they have already used. */
     if(window.caloPendingTransfer) return false;
+    /* Filling in a past day is a mode, and a reload would quietly drop out of
+       it. The data is already saved either way, but the surprise is not worth
+       it - the update can wait a few minutes. */
+    if(window.caloEditingDay) return false;
     if(!autoOn()) return false;
     /* Either the app has just opened and not been touched, or nobody has
        touched it for twenty seconds. */
@@ -6999,6 +7163,437 @@ try{
           .addEventListener("change", function(){ if(themePref() === "system") paintThemeColor(); });
   } catch(e){}
 
+  /* ================= TRAINING PROGRESS ================================
+     Two questions, two charts. Reps per session says whether the muscle is
+     lasting longer; the heaviest set says whether it is getting stronger. They
+     are drawn separately and deliberately: reps and kilograms on one pair of
+     axes would let a rescale masquerade as progress, which is the one thing a
+     progress chart must never do.
+
+     Everything here is read back out of the saved days - each set was already
+     stored as reps, mode and load, so nothing new had to be recorded.
+     ================================================================== */
+  function exerciseName(id){
+    try {
+      var hit = CATALOG.rep.filter(function(it){
+        return it.ctlIds.some(function(c){ return c.indexOf("er_" + id + "_") === 0; });
+      })[0];
+      if(hit) return hit.name;
+    } catch(e){}
+    return id;
+  }
+  /* One session per logged day: total reps, how many sets, and the heaviest
+     single set that day. */
+  function sessionsFor(exId){
+    var u = activeUser();
+    if(!u || !u.days) return [];
+    var out = [];
+    Object.keys(u.days).sort().forEach(function(k){
+      var snap = u.days[k], reps = 0, sets = 0, best = 0, bestReps = 0, anyWeighted = false;
+      Object.keys(snap).forEach(function(key){
+        var m = key.match(/^er_(.+)_(\d+)$/);
+        if(!m || m[1] !== exId) return;
+        var r = parseFloat(snap[key]) || 0;
+        if(r <= 0) return;
+        reps += r; sets += 1;
+        var i = m[2];
+        var mode = snap["em_" + exId + "_" + i] || "bw";
+        if(mode === "wt"){
+          var kg = parseFloat(snap["ew_" + exId + "_" + i]) || 0;
+          anyWeighted = true;
+          if(kg > best){ best = kg; bestReps = r; }
+        }
+      });
+      if(reps > 0) out.push({ date:k, reps:reps, sets:sets, best:best, bestReps:bestReps,
+                              weighted:anyWeighted });
+    });
+    return out;
+  }
+  function exercisesLogged(){
+    var u = activeUser();
+    if(!u || !u.days) return [];
+    var seen = {};
+    Object.keys(u.days).forEach(function(k){
+      var snap = u.days[k];
+      Object.keys(snap).forEach(function(key){
+        var m = key.match(/^er_(.+)_(\d+)$/);
+        if(!m) return;
+        if((parseFloat(snap[key]) || 0) > 0) seen[m[1]] = (seen[m[1]] || 0) + 1;
+      });
+    });
+    return Object.keys(seen).sort(function(a,b){ return seen[b] - seen[a]; });
+  }
+
+  /* A single-measure line chart. One series, so no legend - the heading names
+     it. Grid and axis stay recessive, only the first, last and best points are
+     labelled, and every point carries a tap target for the readout below. */
+  function lineChart(series, opts){
+    opts = opts || {};
+    var W = 320, H = 130, L = 30, R = 8, T = 10, B = 18;
+    var n = series.length;
+    var vals = series.map(function(p){ return p.v; });
+    var hi = Math.max.apply(null, vals), min = Math.min.apply(null, vals);
+    if(!(hi > 0)) hi = 1;
+    /* Zero is the honest floor for bars, where the bar's length IS the value.
+       A line's job is the slope, and 24 to 40 reps pinned against a zero axis
+       reads as a flat line in the top third of an empty box. So the frame
+       closes in when the movement is small next to the total - and the floor is
+       always printed on the axis, which is what keeps it honest. */
+    var lo = 0;
+    if(min > 0 && (hi - min) < 0.5 * hi){
+      lo = Math.max(0, min - (hi - min) * 0.6 - 0.5);
+    }
+    var top = hi + (hi - lo) * 0.18;
+    /* Whole numbers on the axis - "13.9 reps" is not a number anybody means.
+       Rounding to integers rather than snapping to a round step on purpose:
+       snapping to tens dragged the floor back to zero and undid the framing
+       above, which is the very thing that makes the slope readable. */
+    if(top - lo > 3){ lo = Math.floor(lo); top = Math.ceil(top); }
+    if(top <= lo) top = lo + 1;
+    var x = function(i){ return n < 2 ? L + (W-L-R)/2 : L + i*(W-L-R)/(n-1); };
+    var y = function(v){ return T + (1 - (v - lo)/(top - lo)) * (H-T-B); };
+
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="'
+            + (opts.label || "progress") + '">';
+    /* three gridlines and their values, in text colour rather than the series
+       colour - the line carries the identity, the numbers do not need to. */
+    /* Three lines, two labels: the floor and the top. A value beside the middle
+       line would sit at the same height as a data label sooner or later, and
+       two numbers on one line is how a chart starts lying by accident. */
+    [0, 0.5, 1].forEach(function(f){
+      var v = lo + (top - lo) * f, yy = y(v);
+      svg += '<line class="grid" x1="' + L + '" y1="' + yy.toFixed(1) + '" x2="' + W
+           + '" y2="' + yy.toFixed(1) + '" opacity="' + (f === 0 ? 1 : 0.45) + '"/>';
+      if(f !== 0.5){
+        svg += '<text class="lbl" x="' + (L-5) + '" y="' + (yy+3).toFixed(1)
+             + '" text-anchor="end">' + n1(Math.round(v*10)/10) + '</text>';
+      }
+    });
+    var d = series.map(function(p,i){ return (i ? "L" : "M") + x(i).toFixed(1) + " " + y(p.v).toFixed(1); }).join(" ");
+    svg += '<path d="' + d + '" fill="none" stroke="' + opts.color + '" stroke-width="2"'
+         + ' stroke-linecap="round" stroke-linejoin="round"/>';
+    var bestI = vals.indexOf(hi);
+    series.forEach(function(p,i){
+      var cx = x(i), cy = y(p.v);
+      var show = (i === 0 || i === n-1 || i === bestI);
+      /* a 2px ring in the surface colour so points on top of the line stay
+         legible where they bunch up */
+      svg += '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="4" fill="'
+           + opts.color + '" stroke="var(--card)" stroke-width="2"/>';
+      if(show){
+        svg += '<text class="lbl" x="' + cx.toFixed(1) + '" y="' + (cy-8).toFixed(1)
+             + '" text-anchor="middle" style="font-size:9.5px;fill:var(--ink)">'
+             + n1(p.v) + '</text>';
+      }
+      svg += '<circle class="pt" cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1)
+           + '" r="12" fill="transparent" data-i="' + i + '"><title>' + p.label
+           + ': ' + n1(p.v) + ' ' + (opts.unit || "") + '</title></circle>';
+    });
+    /* first and last dates only: a date under every point is unreadable on a
+       phone and tells nobody anything they cannot get by tapping. */
+    svg += '<text class="lbl" x="' + L + '" y="' + (H-5) + '">' + series[0].short + '</text>';
+    if(n > 1) svg += '<text class="lbl" x="' + W + '" y="' + (H-5) + '" text-anchor="end">'
+                   + series[n-1].short + '</text>';
+    svg += '</svg>';
+    return svg;
+  }
+
+  function shortDate(key){
+    var a = String(key).split("-");
+    try {
+      return new Date(+a[0], +a[1]-1, +a[2]).toLocaleDateString(undefined, { day:"numeric", month:"short" });
+    } catch(e){ return key; }
+  }
+
+  function openProgressSheet(startEx){
+    var list = exercisesLogged();
+    openSheet("Training progress", function(body){
+      if(!list.length){
+        body.appendChild(el("p","tiny",
+          "Nothing to plot yet. Log a few sets on the Move tab and this fills in by itself — "
+          + "every set you have ever saved is already kept with its day."));
+        var c0 = el("button","btn sm line full","Close"); c0.type = "button";
+        c0.style.marginTop = "12px"; c0.addEventListener("click", closeSheet);
+        body.appendChild(c0);
+        return;
+      }
+      body.appendChild(el("p","tiny",
+        "Reps per session for endurance, heaviest set for strength — kept apart on "
+        + "purpose, because the two measures share no scale. Tap a point for that session."));
+
+      var grid = el("div","exgrid");
+      var host = el("div");
+      var chosen = (startEx && list.indexOf(startEx) >= 0) ? startEx : list[0];
+
+      function draw(){
+        host.innerHTML = "";
+        var ss = sessionsFor(chosen);
+        if(!ss.length){ host.appendChild(el("p","formula","No sets saved for this one.")); return; }
+
+        var repSeries = ss.map(function(x){
+          return { v:x.reps, label:dayLabel(x.date), short:shortDate(x.date), s:x };
+        });
+        var first = ss[0], last = ss[ss.length-1];
+        var bestReps = Math.max.apply(null, ss.map(function(x){ return x.reps; }));
+
+        /* The headline first: across N sessions, what actually changed. */
+        var moved = last.reps - first.reps;
+        host.appendChild(el("p","formula",
+          "<b>" + ss.length + " session" + (ss.length === 1 ? "" : "s") + "</b> logged, "
+          + shortDate(first.date) + " to " + shortDate(last.date) + ". Reps a session went "
+          + first.reps + " → " + last.reps
+          + (ss.length > 1 ? " (" + (moved >= 0 ? "+" : "−") + Math.abs(moved) + ")" : "")
+          + ", best " + bestReps + "."));
+
+        var w1 = el("div","chartwrap");
+        var h1 = el("div","charthead");
+        h1.appendChild(el("div","ct","Endurance · reps per session"));
+        h1.appendChild(el("div","cv","best " + bestReps));
+        w1.appendChild(h1);
+        var s1 = el("div");
+        s1.innerHTML = lineChart(repSeries, { color:"var(--out)", unit:"reps",
+                                              label:"reps per session" });
+        w1.appendChild(s1);
+        var r1 = el("div","chartread","Tap a point for that session.");
+        w1.appendChild(r1);
+        host.appendChild(w1);
+        wirePoints(s1, repSeries, r1, function(p){
+          return dayLabel(p.s.date) + ": <b>" + p.s.reps + "</b> reps across "
+               + p.s.sets + " set" + (p.s.sets === 1 ? "" : "s")
+               + (p.s.best > 0 ? ", heaviest " + n1(p.s.best) + " kg" : "");
+        });
+
+        var weighted = ss.filter(function(x){ return x.best > 0; });
+        if(weighted.length){
+          var kgSeries = weighted.map(function(x){
+            return { v:x.best, label:dayLabel(x.date), short:shortDate(x.date), s:x };
+          });
+          var bestKg = Math.max.apply(null, weighted.map(function(x){ return x.best; }));
+          var w2 = el("div","chartwrap");
+          var h2 = el("div","charthead");
+          h2.appendChild(el("div","ct","Strength · heaviest set, kg"));
+          h2.appendChild(el("div","cv","best " + n1(bestKg) + " kg"));
+          w2.appendChild(h2);
+          var s2 = el("div");
+          s2.innerHTML = lineChart(kgSeries, { color:"var(--fat)", unit:"kg",
+                                               label:"heaviest set in kilograms" });
+          w2.appendChild(s2);
+          var r2 = el("div","chartread","Tap a point for that session.");
+          w2.appendChild(r2);
+          host.appendChild(w2);
+          wirePoints(s2, kgSeries, r2, function(p){
+            return dayLabel(p.s.date) + ": <b>" + n1(p.s.best) + " kg</b> for "
+                 + p.s.bestReps + " reps"
+                 + " · about " + n1(p.s.best * (1 + p.s.bestReps/30))
+                 + " kg for one (Epley)";
+          });
+        } else {
+          host.appendChild(el("p","formula",
+            "Every set of this one is logged at body weight, so there is no load to plot. "
+            + "Reps are the strength measure until you start adding weight — log a set "
+            + "with a load and a second chart appears here."));
+        }
+
+        /* The numbers themselves, because a chart is not a record. */
+        var det = el("details","ntrow"); det.style.marginTop = "10px";
+        det.appendChild(el("summary",null,"Every session, as numbers"));
+        var rows = ss.slice().reverse().map(function(x){
+          return { label:dayLabel(x.date),
+                   work:x.sets + " set" + (x.sets === 1 ? "" : "s")
+                      + (x.best > 0 ? " · heaviest " + n1(x.best) + " kg" : " · body weight"),
+                   val:x.reps + " reps" };
+        });
+        var t = el("div");
+        t.innerHTML = tbl(rows);
+        det.appendChild(t);
+        host.appendChild(det);
+      }
+
+      function wirePoints(container, series, readout, fmt){
+        container.querySelectorAll(".pt").forEach(function(node){
+          var i = +node.getAttribute("data-i");
+          ["pointerdown","mouseenter","focus"].forEach(function(ev){
+            node.addEventListener(ev, function(){ readout.innerHTML = fmt(series[i]); });
+          });
+        });
+      }
+
+      list.forEach(function(id){
+        var chip = el("button","qchip" + (id === chosen ? " on" : ""), exerciseName(id));
+        chip.type = "button";
+        chip.addEventListener("click", function(){
+          chosen = id;
+          grid.querySelectorAll(".qchip").forEach(function(c){ c.classList.remove("on"); });
+          chip.classList.add("on");
+          draw();
+        });
+        grid.appendChild(chip);
+      });
+      body.appendChild(grid);
+      body.appendChild(host);
+      draw();
+
+      var done = el("button","btn sm line full","Close"); done.type = "button";
+      done.style.marginTop = "12px";
+      done.addEventListener("click", closeSheet);
+      body.appendChild(done);
+    });
+  }
+  window.caloProgress = { open: openProgressSheet };
+  (function(){
+    var b = document.getElementById("progressBtn");
+    if(b) b.addEventListener("click", function(e){ e.preventDefault(); openProgressSheet(); });
+  })();
+
+  /* ================= EVERY DAY YOU HAVE LOGGED =======================
+     The month card shows the shape of a month; this shows a day. Tap one and
+     it is rebuilt with the same arithmetic today gets - what was eaten line by
+     line, what was burned, where the balance went. And since a day people
+     missed is the commonest reason to want this, a day can be opened for
+     filling in: the controls load with that day, every save goes back into it,
+     and a bar across the top makes sure nobody forgets which day they are in.
+     ================================================================== */
+  function loggedDays(){
+    var u = (typeof activeUser === "function") ? activeUser() : null;
+    if(!u || !u.days) return [];
+    return Object.keys(u.days).sort().reverse();
+  }
+  function dayLabel(key){
+    var parts = String(key).split("-");
+    var d = new Date(+parts[0], +parts[1]-1, +parts[2]);
+    try {
+      return d.toLocaleDateString(undefined, { weekday:"short", day:"numeric", month:"short" })
+           + (key === todayKey() ? " \u00b7 today" : "");
+    } catch(e){ return key; }
+  }
+  function dayNumbers(key){
+    var u = activeUser(); if(!u) return null;
+    var snap = u.days[key]; if(!snap) return null;
+    try { return usingSnapshot(snap, compute); } catch(e){ return null; }
+  }
+
+  function openHistorySheet(){
+    openSheet("Every day you have logged", function(body){
+      var keys = loggedDays();
+      if(!keys.length){
+        body.appendChild(el("p","tiny","Nothing logged yet. Days appear here as you log them."));
+      } else {
+        body.appendChild(el("p","tiny",
+          "The last " + keys.length + " day" + (keys.length === 1 ? "" : "s")
+          + " this profile has logged, newest first. Tap one to see it in full, or to "
+          + "fill in what you missed."));
+      }
+      keys.forEach(function(k){
+        var d = dayNumbers(k);
+        var det = el("details","ntrow");
+        var sm = el("summary","ntsum");
+        var top = el("div","nttop");
+        top.appendChild(el("div","ntname", dayLabel(k)));
+        top.appendChild(el("div","ntval", d && d.ready
+          ? kc(d.food.kcal) + " in \u00b7 " + kc(d.out) + " out"
+          : "nothing worked out"));
+        top.appendChild(el("span","ntcar","\u203a"));
+        sm.appendChild(top);
+        det.appendChild(sm);
+        /* Built only when the row is opened: rebuilding thirty days of
+           arithmetic up front would make the sheet crawl. */
+        var filled = false;
+        det.addEventListener("toggle", function(){
+          if(!det.open || filled) return;
+          filled = true;
+          var dd = dayNumbers(k);
+          if(!dd || !dd.ready){
+            det.appendChild(el("p","formula",
+              "This day has no body details saved with it, so nothing can be worked out from it."));
+          } else {
+            var wrap = el("div","calc");
+            det.appendChild(wrap);
+            try { renderCalcInto(wrap, dd, { wholeDay: k !== todayKey() }); }
+            catch(e){ wrap.appendChild(el("p","formula","Could not rebuild this day.")); }
+            try { compute(); } catch(e){}        // put the live day back
+          }
+          var row = el("div","btnrow"); row.style.margin = "10px 0 4px";
+          var edit = el("button","btn sm line", k === todayKey() ? "This is today" : "Fill in this day");
+          edit.type = "button";
+          edit.disabled = (k === todayKey());
+          edit.addEventListener("click", function(){ startEditingDay(k); });
+          row.appendChild(edit);
+          det.appendChild(row);
+        });
+        body.appendChild(det);
+      });
+
+      var done = el("button","btn sm line full","Close"); done.type = "button";
+      done.style.marginTop = "12px";
+      done.addEventListener("click", closeSheet);
+      body.appendChild(done);
+    });
+  }
+
+  /* restore() deliberately leaves alone any control the snapshot does not
+     mention, so that a saved day with no weight in it cannot wipe your height.
+     That is right for settings and wrong for food: switching to another day
+     with today's chapati still sitting in the box wrote today's chapati into
+     that day. Anything loggable the target day does not mention was not logged
+     that day, so it goes to zero first - the same rule usingSnapshot() uses to
+     rebuild a past day for reading. */
+  function restoreDay(snap){
+    snap = snap || {};
+    var loggable = (typeof LOG_IDS !== "undefined") ? new Set(LOG_IDS) : new Set();
+    allControls().forEach(function(n){
+      if(snap[n.id] !== undefined) return;
+      if(loggable.has(n.id)) n.value = 0;
+    });
+    restore(snap);
+  }
+
+  function paintEditBar(){
+    var bar = document.getElementById("editDayBar");
+    var txt = document.getElementById("editDayText");
+    if(!bar) return;
+    window.caloEditingDay = !!editDay;
+    if(editDay){
+      if(txt) txt.textContent = "Logging into " + dayLabel(editDay);
+      bar.classList.add("show");
+      document.body.classList.add("editing-day");
+    } else {
+      bar.classList.remove("show");
+      document.body.classList.remove("editing-day");
+    }
+  }
+  function startEditingDay(key){
+    var u = activeUser(); if(!u) return;
+    /* Whatever is on screen belongs to the day it was loaded for - save it
+       before the controls are handed to another day. */
+    try { u.days[dayKey()] = snapshot(); saveDb(); } catch(e){}
+    editDay = key;
+    restoreDay(u.days[key]);
+    noteDayOnScreen();
+    paintEditBar();
+    if(typeof refreshVisibility === "function") refreshVisibility();
+    if(typeof update === "function") update();
+    if(typeof renderToday === "function") renderToday();
+    closeSheet();
+  }
+  function stopEditingDay(){
+    var u = activeUser();
+    try { if(u){ u.days[dayKey()] = snapshot(); saveDb(); } } catch(e){}
+    editDay = null;
+    if(u) restoreDay(u.days[todayKey()] || u.usual || null);
+    noteDayOnScreen();
+    paintEditBar();
+    if(typeof refreshVisibility === "function") refreshVisibility();
+    if(typeof update === "function") update();
+    if(typeof renderToday === "function") renderToday();
+  }
+  (function(){
+    var back = document.getElementById("editDayBack");
+    if(back) back.addEventListener("click", stopEditingDay);
+    var open = document.getElementById("openHistory");
+    if(open) open.addEventListener("click", function(e){ e.preventDefault(); openHistorySheet(); });
+  })();
+  window.caloHistory = { open: openHistorySheet, edit: startEditingDay, today: stopEditingDay };
+
   /* ---- the Settings sheet ---- */
   function openSettings(){
     openSheet("Reminders & settings", function(body){
@@ -7219,6 +7814,41 @@ try{
           }
         }
         body.appendChild(note);
+      })();
+
+      grp("Your days");
+      (function(){
+        swrow("Close the day by itself",
+              "At 11:59 pm the day is finished and filed, which fixes the fat and muscle "
+              + "figures at the finished-day numbers instead of leaving them drifting with "
+              + "the clock. If the app is not open then, it is done the next time you open "
+              + "it \u2014 any earlier day you logged and never closed gets filed where it "
+              + "stood. Off means you close each day yourself.",
+              (typeof autoCloseOn === "function") ? autoCloseOn() : true,
+              function(on){
+                if(typeof setAutoClose === "function") setAutoClose(on);
+                if(on && typeof closeStaleDays === "function"){
+                  var n = closeStaleDays();
+                  say(n ? "On \u2014 " + n + " earlier day" + (n === 1 ? "" : "s") + " filed just now."
+                        : "On \u2014 days will be filed at 11:59 pm.");
+                } else {
+                  say("Off \u2014 you close each day yourself.");
+                }
+              });
+      })();
+      (function(){
+        var r = el("div","setrow");
+        var lft = el("div");
+        lft.appendChild(el("label", null, "Past days"));
+        lft.appendChild(el("span","sublbl",
+          "Every day you have logged, in full \u2014 what was eaten, what was burned, and "
+          + "where the balance went. You can also fill in a day you missed."));
+        r.appendChild(lft);
+        var b = el("button","btn sm line","Open"); b.type = "button";
+        b.style.whiteSpace = "nowrap";
+        b.addEventListener("click", function(){ if(window.caloHistory) window.caloHistory.open(); });
+        r.appendChild(b);
+        body.appendChild(r);
       })();
 
       grp("Another phone");
