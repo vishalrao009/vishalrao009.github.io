@@ -444,6 +444,21 @@ body{top:0!important}
 /* The commit bar is pinned to the sheet, outside the scrolling body, because a
    numeric keypad has no return key and a Done button that scrolls under the
    keyboard is a Done button that does not exist. */
+/* ---- meal times / digestion card ---- */
+.mealrow{display:flex;align-items:center;gap:10px;padding:8px 0;
+  border-top:1px solid var(--line)}
+.mealrow:first-child{border-top:0}
+.mealrow .mtime{flex:none;width:7.2em}
+.mealrow .mwhat{flex:1 1 auto;min-width:0}
+.mealrow .mwhat b{display:block;font-weight:600}
+.mealrow .mwhat span{display:block;font-size:12px;color:var(--muted)}
+.mealrow .mdrop{flex:none;border:0;background:transparent;color:var(--muted);
+  font-size:18px;line-height:1;padding:4px 6px}
+.mbar{height:6px;border-radius:99px;background:var(--card2);overflow:hidden;margin-top:5px}
+.mbar i{display:block;height:100%;background:var(--store);border-radius:99px}
+.mwin{margin-top:10px;padding:10px 12px;border-radius:var(--r-sm);background:var(--card2)}
+.mwin b{display:block}
+.mwin span{font-size:12px;color:var(--muted)}
 .sfoot{flex:none;display:flex;gap:10px;padding:10px 18px
   calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);
   background:var(--card)}
@@ -836,6 +851,12 @@ input,select{scroll-margin:84px 0 180px}
       </div>
     </div>
 
+    <div class="card mealcard hidden" id="mealCard">
+      <div class="cardhead"><h2>Still going in</h2>
+        <span class="sm" id="mealHint"></span></div>
+      <div id="mealBody"></div>
+    </div>
+
     <div class="card" id="quickCard">
       <div class="cardhead"><h2 id="quickTitle">Anything else today?</h2>
         <button class="collapsebtn" id="quickCollapse" type="button" aria-label="Collapse"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button></div>
@@ -898,6 +919,15 @@ input,select{scroll-margin:84px 0 180px}
     <input type="hidden" id="sabjiDryVeg" value="">
     <input type="hidden" id="sabjiGravyVeg" value="">
     <input type="hidden" id="chapatiKind" value="">
+    <!-- Meal times. mealLog is the day's sittings as JSON: [{t:"13:40",q:{id:qty}}].
+         mealTiming is the setting, and is proxied into the settings sheet rather
+         than moved there, so it can never go missing while a sheet is open. -->
+    <input type="hidden" id="mealLog" value="">
+    <select id="mealTiming" hidden aria-hidden="true" tabindex="-1">
+      <option value="off" selected>Off</option>
+      <option value="ask">Ask me the time</option>
+      <option value="slot">Assume my meal slot</option>
+    </select>
     <div class="card">
       <div class="cardhead"><h2>What you ate</h2><span class="sm" id="foodTot"></span></div>
       <div id="slotFood"><div class="rowlist" id="foodRows"></div></div>
@@ -3011,6 +3041,14 @@ function compute(){
         timed = readTimed(weight), cardio = readCardio(weight), chores = readChores(weight),
         glute = readGlute(weight,height);
 
+  /* Optional meal-time model. With the setting off this hands back the day's
+     food untouched and every line below behaves exactly as it always did. With
+     it on, "so far" counts only what has actually been absorbed by now; the
+     full-day figures further down still use the whole of what was eaten,
+     because all of it lands before the day is out. */
+  const mt = (window.caloMeals && window.caloMeals.absorbed(food))
+           || {on:false, kcal:food.kcal, p:food.p, gut:0};
+
   const bodyFat = +$("bodyFat").value || 0;
   const rr = restingRate(weight, height, age, male, bodyFat);
   const bmr = rr.kcal;
@@ -3020,6 +3058,11 @@ function compute(){
   const protShare = food.kcal>0 ? (food.p*4)/food.kcal : 0;
   const tefRate = 0.09 + 0.09*protShare;
   const tef = food.kcal*tefRate;
+  /* The thermic effect is the cost of processing food, so it is only being paid
+     on the part that has been processed. Charging the whole day's TEF against a
+     breakfast still in the stomach would make the morning look busier than it
+     was. */
+  const tefNow = mt.kcal*tefRate;
   /* Two separate sleep terms, kept apart because one is measured well and the
      other is not.
 
@@ -3047,10 +3090,10 @@ function compute(){
      is the only fair comparison against the food logged so far. "Full day" is
      where it lands by midnight if nothing else is eaten or done, and is the only
      figure from which a tissue change can be worked out. */
-  const outSoFar = bmr*prog.rest + neat*prog.awake + tef + activity + sleepAdj
+  const outSoFar = bmr*prog.rest + neat*prog.awake + tefNow + activity + sleepAdj
                  + brainSleep*prog.rest;
   const out = bmr + neat + tef + activity + sleepAdj + brainSleep;
-  const balanceSoFar = food.kcal - outSoFar;
+  const balanceSoFar = mt.kcal - outSoFar;
   const balance = food.kcal - out;
   const ppk = food.p/weight;
   const lifted = st.reps>0;
@@ -3084,17 +3127,23 @@ function compute(){
      the day has actually passed. The deficit branch needs no such scaling - it
      is a straight ratio, so a third of a day's deficit gives a third of the
      tissue. */
-  function partition(bal, capScale){
+  function partition(bal, capScale, ppkSoFar){
     let fatKg, leanKg, capped=false, part={};
     if(bal>=0){
       const capG = LEAN_CAP[level] * (capScale === undefined ? 1 : capScale);
-      const potentialG = capG * sigS * sigP * sigZ;
+      /* Protein you have swallowed but not yet absorbed cannot be built from.
+         When meal times are on, the live call is handed the protein that has
+         actually reached the blood, so the muscle figure climbs over the hours
+         after a protein feeding rather than the instant it is typed in. */
+      const sP = ppkSoFar === undefined ? sigP
+               : Math.max(0, Math.min(1, ppkSoFar/1.6));
+      const potentialG = capG * sigS * sP * sigZ;
       let muscleKcal = potentialG/1000 * KCAL_LEAN_GAIN;
       if(muscleKcal > bal){ muscleKcal = bal; capped = true; }
       const fatKcal = bal - muscleKcal;
       leanKg = muscleKcal/KCAL_LEAN_GAIN;
       fatKg  = fatKcal/KCAL_FAT;
-      part = {surplus:true, sigS, sigP, sigZ, capG, potentialG,
+      part = {surplus:true, sigS, sigP:sP, sigZ, capG, potentialG,
               builtG:leanKg*1000, muscleKcal, fatKcal, hardSets, grpSets, grpSignal,
               energyLimited: capped};
     } else {
@@ -3129,7 +3178,8 @@ function compute(){
   const full = partition(balance);
   const fatKg = full.fatKg, leanKg = full.leanKg,
         capped = full.capped, part = full.part;
-  const now  = partition(balanceSoFar, prog.rest);   // live, as the day stands
+  const now  = partition(balanceSoFar, prog.rest,
+                         mt.on ? mt.p/weight : undefined);   // live, as the day stands
 
   const waterTarget = 35*weight + 600*((st.minutes+timed.minutes)/60) + 400*(chores.minutes/120);
   const burn = Object.assign({}, st.burn, timed.burn, cardio.burn, chores.burn, mental.burn, glute.burn);
@@ -3137,7 +3187,9 @@ function compute(){
           food,st,timed,cardio,chores,mental,glute,bmr,neat,tef,tefRate,protShare,
           sleepAdj,brainSleep,activity,out,balance,fatKg,leanKg,capped,part,ppk,water,waterTarget,
           fatNow:now.fatKg, leanNow:now.leanKg, partNow:now.part, cappedNow:now.capped,
-          sleep,level,lifted,neatRate,burn,fastH,fastSpare};
+          sleep,level,lifted,neatRate,burn,fastH,fastSpare,
+          mealsOn:mt.on, foodIn:mt.kcal, protIn:mt.p, gutKcal:mt.gut,
+          sittings:mt.sittings||[], mps:mt.mps||null};
 }
 
 
@@ -3155,7 +3207,7 @@ function update(){
   if(window.caloSupp) window.caloSupp.sync();
   const d = compute();
   const ready = d.ready;
-  const inK = d.food.kcal;
+  const inK = d.foodIn;                     // absorbed by now, not merely swallowed
   const outK = ready ? d.outSoFar : 0;      // spent by now, not by midnight
   const bal = d.balanceSoFar;
   /* A day with a ready profile is never blanked. Zero food is now read as a
@@ -3295,6 +3347,7 @@ function update(){
   if(window.paintMicroTile) window.paintMicroTile();
 
   renderDaySoFar(d);
+  if(window.caloMeals) window.caloMeals.afterUpdate(d);
   renderCloseRow(ready, done, d, usualIn, inK);
 
   /* A short line so the front page says what is already logged, without
@@ -3801,7 +3854,11 @@ function renderDaySoFar(d){
   card.classList.toggle("hidden", !logged);
   if(!logged) return;
 
-  const intake = d.food.kcal, exp = d.outSoFar, bal = d.balanceSoFar;
+  /* Eaten means eaten-and-absorbed once meal times are on, because the net
+     figure beside it is worked out the same way; a ring where in minus out did
+     not equal net would be worse than no ring. What is still in the stomach
+     gets its own line under the legend. */
+  const intake = d.foodIn, exp = d.outSoFar, bal = d.balanceSoFar;
 
   /* The three numbers a calorie tracker actually cares about: what went IN
      (eaten), what went OUT (burned), and the NET gap between them. The ring is a
@@ -3828,7 +3885,9 @@ function renderDaySoFar(d){
     + `<div class="daystat" data-flow="stored"><i style="background:${netColor}"></i>`
         + `<span>Net ${netWord}</span><b style="color:${netColor}">${netVal}</b></div>`
     + `<div class="daystat sub"><i style="background:transparent"></i>`
-        + `<span>all figures in kcal</span><b></b></div>`;
+        + `<span>${d.gutKcal > 1
+              ? kc(d.gutKcal)+" kcal eaten but not absorbed yet"
+              : "all figures in kcal"}</span><b></b></div>`;
 
   $("dayEditLbl").textContent = "Edit what you ate and did";
 }
@@ -5979,6 +6038,481 @@ $("openCalc").addEventListener("click", () => {
     renderCalcInto(wrap, lastD);
   });
 });
+
+/* ==================================================================
+   MEAL TIMES  (optional, off by default)
+
+   What this can and cannot do, because the distinction decides the whole
+   design. The day's fat figure is a net energy balance converted into
+   tissue - not a record of what any one meal deposited. You store after
+   every meal and draw it back out between them; what sticks is the
+   difference over the day. So knowing when you ate cannot change where
+   the number lands by midnight, and nothing here touches the full-day
+   maths. Anything that claimed otherwise would be inventing precision.
+
+   What it can fix is the live view. A 600 kcal lunch at 13:40 does not
+   put 600 kcal into you at 13:40 - it puts them in your stomach. They
+   arrive over the next few hours, carbohydrate first, fat last. With
+   this on, the tiles credit a meal along an absorption curve instead of
+   all at once, so the fat figure stops jumping the moment you type.
+
+   The curves. Gastric emptying plus absorption is an S, not a step: a
+   short lag while the stomach starts releasing, a rise, then a long
+   tail. A Weibull with shape 2 gives that shape from one constant per
+   macronutrient. Carbohydrate is largely in within about two hours.
+   Protein takes nearer three. Dietary fat travels as chylomicrons and
+   peaks in the blood somewhere around three to five hours, which is the
+   slow tail this is mostly here to represent. Larger meals empty more
+   slowly, so the constants stretch with the size of the sitting.
+
+   The build window. Muscle protein synthesis climbs from roughly
+   45 minutes after protein is eaten, peaks near two hours, and is back
+   at baseline by about three even if amino acids are still high - the
+   "muscle full" effect. So the window is ~0-3 h from the feeding, not
+   3-5 h, and a second feeding inside it adds much less than the same
+   protein eaten later would.
+
+   These are textbook averages, not measurements of you. Real emptying
+   varies with the meal, the person and the day.
+   ================================================================== */
+window.caloMeals = (function(){
+  "use strict";
+
+  var LAG = 0.15;                          // h before much leaves the stomach
+  var TAU = { c:0.85, p:1.40, f:2.60 };    // h, Weibull scale per macronutrient
+  var MPS_PEAK = 2.0, MPS_END = 3.0, MPS_MIN_G = 10;
+  var DAY_START = 4*60;                    // meals are not attributed before 4am
+  var SETTLE_MS = 5000;                    // quiet time that ends a sitting
+  var SLOTS = [["breakfast","breakfast","10:00"], ["lunch","lunch","15:00"],
+               ["snacks","a snack","18:00"],      ["dinner","dinner","22:00"],
+               ["supper","supper","23:30"]];
+
+  /* ---------- state ---------- */
+  function mode(){
+    var n = document.getElementById("mealTiming");
+    return (n && n.value) || "off";
+  }
+  function log(){
+    var n = document.getElementById("mealLog"), v = null;
+    try { v = JSON.parse(n && n.value); } catch(e){ v = null; }
+    if(!v || typeof v !== "object" || !Array.isArray(v.s)) return {s:[]};
+    return v;
+  }
+  function saveLog(o){
+    var n = document.getElementById("mealLog");
+    if(!n) return;
+    n.value = JSON.stringify(o);
+    /* Set from script, so no input event fires and the day would not be
+       written. Save it by hand. */
+    if(typeof rememberLast === "function") rememberLast();
+  }
+
+  /* ---------- clock ---------- */
+  function toMin(t){
+    if(!t || !/^\d{1,2}:\d{2}$/.test(t)) return null;
+    var p = t.split(":");
+    return (+p[0])*60 + (+p[1]);
+  }
+  function hm(mins){
+    mins = Math.max(0, Math.min(24*60 - 1, Math.round(mins)));
+    return String(Math.floor(mins/60)).padStart(2,"0") + ":"
+         + String(mins%60).padStart(2,"0");
+  }
+  function nowMin(){
+    var d = new Date();
+    return d.getHours()*60 + d.getMinutes() + d.getSeconds()/60;
+  }
+  function pretty(mins){
+    var m = Math.round(mins), h = Math.floor(m/60) % 24, mm = ((m%60)+60)%60;
+    var ap = h < 12 ? "am" : "pm", h12 = h % 12 || 12;
+    return h12 + ":" + String(mm).padStart(2,"0") + " " + ap;
+  }
+  function ago(hrs){
+    if(hrs < 1) return Math.round(hrs*60) + " min ago";
+    var h = Math.floor(hrs), m = Math.round((hrs - h)*60);
+    if(m === 60){ h += 1; m = 0; }
+    return h + " h" + (m ? " " + m + " min" : "") + " ago";
+  }
+
+  /* The reminder slots are deadlines - "lunch by 15:00" - so a meal assigned to
+     one sits somewhere in the window ending there. The midpoint of that window
+     is the fairest guess, and it is never allowed to land in the future: food
+     you have already eaten cannot still be ahead of you. */
+  function slots(){
+    var t = null;
+    try { var u = activeUser(); t = u && u.reminders && u.reminders.times; } catch(e){}
+    return SLOTS.map(function(s){
+      var end = toMin((t && t[s[0]]) || s[2]);
+      return { word:s[1], end: end === null ? toMin(s[2]) : end };
+    }).filter(function(s){ return s.end !== null; })
+      .sort(function(a,b){ return a.end - b.end; });
+  }
+  function slotGuess(at){
+    var ss = slots(), start = DAY_START, hit = null;
+    for(var i = 0; i < ss.length; i++){
+      if(at <= ss[i].end){ hit = { word:ss[i].word, mid:(start + ss[i].end)/2 }; break; }
+      start = ss[i].end;
+    }
+    if(!hit) hit = { word:"supper", mid:(start + 24*60)/2 };
+    return { word:hit.word, at: Math.min(at, hit.mid) };
+  }
+
+  /* ---------- absorption ---------- */
+  function frac(tau, hrs, size){
+    var x = (hrs - LAG)/(tau*size);
+    if(x <= 0) return 0;
+    return 1 - Math.exp(-x*x);
+  }
+
+  function absorbed(food){
+    var whole = { on:false, kcal:food.kcal, p:food.p, gut:0,
+                  total:food.kcal, sittings:[], mps:null };
+    if(mode() === "off") return whole;
+    /* withSnap() pours another day's values through the live controls to work
+       out a comparison. Measuring those against today's clock would be
+       meaningless, so a comparison always sees the whole of what was eaten. */
+    if(typeof inDiff !== "undefined" && inDiff) return whole;
+    /* Only today can be half-digested. On a day you are looking back at,
+       everything you ate is long since absorbed, so the honest figure is the
+       whole of it - not a curve measured against a clock that has moved on. */
+    try {
+      if(typeof dayKey === "function" && typeof todayKey === "function"
+         && dayKey() !== todayKey()) return whole;
+    } catch(e){ return whole; }
+
+    var now = nowMin(), qty = {};
+    food.items.forEach(function(it){ qty[it.id] = it.v; });
+
+    var saved = log().s, claimed = {};
+    saved.forEach(function(s){
+      Object.keys(s.q || {}).forEach(function(id){
+        claimed[id] = (claimed[id] || 0) + (+s.q[id] || 0);
+      });
+    });
+    /* An amount can be edited long after it was logged, so the record is
+       trustworthy about WHEN but not about HOW MUCH. Where a row now holds less
+       than the sittings claim, scale them back; where it holds more, the excess
+       has no time attached and falls through to the slot guess below. */
+    var scale = {};
+    Object.keys(claimed).forEach(function(id){
+      scale[id] = claimed[id] > 0 ? Math.min(1, (qty[id] || 0)/claimed[id]) : 0;
+    });
+
+    var kcalIn = 0, pIn = 0, total = 0, rows = [], feeds = [];
+
+    function digest(at, q, stamped){
+      var kc = 0, pr = 0, cb = 0, ft = 0, names = [];
+      Object.keys(q).forEach(function(id){
+        var fd = (typeof foodIndex === "object") && foodIndex[id];
+        var v = q[id];
+        if(!fd || !(v > 0)) return;
+        kc += v*fd.kcal; pr += v*fd.p; cb += v*fd.c; ft += v*fd.f;
+        names.push(fd.name);
+      });
+      if(kc <= 0) return;
+      total += kc;
+      var hrs  = Math.max(0, (now - at)/60);
+      var size = Math.min(1.8, 1 + kc/2500);     // a bigger meal empties slower
+      var Fp = frac(TAU.p, hrs, size),
+          Fc = frac(TAU.c, hrs, size),
+          Ff = frac(TAU.f, hrs, size);
+      /* One energy-weighted fraction per sitting, so a fatty meal trails behind
+         a starchy one of the same size. */
+      var macroK = Math.max(1, 4*pr + 4*cb + 9*ft);
+      var Fe = (4*pr*Fp + 4*cb*Fc + 9*ft*Ff)/macroK;
+      kcalIn += kc*Fe;
+      pIn    += pr*Fp;
+      rows.push({ at:at, kcal:kc, done:Fe, names:names, stamped:stamped });
+      if(pr >= MPS_MIN_G) feeds.push({ at:at, p:pr });
+    }
+
+    saved.forEach(function(s, i){
+      var at = toMin(s.t);
+      if(at === null) return;
+      var q = {};
+      Object.keys(s.q || {}).forEach(function(id){
+        var v = (+s.q[id] || 0) * (scale[id] === undefined ? 1 : scale[id]);
+        if(v > 0) q[id] = v;
+      });
+      digest(Math.min(at, now), q, i);
+    });
+
+    var loose = {}, any = false;
+    Object.keys(qty).forEach(function(id){
+      var used = (claimed[id] || 0) * (scale[id] === undefined ? 1 : scale[id]);
+      var left = qty[id] - used;
+      if(left > 1e-9){ loose[id] = left; any = true; }
+    });
+    if(any) digest(slotGuess(now).at, loose, -1);
+
+    var mps = null;
+    if(feeds.length){
+      feeds.sort(function(a,b){ return b.at - a.at; });
+      var last = feeds[0], h = Math.max(0, (now - last.at)/60);
+      mps = { at:last.at, g:last.p, hrs:h,
+              state: h < 0.75 ? "rising" : h < MPS_PEAK ? "peaking"
+                   : h < MPS_END ? "fading" : "closed",
+              left: Math.max(0, MPS_END - h) };
+    }
+
+    rows.sort(function(a,b){ return a.at - b.at; });
+    return { on:true, kcal:kcalIn, p:pIn, gut:Math.max(0, total - kcalIn),
+             total:total, sittings:rows, mps:mps };
+  }
+
+  /* ---------- the card ---------- */
+  function render(d){
+    var card = document.getElementById("mealCard");
+    if(!card) return;
+    var on = !!(d && d.mealsOn && d.sittings && d.sittings.length);
+    card.classList.toggle("hidden", !on);
+    if(!on) return;
+
+    document.getElementById("mealHint").textContent =
+      d.gutKcal > 1 ? kc(d.gutKcal) + " kcal still to land" : "all absorbed";
+
+    var body = document.getElementById("mealBody");
+    body.innerHTML = "";
+
+    d.sittings.forEach(function(s){
+      var row = el("div","mealrow");
+      var t = el("input"); t.type = "time"; t.className = "rtime mtime";
+      t.value = hm(s.at);
+      if(s.stamped < 0){
+        t.title = "Assumed from your meal slots - set it to record the real time";
+      }
+      t.addEventListener("change", function(){ retime(s, t.value); });
+      row.appendChild(t);
+
+      var what = el("div","mwhat");
+      var list = s.names.slice(0,3).join(", ")
+               + (s.names.length > 3 ? " +" + (s.names.length - 3) + " more" : "");
+      what.innerHTML = "<b>" + kc(s.kcal) + " kcal</b>"
+                     + "<span>" + (list || "food") + "</span>"
+                     + '<span class="mbar"><i style="width:'
+                     + Math.round(s.done*100) + '%"></i></span>'
+                     + "<span>" + Math.round(s.done*100) + "% absorbed"
+                     + (s.stamped < 0 ? " \u00b7 time assumed" : "") + "</span>";
+      row.appendChild(what);
+      body.appendChild(row);
+    });
+
+    if(d.mps){
+      var w = el("div","mwin"), m = d.mps;
+      var head, sub;
+      if(m.state === "closed"){
+        head = "Build window closed";
+        sub = "Last protein " + ago(m.hrs) + " ("
+            + Math.round(m.g) + " g). Muscle protein synthesis is back at "
+            + "baseline about three hours after a feeding, so the next dose of "
+            + "protein opens a fresh one.";
+      } else {
+        head = "Build window open \u2014 about "
+             + (m.left < 1 ? Math.round(m.left*60) + " min" : n1(m.left) + " h")
+             + " left";
+        sub = Math.round(m.g) + " g of protein " + ago(m.hrs) + ". "
+            + (m.state === "rising"  ? "Synthesis is still climbing; it peaks near two hours."
+             : m.state === "peaking" ? "This is about the peak."
+             : "Past the peak and settling back toward baseline.");
+      }
+      w.innerHTML = "<b>" + head + "</b><span>" + sub + "</span>";
+      body.appendChild(w);
+    }
+  }
+
+  function retime(s, v){
+    var at = toMin(v);
+    if(at === null) return;
+    var o = log();
+    if(s.stamped >= 0 && o.s[s.stamped]){
+      o.s[s.stamped].t = v;
+    } else {
+      /* An assumed sitting has no record behind it. Giving it a time turns it
+         into a real one, covering exactly the food that was not already
+         spoken for. */
+      var q = {};
+      Object.keys(pendingLeftovers()).forEach(function(id){ q[id] = pendingLeftovers()[id]; });
+      if(!Object.keys(q).length) return;
+      o.s.push({ t:v, q:q });
+    }
+    saveLog(o);
+    update();
+  }
+
+  /* Whatever the log does not account for, as quantities - the same sum the
+     absorber falls back on. */
+  function pendingLeftovers(){
+    var claimed = {};
+    log().s.forEach(function(s){
+      Object.keys(s.q || {}).forEach(function(id){
+        claimed[id] = (claimed[id] || 0) + (+s.q[id] || 0);
+      });
+    });
+    var out = {};
+    for(var id in foodIndex){
+      var n = document.getElementById("f_" + id);
+      var v = n ? (+n.value || 0) : 0;
+      var left = v - (claimed[id] || 0);
+      if(left > 1e-9) out[id] = left;
+    }
+    return out;
+  }
+
+  /* ---------- noticing a sitting ---------- */
+  var seen = null, seenDay = null, pend = {}, timer = null;
+
+  function quantities(){
+    var q = {};
+    for(var id in foodIndex){
+      var n = document.getElementById("f_" + id);
+      if(n) q[id] = +n.value || 0;
+    }
+    return q;
+  }
+
+  function afterUpdate(d){
+    /* withSnap() pours another day's values through the live controls and puts
+       them back afterwards. Every one of those looks like food appearing out of
+       nowhere, so stay out of the way entirely. */
+    if(typeof inDiff !== "undefined" && inDiff) return;
+    try { render(d); } catch(e){}
+    if(mode() === "off"){ seen = quantities(); return; }
+    var day = (typeof dayKey === "function") ? dayKey() : "";
+    var q = quantities();
+    if(seen === null || day !== seenDay){ seen = q; seenDay = day; return; }
+    var grew = false;
+    Object.keys(q).forEach(function(id){
+      var up = q[id] - (seen[id] || 0);
+      if(up > 1e-9){ pend[id] = (pend[id] || 0) + up; grew = true; }
+    });
+    seen = q;
+    if(grew) arm();
+  }
+
+  function arm(){
+    if(timer) clearTimeout(timer);
+    timer = setTimeout(settle, SETTLE_MS);
+  }
+  /* A sitting is however much food went in before you stopped adding to it. A
+     sheet still open means you are not finished, so wait rather than ask twice
+     for one meal. */
+  function settle(){
+    timer = null;
+    if(!Object.keys(pend).length) return;
+    if(document.querySelector(".sheet.on")){ arm(); return; }
+    var q = pend; pend = {};
+    if(mode() === "slot"){ commit(q, hm(slotGuess(nowMin()).at)); return; }
+    ask(q);
+  }
+
+  function commit(q, t){
+    var o = log();
+    o.s.push({ t:t, q:q });
+    saveLog(o);
+    update();
+  }
+
+  function nameList(q){
+    var names = Object.keys(q).map(function(id){
+      var fd = foodIndex[id];
+      return fd ? fd.name : null;
+    }).filter(Boolean);
+    if(!names.length) return "what you just logged";
+    if(names.length === 1) return names[0];
+    if(names.length === 2) return names[0] + " and " + names[1];
+    return names.slice(0,-1).join(", ") + " and " + names[names.length-1];
+  }
+
+  function ask(q){
+    var guess = slotGuess(nowMin());
+    openSheet("When did you eat this?", function(body){
+      body.appendChild(el("p","tiny",
+        "<b>" + nameList(q) + ".</b> Only the live tiles use this. What the day "
+      + "comes to by midnight is the same either way \u2014 the time decides how "
+      + "soon it shows up, not how much of it there is."));
+
+      var f = el("div","field");
+      f.appendChild(el("label", null, "Time you ate"));
+      var inp = el("input"); inp.type = "time"; inp.value = hm(nowMin());
+      f.appendChild(inp);
+      body.appendChild(f);
+
+      var save = el("button","btn primary full","Save");
+      save.type = "button";
+      save.style.marginTop = "10px";
+      save.addEventListener("click", function(){
+        var at = toMin(inp.value);
+        commit(q, at === null ? hm(nowMin()) : inp.value);
+        closeSheet();
+      });
+      body.appendChild(save);
+
+      var skip = el("button","btn sm line full",
+                    "Skip \u2014 assume " + guess.word + ", " + pretty(guess.at));
+      skip.type = "button";
+      skip.style.marginTop = "8px";
+      skip.addEventListener("click", function(){
+        commit(q, hm(guess.at));
+        closeSheet();
+      });
+      body.appendChild(skip);
+
+      body.appendChild(el("p","tiny",
+        "Skipping puts it at the middle of the meal window it falls in, from "
+      + "your cut-off times. You can correct any of them on the Today tab."));
+    });
+  }
+
+  /* ---------- settings ---------- */
+  /* The real control stays in the page and a copy is shown in the sheet. Moving
+     it would leave the app briefly without a control that snapshot() expects. */
+  function settings(body, grp){
+    var real = document.getElementById("mealTiming");
+    if(!real) return;
+    grp("Meal times");
+
+    var r = el("div","setrow");
+    var lft = el("div");
+    lft.appendChild(el("label", null, "Time of each meal"));
+    lft.appendChild(el("span","sublbl",
+      "Off by default. On, a meal's energy arrives in the live tiles over the "
+    + "few hours it takes to absorb rather than the instant you log it, so the "
+    + "fat and muscle figures stop jumping mid-meal. What the day adds up to by "
+    + "midnight does not change \u2014 timing cannot move that."));
+    r.appendChild(lft);
+
+    var sel = el("select");
+    [["off","Off"],["ask","Ask me the time"],["slot","Assume my meal slot"]]
+      .forEach(function(o){
+        var op = el("option", null, o[1]);
+        op.value = o[0];
+        sel.appendChild(op);
+      });
+    sel.value = mode();
+    sel.addEventListener("change", function(){
+      real.value = sel.value;
+      if(typeof rememberLast === "function") rememberLast();
+      seen = quantities();            // don't treat the day already logged as new
+      update();
+    });
+    r.appendChild(sel);
+    body.appendChild(r);
+
+    var wipe = el("button","btn sm line","Forget today's meal times");
+    wipe.type = "button";
+    wipe.style.marginTop = "8px";
+    wipe.addEventListener("click", function(){
+      saveLog({s:[]});
+      wipe.textContent = "Cleared";
+      update();
+    });
+    body.appendChild(wipe);
+  }
+
+  return { absorbed:absorbed, afterUpdate:afterUpdate, settings:settings, mode:mode };
+})();
+LOG_IDS.push("mealLog");           // belongs to the day, and is cleared with it
+SETTING_IDS.push("mealTiming");    // belongs to the profile, and outlives the day
 
 allControls().forEach(n => n.addEventListener("input", rememberLast));
 SETTING_IDS.forEach(id => { const n = $(id); if(n){ n.addEventListener("input", update);
@@ -8360,6 +8894,8 @@ body.editing-day{padding-top:38px}
         r.appendChild(grid);
         body.appendChild(r);
       })();
+
+      if(window.caloMeals) window.caloMeals.settings(body, grp);
 
       grp("Meal cut-off times");
       MEALS.forEach(function(m){ timeRow(m[1], m[0]); });
