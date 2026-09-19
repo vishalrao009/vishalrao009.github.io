@@ -2298,12 +2298,14 @@ function openSheet(title, buildBody){
   void sh.offsetHeight;                // force the layout to apply before we focus
   sheetOpen = true;
   buildBody($("sheetBody"));           // builds the fields and focuses, still inside the tap
-  requestAnimationFrame(() => sh.classList.remove("snap"));
+  fitSheet();                          // sit above the on-screen keyboard, not behind it
+  requestAnimationFrame(() => { sh.classList.remove("snap"); fitSheet(); });
 }
 function closeSheet(){
   restoreRows();
   sheetActions(null);
   $("sheet").classList.remove("on"); $("scrim").classList.remove("on");
+  clearSheetFit();
   sheetOpen = false;
   liveOff();
   update();
@@ -2311,6 +2313,37 @@ function closeSheet(){
 $("scrim").addEventListener("click", closeSheet);
 $("sheetX").addEventListener("click", closeSheet);
 document.addEventListener("keydown", ev => { if(ev.key === "Escape" && sheetOpen) closeSheet(); });
+
+/* iPhone / iOS: the bottom sheet is fixed to the bottom of the PAGE, but the
+   on-screen keyboard does not shrink the page - so the keyboard covers the lower
+   half of the sheet, and the browser scrolls the sheet up to reach the focused
+   search box, leaving the search box off the top of the screen and the results
+   parked on their last row (no visible search bar, no cursor). visualViewport
+   reports the strip of screen the keyboard leaves visible: size the sheet to
+   that strip and lift it above the keyboard, so the search box and the top match
+   stay on screen. Guarded by kbd>40 so desktop (no keyboard) keeps CSS 90vh. */
+function fitSheet(){
+  const sh = $("sheet"), vv = window.visualViewport;
+  if(!sheetOpen || !vv) return;
+  const kbd = Math.round(window.innerHeight - vv.height - vv.offsetTop);
+  if(kbd > 40){
+    sh.style.bottom = kbd + "px";
+    sh.style.maxHeight = Math.round(vv.height) + "px";
+  } else {
+    sh.style.bottom = "";
+    sh.style.maxHeight = "";
+  }
+}
+function clearSheetFit(){
+  const sh = $("sheet");
+  sh.style.bottom = "";
+  sh.style.maxHeight = "";
+}
+if(window.visualViewport){
+  const onVV = () => { if(sheetOpen) fitSheet(); };
+  window.visualViewport.addEventListener("resize", onVV);
+  window.visualViewport.addEventListener("scroll", onVV);
+}
 
 function buildPicker(kind, body, placeholder, after, opts){
   opts = opts || {};
@@ -6688,7 +6721,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.19c";
+  var APP_VERSION = "2026.09.19d";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
