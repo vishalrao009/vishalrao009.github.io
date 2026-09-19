@@ -3817,32 +3817,6 @@ function historySVG(rows){
        + `</svg>`;
 }
 
-/* Weekly weigh-in nudge. The muscle/fat split is a model; the scale is the
-   truth the app reconciles it against, and that only works if body weight is
-   refreshed now and then. Once a week - shown inside This month, where the
-   scale line lives - ask for a fresh number. In-app only: a background push on
-   an installed iOS app is not reliable enough to lean on. */
-function weighInfo(){
-  var u = (typeof activeUser === "function") ? activeUser() : null;
-  if(!u || !u.body) return null;
-  var at = +u.body.weighAt || 0;
-  if(!at){ u.body.weighAt = Date.now(); try{ saveDb(); }catch(e){} return { days: 0 }; }
-  return { days: (Date.now() - at) / 86400000 };
-}
-function stampWeighIn(){
-  var u = (typeof activeUser === "function") ? activeUser() : null;
-  if(!u) return;
-  if(!u.body) u.body = {};
-  var w = $("weight");
-  if(w && +w.value > 0){ u.body.weighAt = Date.now(); try{ saveDb(); }catch(e){} }
-}
-function weighSnoozed(){
-  try{ return (+localStorage.getItem("ledger.weighSnooze") || 0) > Date.now(); }catch(e){ return false; }
-}
-function snoozeWeigh(){
-  try{ localStorage.setItem("ledger.weighSnooze", String(Date.now() + 2*86400000)); }catch(e){}
-}
-
 function renderHistory(){
   const host = $("histBody");
   if(!host) return;
@@ -3860,19 +3834,7 @@ function renderHistory(){
   const w0 = rows[0].weight, w1 = rows[n-1].weight;
   const open = rows.filter(r => !r.closed && !r.today).length;
 
-  var nudge = "";
-  (function(){
-    var wi = weighInfo();
-    if(wi && wi.days >= 7 && n >= 3 && !weighSnoozed()){
-      nudge = `<div class="gate" style="display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px">`
-        + `<span>Weekly weigh-in: it has been ${Math.floor(wi.days)} days. Update your weight so this can be checked against the scale.</span>`
-        + `<span style="display:flex;gap:6px;flex:none">`
-        + `<button type="button" class="btn sm primary" id="weighNudgeGo">Update</button>`
-        + `<button type="button" class="btn sm line" id="weighNudgeLater">Later</button></span></div>`;
-    }
-  })();
-
-  let h = nudge + `<div class="bignum ${fatKg>=0?"c-fat":"c-out"}">`
+  let h = `<div class="bignum ${fatKg>=0?"c-fat":"c-out"}">`
         + `${fatKg>=0?"+":"\u2212"}${Math.abs(fatKg).toFixed(2)} kg</div>`
         + `<p class="lead" style="margin-top:2px">of body fat ${fatKg>=0?"gained":"burned"} across `
         + `${n} logged day${n>1?"s":""}, adding up each day's balance.</p>`;
@@ -3919,16 +3881,6 @@ function renderHistory(){
       closed, so ${open>1?"they":"it"} may be missing an evening meal.</p>`;
   }
   host.innerHTML = h;
-  (function(){
-    var goB = document.getElementById("weighNudgeGo");
-    if(goB) goB.addEventListener("click", function(){
-      showTab("you");
-      setTimeout(function(){ var w = document.getElementById("weight");
-        if(w){ try{ w.focus(); }catch(e){} try{ w.scrollIntoView({block:"center"}); }catch(e){} } }, 50);
-    });
-    var laterB = document.getElementById("weighNudgeLater");
-    if(laterB) laterB.addEventListener("click", function(){ snoozeWeigh(); renderHistory(); });
-  })();
 }
 
 /* What a saved usual day adds up to, so "still to eat" means something. */
@@ -6950,7 +6902,6 @@ LOG_IDS.push("mealLog");           // belongs to the day, and is cleared with it
 SETTING_IDS.push("mealTiming");    // belongs to the profile, and outlives the day
 
 allControls().forEach(n => n.addEventListener("input", rememberLast));
-(function(){ var wn = $("weight"); if(wn) wn.addEventListener("change", stampWeighIn); })();
 SETTING_IDS.forEach(id => { const n = $(id); if(n){ n.addEventListener("input", update);
                                                     n.addEventListener("change", update); } });
 
@@ -7765,7 +7716,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.19m";
+  var APP_VERSION = "2026.09.19k";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
