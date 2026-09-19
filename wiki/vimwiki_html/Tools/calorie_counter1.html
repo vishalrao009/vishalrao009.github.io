@@ -420,31 +420,12 @@ body{top:0!important}
 .sheet .grab{width:36px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 11px}
 .sheet .x{position:absolute;right:11px;top:19px;width:40px;height:40px;border:0;
   background:var(--card2);border-radius:50%;font-size:19px;line-height:1;padding:0}
-/* -webkit-overflow-scrolling:touch is gone on purpose. It has done nothing
-   since iOS 13 (momentum scrolling is the default), and on iOS it puts the
-   scroller on its own compositor layer where a position:sticky child stops
-   being repainted the moment the list under it is rebuilt - which is exactly
-   what made the search bar vanish on the first keystroke. */
-.sheet .sbody{overflow-y:auto;padding:12px 18px
+.sheet .sbody{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 18px
   calc(20px + env(safe-area-inset-bottom));
   /* min-height:0 is what actually lets a flex child scroll instead of growing
      past its parent; overscroll-behavior stops the page behind the sheet from
      scrolling once the sheet hits its end. */
   flex:1 1 auto;min-height:0;overscroll-behavior:contain}
-/* Inside a sheet the picker stops relying on position:sticky altogether. The
-   sheet body becomes a column that does not scroll itself: the search box is
-   its fixed top row and only the results below it move. A box that is not in
-   a scrolling box cannot be scrolled off the top of the screen, whatever iOS
-   decides to do with the list when the keyboard is up. */
-.sheet .sbody.haspicker{overflow:hidden;display:flex;flex-direction:column}
-/* Anything sitting above the picker - the push/pull/legs chips, say - keeps its
-   own height; the results are the only thing that gives. */
-.sheet .sbody.haspicker>*{flex:none}
-.sheet .sbody.haspicker .pickwrap{display:flex;flex-direction:column;
-  flex:1 1 auto;min-height:0}
-.sheet .sbody.haspicker .pickwrap>.search{flex:none;position:static;box-shadow:none}
-.sheet .sbody.haspicker .pickscroll{flex:1 1 auto;min-height:0;overflow-y:auto;
-  overscroll-behavior:contain}
 /* The commit bar is pinned to the sheet, outside the scrolling body, because a
    numeric keypad has no return key and a Done button that scrolls under the
    keyboard is a Done button that does not exist. */
@@ -680,7 +661,7 @@ input,select{scroll-margin:84px 0 180px}
    phone between typing and advancing. Shrink-wrapped, the button sits directly
    under the field being filled, and long steps still scroll with the button
    parked at the foot because the body shrinks rather than overflowing. */
-.wizbody{flex:0 1 auto;overflow-y:auto;padding:6px 18px 14px;
+.wizbody{flex:0 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 18px 14px;
   max-width:620px;width:100%;margin:0 auto;min-height:0;overscroll-behavior:contain}
 .wizfoot{flex:none;padding:10px 18px calc(14px + env(safe-area-inset-bottom));
   border-top:1px solid var(--line);background:var(--card);
@@ -2310,8 +2291,6 @@ function openSheet(title, buildBody){
   restoreRows();
   $("sheetTitle").textContent = title;
   $("sheetBody").innerHTML = "";
-  $("sheetBody").classList.remove("haspicker");   // only a picker pins its own top row
-  $("sheetBody").scrollTop = 0;
   sheetActions(null);
   sh.classList.add("snap");            // no slide, so it is on screen immediately
   sh.classList.add("on");
@@ -2368,25 +2347,14 @@ if(window.visualViewport){
 
 function buildPicker(kind, body, placeholder, after, opts){
   opts = opts || {};
-  /* Search box and everything it controls live in one wrapper. In a sheet the
-     wrapper is a flex column (.sbody.haspicker): the box is the fixed row and
-     .pickscroll is the only thing that moves, so the box cannot be scrolled -
-     or dropped by iOS's sticky compositing - out of view when the first letter
-     rebuilds the list. In the walkthrough there is no .sbody, the wrapper stays
-     an ordinary block, and the page scrolls as it always did. */
-  const wrap = el("div","pickwrap");
   const q = el("input","search"); q.type="search"; q.placeholder=placeholder;
   q.setAttribute("aria-label", placeholder);
-  wrap.appendChild(q);
-  const scroller = el("div","pickscroll");
+  body.appendChild(q);
   const list = el("div");
   list.style.overflowAnchor = "none";   // don't let the browser nudge the scroll when results re-render
-  scroller.appendChild(list);
+  body.appendChild(list);
   const stage = el("div","stage");       // the one thing you just picked
-  scroller.appendChild(stage);
-  wrap.appendChild(scroller);
-  body.appendChild(wrap);
-  if(body.classList && body.classList.contains("sbody")) body.classList.add("haspicker");
+  body.appendChild(stage);
   let browsing = false;
 
   function openItem(item){
@@ -2454,7 +2422,6 @@ function buildPicker(kind, body, placeholder, after, opts){
     });
     liveOn();
     update();
-    fitSheet();                          // the staged row changed the height
     focusNow($(ids[0]));                 // caret in the first number, keyboard up
   }
 
@@ -2468,7 +2435,6 @@ function buildPicker(kind, body, placeholder, after, opts){
      the sticky box stays put and match #1 lands right under it, ready to tap.
      Bottom sheets only - the walkthrough scrolls on its own terms. */
   function pinTop(){
-    if(scroller.scrollTop !== 0) scroller.scrollTop = 0;
     const host = list.closest(".sbody");
     if(host && host.scrollTop !== 0) host.scrollTop = 0;
   }
@@ -2507,11 +2473,6 @@ function buildPicker(kind, body, placeholder, after, opts){
     if(!shown) list.appendChild(el("p","tiny","Nothing matches that."));
     else if(filter && matched > shown) list.appendChild(el("p","tiny","Keep typing to narrow it down."));
     if(filter) pinTop();
-    /* The list going from one hint line to six rows changes the sheet's height
-       under a keyboard that is already up, and no viewport event fires for
-       that. Re-measure so the sheet still ends exactly at the top of the
-       keyboard instead of running behind it. */
-    fitSheet();
   }
   draw("");
   q.addEventListener("input", () => { browsing = false; draw(q.value.trim().toLowerCase()); });
