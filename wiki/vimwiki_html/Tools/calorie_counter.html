@@ -5,7 +5,7 @@
      Unauthorized copying, redistribution, or rebranding is prohibited.
      Original: https://vishalrao.in/wiki/vimwiki_html/Tools/calorie_counter.html -->
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>EatNmove</title>
 <meta name="description" content="EatNmove is a vegetarian calorie and energy tracker. Log food, lifting and housework, and see whether the difference becomes fat or muscle. All data stays in your browser.">
 <meta name="author" content="Vishal Rao">
@@ -2301,6 +2301,32 @@ function sheetActions(opts){
   more.onclick = opts.onMore;
   done.onclick  = opts.onDone;
 }
+/* With a sheet open and a keyboard up, iOS will happily scroll the DOCUMENT to
+   chase the focused field - and on iOS a position:fixed sheet rides along with
+   it, sliding off the top of the screen. Freezing the page underneath removes
+   the thing it would scroll. The offset keeps the view exactly where it was, so
+   nothing jumps when the sheet opens or closes. */
+let pageLockY = 0, pageLocked = false;
+function lockPage(){
+  if(pageLocked) return;
+  pageLockY = window.scrollY || document.documentElement.scrollTop || 0;
+  const s = document.body.style;
+  s.position = "fixed";
+  /* The translate shim further up sets body{top:0!important} to stop Google's
+     banner shoving the page down, and that would beat a plain inline top and
+     snap the view to the start of the day. An inline !important outranks it. */
+  s.setProperty("top", (-pageLockY) + "px", "important");
+  s.left = "0"; s.right = "0"; s.width = "100%";
+  pageLocked = true;
+}
+function unlockPage(){
+  if(!pageLocked) return;
+  const s = document.body.style;
+  s.position = ""; s.removeProperty("top");
+  s.left = ""; s.right = ""; s.width = "";
+  pageLocked = false;
+  window.scrollTo(0, pageLockY);
+}
 function openSheet(title, buildBody){
   const sh = $("sheet");
   /* Any row borrowed into the previous sheet (e.g. a food staged in the picker)
@@ -2318,9 +2344,14 @@ function openSheet(title, buildBody){
   $("scrim").classList.add("on");
   void sh.offsetHeight;                // force the layout to apply before we focus
   sheetOpen = true;
+  lockPage();
   buildBody($("sheetBody"));           // builds the fields and focuses, still inside the tap
   fitSheet();                          // sit above the on-screen keyboard, not behind it
   requestAnimationFrame(() => { sh.classList.remove("snap"); fitSheet(); });
+  /* The keyboard slides in over a few hundred milliseconds and iOS does not
+     reliably fire a viewport event for every step of it. Re-measure while it
+     settles rather than trusting one reading taken before it arrived. */
+  [80, 200, 360, 600].forEach(t => setTimeout(fitSheet, t));
 }
 function closeSheet(){
   restoreRows();
@@ -2328,6 +2359,7 @@ function closeSheet(){
   $("sheet").classList.remove("on"); $("scrim").classList.remove("on");
   clearSheetFit();
   sheetOpen = false;
+  unlockPage();
   liveOff();
   update();
 }
@@ -2339,21 +2371,34 @@ document.addEventListener("keydown", ev => { if(ev.key === "Escape" && sheetOpen
    on-screen keyboard does not shrink the page - so the keyboard covers the lower
    half of the sheet, and the browser scrolls the sheet up to reach the focused
    search box, leaving the search box off the top of the screen and the results
-   parked on their last row (no visible search bar, no cursor). visualViewport
-   reports the strip of screen the keyboard leaves visible: size the sheet to
-   that strip and lift it above the keyboard, so the search box and the top match
-   stay on screen. Guarded by kbd>40 so desktop (no keyboard) keeps CSS 90vh. */
+   parked on their last row (no visible search bar, no cursor, no sheet header).
+   visualViewport reports the strip of screen the keyboard leaves visible: size
+   the sheet to that strip and lift it above the keyboard. */
 function fitSheet(){
   const sh = $("sheet"), vv = window.visualViewport;
-  if(!sheetOpen || !vv) return;
-  const kbd = Math.round(window.innerHeight - vv.height - vv.offsetTop);
-  if(kbd > 40){
-    sh.style.bottom = kbd + "px";
-    sh.style.maxHeight = Math.round(vv.height) + "px";
-  } else {
-    sh.style.bottom = "";
-    sh.style.maxHeight = "";
-  }
+  if(!sheetOpen) return;
+  if(!vv){ sh.style.bottom = ""; sh.style.maxHeight = ""; return; }
+  /* Distance from the bottom of the LAYOUT viewport - the thing position:fixed
+     is measured against - up to the bottom of the visible strip. */
+  const gap = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+  sh.style.bottom = gap + "px";
+  /* The height ALWAYS comes from the live viewport now; the old code only set it
+     when it could see a keyboard-sized gap and otherwise fell back to the CSS
+     90vh. That fallback is the bug: vh units on iOS are pinned to the full
+     screen and ignore the keyboard completely, so in a home-screen web app -
+     where the window itself shrinks and the gap measures ~0 - a "90vh" sheet is
+     taller than the screen that is left. It grows upward off the top, taking the
+     header and the search box with it, which is exactly what you see the moment
+     the first letter turns one hint line into six results. */
+  sh.style.maxHeight = Math.round(gap > 40 ? vv.height : vv.height * 0.9) + "px";
+  /* Belt and braces: rather than trust the arithmetic, measure. If the sheet
+     still starts above the visible strip, trim it by however much it overshot. */
+  requestAnimationFrame(() => {
+    if(!sheetOpen || !window.visualViewport) return;
+    const v2 = window.visualViewport, r = sh.getBoundingClientRect();
+    const over = Math.round(v2.offsetTop - r.top);
+    if(over > 1) sh.style.maxHeight = Math.max(200, Math.round(r.height - over)) + "px";
+  });
 }
 function clearSheetFit(){
   const sh = $("sheet");
