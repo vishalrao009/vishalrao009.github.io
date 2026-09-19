@@ -2391,14 +2391,6 @@ function fitSheet(){
      header and the search box with it, which is exactly what you see the moment
      the first letter turns one hint line into six results. */
   sh.style.maxHeight = Math.round(gap > 40 ? vv.height : vv.height * 0.9) + "px";
-  /* Belt and braces: rather than trust the arithmetic, measure. If the sheet
-     still starts above the visible strip, trim it by however much it overshot. */
-  requestAnimationFrame(() => {
-    if(!sheetOpen || !window.visualViewport) return;
-    const v2 = window.visualViewport, r = sh.getBoundingClientRect();
-    const over = Math.round(v2.offsetTop - r.top);
-    if(over > 1) sh.style.maxHeight = Math.max(200, Math.round(r.height - over)) + "px";
-  });
 }
 function clearSheetFit(){
   const sh = $("sheet");
