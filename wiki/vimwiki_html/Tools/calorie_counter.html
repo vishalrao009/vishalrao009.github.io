@@ -444,6 +444,17 @@ body{top:0!important}
 /* The commit bar is pinned to the sheet, outside the scrolling body, because a
    numeric keypad has no return key and a Done button that scrolls under the
    keyboard is a Done button that does not exist. */
+/* Minutes and seconds sit as one unit under a single "Time" label. */
+.timepair{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.timepair .ctl .num{min-width:2.6em}
+/* A time under the amount on each food row, so one item can be corrected
+   without touching the rest of the meal. */
+.ftimes{width:100%;display:flex;flex-direction:column;gap:5px;margin-top:6px}
+.ftime{display:flex;align-items:center;gap:8px}
+.ftime .rtime{flex:none}
+.ftlab{font-size:12px;color:var(--muted);flex:1 1 auto;min-width:0}
+.ftx{flex:none;border:0;background:transparent;color:var(--muted);
+  font-size:17px;line-height:1;padding:2px 6px}
 /* ---- meal times / digestion card ---- */
 .mealrow{display:flex;align-items:center;gap:10px;padding:8px 0;
   border-top:1px solid var(--line)}
@@ -1572,6 +1583,24 @@ function amtOf(node){
   return isFinite(v) ? v : 0;
 }
 
+/* "47:30" is forty-seven and a half minutes. A plain number, or a decimal, is
+   still minutes, so nothing that was typed before means something new now. */
+function clockMin(s){
+  if(s === null || s === undefined) return NaN;
+  s = String(s).trim();
+  if(s === "") return NaN;
+  const m = s.match(/^(\d+)\s*:\s*([0-5]?\d)$/);
+  if(m) return (+m[1]) + (+m[2])/60;
+  const n = parseFloat(s.replace(",","."));
+  return isFinite(n) ? n : NaN;
+}
+function minSec(mins){
+  const whole = Math.floor(mins + 1e-9);
+  const sec = Math.round((mins - whole)*60);
+  if(sec >= 60) return (whole+1) + " min";
+  return whole + " min" + (sec ? " " + sec + " s" : "");
+}
+
 function mkStep(o){
   const wrap = el("div","ctl"+(o.move?" mv":""));
   const dec = el("button","pm","\u2212"), inc = el("button","pm","+");
@@ -1579,7 +1608,7 @@ function mkStep(o){
   /* A fractional box has to be a text box: type=number throws away anything
      with a slash in it before the code ever sees it. inputmode keeps the
      numeric pad on a phone. */
-  inp.type = o.frac ? "text" : "number";
+  inp.type = (o.frac || o.text) ? "text" : "number";
   inp.id=o.id; inp.className="num";
   inp.min=o.min; inp.max=o.max; inp.step=o.step; inp.value=o.value;
   if(o.frac) inp.setAttribute("autocomplete","off");
@@ -1604,9 +1633,14 @@ function mkStep(o){
     return dp ? (s.replace(/\.?0+$/,"") || "0") : s;
   };
   const clamp = v => Math.min(o.max, Math.max(o.min, v));
+  /* A control can bring its own reader (mm:ss for a running time) and its own
+     tidy-up (peeling those seconds into the box beside it). */
+  const readVal = s => o.parse ? o.parse(s)
+                     : o.frac  ? parseAmount(s) : parseFloat(s);
+  const settle = v => o.settle ? o.settle(v) : v;
   function bump(dir, mult){
-    const cur = o.frac ? parseAmount(inp.value) : parseFloat(inp.value);
-    const v = clamp((isNaN(cur)?o.min:cur) + dir*bstep*(mult||1));
+    const cur = readVal(inp.value);
+    const v = settle(clamp((isNaN(cur)?o.min:cur) + dir*bstep*(mult||1)));
     inp.value = tidy(v);
     update(); rememberLast();
   }
@@ -1625,9 +1659,11 @@ function mkStep(o){
   inp.addEventListener("blur", () => {
     /* Whatever was typed becomes a plain number here. Everything downstream -
        the day snapshot, the merge between two phones, the weekly maths - reads
-       these boxes as numbers, so "1 1/2" must not be what gets stored. */
-    const v = o.frac ? parseAmount(inp.value) : parseFloat(inp.value);
-    inp.value = isNaN(v) ? o.min : (o.frac ? tidy(clamp(v)) : clamp(v));
+       these boxes as numbers, so "1 1/2" or "47:30" must not be what gets
+       stored. */
+    const v = readVal(inp.value);
+    inp.value = isNaN(v) ? o.min
+              : (o.frac || o.parse) ? tidy(settle(clamp(v))) : clamp(v);
     update();
   });
   if(!o.setting) LOG_IDS.push(o.id);
@@ -2090,10 +2126,32 @@ CARDIO.forEach(([id,name,pmin,pmax,pdef,punit,dmax,dstep]) => {
   /* Time is the honest input. Pace is something you work out afterwards, not
      something you know while you are walking, so if a time is given it decides
      the pace rather than the other way round. Leave it at zero and the pace box
-     drives everything exactly as it did before. */
+     drives everything exactly as it did before.
+
+     Seconds are their own box rather than a decimal, because 32:45 is how a
+     watch reports a run and rounding it to 33 minutes moves a 10 km pace by
+     about four seconds a kilometre. Typing "32:45" into the minutes box splits
+     it across the two. */
   const tw = el("div"); tw.appendChild(el("div","sl","Time"));
-  tw.appendChild(mkStep({id:"ct_"+id, min:0, max:600, step:5, value:0, move:true,
-    unit:"min", aria:name+", time taken in minutes"}));
+  const trow = el("div","timepair");
+  /* Whether the seconds box should be touched depends on what was typed, not
+     on the number that came out: "47:00" means zero seconds, a bare "47" means
+     leave the seconds box alone, and so does tapping the minute buttons. */
+  let hadClock = false;
+  trow.appendChild(mkStep({id:"ct_"+id, min:0, max:600, step:1, value:0, move:true,
+    unit:"min", aria:name+", time taken in minutes", text:true,
+    parse: s => { hadClock = /:/.test(String(s)); return clockMin(s); },
+    settle: v => {
+      let whole = Math.floor(v + 1e-9), sec = Math.round((v - whole)*60);
+      if(sec >= 60){ whole += 1; sec = 0; }
+      const s = $("cs_"+id);
+      if(s && (sec || hadClock)) s.value = sec;
+      hadClock = false;
+      return whole;
+    }}));
+  trow.appendChild(mkStep({id:"cs_"+id, min:0, max:59, step:5, value:0, move:true,
+    unit:"s", aria:name+", extra seconds"}));
+  tw.appendChild(trow);
 
   const pw = el("div"); pw.appendChild(el("div","sl","Pace"));
   pw.appendChild(mkStep({id:"p_"+id, min:pmin, max:pmax, step:0.5, value:pdef, move:true,
@@ -3070,7 +3128,8 @@ function readCardio(weight, age, male, level){
     const metres = ($("u_"+id) || {}).value === "m";
     const shown  = +$("d_"+id).value;
     const km     = metres ? shown/1000 : shown;
-    const mins   = +($("ct_"+id) || {}).value || 0;
+    const mins   = (+($("ct_"+id) || {}).value || 0)
+                 + (+($("cs_"+id) || {}).value || 0)/60;
     /* Time wins when it is given, because it is the thing you actually
        observed. The pace box is then brought into line with it so the workings
        below, and the box itself, agree with each other. */
@@ -3092,6 +3151,7 @@ function readCardio(weight, age, male, level){
     $("d_"+id).classList.toggle("hot", km>0);
     $("p_"+id).classList.toggle("hot", km>0);
     if($("ct_"+id)) $("ct_"+id).classList.toggle("hot", mins>0);
+    if($("cs_"+id)) $("cs_"+id).classList.toggle("hot", mins>0);
     const g = gaitMet(id, pace);
     const met = g.met;
     const minutes = timed ? mins : (km>0 ? (km/pace)*60 : 0);
@@ -3107,7 +3167,7 @@ function readCardio(weight, age, male, level){
         + "is low for you or the distance and time do not match"
       : "";
     $("a_"+id).innerHTML = km>0
-      ? `<b>${shown}</b> ${unit}<br>${Math.round(minutes)} min at ${n1(pace)} km/h `
+      ? `<b>${shown}</b> ${unit}<br>${minSec(minutes)} at ${n1(pace)} km/h `
         + `\u2014 ${n1(met)} MET (${g.label})`
         + (mismatch ? `<br><em>${mismatch}</em>` : "")
         + (hard ? `<br><em>${hard}</em>` : "")
@@ -3116,10 +3176,10 @@ function readCardio(weight, age, male, level){
     $("row_"+id).classList.toggle("zero", km===0);
     if(!km) return;
     kcal += k; burn["d_"+id] = k;
-    lines.push({label:`${name}, ${shown} ${unit} in ${Math.round(minutes)} min `
+    lines.push({label:`${name}, ${shown} ${unit} in ${minSec(minutes)} `
         + `(${n1(pace)} km/h)` + (mismatch ? ` \u2014 counted as ${g.label}` : ""),
       work:`${g.work}, then (${n1(met)} &minus; 1) &times; 3.5 &times; ${weight} kg / 200 `
-         + `&times; ${Math.round(minutes)} min. That effort is about `
+         + `&times; ${n1(minutes)} min. That effort is about `
          + `${Math.round(mix.pct*100)}% of an estimated VO&#8322;max of `
          + `${Math.round(mix.vo2max)} ml/kg/min, which burns ${mix.word}: roughly `
          + `${kc(k*mix.fat)} kcal from fat and ${kc(k*mix.carb)} from carbohydrate. `
@@ -6245,8 +6305,15 @@ $("openCalc").addEventListener("click", () => {
    What it can fix is the live view. A 600 kcal lunch at 13:40 does not
    put 600 kcal into you at 13:40 - it puts them in your stomach. They
    arrive over the next few hours, carbohydrate first, fat last. With
-   this on, the tiles credit a meal along an absorption curve instead of
+   this on, the tiles credit food along an absorption curve instead of
    all at once, so the fat figure stops jumping the moment you type.
+
+   Stored one food at a time: {f:"chapati", q:2, t:"08:10"}. Per item
+   rather than per meal, because the same chapati row can hold two at
+   breakfast and two at dinner, and because a time you can correct on the
+   one thing you got wrong beats re-entering the whole sitting. Asking is
+   still done once per batch - everything logged together gets the same
+   time - and anything can be corrected afterwards on its own row.
 
    The curves. Gastric emptying plus absorption is an S, not a step: a
    short lag while the stomach starts releasing, a rise, then a long
@@ -6255,7 +6322,9 @@ $("openCalc").addEventListener("click", () => {
    Protein takes nearer three. Dietary fat travels as chylomicrons and
    peaks in the blood somewhere around three to five hours, which is the
    slow tail this is mostly here to represent. Larger meals empty more
-   slowly, so the constants stretch with the size of the sitting.
+   slowly, so the constants stretch with the size of the sitting - which
+   is why items sharing a time are digested together rather than each on
+   its own.
 
    The build window. Muscle protein synthesis climbs from roughly
    45 minutes after protein is eaten, peaks near two hours, and is back
@@ -6274,7 +6343,7 @@ window.caloMeals = (function(){
   var TAU = { c:0.85, p:1.40, f:2.60 };    // h, Weibull scale per macronutrient
   var MPS_PEAK = 2.0, MPS_END = 3.0, MPS_MIN_G = 10;
   var DAY_START = 4*60;                    // meals are not attributed before 4am
-  var SETTLE_MS = 5000;                    // quiet time that ends a sitting
+  var SETTLE_MS = 5000;                    // quiet time that ends a batch
   var SLOTS = [["breakfast","breakfast","10:00"], ["lunch","lunch","15:00"],
                ["snacks","a snack","18:00"],      ["dinner","dinner","22:00"],
                ["supper","supper","23:30"]];
@@ -6284,16 +6353,32 @@ window.caloMeals = (function(){
     var n = document.getElementById("mealTiming");
     return (n && n.value) || "off";
   }
-  function log(){
+  function entries(){
     var n = document.getElementById("mealLog"), v = null;
     try { v = JSON.parse(n && n.value); } catch(e){ v = null; }
-    if(!v || typeof v !== "object" || !Array.isArray(v.s)) return {s:[]};
-    return v;
+    if(!v || typeof v !== "object") return [];
+    if(Array.isArray(v.i)) return v.i
+      .filter(function(e){ return e && e.f && +e.q > 0 && toMin(e.t) !== null; })
+      .map(function(e){ return {f:e.f, q:+e.q, t:e.t}; });
+    /* Days written before this was per item were stored a sitting at a time.
+       Same information in a different shape, so unpack it rather than lose the
+       times someone already entered. */
+    if(Array.isArray(v.s)){
+      var out = [];
+      v.s.forEach(function(s){
+        if(toMin(s.t) === null) return;
+        Object.keys(s.q || {}).forEach(function(id){
+          if(+s.q[id] > 0) out.push({f:id, q:+s.q[id], t:s.t});
+        });
+      });
+      return out;
+    }
+    return [];
   }
-  function saveLog(o){
+  function saveEntries(list){
     var n = document.getElementById("mealLog");
     if(!n) return;
-    n.value = JSON.stringify(o);
+    n.value = list.length ? JSON.stringify({v:2, i:list}) : "";
     /* Set from script, so no input event fires and the day would not be
        written. Save it by hand. */
     if(typeof rememberLast === "function") rememberLast();
@@ -6356,6 +6441,24 @@ window.caloMeals = (function(){
     return 1 - Math.exp(-x*x);
   }
 
+  /* How much of each food the log accounts for, and by how much it has to be
+     scaled back. An amount can be edited long after it was logged, so the
+     record is trustworthy about WHEN but not about HOW MUCH. */
+  function reconcile(qty){
+    var list = entries(), claimed = {}, scale = {};
+    list.forEach(function(e){ claimed[e.f] = (claimed[e.f] || 0) + e.q; });
+    Object.keys(claimed).forEach(function(id){
+      scale[id] = claimed[id] > 0 ? Math.min(1, (qty[id] || 0)/claimed[id]) : 0;
+    });
+    var loose = {};
+    Object.keys(qty).forEach(function(id){
+      var used = (claimed[id] || 0) * (scale[id] === undefined ? 1 : scale[id]);
+      var left = qty[id] - used;
+      if(left > 1e-9) loose[id] = left;
+    });
+    return { list:list, scale:scale, loose:loose };
+  }
+
   function absorbed(food){
     var whole = { on:false, kcal:food.kcal, p:food.p, gut:0,
                   total:food.kcal, sittings:[], mps:null };
@@ -6374,25 +6477,11 @@ window.caloMeals = (function(){
 
     var now = nowMin(), qty = {};
     food.items.forEach(function(it){ qty[it.id] = it.v; });
-
-    var saved = log().s, claimed = {};
-    saved.forEach(function(s){
-      Object.keys(s.q || {}).forEach(function(id){
-        claimed[id] = (claimed[id] || 0) + (+s.q[id] || 0);
-      });
-    });
-    /* An amount can be edited long after it was logged, so the record is
-       trustworthy about WHEN but not about HOW MUCH. Where a row now holds less
-       than the sittings claim, scale them back; where it holds more, the excess
-       has no time attached and falls through to the slot guess below. */
-    var scale = {};
-    Object.keys(claimed).forEach(function(id){
-      scale[id] = claimed[id] > 0 ? Math.min(1, (qty[id] || 0)/claimed[id]) : 0;
-    });
+    var rec = reconcile(qty);
 
     var kcalIn = 0, pIn = 0, total = 0, rows = [], feeds = [];
 
-    function digest(at, q, stamped, whole){
+    function digest(at, q, stamp, countWhole){
       var kc = 0, pr = 0, cb = 0, ft = 0, names = [];
       Object.keys(q).forEach(function(id){
         var fd = (typeof foodIndex === "object") && foodIndex[id];
@@ -6404,7 +6493,7 @@ window.caloMeals = (function(){
       if(kc <= 0) return;
       total += kc;
       var Fp, Fe;
-      if(whole){
+      if(countWhole){
         /* Food with no time against it was logged before the setting was
            turned on. Running a curve on it would mean guessing a time, and a
            guess that puts this morning's breakfast at lunchtime wipes out
@@ -6424,30 +6513,26 @@ window.caloMeals = (function(){
       }
       kcalIn += kc*Fe;
       pIn    += pr*Fp;
-      rows.push({ at:at, kcal:kc, done:Fe, names:names, stamped:stamped, whole:!!whole });
+      rows.push({ at:at, kcal:kc, done:Fe, names:names, stamp:stamp,
+                  whole:!!countWhole });
       /* No time, no build window: a feeding whose hour is unknown cannot say
          whether the window is open. */
-      if(!whole && pr >= MPS_MIN_G) feeds.push({ at:at, p:pr });
+      if(!countWhole && pr >= MPS_MIN_G) feeds.push({ at:at, p:pr });
     }
 
-    saved.forEach(function(s, i){
-      var at = toMin(s.t);
-      if(at === null) return;
-      var q = {};
-      Object.keys(s.q || {}).forEach(function(id){
-        var v = (+s.q[id] || 0) * (scale[id] === undefined ? 1 : scale[id]);
-        if(v > 0) q[id] = v;
-      });
-      digest(Math.min(at, now), q, i);
+    /* Items sharing a time were one sitting and empty the stomach as one, so
+       they are digested together rather than each on its own. */
+    var byTime = {};
+    rec.list.forEach(function(e){
+      var q = e.q * (rec.scale[e.f] === undefined ? 1 : rec.scale[e.f]);
+      if(!(q > 0)) return;
+      if(!byTime[e.t]) byTime[e.t] = {};
+      byTime[e.t][e.f] = (byTime[e.t][e.f] || 0) + q;
     });
-
-    var loose = {}, any = false;
-    Object.keys(qty).forEach(function(id){
-      var used = (claimed[id] || 0) * (scale[id] === undefined ? 1 : scale[id]);
-      var left = qty[id] - used;
-      if(left > 1e-9){ loose[id] = left; any = true; }
+    Object.keys(byTime).forEach(function(t){
+      digest(Math.min(toMin(t), now), byTime[t], t, false);
     });
-    if(any) digest(now, loose, -1, true);
+    if(Object.keys(rec.loose).length) digest(now, rec.loose, null, true);
 
     var mps = null;
     if(feeds.length){
@@ -6464,7 +6549,7 @@ window.caloMeals = (function(){
              total:total, sittings:rows, mps:mps };
   }
 
-  /* ---------- the card ---------- */
+  /* ---------- the overview card ---------- */
   function render(d){
     var card = document.getElementById("mealCard");
     if(!card) return;
@@ -6525,44 +6610,115 @@ window.caloMeals = (function(){
     }
   }
 
+  /* Moving a whole sitting from the card. Per-item corrections happen on the
+     rows themselves, below. */
   function retime(s, v){
-    var at = toMin(v);
-    if(at === null) return;
-    var o = log();
-    if(!s.whole && s.stamped >= 0 && o.s[s.stamped]){
-      o.s[s.stamped].t = v;
+    if(toMin(v) === null) return;
+    if(s.whole){
+      stampLoose(v);
     } else {
-      /* The whole-counted row has no record behind it. Giving it a time turns
-         it into a real sitting, covering exactly the food nothing else has
-         claimed - which is what that row was showing. */
-      var left = pendingLeftovers();
-      if(!Object.keys(left).length) return;
-      o.s.push({ t:v, q:left });
+      var list = entries();
+      list.forEach(function(e){ if(e.t === s.stamp) e.t = v; });
+      saveEntries(list);
     }
-    saveLog(o);
+    update();
+  }
+  /* Give a time to whatever the log does not yet account for. */
+  function stampLoose(v){
+    var rec = reconcile(quantities()), list = rec.list, any = false;
+    Object.keys(rec.loose).forEach(function(id){
+      list.push({f:id, q:rec.loose[id], t:v}); any = true;
+    });
+    if(any) saveEntries(list);
+  }
+
+  /* ---------- a time on every food row ---------- */
+  /* The row is the natural place to correct one item: it is where the amount
+     is, it travels into "edit what you ate and did" with the row, and it can
+     show two times for a food eaten twice, which one box per meal cannot. */
+  function paintRows(d){
+    var on = !!(d && d.mealsOn);
+    var qty = quantities();
+    var mine = {};
+    if(on){
+      entries().forEach(function(e, i){
+        (mine[e.f] = mine[e.f] || []).push({q:e.q, t:e.t, i:i});
+      });
+    }
+    /* Object.keys(...).forEach rather than for-in on purpose: the handlers
+       below close over the food id, and a var in a for-in loop would hand
+       every one of them the last id in the list. */
+    Object.keys(foodIndex).forEach(function(id){
+      var row = document.getElementById("row_"+id);
+      if(!row) return;
+      var host = row.querySelector(".ftimes");
+      var v = qty[id] || 0;
+      if(!on || !(v > 0)){ if(host) host.parentNode.removeChild(host); return; }
+
+      var list = mine[id] || [], claimed = 0;
+      list.forEach(function(m){ claimed += m.q; });
+      var scale = claimed > 0 ? Math.min(1, v/claimed) : 0;
+      var loose = v - claimed*scale;
+      var sig = v + "|" + list.map(function(m){ return m.t + "@" + n1(m.q); }).join(",");
+      if(host && host.getAttribute("data-sig") === sig) return;
+      if(!host){
+        host = el("div","ftimes");
+        (row.querySelector(".subrow") || row).appendChild(host);
+      }
+      host.setAttribute("data-sig", sig);
+      host.innerHTML = "";
+
+      var unit = foodIndex[id].unit;
+      list.forEach(function(m){
+        host.appendChild(timeLine(hm(toMin(m.t)), fracText(m.q*scale) + " " + unit,
+          function(val){ setEntryTime(m.i, val); },
+          function(){ dropEntry(m.i); }));
+      });
+      if(loose > 1e-9){
+        host.appendChild(timeLine("", fracText(loose) + " " + unit + " \u2014 no time yet",
+          function(val){ stampOne(id, loose, val); }, null));
+      }
+    });
+  }
+  function timeLine(value, label, onSet, onDrop){
+    var line = el("div","ftime");
+    var t = el("input"); t.type = "time"; t.className = "rtime";
+    t.value = value;
+    t.setAttribute("aria-label", "time eaten, " + label);
+    t.addEventListener("change", function(){ if(t.value) onSet(t.value); });
+    line.appendChild(t);
+    line.appendChild(el("span","ftlab", label));
+    if(onDrop){
+      var x = el("button","ftx","\u00d7");
+      x.type = "button";
+      x.setAttribute("aria-label","remove this time");
+      x.addEventListener("click", onDrop);
+      line.appendChild(x);
+    }
+    return line;
+  }
+  function setEntryTime(i, v){
+    var list = entries();
+    if(!list[i]) return;
+    list[i].t = v;
+    saveEntries(list);
+    update();
+  }
+  function dropEntry(i){
+    var list = entries();
+    if(!list[i]) return;
+    list.splice(i, 1);
+    saveEntries(list);
+    update();
+  }
+  function stampOne(id, q, v){
+    var list = entries();
+    list.push({f:id, q:q, t:v});
+    saveEntries(list);
     update();
   }
 
-  /* Whatever the log does not account for, as quantities - the same sum the
-     absorber falls back on. */
-  function pendingLeftovers(){
-    var claimed = {};
-    log().s.forEach(function(s){
-      Object.keys(s.q || {}).forEach(function(id){
-        claimed[id] = (claimed[id] || 0) + (+s.q[id] || 0);
-      });
-    });
-    var out = {};
-    for(var id in foodIndex){
-      var n = document.getElementById("f_" + id);
-      var v = amtOf(n);
-      var left = v - (claimed[id] || 0);
-      if(left > 1e-9) out[id] = left;
-    }
-    return out;
-  }
-
-  /* ---------- noticing a sitting ---------- */
+  /* ---------- noticing a batch ---------- */
   var seen = null, seenDay = null, pend = {}, timer = null;
 
   function quantities(){
@@ -6579,7 +6735,7 @@ window.caloMeals = (function(){
        them back afterwards. Every one of those looks like food appearing out of
        nowhere, so stay out of the way entirely. */
     if(typeof inDiff !== "undefined" && inDiff) return;
-    try { render(d); } catch(e){}
+    try { render(d); paintRows(d); } catch(e){}
     if(mode() === "off"){ seen = quantities(); return; }
     /* A box being typed into holds whatever has been keyed so far - "1/" on the
        way to "1/2". Sampling that would record a change that was never made,
@@ -6603,9 +6759,10 @@ window.caloMeals = (function(){
     if(timer) clearTimeout(timer);
     timer = setTimeout(settle, SETTLE_MS);
   }
-  /* A sitting is however much food went in before you stopped adding to it. A
-     sheet still open means you are not finished, so wait rather than ask twice
-     for one meal. */
+  /* One question per batch, not per item. Everything added before you stopped
+     adding shares a time, which is almost always true and is correctable item
+     by item on the rows afterwards. A sheet still open means you are not
+     finished, so wait rather than ask twice for one meal. */
   function settle(){
     timer = null;
     if(!Object.keys(pend).length) return;
@@ -6616,16 +6773,18 @@ window.caloMeals = (function(){
   }
 
   function commit(q, t){
-    var o = log();
-    o.s.push({ t:t, q:q });
-    saveLog(o);
+    var list = entries();
+    Object.keys(q).forEach(function(id){
+      if(q[id] > 1e-9) list.push({f:id, q:q[id], t:t});
+    });
+    saveEntries(list);
     update();
   }
 
   function nameList(q){
     var names = Object.keys(q).map(function(id){
       var fd = foodIndex[id];
-      return fd ? fd.name : null;
+      return fd ? fracText(q[id]) + " " + fd.unit + " " + fd.name.toLowerCase() : null;
     }).filter(Boolean);
     if(!names.length) return "what you just logged";
     if(names.length === 1) return names[0];
@@ -6634,7 +6793,7 @@ window.caloMeals = (function(){
   }
 
   function ask(q){
-    var guess = slotGuess(nowMin());
+    var guess = slotGuess(nowMin()), many = Object.keys(q).length > 1;
     openSheet("When did you eat this?", function(body){
       body.appendChild(el("p","tiny",
         "<b>" + nameList(q) + ".</b> Only the live tiles use this. What the day "
@@ -6642,7 +6801,7 @@ window.caloMeals = (function(){
       + "soon it shows up, not how much of it there is."));
 
       var f = el("div","field");
-      f.appendChild(el("label", null, "Time you ate"));
+      f.appendChild(el("label", null, many ? "Time you ate all of it" : "Time you ate"));
       var inp = el("input"); inp.type = "time"; inp.value = hm(nowMin());
       f.appendChild(inp);
       body.appendChild(f);
@@ -6651,8 +6810,7 @@ window.caloMeals = (function(){
       save.type = "button";
       save.style.marginTop = "10px";
       save.addEventListener("click", function(){
-        var at = toMin(inp.value);
-        commit(q, at === null ? hm(nowMin()) : inp.value);
+        commit(q, toMin(inp.value) === null ? hm(nowMin()) : inp.value);
         closeSheet();
       });
       body.appendChild(save);
@@ -6668,8 +6826,12 @@ window.caloMeals = (function(){
       body.appendChild(skip);
 
       body.appendChild(el("p","tiny",
-        "Skipping puts it at the middle of the meal window it falls in, from "
-      + "your cut-off times. You can correct any of them on the Today tab."));
+        (many ? "One time for the lot. If they were not eaten together, correct "
+              + "any of them on its own row \u2014 each food carries its own time, "
+              + "under the amount. "
+              : "You can correct it on the row, under the amount. ")
+      + "Skipping puts it at the middle of the meal window it falls in, from "
+      + "your cut-off times."));
     });
   }
 
@@ -6685,10 +6847,12 @@ window.caloMeals = (function(){
     var lft = el("div");
     lft.appendChild(el("label", null, "Time of each meal"));
     lft.appendChild(el("span","sublbl",
-      "Off by default. On, a meal's energy arrives in the live tiles over the "
-    + "few hours it takes to absorb rather than the instant you log it, so the "
-    + "fat and muscle figures stop jumping mid-meal. What the day adds up to by "
-    + "midnight does not change \u2014 timing cannot move that."));
+      "Off by default. On, food's energy arrives in the live tiles over the few "
+    + "hours it takes to absorb rather than the instant you log it, so the fat "
+    + "and muscle figures stop jumping mid-meal. Asked once per batch; every "
+    + "food then carries its own time on its row, which you can correct. What "
+    + "the day adds up to by midnight does not change \u2014 timing cannot move "
+    + "that."));
     r.appendChild(lft);
 
     var sel = el("select");
@@ -6712,7 +6876,7 @@ window.caloMeals = (function(){
     wipe.type = "button";
     wipe.style.marginTop = "8px";
     wipe.addEventListener("click", function(){
-      saveLog({s:[]});
+      saveEntries([]);
       wipe.textContent = "Cleared";
       update();
     });
