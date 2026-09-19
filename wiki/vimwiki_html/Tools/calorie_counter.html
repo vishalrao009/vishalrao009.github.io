@@ -2318,6 +2318,7 @@ function buildPicker(kind, body, placeholder, after, opts){
   q.setAttribute("aria-label", placeholder);
   body.appendChild(q);
   const list = el("div");
+  list.style.overflowAnchor = "none";   // don't let the browser nudge the scroll when results re-render
   body.appendChild(list);
   const stage = el("div","stage");       // the one thing you just picked
   body.appendChild(stage);
@@ -2394,6 +2395,16 @@ function buildPicker(kind, body, placeholder, after, opts){
   function pool(){
     return CATALOG[kind].filter(it => !opts.filter || opts.filter(it));
   }
+  /* The search box is sticky at the top, but with the on-screen keyboard up the
+     browser can leave the results list itself scrolled part-way down - so you
+     see the search box and the LAST options, and the best match is off screen
+     above. On each fresh search, snap the sheet's scroll box back to the top:
+     the sticky box stays put and match #1 lands right under it, ready to tap.
+     Bottom sheets only - the walkthrough scrolls on its own terms. */
+  function pinTop(){
+    const host = list.closest(".sbody");
+    if(host && host.scrollTop > 0) host.scrollTop = 0;
+  }
   function draw(filter){
     list.innerHTML = "";
     const avail = pool();
@@ -2424,6 +2435,7 @@ function buildPicker(kind, body, placeholder, after, opts){
       list.appendChild(b); shown++;
     });
     if(!shown) list.appendChild(el("p","tiny","Nothing matches that."));
+    if(filter) requestAnimationFrame(pinTop);
   }
   draw("");
   q.addEventListener("input", () => { browsing = false; draw(q.value.trim().toLowerCase()); });
@@ -6676,7 +6688,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.19b";
+  var APP_VERSION = "2026.09.19c";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
