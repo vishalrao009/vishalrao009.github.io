@@ -1520,13 +1520,71 @@ const PINNED = new Set();     // things the user added this session
 function pinStarters(){}
 const OWNER  = {};            // control id -> the row that holds it
 
+/* ---- amounts that are not whole numbers -----------------------------------
+   Half a chapati and a quarter katori of sabji are how people actually eat, so
+   the food boxes take them. Three ways in, because no single one works
+   everywhere: the +/- buttons move in halves, the number pad takes 0.25 or .75
+   directly, and typed text takes "1/2", "1 1/2" or "1½" for anyone on a real
+   keyboard. That last one cannot be the only route - iOS shows a decimal pad
+   with no slash on it. */
+const VULGAR = {"\u00bd":0.5, "\u00bc":0.25, "\u00be":0.75, "\u2153":1/3,
+                "\u2154":2/3, "\u215b":0.125, "\u215c":0.375, "\u215d":0.625,
+                "\u215e":0.875};
+function parseAmount(s){
+  if(s === null || s === undefined) return NaN;
+  s = String(s).trim().replace(/\s+/g," ");
+  if(s === "") return NaN;
+  let total = 0, got = false, bad = false;
+  s = s.replace(/[\u00bc\u00bd\u00be\u2153\u2154\u215b\u215c\u215d\u215e]/g, ch => {
+    total += VULGAR[ch]; got = true; return " ";
+  }).trim();
+  if(s !== "") s.split(" ").forEach(tok => {
+    if(!tok) return;
+    if(tok.indexOf("/") > -1){
+      const q = tok.split("/"), a = parseFloat(q[0]), b = parseFloat(q[1]);
+      /* A half-typed "1/" counts as the 1 rather than as nothing, so the ledger
+         does not blink to zero between the keystrokes. */
+      if(!isFinite(a)){ bad = true; return; }
+      total += (isFinite(b) && b !== 0) ? a/b : a;
+      got = true;
+    } else {
+      const n = parseFloat(tok);
+      if(isFinite(n)){ total += n; got = true; } else bad = true;
+    }
+  });
+  return (got && !bad) ? total : NaN;
+}
+/* The reverse, for reading back: 0.5 shows as a half, not as 0.5. */
+function fracText(v){
+  if(!isFinite(v)) return "0";
+  const whole = Math.floor(v + 1e-9), rem = v - whole;
+  const marks = [[0.25,"\u00bc"],[1/3,"\u2153"],[0.5,"\u00bd"],[2/3,"\u2154"],[0.75,"\u00be"]];
+  for(const [val, ch] of marks)
+    if(Math.abs(rem - val) < 0.008) return (whole ? whole : "") + ch;
+  if(rem < 0.005) return String(whole);
+  return String(+v.toFixed(2));
+}
+/* Read a control that may hold a fraction. Never returns NaN - a box mid-edit
+   must not poison the whole day's arithmetic. */
+function amtOf(node){
+  if(!node) return 0;
+  const v = parseAmount(node.value);
+  return isFinite(v) ? v : 0;
+}
+
 function mkStep(o){
   const wrap = el("div","ctl"+(o.move?" mv":""));
   const dec = el("button","pm","\u2212"), inc = el("button","pm","+");
   const inp = el("input");
-  inp.type="number"; inp.id=o.id; inp.className="num";
+  /* A fractional box has to be a text box: type=number throws away anything
+     with a slash in it before the code ever sees it. inputmode keeps the
+     numeric pad on a phone. */
+  inp.type = o.frac ? "text" : "number";
+  inp.id=o.id; inp.className="num";
   inp.min=o.min; inp.max=o.max; inp.step=o.step; inp.value=o.value;
-  inp.setAttribute("inputmode", String(o.step).includes(".") ? "decimal" : "numeric");
+  if(o.frac) inp.setAttribute("autocomplete","off");
+  inp.setAttribute("inputmode",
+    (o.frac || String(o.step).includes(".")) ? "decimal" : "numeric");
   inp.setAttribute("aria-label", o.aria);
   dec.type="button"; inc.type="button";
   dec.setAttribute("aria-label","decrease "+o.aria);
@@ -1534,12 +1592,22 @@ function mkStep(o){
   wrap.append(dec, inp, inc);
   if(o.unit) wrap.appendChild(el("span","un",o.unit));
 
-  const dp = String(o.step).includes(".") ? 1 : 0;
+  /* The buttons need not move by the same amount the box accepts. A chapati
+     box takes any quarter you type but steps in halves, so counting out three
+     of them is six taps rather than twelve. */
+  const bstep = o.bump || o.step;
+  const dp = o.frac ? 2 : (String(o.step).includes(".") ? 1 : 0);
+  /* Strip only the zeros AFTER a decimal point. Stripping them off a whole
+     number would turn 100 reps into 1. */
+  const tidy = v => {
+    const s = v.toFixed(dp);
+    return dp ? (s.replace(/\.?0+$/,"") || "0") : s;
+  };
   const clamp = v => Math.min(o.max, Math.max(o.min, v));
   function bump(dir, mult){
-    const cur = parseFloat(inp.value);
-    const v = clamp((isNaN(cur)?o.min:cur) + dir*o.step*(mult||1));
-    inp.value = v.toFixed(dp).replace(/\.0$/,"");
+    const cur = o.frac ? parseAmount(inp.value) : parseFloat(inp.value);
+    const v = clamp((isNaN(cur)?o.min:cur) + dir*bstep*(mult||1));
+    inp.value = tidy(v);
     update(); rememberLast();
   }
   [[dec,-1],[inc,1]].forEach(([btn,dir]) => {
@@ -1555,8 +1623,11 @@ function mkStep(o){
   });
   inp.addEventListener("input", update);
   inp.addEventListener("blur", () => {
-    const v = parseFloat(inp.value);
-    inp.value = isNaN(v) ? o.min : clamp(v);
+    /* Whatever was typed becomes a plain number here. Everything downstream -
+       the day snapshot, the merge between two phones, the weekly maths - reads
+       these boxes as numbers, so "1 1/2" must not be what gets stored. */
+    const v = o.frac ? parseAmount(inp.value) : parseFloat(inp.value);
+    inp.value = isNaN(v) ? o.min : (o.frac ? tidy(clamp(v)) : clamp(v));
     update();
   });
   if(!o.setting) LOG_IDS.push(o.id);
@@ -1717,6 +1788,7 @@ GROUPS.forEach(g => {
     row.appendChild(el("div","val amt",`<b>0</b> ${unit}`));
     const sub = el("div","subrow");
     sub.appendChild(mkStep({id:"f_"+id, min:0, max:max, step:step, value:0,
+      frac:true, bump: step === 1 ? 0.5 : step,
       unit:unit, aria:name+" in "+unit}));
     row.appendChild(sub);
     $("foodRows").appendChild(row); noteHome($("foodRows"), row);
@@ -1974,23 +2046,65 @@ gluteRows($("repRows"));
 
 const CARDIO_ALIAS = {walk:"walking steps stroll", run:"running jog jogging",
                       cycle:"cycling bike bicycle riding"};
+/* A saved day carries u_walk etc. as a plain value; the box's max, step and
+   suffix have to be brought back into line with it by hand. */
+const CARDIO_UNIT = {};
+function syncCardioUnits(){
+  for(const id in CARDIO_UNIT) CARDIO_UNIT[id](false);
+}
 CARDIO.forEach(([id,name,pmin,pmax,pdef,punit,dmax,dstep]) => {
   const row = el("div","lrow hide"); row.id="row_"+id;
   row.appendChild(el("div","nm", window.exIcon(id)+name));
   row.appendChild(el("div","val",`<b>0</b> km`));
   const sub = el("div","subrow");
   const dw = el("div"); dw.appendChild(el("div","sl","Distance"));
-  dw.appendChild(mkStep({id:"d_"+id, min:0, max:dmax, step:dstep, value:0, move:true,
-    unit:"km", aria:name+", distance in km"}));
+  const dstep0 = mkStep({id:"d_"+id, min:0, max:dmax, step:dstep, value:0, move:true,
+    unit:"km", aria:name+", distance"});
+  dw.appendChild(dstep0);
+  /* Metres or kilometres, your choice. A 400 m walk to the shop is a nuisance
+     to type as 0.4, and a 12 km run is a nuisance to type as 12000, so neither
+     unit is made the only one. Switching converts what is already in the box
+     rather than reinterpreting it - 5 km does not silently become 5 m. */
+  const uw = el("div","intwrap"); uw.appendChild(el("div","sl","Unit"));
+  const usel = el("select"); usel.id = "u_"+id; usel.className = "intsel";
+  usel.setAttribute("aria-label", name+", distance unit");
+  [["km","km"],["m","metres"]].forEach(([v,t]) => {
+    const o = el("option", null, t); o.value = v; if(v === "km") o.selected = true;
+    usel.appendChild(o);
+  });
+  SETTING_IDS.push("u_"+id);
+  const dnum = dstep0.querySelector("input"), dun = dstep0.querySelector(".un");
+  function applyUnit(convert){
+    const metres = usel.value === "m";
+    const cur = parseFloat(dnum.value) || 0;
+    if(convert) dnum.value = metres ? Math.round(cur*1000)
+                                    : +(cur/1000).toFixed(3).replace(/0+$/,"") || 0;
+    dnum.max  = metres ? dmax*1000 : dmax;
+    dnum.step = metres ? (dstep >= 1 ? 200 : 100) : dstep;
+    dnum.setAttribute("inputmode", metres ? "numeric" : "decimal");
+    if(dun) dun.textContent = metres ? "m" : "km";
+  }
+  usel.addEventListener("change", () => { applyUnit(true); update(); rememberLast(); });
+  uw.appendChild(usel);
+
+  /* Time is the honest input. Pace is something you work out afterwards, not
+     something you know while you are walking, so if a time is given it decides
+     the pace rather than the other way round. Leave it at zero and the pace box
+     drives everything exactly as it did before. */
+  const tw = el("div"); tw.appendChild(el("div","sl","Time"));
+  tw.appendChild(mkStep({id:"ct_"+id, min:0, max:600, step:5, value:0, move:true,
+    unit:"min", aria:name+", time taken in minutes"}));
+
   const pw = el("div"); pw.appendChild(el("div","sl","Pace"));
   pw.appendChild(mkStep({id:"p_"+id, min:pmin, max:pmax, step:0.5, value:pdef, move:true,
     unit:punit, aria:name+", pace", setting:true}));
   SETTING_IDS.push("p_"+id);          // so a saved day restores the pace, not just the distance
-  sub.append(dw, pw); row.appendChild(sub);
+  sub.append(dw, uw, tw, pw); row.appendChild(sub);
   const amt = el("span"); amt.id="a_"+id; amt.className="hidden"; row.appendChild(amt);
   $("cardioRows").appendChild(row); noteHome($("cardioRows"), row);
-  reg("rep","row_"+id,["d_"+id], name, "Cardio", "distance and pace", "cardio",
+  reg("rep","row_"+id,["d_"+id,"ct_"+id], name, "Cardio", "distance and time", "cardio",
       CARDIO_ALIAS[id] || "");
+  CARDIO_UNIT[id] = applyUnit;        // restoring a day has to re-apply the unit
 });
 
 /* ---------- chores ---------- */
@@ -2771,16 +2885,16 @@ function readFood(){
   for(const id in foodIndex){
     const fd = foodIndex[id], inp = $("f_"+id), row = $("row_"+id);
     if(!inp || !row) continue;            // row briefly out of the DOM (mid sheet-swap)
-    const v = +inp.value, k = v*fd.kcal;
+    const v = amtOf(inp), k = v*fd.kcal;
     kcal+=k; p+=v*fd.p; c+=v*fd.c; f+=v*fd.f; fib+=v*fd.fib;
     groupTot[fd.group] = (groupTot[fd.group]||0)+k;
     row.classList.toggle("zero", v===0); row.classList.toggle("on", v>0);
     inp.classList.toggle("hot", v>0);
     row.querySelector(".amt").innerHTML =
-      `<b>${v%1?v.toFixed(1):v}</b> ${fd.unit}`+(v>0?`<br>${kc(k)} kcal`:"");
+      `<b>${fracText(v)}</b> ${fd.unit}`+(v>0?`<br>${kc(k)} kcal`:"");
     if(v>0){
       lines.push({label:fd.name,
-        work:`${v} ${fd.unit} &times; ${fd.kcal} kcal per ${fd.unit}`, kcal:k});
+        work:`${fracText(v)} ${fd.unit} &times; ${fd.kcal} kcal per ${fd.unit}`, kcal:k});
       /* Kept per food so the macro strip can show where each gram came from. */
       items.push({id, name:fd.name, unit:fd.unit, v, kcal:k, per:fd,
                   p:v*fd.p, c:v*fd.c, f:v*fd.f, fib:v*fd.fib});
@@ -2911,32 +3025,108 @@ function readTimed(weight){
   return {kcal, minutes, lines, burn};
 }
 
-function readCardio(weight){
+/* ---- what the effort is burning ------------------------------------------
+   Which fuel a muscle uses is set by how hard the work is RELATIVE to what you
+   can do, not by the absolute pace: 6 km/h is an amble for a runner and a
+   push for someone very unfit. So the pace is turned into a share of estimated
+   VO2max first.
+
+   The estimate is crude - a table value for age and sex, nudged by training
+   experience - because the app has no heart rate or test data to do better. It
+   is honest about being a ballpark.
+
+   The split itself follows the crossover concept: at easy intensities most of
+   the energy comes from fat, the shares cross somewhere around half of VO2max,
+   and above that carbohydrate takes over almost completely. Protein is a
+   couple of per cent of the total in ordinary exercise and is not given a
+   slice; it climbs only in very long or glycogen-depleted work, which is the
+   opposite end from a slow walk.
+
+   One thing this deliberately does NOT do is feed into the fat and muscle
+   figures. Fuel burned during a session is not fat lost. Burn carbohydrate now
+   and you burn more fat over the rest of the day; what changes your body is the
+   day's energy balance, which is the same number whichever fuel the session
+   happened to run on. */
+function vo2maxEst(age, male, level){
+  const base = male ? 50 : 42;
+  const byAge = base - 0.30*Math.max(0, (age || 30) - 25);
+  const fit = level === "beginner" ? 0.88 : level === "advanced" ? 1.15 : 1;
+  return Math.max(20, Math.min(70, byAge*fit));
+}
+function fuelMix(met, age, male, level){
+  const vo2max = vo2maxEst(age, male, level);
+  const pct = Math.max(0.05, Math.min(1.2, (met*3.5)/vo2max));
+  /* Logistic crossover, centred at half of VO2max. Roughly 80% fat at a quarter
+     of VO2max, half and half at the middle, 15% by four fifths. */
+  const fat = Math.max(0.03, Math.min(0.85, 1/(1 + Math.exp((pct - 0.50)/0.177))));
+  return {vo2max, pct, fat, carb:1 - fat,
+          word: pct < 0.40 ? "mostly fat" : pct < 0.60 ? "fat and carbohydrate about evenly"
+              : pct < 0.78 ? "mostly carbohydrate" : "almost all carbohydrate"};
+}
+
+function readCardio(weight, age, male, level){
   let kcal=0; const lines=[], burn={};
   CARDIO.forEach(([id,name]) => {
-    const km = +$("d_"+id).value, pace = Math.max(0.5, +$("p_"+id).value || 0);
-    $("d_"+id).classList.toggle("hot", km>0); $("p_"+id).classList.toggle("hot", km>0);
+    const metres = ($("u_"+id) || {}).value === "m";
+    const shown  = +$("d_"+id).value;
+    const km     = metres ? shown/1000 : shown;
+    const mins   = +($("ct_"+id) || {}).value || 0;
+    /* Time wins when it is given, because it is the thing you actually
+       observed. The pace box is then brought into line with it so the workings
+       below, and the box itself, agree with each other. */
+    const timed  = km > 0 && mins > 0;
+    let pace = timed ? km/(mins/60) : Math.max(0.5, +$("p_"+id).value || 0);
+    pace = Math.max(0.3, Math.min(60, pace));
+    if(timed){
+      /* Show the pace that was actually run, even if it is past the box's
+         normal ceiling - a clamped box that disagreed with the figures beside
+         it would be worse than a wide one. */
+      const p = $("p_"+id);
+      if(p){
+        if(pace > +p.max) p.max = Math.ceil(pace);
+        if(Math.abs((+p.value||0) - pace) > 0.05)
+          p.value = pace.toFixed(1).replace(/\.0$/,"");
+      }
+    }
+    const unit = metres ? "m" : "km";
+    $("d_"+id).classList.toggle("hot", km>0);
+    $("p_"+id).classList.toggle("hot", km>0);
+    if($("ct_"+id)) $("ct_"+id).classList.toggle("hot", mins>0);
     const g = gaitMet(id, pace);
     const met = g.met;
-    const minutes = km>0 ? (km/pace)*60 : 0;
+    const minutes = timed ? mins : (km>0 ? (km/pace)*60 : 0);
     const k = km>0 ? metKcal(met, minutes, weight) : 0;
+    const mix = km>0 ? fuelMix(met, age, male, level) : null;
     /* If the speed disagrees with the row it was typed into, say so rather than
        silently using the wrong equation. */
     const mismatch = (id==="walk" && g.gait==="run") ? "that pace is running, so the running equation is used"
                    : (id==="run" && g.gait==="walk") ? "that pace is a walk, so the walking equation is used"
                    : "";
+    const hard = mix && mix.pct > 1
+      ? "that is above the VO\u2082max this estimate gives you, so either the estimate "
+        + "is low for you or the distance and time do not match"
+      : "";
     $("a_"+id).innerHTML = km>0
-      ? `<b>${km}</b> km<br>${Math.round(minutes)} min at ${n1(met)} MET (${g.label})`
+      ? `<b>${shown}</b> ${unit}<br>${Math.round(minutes)} min at ${n1(pace)} km/h `
+        + `\u2014 ${n1(met)} MET (${g.label})`
         + (mismatch ? `<br><em>${mismatch}</em>` : "")
-        + `<br>${kc(k)} kcal`
-      : `<b>0</b> km`;
+        + (hard ? `<br><em>${hard}</em>` : "")
+        + `<br>${kc(k)} kcal, ${Math.round(mix.fat*100)}% of it from fat`
+      : `<b>0</b> ${unit}`;
     $("row_"+id).classList.toggle("zero", km===0);
     if(!km) return;
     kcal += k; burn["d_"+id] = k;
-    lines.push({label:`${name}, ${km} km at ${n1(pace)} km/h`
-        + (mismatch ? ` (counted as ${g.label})` : ""),
+    lines.push({label:`${name}, ${shown} ${unit} in ${Math.round(minutes)} min `
+        + `(${n1(pace)} km/h)` + (mismatch ? ` \u2014 counted as ${g.label}` : ""),
       work:`${g.work}, then (${n1(met)} &minus; 1) &times; 3.5 &times; ${weight} kg / 200 `
-         + `&times; ${Math.round(minutes)} min`, kcal:k});
+         + `&times; ${Math.round(minutes)} min. That effort is about `
+         + `${Math.round(mix.pct*100)}% of an estimated VO&#8322;max of `
+         + `${Math.round(mix.vo2max)} ml/kg/min, which burns ${mix.word}: roughly `
+         + `${kc(k*mix.fat)} kcal from fat and ${kc(k*mix.carb)} from carbohydrate. `
+         + `That is what fuelled the session, not what you lost \u2014 burn carbohydrate `
+         + `now and you burn more fat later, and it is the day's balance that `
+         + `decides the tissue either way`,
+      kcal:k});
   });
   return {kcal, lines, burn};
 }
@@ -3038,7 +3228,8 @@ function compute(){
         fastH=+($("fastH")||{}).value || 0;
 
   const food = readFood(), st = readStrength(weight,height),
-        timed = readTimed(weight), cardio = readCardio(weight), chores = readChores(weight),
+        timed = readTimed(weight), cardio = readCardio(weight, age, male, level),
+        chores = readChores(weight),
         glute = readGlute(weight,height);
 
   /* Optional meal-time model. With the setting off this hands back the day's
@@ -3455,7 +3646,7 @@ function syncRowValues(){
     const row = $("row_"+id), cell = row && row.querySelector(".val");
     if(!cell) continue;                       // readFood already wrote the numbers here
     cell.innerHTML = cell.innerHTML.replace(/<br>/g," &middot; ");
-    row.classList.toggle("dim", !(parseFloat($("f_"+id).value) > 0));
+    row.classList.toggle("dim", !(amtOf($("f_"+id)) > 0));
   }
   const mirror = (srcId, rowId) => {
     const src = $(srcId), row = $(rowId);
@@ -3623,7 +3814,7 @@ function renderHistory(){
 function usualIntake(snap){
   let k = 0;
   for(const id in foodIndex){
-    const v = parseFloat(snap["f_"+id] || 0) || 0;
+    const v = parseAmount(snap["f_"+id]) || 0;
     k += v * foodIndex[id].kcal;
   }
   return k;
@@ -5497,6 +5688,7 @@ function restore(s){
     n.value = s[n.id];
   });
   syncEntryChips();
+  syncCardioUnits();
   update();
 }
 
@@ -6200,7 +6392,7 @@ window.caloMeals = (function(){
 
     var kcalIn = 0, pIn = 0, total = 0, rows = [], feeds = [];
 
-    function digest(at, q, stamped){
+    function digest(at, q, stamped, whole){
       var kc = 0, pr = 0, cb = 0, ft = 0, names = [];
       Object.keys(q).forEach(function(id){
         var fd = (typeof foodIndex === "object") && foodIndex[id];
@@ -6211,19 +6403,31 @@ window.caloMeals = (function(){
       });
       if(kc <= 0) return;
       total += kc;
-      var hrs  = Math.max(0, (now - at)/60);
-      var size = Math.min(1.8, 1 + kc/2500);     // a bigger meal empties slower
-      var Fp = frac(TAU.p, hrs, size),
-          Fc = frac(TAU.c, hrs, size),
-          Ff = frac(TAU.f, hrs, size);
-      /* One energy-weighted fraction per sitting, so a fatty meal trails behind
-         a starchy one of the same size. */
-      var macroK = Math.max(1, 4*pr + 4*cb + 9*ft);
-      var Fe = (4*pr*Fp + 4*cb*Fc + 9*ft*Ff)/macroK;
+      var Fp, Fe;
+      if(whole){
+        /* Food with no time against it was logged before the setting was
+           turned on. Running a curve on it would mean guessing a time, and a
+           guess that puts this morning's breakfast at lunchtime wipes out
+           calories you really have absorbed. Count it in full and leave the
+           past alone: the setting applies to what you log from now on. */
+        Fp = 1; Fe = 1;
+      } else {
+        var hrs  = Math.max(0, (now - at)/60);
+        var size = Math.min(1.8, 1 + kc/2500);     // a bigger meal empties slower
+        Fp = frac(TAU.p, hrs, size);
+        var Fc = frac(TAU.c, hrs, size),
+            Ff = frac(TAU.f, hrs, size);
+        /* One energy-weighted fraction per sitting, so a fatty meal trails
+           behind a starchy one of the same size. */
+        var macroK = Math.max(1, 4*pr + 4*cb + 9*ft);
+        Fe = (4*pr*Fp + 4*cb*Fc + 9*ft*Ff)/macroK;
+      }
       kcalIn += kc*Fe;
       pIn    += pr*Fp;
-      rows.push({ at:at, kcal:kc, done:Fe, names:names, stamped:stamped });
-      if(pr >= MPS_MIN_G) feeds.push({ at:at, p:pr });
+      rows.push({ at:at, kcal:kc, done:Fe, names:names, stamped:stamped, whole:!!whole });
+      /* No time, no build window: a feeding whose hour is unknown cannot say
+         whether the window is open. */
+      if(!whole && pr >= MPS_MIN_G) feeds.push({ at:at, p:pr });
     }
 
     saved.forEach(function(s, i){
@@ -6243,7 +6447,7 @@ window.caloMeals = (function(){
       var left = qty[id] - used;
       if(left > 1e-9){ loose[id] = left; any = true; }
     });
-    if(any) digest(slotGuess(now).at, loose, -1);
+    if(any) digest(now, loose, -1, true);
 
     var mps = null;
     if(feeds.length){
@@ -6277,10 +6481,9 @@ window.caloMeals = (function(){
     d.sittings.forEach(function(s){
       var row = el("div","mealrow");
       var t = el("input"); t.type = "time"; t.className = "rtime mtime";
-      t.value = hm(s.at);
-      if(s.stamped < 0){
-        t.title = "Assumed from your meal slots - set it to record the real time";
-      }
+      t.value = s.whole ? "" : hm(s.at);
+      if(s.whole) t.title = "Logged before meal times were on. Set a time to "
+                          + "have it absorbed over the hours instead.";
       t.addEventListener("change", function(){ retime(s, t.value); });
       row.appendChild(t);
 
@@ -6289,10 +6492,12 @@ window.caloMeals = (function(){
                + (s.names.length > 3 ? " +" + (s.names.length - 3) + " more" : "");
       what.innerHTML = "<b>" + kc(s.kcal) + " kcal</b>"
                      + "<span>" + (list || "food") + "</span>"
-                     + '<span class="mbar"><i style="width:'
-                     + Math.round(s.done*100) + '%"></i></span>'
-                     + "<span>" + Math.round(s.done*100) + "% absorbed"
-                     + (s.stamped < 0 ? " \u00b7 time assumed" : "") + "</span>";
+                     + (s.whole ? ""
+                        : '<span class="mbar"><i style="width:'
+                          + Math.round(s.done*100) + '%"></i></span>')
+                     + "<span>" + (s.whole
+                        ? "counted in full \u2014 logged before meal times were on"
+                        : Math.round(s.done*100) + "% absorbed") + "</span>";
       row.appendChild(what);
       body.appendChild(row);
     });
@@ -6324,16 +6529,15 @@ window.caloMeals = (function(){
     var at = toMin(v);
     if(at === null) return;
     var o = log();
-    if(s.stamped >= 0 && o.s[s.stamped]){
+    if(!s.whole && s.stamped >= 0 && o.s[s.stamped]){
       o.s[s.stamped].t = v;
     } else {
-      /* An assumed sitting has no record behind it. Giving it a time turns it
-         into a real one, covering exactly the food that was not already
-         spoken for. */
-      var q = {};
-      Object.keys(pendingLeftovers()).forEach(function(id){ q[id] = pendingLeftovers()[id]; });
-      if(!Object.keys(q).length) return;
-      o.s.push({ t:v, q:q });
+      /* The whole-counted row has no record behind it. Giving it a time turns
+         it into a real sitting, covering exactly the food nothing else has
+         claimed - which is what that row was showing. */
+      var left = pendingLeftovers();
+      if(!Object.keys(left).length) return;
+      o.s.push({ t:v, q:left });
     }
     saveLog(o);
     update();
@@ -6351,7 +6555,7 @@ window.caloMeals = (function(){
     var out = {};
     for(var id in foodIndex){
       var n = document.getElementById("f_" + id);
-      var v = n ? (+n.value || 0) : 0;
+      var v = amtOf(n);
       var left = v - (claimed[id] || 0);
       if(left > 1e-9) out[id] = left;
     }
@@ -6365,7 +6569,7 @@ window.caloMeals = (function(){
     var q = {};
     for(var id in foodIndex){
       var n = document.getElementById("f_" + id);
-      if(n) q[id] = +n.value || 0;
+      if(n) q[id] = amtOf(n);
     }
     return q;
   }
@@ -6377,6 +6581,12 @@ window.caloMeals = (function(){
     if(typeof inDiff !== "undefined" && inDiff) return;
     try { render(d); } catch(e){}
     if(mode() === "off"){ seen = quantities(); return; }
+    /* A box being typed into holds whatever has been keyed so far - "1/" on the
+       way to "1/2". Sampling that would record a change that was never made,
+       and would lose the real one when it settles. Wait for the caret to
+       leave. */
+    var ae = document.activeElement;
+    if(ae && ae.id && ae.id.indexOf("f_") === 0) return;
     var day = (typeof dayKey === "function") ? dayKey() : "";
     var q = quantities();
     if(seen === null || day !== seenDay){ seen = q; seenDay = day; return; }
@@ -9001,7 +9211,7 @@ body.editing-day{padding-top:38px}
   /* One storable nutrient's intake on a saved day, from its stored food amounts. */
   function intakeOf(snap, key){
     var s=0;
-    for(var id in MICRO){ var m=MICRO[id]; if(m[key]!=null){ var v=parseFloat(snap["f_"+id])||0; if(v>0) s+=m[key]*v; } }
+    for(var id in MICRO){ var m=MICRO[id]; if(m[key]!=null){ var v=parseAmount(snap["f_"+id])||0; if(v>0) s+=m[key]*v; } }
     return s;
   }
   /* The running reserve, in days of cover, how fast it is draining, and when it
