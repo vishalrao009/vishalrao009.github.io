@@ -6768,18 +6768,8 @@ window.caloMeals = (function(){
   function dropEntry(i){
     var list = entries();
     if(!list[i]) return;
-    var e = list[i];
     list.splice(i, 1);
     saveEntries(list);
-    /* Removing a serving line removes that serving - its amount comes off the
-       day's total, not just its time. A decrease never triggers a new entry. */
-    var inp = document.getElementById("f_" + e.f);
-    if(inp){
-      var cur = (typeof amtOf === "function") ? amtOf(inp) : (parseFloat(inp.value) || 0);
-      var next = Math.max(0, cur - e.q);
-      inp.value = next > 1e-9 ? String(next) : "";
-      inp.dispatchEvent(new Event("input", { bubbles:true }));
-    }
     update();
   }
   function stampOne(id, q, v){
@@ -6841,8 +6831,7 @@ window.caloMeals = (function(){
     if(document.querySelector(".sheet.on")){ arm(); return; }
     var q = pend; pend = {};
     if(mode() === "ask"){ ask(q); return; }
-    if(mode() === "slot"){ commit(q, hm(slotGuess(nowMin()).at)); return; }
-    commit(q, hm(nowMin()));   // off (diary default): stamp the actual time you logged it
+    commit(q, hm(slotGuess(nowMin()).at));   // off or slot: auto-stamp, no prompt
   }
 
   function commit(q, t){
@@ -7777,7 +7766,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.19o";
+  var APP_VERSION = "2026.09.19m";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
