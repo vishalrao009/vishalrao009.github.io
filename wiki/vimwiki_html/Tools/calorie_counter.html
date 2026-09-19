@@ -2436,7 +2436,19 @@ function buildPicker(kind, body, placeholder, after, opts){
      Bottom sheets only - the walkthrough scrolls on its own terms. */
   function pinTop(){
     const host = list.closest(".sbody");
-    if(host && host.scrollTop > 0) host.scrollTop = 0;
+    if(host && host.scrollTop !== 0) host.scrollTop = 0;
+  }
+  /* iOS runs its OWN scroll a few frames after the keyboard opens or a key is
+     pressed - that is what drags the list down to its last row. A single reset
+     loses that race, so snap to the top now AND again over the next ~250ms so
+     the last word is ours. Between keystrokes nothing fires, so the list stays
+     free to scroll by hand. */
+  function pinTopSoon(){
+    pinTop();
+    requestAnimationFrame(pinTop);
+    setTimeout(pinTop, 60);
+    setTimeout(pinTop, 140);
+    setTimeout(pinTop, 260);
   }
   function draw(filter){
     list.innerHTML = "";
@@ -2468,10 +2480,11 @@ function buildPicker(kind, body, placeholder, after, opts){
       list.appendChild(b); shown++;
     });
     if(!shown) list.appendChild(el("p","tiny","Nothing matches that."));
-    if(filter) requestAnimationFrame(pinTop);
+    if(filter) pinTopSoon();
   }
   draw("");
   q.addEventListener("input", () => { browsing = false; draw(q.value.trim().toLowerCase()); });
+  q.addEventListener("focus", () => { if(q.value.trim()) pinTopSoon(); });
   q.redraw = () => { browsing = false; draw(q.value.trim().toLowerCase()); };
   /* Jump straight to one item's own fields, skipping the search list - e.g. the
      "Walked" quick button opens onto Walking's distance and pace, not a list of
@@ -6721,7 +6734,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.19d";
+  var APP_VERSION = "2026.09.19e";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
