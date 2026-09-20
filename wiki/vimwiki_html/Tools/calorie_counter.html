@@ -2593,7 +2593,15 @@ document.addEventListener("keydown", ev => { if(ev.key === "Escape" && sheetOpen
 function fitSheet(){
   const sh = $("sheet"), vv = window.visualViewport;
   if(!sheetOpen) return;
-  if(!vv){ sh.style.bottom = ""; sh.style.maxHeight = ""; return; }
+  /* Only fight the viewport when a field inside the sheet actually has the
+     keyboard up. With nothing focused, leave the sheet on its CSS size: the
+     viewport also shifts as the toolbar hides on scroll, and re-sizing the
+     sheet on every one of those was blanking and clipping the content
+     mid-scroll. */
+  const af = document.activeElement;
+  const typing = af && sh.contains(af) &&
+    (af.tagName === "INPUT" || af.tagName === "TEXTAREA" || af.tagName === "SELECT");
+  if(!vv || !typing){ sh.style.bottom = ""; sh.style.maxHeight = ""; return; }
   /* Distance from the bottom of the LAYOUT viewport - the thing position:fixed
      is measured against - up to the bottom of the visible strip. */
   const gap = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
@@ -6641,7 +6649,10 @@ window.caloMeals = (function(){
   function absorbed(food){
     var whole = { on:false, kcal:food.kcal, p:food.p, gut:0,
                   total:food.kcal, sittings:[], mps:null };
-    if(mode() === "off") return whole;
+    /* "Off" means no automatic curve, but a time the user actually put on a
+       meal is a deliberate instruction to absorb it over the hours - honour it
+       whatever the setting says. Only fall back to whole when nothing is timed. */
+    if(mode() === "off" && !entries().length) return whole;
     /* withSnap() pours another day's values through the live controls to work
        out a comparison. Measuring those against today's clock would be
        meaningless, so a comparison always sees the whole of what was eaten. */
@@ -7926,7 +7937,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.20k";
+  var APP_VERSION = "2026.09.20l";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
