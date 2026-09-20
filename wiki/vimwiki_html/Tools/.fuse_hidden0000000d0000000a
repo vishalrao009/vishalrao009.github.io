@@ -307,7 +307,7 @@ body{top:0!important}
 /* ---------------- rows & steppers ---------------- */
 .rowlist{margin:0 -4px}
 .lrow{display:grid;grid-template-columns:1fr auto;gap:10px 12px;align-items:center;
-  padding:15px 4px;border-bottom:1px solid var(--line)}
+  padding:11px 4px;border-bottom:1px solid var(--line)}
 .lrow:last-child{border-bottom:0}
 .lrow.hide{display:none}
 .lrow .nm{font-size:14.5px;line-height:1.3;min-width:0}
@@ -449,12 +449,12 @@ body{top:0!important}
 .timepair .ctl .num{min-width:2.6em}
 /* A time under the amount on each food row, so one item can be corrected
    without touching the rest of the meal. */
-.ftimes{width:100%;display:flex;flex-direction:column;gap:11px;margin-top:11px}
-.ftime{display:flex;align-items:center;gap:12px;padding:5px 0}
-.ftime .rtime{flex:none;font-size:16px;padding:8px 10px;min-height:42px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--card2);color:var(--ink)}
-.ftlab{font-size:13.5px;color:var(--muted);flex:1 1 auto;min-width:0}
+.ftimes{width:100%;display:flex;flex-direction:column;gap:5px;margin-top:6px}
+.ftime{display:flex;align-items:center;gap:8px}
+.ftime .rtime{flex:none}
+.ftlab{font-size:12px;color:var(--muted);flex:1 1 auto;min-width:0}
 .ftx{flex:none;border:0;background:transparent;color:var(--muted);
-  font-size:22px;line-height:1;padding:8px 12px;min-width:42px;min-height:42px}
+  font-size:17px;line-height:1;padding:2px 6px}
 /* ---- meal times / digestion card ---- */
 .mealrow{display:flex;align-items:center;gap:10px;padding:8px 0;
   border-top:1px solid var(--line)}
@@ -6336,7 +6336,7 @@ function logSuppOnDay(dk, suppId, amount){
   return true;
 }
 function openSuppLog(){
-  var supps = (CATALOG.food||[]).filter(function(it){ return it.group==="Supplements" && !/^Your supplement \d$/.test(it.name); });
+  var supps = (CATALOG.food||[]).filter(function(it){ return it.group==="Supplements"; });
   openSheet("Log a supplement", function(body){
     body.appendChild(el("p","tiny","Pick a supplement, set how much, and the day you took it — today or any past day."));
     var df = el("div","field");
@@ -6356,9 +6356,6 @@ function openSuppLog(){
     var logBtn = el("button","btn primary full","Log it"); logBtn.type="button"; logBtn.style.marginTop="8px"; bar.appendChild(logBtn);
     var note = el("p","tiny"); note.style.marginTop="8px"; bar.appendChild(note);
     body.appendChild(bar);
-    var customLink = el("button","btn sm line full","Set up a custom supplement"); customLink.type="button"; customLink.style.marginTop="14px";
-    customLink.addEventListener("click", function(){ if(window.caloSupp) window.caloSupp.open(); });
-    body.appendChild(customLink);
     function draw(){
       listWrap.innerHTML="";
       var fl=(q.value||"").trim().toLowerCase(), shown=0;
@@ -7907,7 +7904,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.20i";
+  var APP_VERSION = "2026.09.20f";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
