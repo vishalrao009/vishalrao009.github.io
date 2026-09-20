@@ -7815,7 +7815,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.20e";
+  var APP_VERSION = "2026.09.20c";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
@@ -8626,16 +8626,6 @@ body.editing-day{padding-top:38px}
     set: function(scale){ scale = clampFont(scale); try { localStorage.setItem(FONT_KEY, String(scale)); } catch(e){} applyFont(scale); return scale; }
   };
   applyFont(fontPref());
-
-  window.caloPersist = (function(){
-    function supported(){ return !!(navigator.storage && navigator.storage.persist); }
-    function status(cb){ if(!(navigator.storage && navigator.storage.persisted)){ cb(null); return; }
-      navigator.storage.persisted().then(function(p){ cb(!!p); }).catch(function(){ cb(null); }); }
-    function request(cb){ if(!supported()){ if(cb) cb(null); return; }
-      navigator.storage.persist().then(function(p){ if(cb) cb(!!p); }).catch(function(){ if(cb) cb(null); }); }
-    request(function(){});   // best-effort at startup; a Settings tap can ask again
-    return { supported: supported, status: status, request: request };
-  })();
 
   try {
     window.matchMedia("(prefers-color-scheme: dark)")
@@ -9663,26 +9653,6 @@ body.editing-day{padding-top:38px}
         b.addEventListener("click", function(){ if(window.caloHistory) window.caloHistory.open(); });
         r.appendChild(b);
         body.appendChild(r);
-      })();
-
-      grp("Keeping your data safe");
-      body.appendChild(el("p","tiny",
-        "Everything is stored on this device, in this browser. Clearing your browser's website data would erase it, so keep a backup with Export below. Adding the app to your Home Screen also makes its storage far more durable, and on iPhone stops it being cleared automatically."));
-      (function(){
-        var cp = window.caloPersist;
-        var r = el("div","setrow");
-        var lf = el("div"); lf.appendChild(el("label", null, "Durable storage"));
-        var sub = el("span","sublbl"); lf.appendChild(sub); r.appendChild(lf);
-        var btn = el("button","btn sm line","Turn on"); btn.type = "button";
-        function refresh(){
-          if(!cp || !cp.supported()){ sub.textContent = "This browser cannot pin storage - rely on Export for a safe backup."; btn.style.display = "none"; return; }
-          cp.status(function(on){
-            if(on === true){ sub.textContent = "On - the browser has been asked to keep this data and not clear it on its own."; btn.style.display = "none"; }
-            else { sub.textContent = "Ask the browser to keep this data and not evict it under storage pressure."; btn.style.display = ""; }
-          });
-        }
-        btn.addEventListener("click", function(){ if(cp) cp.request(function(){ refresh(); }); });
-        r.appendChild(btn); refresh(); body.appendChild(r);
       })();
 
       grp("Another phone");
