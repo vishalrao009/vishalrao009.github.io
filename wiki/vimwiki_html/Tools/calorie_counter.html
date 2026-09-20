@@ -2711,7 +2711,10 @@ function buildPicker(kind, body, placeholder, after, opts){
       if(wz && !wz.hidden && typeof wizNext === "function") wizNext();
     });
     bar.append(more, fin);
-    stage.appendChild(bar);
+    /* In a sheet the pinned footer below is the commit bar, so this inline copy
+       would just be a second identical Save/Done pair. Show it only in the
+       first-run walkthrough, which has no footer to fall back on. */
+    if(!sheetOpen) stage.appendChild(bar);
 
     if(sheetOpen) sheetActions({
       moreLabel: "Save & add another",
@@ -2740,6 +2743,14 @@ function buildPicker(kind, body, placeholder, after, opts){
     update();
     fitSheet();                          // the staged row changed the height
     focusNow($(ids[0]));                 // caret in the first number, keyboard up
+    /* The staged item sits at the bottom of the list; for a food already logged
+       today it can land below the keyboard, so the amount box is out of sight
+       and has to be hunted for. Pull the staged block up into the visible strip
+       once the layout and keyboard have settled. */
+    var bringUp = function(){
+      try { stage.scrollIntoView({block:"center", inline:"nearest"}); } catch(e){}
+    };
+    [60, 220, 440].forEach(function(t){ setTimeout(bringUp, t); });
   }
 
   function pool(){
@@ -7946,7 +7957,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.20m";
+  var APP_VERSION = "2026.09.20n";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
