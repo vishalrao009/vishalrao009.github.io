@@ -6807,6 +6807,7 @@ window.caloMeals = (function(){
     var rec = reconcile(quantities()), list = rec.list, any = false;
     Object.keys(rec.loose).forEach(function(id){
       list.push({f:id, q:rec.loose[id], t:v}); any = true;
+      clearPend(id, rec.loose[id]);
     });
     if(any) saveEntries(list);
   }
@@ -6900,15 +6901,24 @@ window.caloMeals = (function(){
     }
     update();
   }
+  function clearPend(id, amount){
+    var left = amount;
+    pend = pend.filter(function(sv){
+      if(sv.f !== id || left <= 1e-9) return true;
+      if(sv.q <= left + 1e-9){ left -= sv.q; return false; }
+      sv.q -= left; left = 0; return true;
+    });
+  }
   function stampOne(id, q, v){
     var list = entries();
     list.push({f:id, q:q, t:v});
+    clearPend(id, q);
     saveEntries(list);
     update();
   }
 
   /* ---------- noticing a batch ---------- */
-  var seen = null, seenDay = null, pend = {}, timer = null;
+  var seen = null, seenDay = null, pend = [], timer = null;
 
   function quantities(){
     var q = {};
@@ -6940,7 +6950,7 @@ window.caloMeals = (function(){
     var grew = false;
     Object.keys(q).forEach(function(id){
       var up = q[id] - (seen[id] || 0);
-      if(up > 1e-9){ pend[id] = (pend[id] || 0) + up; grew = true; }
+      if(up > 1e-9){ pend.push({f:id, q:up}); grew = true; }
     });
     seen = q;
     if(grew) arm();
@@ -6956,19 +6966,19 @@ window.caloMeals = (function(){
      finished, so wait rather than ask twice for one meal. */
   function settle(){
     timer = null;
-    if(!Object.keys(pend).length) return;
+    if(!pend.length) return;
     if(document.querySelector(".sheet.on")){ arm(); return; }
-    var q = pend; pend = {};
+    var af = document.activeElement;
+    if(af && af.type === "time"){ arm(); return; }   // you are choosing a time on a row - wait, do not interrupt
+    var q = pend; pend = [];
     if(mode() === "ask"){ ask(q); return; }
     if(mode() === "slot"){ commit(q, hm(slotGuess(nowMin()).at)); return; }
     commit(q, hm(nowMin()));   // off (diary default): stamp the actual time you logged it
   }
 
-  function commit(q, t){
+  function commit(servings, t){
     var list = entries();
-    Object.keys(q).forEach(function(id){
-      if(q[id] > 1e-9) list.push({f:id, q:q[id], t:t});
-    });
+    servings.forEach(function(sv){ if(sv.q > 1e-9) list.push({f:sv.f, q:sv.q, t:t}); });
     saveEntries(list);
     update();
   }
@@ -6978,16 +6988,18 @@ window.caloMeals = (function(){
      watcher does not also count the same growth. */
   function addServing(id, amount){
     if(!(amount > 0)) return;
-    pend[id] = (pend[id] || 0) + amount;
+    pend.push({f:id, q:amount});
     seen = quantities();
     seenDay = (typeof dayKey === "function") ? dayKey() : seenDay;
     arm();
   }
 
-  function nameList(q){
-    var names = Object.keys(q).map(function(id){
+  function nameList(servings){
+    var byId = {};
+    servings.forEach(function(sv){ byId[sv.f] = (byId[sv.f] || 0) + sv.q; });
+    var names = Object.keys(byId).map(function(id){
       var fd = foodIndex[id];
-      return fd ? fracText(q[id]) + " " + fd.unit + " " + fd.name.toLowerCase() : null;
+      return fd ? fracText(byId[id]) + " " + fd.unit + " " + fd.name.toLowerCase() : null;
     }).filter(Boolean);
     if(!names.length) return "what you just logged";
     if(names.length === 1) return names[0];
@@ -6996,7 +7008,7 @@ window.caloMeals = (function(){
   }
 
   function ask(q){
-    var guess = slotGuess(nowMin()), many = Object.keys(q).length > 1;
+    var guess = slotGuess(nowMin()), many = q.length > 1;
     openSheet("When did you eat this?", function(body){
       body.appendChild(el("p","tiny",
         "<b>" + nameList(q) + ".</b> Only the live tiles use this. What the day "
@@ -7907,7 +7919,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.20i";
+  var APP_VERSION = "2026.09.20j";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
