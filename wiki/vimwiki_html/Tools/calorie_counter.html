@@ -6910,10 +6910,12 @@ window.caloMeals = (function(){
     });
   }
   function stampOne(id, q, v){
-    var list = entries();
-    list.push({f:id, q:q, t:v});
-    clearPend(id, q);
-    saveEntries(list);
+    var list = entries(), timed = 0;
+    list.forEach(function(e){ if(e.f === id) timed += e.q; });
+    var looseLeft = Math.max(0, (quantities()[id]||0) - timed);
+    var add = Math.min(q, looseLeft);
+    if(add > 1e-9){ list.push({f:id, q:add, t:v}); saveEntries(list); }
+    clearPend(id, add > 1e-9 ? add : q);
     update();
   }
 
@@ -6977,8 +6979,13 @@ window.caloMeals = (function(){
   }
 
   function commit(servings, t){
-    var list = entries();
-    servings.forEach(function(sv){ if(sv.q > 1e-9) list.push({f:sv.f, q:sv.q, t:t}); });
+    var list = entries(), q = quantities(), timed = {};
+    list.forEach(function(e){ timed[e.f] = (timed[e.f]||0) + e.q; });
+    servings.forEach(function(sv){
+      var looseLeft = Math.max(0, (q[sv.f]||0) - (timed[sv.f]||0));   // only time what is not already timed
+      var add = Math.min(sv.q, looseLeft);
+      if(add > 1e-9){ list.push({f:sv.f, q:add, t:t}); timed[sv.f] = (timed[sv.f]||0) + add; }
+    });
     saveEntries(list);
     update();
   }
@@ -7919,7 +7926,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.20j";
+  var APP_VERSION = "2026.09.20k";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
