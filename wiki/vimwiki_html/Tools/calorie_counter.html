@@ -6743,6 +6743,11 @@ window.caloMeals = (function(){
   function render(d){
     var card = document.getElementById("mealCard");
     if(!card) return;
+    /* A native time picker is open on one of these rows. Rebuilding the card
+       under it snaps the picker shut, so leave the card exactly as it is until
+       the user taps away and the next update repaints it. */
+    var afr = document.activeElement;
+    if(afr && afr.type === "time" && card.contains(afr)) return;
     var on = !!(d && d.mealsOn && d.sittings && d.sittings.length);
     card.classList.toggle("hidden", !on);
     if(!on) return;
@@ -6828,6 +6833,10 @@ window.caloMeals = (function(){
      is, it travels into "edit what you ate and did" with the row, and it can
      show two times for a food eaten twice, which one box per meal cannot. */
   function paintRows(d){
+    /* Same reason as the card: if a per-serving time picker is open, do not
+       rebuild the rows and pull it out from under the user mid-selection. */
+    var afp = document.activeElement;
+    if(afp && afp.type === "time" && afp.closest && afp.closest(".ftimes")) return;
     var on = true;   // timed diary always shows per-serving times; the setting only drives absorption
     var qty = quantities();
     var mine = {};
@@ -7937,7 +7946,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.20l";
+  var APP_VERSION = "2026.09.20m";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
