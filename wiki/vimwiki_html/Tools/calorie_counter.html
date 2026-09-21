@@ -3790,9 +3790,14 @@ function update(){
   // ---- carbs, fat, protein under the meter ----
   MACRO_ORDER.forEach(key => {
     const M = MACROS[key], g = d.food[key], fromMac = g*M.per;
-    const share = inK > 0 ? fromMac/inK : 0;
-    $("mac"+M.tag+"g").textContent = inK > 0 ? n1(g)+" g" : (ready ? "0 g" : "\u2014");
-    $("mac"+M.tag+"s").textContent = inK > 0
+    /* Share of the WHOLE day's intake, not of what has absorbed so far. The
+       grams above are everything eaten, so the denominator has to be the total
+       eaten too - dividing by the absorbed-so-far figure made the three sum
+       past 100%. */
+    const eatenK = d.food.kcal;
+    const share = eatenK > 0 ? fromMac/eatenK : 0;
+    $("mac"+M.tag+"g").textContent = eatenK > 0 ? n1(g)+" g" : (ready ? "0 g" : "\u2014");
+    $("mac"+M.tag+"s").textContent = eatenK > 0
       ? `${kc(fromMac)} kcal \u00b7 ${(share*100).toFixed(0)}% of intake`
       : (ready ? "none eaten yet" : "nothing logged yet");
     $("mac"+M.tag+"b").style.width = Math.min(100, share*100).toFixed(1)+"%";
@@ -8451,7 +8456,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.21aa";
+  var APP_VERSION = "2026.09.21ab";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
