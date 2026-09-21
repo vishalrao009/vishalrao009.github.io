@@ -668,6 +668,35 @@ input,select{scroll-margin:84px 0 180px}
 .stagehead{font-family:var(--serif);font-size:16px;font-weight:600;margin:14px 0 2px;
   padding-top:13px;border-top:1px solid var(--line)}
 .stage .lrow{border-bottom:0}
+/* ---- Full-screen single-item entry ----
+   Picking a food, exercise or supplement fills the screen with just that one
+   thing, laid out large, instead of parking it at the foot of a half sheet. */
+.sheet.solo{top:0;max-height:100vh;max-height:100dvh;border-radius:0}
+.sheet.solo>.search{display:none}
+.sheet.solo .pklist{display:none}
+.sheet.solo .stage{margin-top:8px}
+.sheet.solo .stagehead{font-size:23px;margin:4px 0 16px}
+.sheet.solo .stage .lrow{display:block;padding:4px 2px 10px}
+.sheet.solo .stage .lrow .nm{font-size:20px;line-height:1.35;margin-bottom:8px}
+.sheet.solo .stage .lrow .nm small{font-size:14px;margin-top:5px}
+.sheet.solo .stage .lrow .val{font-size:18px;text-align:left;margin:6px 0 4px;grid-column:auto}
+.sheet.solo .stage .subrow{gap:16px;margin-top:8px}
+.sheet.solo .stage .subrow .sl{font-size:14px;margin-bottom:2px}
+.sheet.solo .stage .ctl{gap:2px}
+.sheet.solo .stage .ctl .pm{width:60px;min-height:60px;font-size:27px}
+.sheet.solo .stage .ctl .num{width:110px;min-height:60px;font-size:23px}
+.sheet.solo .stage .ctl .un{font-size:16px;padding-right:14px}
+.sheet.solo .stage .chips .chip,.sheet.solo .stage select{font-size:16px;min-height:46px}
+/* When this browser leaves position:fixed layers out of the page zoom, we zoom
+   those layers directly; --fs (the font scale) then divides their viewport-based
+   sizes back so a zoomed full-width layer still fits the screen. Off (--fs:1 and
+   no class) on browsers that zoom fixed layers for us, so nothing changes there. */
+body.fzoom .sheet{left:0;right:auto;width:calc(100vw / var(--fs,1));max-height:calc(90vh / var(--fs,1))}
+body.fzoom .sheet.solo{max-height:calc(100dvh / var(--fs,1))}
+body.fzoom .tabbar,body.fzoom .strip,body.fzoom #editDayBar{left:0;right:auto;width:calc(100vw / var(--fs,1))}
+body.fzoom #installCard,body.fzoom #updateCard{left:0;right:auto;width:calc((100vw - 24px) / var(--fs,1))}
+body.fzoom .scrim{width:calc(100vw / var(--fs,1));height:calc(100vh / var(--fs,1))}
+body.fzoom #translate-panel{max-height:calc(62vh / var(--fs,1))}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .chip{border:0;background:var(--card2);border-radius:999px;padding:10px 17px;font-size:14px;
   font-weight:500;color:var(--muted);min-height:42px}
@@ -2550,6 +2579,7 @@ function openSheet(title, buildBody){
   if(oldq) oldq.remove();
   $("sheetBody").scrollTop = 0;
   sheetActions(null);
+  sh.classList.remove("solo");         // never inherit a previous item view
   sh.classList.add("snap");            // no slide, so it is on screen immediately
   sh.classList.add("on");
   $("scrim").classList.add("on");
@@ -2569,6 +2599,7 @@ function closeSheet(){
   restoreRows();
   sheetActions(null);
   $("sheet").classList.remove("on"); $("scrim").classList.remove("on");
+  $("sheet").classList.remove("solo");
   clearSheetFit();
   sheetOpen = false;
   unlockPage();
@@ -2605,7 +2636,10 @@ function fitSheet(){
   /* Distance from the bottom of the LAYOUT viewport - the thing position:fixed
      is measured against - up to the bottom of the visible strip. */
   const gap = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
-  sh.style.bottom = gap + "px";
+  /* The sheet carries the font zoom (root zoom, or its own on browsers that skip
+     fixed layers), which also scales any px we set here - divide it back out. */
+  const fs = (window.caloFont && window.caloFont.get) ? (window.caloFont.get() || 1) : 1;
+  sh.style.bottom = (gap / fs) + "px";
   /* The height ALWAYS comes from the live viewport now; the old code only set it
      when it could see a keyboard-sized gap and otherwise fell back to the CSS
      90vh. That fallback is the bug: vh units on iOS are pinned to the full
@@ -2614,7 +2648,7 @@ function fitSheet(){
      taller than the screen that is left. It grows upward off the top, taking the
      header and the search box with it, which is exactly what you see the moment
      the first letter turns one hint line into six results. */
-  sh.style.maxHeight = Math.round(gap > 40 ? vv.height : vv.height * 0.9) + "px";
+  sh.style.maxHeight = (Math.round(gap > 40 ? vv.height : vv.height * 0.9) / fs) + "px";
 }
 function clearSheetFit(){
   const sh = $("sheet");
@@ -2639,14 +2673,33 @@ function buildPicker(kind, body, placeholder, after, opts){
   const inSheet = body.classList && body.classList.contains("sbody") && body.parentNode;
   if(inSheet) body.parentNode.insertBefore(q, body);
   else body.appendChild(q);
-  const list = el("div");
+  const list = el("div","pklist");
   list.style.overflowAnchor = "none";   // don't let the browser nudge the scroll when results re-render
   body.appendChild(list);
   const stage = el("div","stage");       // the one thing you just picked
   body.appendChild(stage);
   let browsing = false;
+  const baseTitle = inSheet ? (($("sheetTitle") && $("sheetTitle").textContent) || "") : "";
 
   function openItem(item){
+    /* Take the whole screen for this one item (big fields), and hide the search
+       and the results behind it. Leaving solo mode uncovers them again. */
+    function exitSoloUI(){
+      var sh0 = document.getElementById("sheet");
+      if(sh0) sh0.classList.remove("solo");
+      if(inSheet && $("sheetTitle")) $("sheetTitle").textContent = baseTitle;
+      window.__sheetOnClose = null;
+    }
+    function exitSolo(){            // "back": drop this item and return to the search list
+      if(window.__pickerCancel) window.__pickerCancel();
+      restoreRows(); stage.innerHTML = "";
+      window.__pickerBusy = false;
+      exitSoloUI();
+      sheetActions(null);
+      q.value = ""; browsing = false; draw("");
+      fitSheet();
+      focusNow(q);
+    }
     if(window.__pickerCancel) window.__pickerCancel();   // restore any half-staged food first
     restoreRows();                       // whatever was staged before goes home
     item.ctlIds.forEach(id => PINNED.add(id));
@@ -2684,8 +2737,10 @@ function buildPicker(kind, body, placeholder, after, opts){
         window.caloMeals.addServing(foodId, entered);            // its own timed entry, asked after close
       }
       window.__pickerBusy = false;
+      exitSoloUI();                      // back out of the full-screen entry view
       q.value = ""; browsing = false; draw("");
       sheetActions(null);
+      fitSheet();
       focusNow(q);                       // straight back to a live search box
     };
 
@@ -2739,6 +2794,12 @@ function buildPicker(kind, body, placeholder, after, opts){
         });
       }
     });
+    if(sheetOpen){
+      var shSolo = document.getElementById("sheet");
+      if(shSolo) shSolo.classList.add("solo");
+      if($("sheetTitle")) $("sheetTitle").textContent = item.name;
+      window.__sheetOnClose = exitSolo;  // X or tap-outside goes back to the list, not straight out
+    }
     liveOn();
     update();
     fitSheet();                          // the staged row changed the height
@@ -7962,7 +8023,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.21p";
+  var APP_VERSION = "2026.09.21r";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
@@ -8767,7 +8828,39 @@ body.editing-day{padding-top:38px}
   var FONT_KEY = "ledger.fontScale", FONT_MIN = 0.8, FONT_MAX = 1.8, FONT_STEP = 0.05;
   function fontPref(){ try { var v = parseFloat(localStorage.getItem(FONT_KEY)); return (isFinite(v) && v > 0) ? v : 1; } catch(e){ return 1; } }
   function clampFont(v){ v = Math.round(v / FONT_STEP) * FONT_STEP; return Math.max(FONT_MIN, Math.min(FONT_MAX, +v.toFixed(2))); }
-  function applyFont(scale){ try { document.documentElement.style.zoom = (scale && Math.abs(scale - 1) > 0.001) ? String(scale) : ""; } catch(e){} }
+  var _fixedZoomOK = null, FIXED_LAYERS = ["sheet","scrim","tabbar","strip","editDayBar","updateCard","installCard","translate-panel","live"];
+  /* Does zooming the page also scale position:fixed layers? Chrome and current
+     iOS say yes; some iOS Safari builds leave fixed elements out, which is why
+     the tab bar and sheets would not grow with the rest. Measure it once. */
+  function fixedZoomOK(){
+    if(_fixedZoomOK !== null) return _fixedZoomOK;
+    try {
+      var pr = document.createElement("div");
+      pr.style.cssText = "position:fixed;left:0;top:0;width:100px;height:1px;visibility:hidden;pointer-events:none;margin:0";
+      document.body.appendChild(pr);
+      var base = pr.getBoundingClientRect().width;
+      var prev = document.documentElement.style.zoom;
+      document.documentElement.style.zoom = "2";
+      var zoomed = pr.getBoundingClientRect().width;
+      document.documentElement.style.zoom = prev;
+      pr.parentNode.removeChild(pr);
+      _fixedZoomOK = zoomed > base * 1.5;
+    } catch(e){ _fixedZoomOK = true; }
+    return _fixedZoomOK;
+  }
+  function applyFont(scale){
+    var s = (scale && scale > 0) ? scale : 1, big = Math.abs(s - 1) > 0.001;
+    try {
+      var perLayer = big && !fixedZoomOK();   // this browser skips fixed layers, so zoom them ourselves
+      document.documentElement.style.zoom = big ? String(s) : "";
+      document.documentElement.style.setProperty("--fs", String(perLayer ? s : 1));
+      if(document.body) document.body.classList.toggle("fzoom", perLayer);
+      FIXED_LAYERS.forEach(function(id){
+        var n = document.getElementById(id);
+        if(n) n.style.zoom = perLayer ? String(s) : "";
+      });
+    } catch(e){}
+  }
   window.caloFont = {
     get: fontPref, min: FONT_MIN, max: FONT_MAX, step: FONT_STEP,
     set: function(scale){ scale = clampFont(scale); try { localStorage.setItem(FONT_KEY, String(scale)); } catch(e){} applyFont(scale); return scale; }
