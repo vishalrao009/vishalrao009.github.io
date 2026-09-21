@@ -463,6 +463,11 @@ body{top:0!important}
 .mealrow .mwhat{flex:1 1 auto;min-width:0}
 .mealrow .mwhat b{display:block;font-weight:600}
 .mealrow .mwhat span{display:block;font-size:12px;color:var(--muted)}
+.mealrow .mwhat{cursor:pointer;border-radius:8px}
+.mealrow .mwhat:active{background:var(--card2)}
+.mealrow .mwhat .mexpl{color:var(--out);font-weight:500;margin-top:5px}
+.refs{margin:8px 0 0;padding-left:18px}
+.refs li{font-size:12px;color:var(--muted);margin:6px 0;line-height:1.5}
 .mealrow .mdrop{flex:none;border:0;background:transparent;color:var(--muted);
   font-size:18px;line-height:1;padding:4px 6px}
 .mbar{height:6px;border-radius:99px;background:var(--card2);overflow:hidden;margin-top:5px}
@@ -6799,7 +6804,10 @@ window.caloMeals = (function(){
       kcalIn += kc*Fe;
       pIn    += pr*Fp;
       rows.push({ at:at, kcal:kc, done:Fe, names:names, stamp:stamp,
-                  whole:!!countWhole });
+                  whole:!!countWhole, p:pr, c:cb, f:ft,
+                  Fp:Fp, Fc:(typeof Fc === "number" ? Fc : 1),
+                  Ff:(typeof Ff === "number" ? Ff : 1),
+                  size:(typeof size === "number" ? size : 1) });
       /* No time, no build window: a feeding whose hour is unknown cannot say
          whether the window is open. */
       if(!countWhole && pr >= MPS_MIN_G) feeds.push({ at:at, p:pr });
@@ -6832,6 +6840,63 @@ window.caloMeals = (function(){
     rows.sort(function(a,b){ return a.at - b.at; });
     return { on:true, kcal:kcalIn, p:pIn, gut:Math.max(0, total - kcalIn),
              total:total, sittings:rows, mps:mps };
+  }
+
+  /* Tap a sitting to see exactly how its "% absorbed" was arrived at, with the
+     physiology it leans on. Honest about being a heuristic, not a measurement. */
+  function explainSitting(s){
+    var now = nowMin(), hrs = Math.max(0, (now - s.at)/60);
+    openSheet("How this is worked out", function(body){
+      body.appendChild(el("p","tiny",
+        "<b>" + kc(s.kcal) + " kcal</b> "
+        + (s.whole ? "logged today without a time." : "eaten at " + pretty(s.at) + " \u2014 " + ago(hrs) + ".")
+        + " " + (s.whole
+          ? "With no time against it, it is counted in full rather than put on a curve."
+          : "About <b>" + Math.round(s.done*100) + "%</b> of its energy has reached the blood so far.")));
+
+      if(!s.whole){
+        body.appendChild(el("div","ntgrp","What is in it"));
+        body.appendChild(el("p","tiny",
+          "Protein " + n1(s.p) + " g, carbs " + n1(s.c) + " g, fat " + n1(s.f) + " g."));
+
+        body.appendChild(el("div","ntgrp","The model"));
+        body.appendChild(el("p","tiny",
+          "Food does not reach the blood the moment it is eaten - it leaves the stomach and is absorbed over the next few "
+          + "hours. Each macronutrient gets its own emptying curve, a Weibull (stretched-exponential) shape:"));
+        body.appendChild(el("p","formula",
+          "share absorbed(t) = 1 \u2212 exp[ \u2212( (t \u2212 " + LAG + ") / (\u03c4\u00b7k) )\u00b2 ]"));
+        body.appendChild(el("p","tiny",
+          "<b>t</b> is hours since the meal. There is a " + Math.round(LAG*60) + "-minute lag before much leaves the "
+          + "stomach. <b>\u03c4</b> is the time constant for each macronutrient - carbs " + TAU.c + " h, protein "
+          + TAU.p + " h, fat " + TAU.f + " h, so fat trails carbohydrate. <b>k = " + n1(s.size) + "</b> here is a size "
+          + "factor, min(1.8, 1 + kcal/2500), so a larger meal empties a little slower."));
+
+        body.appendChild(el("div","ntgrp","This meal, right now"));
+        body.appendChild(el("p","tiny",
+          "At " + n1(hrs) + " h: carbs <b>" + Math.round(s.Fc*100) + "%</b>, protein <b>" + Math.round(s.Fp*100)
+          + "%</b>, fat <b>" + Math.round(s.Ff*100) + "%</b> absorbed. The headline number is the energy-weighted "
+          + "average of the three (4 kcal/g for protein and carbs, 9 for fat): <b>" + Math.round(s.done*100) + "%</b>."));
+
+        if(s.p >= MPS_MIN_G){
+          body.appendChild(el("div","ntgrp","Build window"));
+          body.appendChild(el("p","tiny",
+            "A feeding of about " + MPS_MIN_G + " g of protein or more raises muscle protein synthesis for roughly "
+            + MPS_END + " hours, peaking near " + MPS_PEAK + " h before settling back to baseline - that is the window on the card."));
+        }
+      }
+
+      body.appendChild(el("div","ntgrp","Where the numbers come from"));
+      var refs = el("ul","refs");
+      [ "Gastric emptying follows a stretched-exponential time course - Elashoff, Reedy & Meyer, Gastroenterology, 1982.",
+        "Emptying is paced by a meal's energy, and fat empties slowest while carbohydrate empties fastest - Hunt & Stubbs, J Physiol, 1975; Calbet & MacLean, J Physiol, 1997.",
+        "Muscle protein synthesis rises for about 1-3 h after a protein feeding and peaks near 1.5-2 h (the muscle-full effect) - Atherton et al., Am J Clin Nutr, 2010; Atherton & Smith, J Physiol, 2012.",
+        "Roughly a 20 g dose maximises that response in most people - Moore et al., Am J Clin Nutr, 2009; Witard et al., Am J Clin Nutr, 2014."
+      ].forEach(function(t){ refs.appendChild(el("li", null, t)); });
+      body.appendChild(refs);
+      body.appendChild(el("p","tiny",
+        "This is a simplified model with chosen constants, not a clinical measurement. Its job is to keep the live tiles "
+        + "from jumping the instant you log a meal - the day's totals by midnight are unaffected by it."));
+    });
   }
 
   /* ---------- the overview card ---------- */
@@ -6873,6 +6938,9 @@ window.caloMeals = (function(){
                      + "<span>" + (s.whole
                         ? "counted in full \u2014 logged before meal times were on"
                         : Math.round(s.done*100) + "% absorbed") + "</span>";
+      what.insertAdjacentHTML("beforeend", "<span class=\"mexpl\">how this is worked out \u203a</span>");
+      what.setAttribute("role","button"); what.setAttribute("tabindex","0");
+      what.addEventListener("click", function(){ explainSitting(s); });
       row.appendChild(what);
       body.appendChild(row);
     });
@@ -8053,7 +8121,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.21t";
+  var APP_VERSION = "2026.09.21u";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
