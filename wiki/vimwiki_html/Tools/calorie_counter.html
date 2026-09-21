@@ -687,16 +687,14 @@ input,select{scroll-margin:84px 0 180px}
 .sheet.solo .stage .ctl .num{width:110px;min-height:60px;font-size:23px}
 .sheet.solo .stage .ctl .un{font-size:16px;padding-right:14px}
 .sheet.solo .stage .chips .chip,.sheet.solo .stage select{font-size:16px;min-height:46px}
-/* When this browser leaves position:fixed layers out of the page zoom, we zoom
-   those layers directly; --fs (the font scale) then divides their viewport-based
-   sizes back so a zoomed full-width layer still fits the screen. Off (--fs:1 and
-   no class) on browsers that zoom fixed layers for us, so nothing changes there. */
-body.fzoom .sheet{left:0;right:auto;width:calc(100vw / var(--fs,1));max-height:calc(90vh / var(--fs,1))}
-body.fzoom .sheet.solo{max-height:calc(100dvh / var(--fs,1))}
-body.fzoom .tabbar,body.fzoom .strip,body.fzoom #editDayBar{left:0;right:auto;width:calc(100vw / var(--fs,1))}
-body.fzoom #installCard,body.fzoom #updateCard{left:0;right:auto;width:calc((100vw - 24px) / var(--fs,1))}
-body.fzoom .scrim{width:calc(100vw / var(--fs,1));height:calc(100vh / var(--fs,1))}
-body.fzoom #translate-panel{max-height:calc(62vh / var(--fs,1))}
+/* The time field on the full-page item view: a big, clear box like the amount. */
+.stagetime{margin-top:16px}
+.stagetime .stimelab{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+.stagetime .stimeinp{font-size:20px;min-height:52px;padding:9px 13px;border:1px solid var(--line);
+  border-radius:var(--r-sm);background:var(--card2);color:var(--ink);width:100%;max-width:220px}
+.sheet.solo .stagetime{margin-top:22px}
+.sheet.solo .stagetime .stimelab{font-size:15px;margin-bottom:9px}
+.sheet.solo .stagetime .stimeinp{font-size:24px;min-height:60px;max-width:240px}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .chip{border:0;background:var(--card2);border-radius:999px;padding:10px 17px;font-size:14px;
   font-weight:500;color:var(--muted);min-height:42px}
@@ -2636,10 +2634,7 @@ function fitSheet(){
   /* Distance from the bottom of the LAYOUT viewport - the thing position:fixed
      is measured against - up to the bottom of the visible strip. */
   const gap = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
-  /* The sheet carries the font zoom (root zoom, or its own on browsers that skip
-     fixed layers), which also scales any px we set here - divide it back out. */
-  const fs = (window.caloFont && window.caloFont.get) ? (window.caloFont.get() || 1) : 1;
-  sh.style.bottom = (gap / fs) + "px";
+  sh.style.bottom = gap + "px";
   /* The height ALWAYS comes from the live viewport now; the old code only set it
      when it could see a keyboard-sized gap and otherwise fell back to the CSS
      90vh. That fallback is the bug: vh units on iOS are pinned to the full
@@ -2648,7 +2643,7 @@ function fitSheet(){
      taller than the screen that is left. It grows upward off the top, taking the
      header and the search box with it, which is exactly what you see the moment
      the first letter turns one hint line into six results. */
-  sh.style.maxHeight = (Math.round(gap > 40 ? vv.height : vv.height * 0.9) / fs) + "px";
+  sh.style.maxHeight = Math.round(gap > 40 ? vv.height : vv.height * 0.9) + "px";
 }
 function clearSheetFit(){
   const sh = $("sheet");
@@ -2724,6 +2719,18 @@ function buildPicker(kind, body, placeholder, after, opts){
       + (item.meta ? ` <span class="pk">${item.meta}</span>` : ""));
     stage.appendChild(head);
     stage.appendChild($(item.rowId));    // the real row, moved here
+    /* A time box, right here on the item's own page, so the "when" is set once
+       with the amount - big, and never asked again afterwards. */
+    var stime = null;
+    if(foodCtl && sheetOpen){
+      var tf = el("div","stagetime");
+      tf.appendChild(el("label","stimelab","Time you ate"));
+      stime = el("input"); stime.type = "time"; stime.className = "stimeinp";
+      var dnow = new Date();
+      stime.value = String(dnow.getHours()).padStart(2,"0") + ":" + String(dnow.getMinutes()).padStart(2,"0");
+      tf.appendChild(stime);
+      stage.appendChild(tf);
+    }
     const finish = () => {
       var entered = 0;
       if(foodCtl){
@@ -2733,8 +2740,13 @@ function buildPicker(kind, body, placeholder, after, opts){
       }
       window.__pickerCancel = null;      // committing, nothing to roll back
       restoreRows(); stage.innerHTML = ""; update(); liveOff();   // __pickerBusy still true here
-      if(foodCtl && entered > 0 && window.caloMeals && window.caloMeals.addServing){
-        window.caloMeals.addServing(foodId, entered);            // its own timed entry, asked after close
+      var t = stime ? (stime.value || "") : "";
+      if(foodCtl && entered > 0 && window.caloMeals){
+        if(t && window.caloMeals.logAt){
+          window.caloMeals.logAt(foodId, entered, t);            // timed here on the page - no second question, no copy
+        } else if(window.caloMeals.addServing){
+          window.caloMeals.addServing(foodId, entered);          // time left blank - old path (asks only if that is the setting)
+        }
       }
       window.__pickerBusy = false;
       exitSoloUI();                      // back out of the full-screen entry view
@@ -2803,15 +2815,14 @@ function buildPicker(kind, body, placeholder, after, opts){
     liveOn();
     update();
     fitSheet();                          // the staged row changed the height
-    focusNow($(ids[0]));                 // caret in the first number, keyboard up
-    /* The staged item sits at the bottom of the list; for a food already logged
-       today it can land below the keyboard, so the amount box is out of sight
-       and has to be hunted for. Pull the staged block up into the visible strip
-       once the layout and keyboard have settled. */
-    var bringUp = function(){
-      try { stage.scrollIntoView({block:"center", inline:"nearest"}); } catch(e){}
-    };
-    [60, 220, 440].forEach(function(t){ setTimeout(bringUp, t); });
+    if(sheetOpen){
+      /* Full-page entry: show the whole item at once rather than snapping the
+         keyboard up over it. The amount is a big stepper - tap the number to
+         type, or use the plus and minus. */
+      try { $("sheetBody").scrollTop = 0; } catch(e){}
+    } else {
+      focusNow($(ids[0]));               // walkthrough has no full page - caret in the number
+    }
   }
 
   function pool(){
@@ -7098,6 +7109,18 @@ window.caloMeals = (function(){
     arm();
   }
 
+  /* Log a serving with a time the user already gave on the item's own page. It
+     goes straight into the diary - no "when did you eat this?" and no second
+     copy, because nothing is left pending to settle. */
+  function logAt(id, amount, t){
+    if(!(amount > 0)) return;
+    var tt = (toMin(t) !== null) ? t : hm(nowMin());
+    clearPend(id, amount);
+    commit([{f:id, q:amount}], tt);
+    seen = quantities();
+    seenDay = (typeof dayKey === "function") ? dayKey() : seenDay;
+  }
+
   function nameList(servings){
     var byId = {};
     servings.forEach(function(sv){ byId[sv.f] = (byId[sv.f] || 0) + sv.q; });
@@ -7121,7 +7144,7 @@ window.caloMeals = (function(){
 
       var f = el("div","field");
       f.appendChild(el("label", null, many ? "Time you ate all of it" : "Time you ate"));
-      var inp = el("input"); inp.type = "time"; inp.value = hm(nowMin());
+      var inp = el("input"); inp.type = "time"; inp.className = "stimeinp"; inp.value = hm(nowMin());
       f.appendChild(inp);
       body.appendChild(f);
 
@@ -7202,7 +7225,7 @@ window.caloMeals = (function(){
     body.appendChild(wipe);
   }
 
-  return { absorbed:absorbed, afterUpdate:afterUpdate, settings:settings, mode:mode, addServing:addServing };
+  return { absorbed:absorbed, afterUpdate:afterUpdate, settings:settings, mode:mode, addServing:addServing, logAt:logAt };
 })();
 LOG_IDS.push("mealLog");           // belongs to the day, and is cleared with it
 SETTING_IDS.push("mealTiming");    // belongs to the profile, and outlives the day
@@ -8023,7 +8046,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.21r";
+  var APP_VERSION = "2026.09.21s";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
@@ -8828,37 +8851,13 @@ body.editing-day{padding-top:38px}
   var FONT_KEY = "ledger.fontScale", FONT_MIN = 0.8, FONT_MAX = 1.8, FONT_STEP = 0.05;
   function fontPref(){ try { var v = parseFloat(localStorage.getItem(FONT_KEY)); return (isFinite(v) && v > 0) ? v : 1; } catch(e){ return 1; } }
   function clampFont(v){ v = Math.round(v / FONT_STEP) * FONT_STEP; return Math.max(FONT_MIN, Math.min(FONT_MAX, +v.toFixed(2))); }
-  var _fixedZoomOK = null, FIXED_LAYERS = ["sheet","scrim","tabbar","strip","editDayBar","updateCard","installCard","translate-panel","live"];
-  /* Does zooming the page also scale position:fixed layers? Chrome and current
-     iOS say yes; some iOS Safari builds leave fixed elements out, which is why
-     the tab bar and sheets would not grow with the rest. Measure it once. */
-  function fixedZoomOK(){
-    if(_fixedZoomOK !== null) return _fixedZoomOK;
+  /* Text-size scaling is parked for now; keep the page at its natural size and
+     clear anything a previous build may have zoomed. */
+  function applyFont(){
     try {
-      var pr = document.createElement("div");
-      pr.style.cssText = "position:fixed;left:0;top:0;width:100px;height:1px;visibility:hidden;pointer-events:none;margin:0";
-      document.body.appendChild(pr);
-      var base = pr.getBoundingClientRect().width;
-      var prev = document.documentElement.style.zoom;
-      document.documentElement.style.zoom = "2";
-      var zoomed = pr.getBoundingClientRect().width;
-      document.documentElement.style.zoom = prev;
-      pr.parentNode.removeChild(pr);
-      _fixedZoomOK = zoomed > base * 1.5;
-    } catch(e){ _fixedZoomOK = true; }
-    return _fixedZoomOK;
-  }
-  function applyFont(scale){
-    var s = (scale && scale > 0) ? scale : 1, big = Math.abs(s - 1) > 0.001;
-    try {
-      var perLayer = big && !fixedZoomOK();   // this browser skips fixed layers, so zoom them ourselves
-      document.documentElement.style.zoom = big ? String(s) : "";
-      document.documentElement.style.setProperty("--fs", String(perLayer ? s : 1));
-      if(document.body) document.body.classList.toggle("fzoom", perLayer);
-      FIXED_LAYERS.forEach(function(id){
-        var n = document.getElementById(id);
-        if(n) n.style.zoom = perLayer ? String(s) : "";
-      });
+      document.documentElement.style.zoom = "";
+      document.documentElement.style.removeProperty("--fs");
+      if(document.body) document.body.classList.remove("fzoom");
     } catch(e){}
   }
   window.caloFont = {
@@ -9978,25 +9977,6 @@ body.editing-day{padding-top:38px}
         if(ct && ct.onChange) ct.onChange(mark);
         r.appendChild(grid);
         body.appendChild(r);
-      })();
-      (function(){
-        var cf = window.caloFont;
-        var r2 = el("div","setrow");
-        var lf = el("div");
-        lf.appendChild(el("label", null, "Text size"));
-        lf.appendChild(el("span","sublbl","Tap \u2212 or + to make everything a little smaller or larger."));
-        r2.appendChild(lf);
-        var step = el("div","fontstep");
-        var minus = el("button","fbtn","\u2212"); minus.type = "button"; minus.setAttribute("aria-label","Smaller text");
-        var val = el("span","fval");
-        var plus = el("button","fbtn","+"); plus.type = "button"; plus.setAttribute("aria-label","Larger text");
-        function show(v){ val.textContent = Math.round(v * 100) + "%"; minus.disabled = v <= cf.min + 1e-9; plus.disabled = v >= cf.max - 1e-9; }
-        show(cf ? cf.get() : 1);
-        minus.addEventListener("click", function(){ if(cf) show(cf.set(cf.get() - cf.step)); });
-        plus.addEventListener("click", function(){ if(cf) show(cf.set(cf.get() + cf.step)); });
-        step.appendChild(minus); step.appendChild(val); step.appendChild(plus);
-        r2.appendChild(step);
-        body.appendChild(r2);
       })();
 
       if(window.caloMeals) window.caloMeals.settings(body, grp);
