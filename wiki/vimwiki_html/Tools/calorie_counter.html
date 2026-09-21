@@ -5806,12 +5806,13 @@ function checkDayRollover(){
   dayOnScreen = null;
   location.reload();
 }
-setInterval(function(){ maybeCloseTonight(); checkDayRollover(); }, 30000);
+setInterval(function(){ maybeCloseTonight(); checkDayRollover(); try{ update(); }catch(e){} }, 30000);
 document.addEventListener("visibilitychange", function(){
   if(document.hidden) return;
   maybeCloseTonight();
   checkDayRollover();
   closeStaleDays();
+  try{ update(); }catch(e){}   // the clock moved while we were away - repaint the time-based figures
 });
 window.addEventListener("focus", checkDayRollover);
 
@@ -6373,6 +6374,9 @@ function openSuppLog(){
     var amt = el("input"); amt.type="number"; amt.min="0"; amt.step="1"; amt.value="1"; amt.setAttribute("inputmode","decimal"); amt.className="num"; amt.style.maxWidth="150px";
     amtWrap.appendChild(amt); bar.appendChild(amtWrap);
     var logBtn = el("button","btn primary full","Log it"); logBtn.type="button"; logBtn.style.marginTop="8px"; bar.appendChild(logBtn);
+    var editBtn = el("button","btn sm line full","Edit dose \u2014 unit & amounts"); editBtn.type="button"; editBtn.style.marginTop="8px";
+    editBtn.addEventListener("click", function(){ if(selId && window.caloSupp) window.caloSupp.open(selId); });
+    bar.appendChild(editBtn);
     var note = el("p","tiny"); note.style.marginTop="8px"; bar.appendChild(note);
     body.appendChild(bar);
     var customLink = el("button","btn sm line full","Set up a custom supplement"); customLink.type="button"; customLink.style.marginTop="14px";
@@ -6398,6 +6402,7 @@ function openSuppLog(){
     }
     draw();
     q.addEventListener("input", draw);
+    focusNow(q);                       // ready to type a supplement name straight away
     logBtn.addEventListener("click", function(){
       if(!selId){ note.textContent="Pick a supplement first."; return; }
       var a=parseFloat(amt.value)||0;
@@ -7957,7 +7962,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.20n";
+  var APP_VERSION = "2026.09.21p";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
@@ -10715,36 +10720,64 @@ body.editing-day{padding-top:38px}
   function saveSupps(o){
     try { localStorage.setItem(SUPP_KEY, JSON.stringify(o)); } catch(e){}
   }
+  var ORIG = {};   // built-in supplement defaults, snapshotted before any edit
+
+  /* Pour one set of values (name, dose word, calories, macros, micronutrients)
+     into a supplement wherever it shows - the live tile, the catalogue entry
+     and its row. Used for both the custom slots and edited built-ins. */
+  function applySupp(id, v){
+    var fd = (typeof foodIndex !== "undefined") ? foodIndex[id] : null;
+    if(!fd) return;
+    fd.name = v.name; fd.unit = v.unit || "dose";
+    fd.kcal = +v.kcal || 0; fd.p = +v.p || 0; fd.c = +v.c || 0;
+    fd.f = +v.f || 0; fd.fib = +v.fib || 0;
+    MICRO[id] = {};
+    Object.keys(v.m || {}).forEach(function(k){ MICRO[id][k] = +v.m[k] || 0; });
+    var entry = (typeof CATALOG !== "undefined")
+      ? CATALOG.food.filter(function(it){ return it.rowId === "row_" + id; })[0] : null;
+    if(entry){ entry.name = v.name; entry.meta = Math.round(fd.kcal) + " kcal per " + fd.unit; }
+    var row = document.getElementById("row_" + id);
+    if(row){
+      var nm = row.querySelector(".nm");
+      if(nm){
+        nm.childNodes[0].nodeValue = v.name;
+        var small = nm.querySelector("small");
+        if(small) small.textContent = Math.round(fd.kcal) + " kcal per " + fd.unit;
+      }
+      var amt = row.querySelector(".val.amt");
+      var inp = document.getElementById("f_" + id);
+      if(amt && inp) amt.innerHTML = "<b>" + (parseFloat(inp.value)||0) + "</b> " + fd.unit;
+    }
+  }
+
   function syncSupps(){
     var all = loadSupps();
+    /* Snapshot every built-in supplement once, before any edit is applied, so an
+       edited default can be reset to exactly what it shipped with. */
+    if(typeof CATALOG !== "undefined") CATALOG.food.forEach(function(it){
+      if(it.group !== "Supplements") return;
+      var id = it.rowId.replace(/^row_/, "");
+      if(id in ORIG) return;
+      var fd = (typeof foodIndex !== "undefined") ? foodIndex[id] : null;
+      if(fd) ORIG[id] = { name:fd.name, unit:fd.unit, kcal:fd.kcal, p:fd.p,
+                          c:fd.c, f:fd.f, fib:fd.fib || 0,
+                          m: Object.assign({}, MICRO[id] || {}) };
+    });
+    /* The four custom slots: an override if set up, otherwise the empty
+       placeholder they ship as. */
     SUPP_SLOTS.forEach(function(id){
       var fd = (typeof foodIndex !== "undefined") ? foodIndex[id] : null;
       if(!fd) return;
       var c = all[id];
-      var row = document.getElementById("row_" + id);
-      var entry = (typeof CATALOG !== "undefined")
-        ? CATALOG.food.filter(function(it){ return it.rowId === "row_" + id; })[0] : null;
-      if(!c){
-        MICRO[id] = {};
-        return;
-      }
-      fd.name = c.name; fd.unit = c.unit || "dose";
-      fd.kcal = +c.kcal || 0; fd.p = +c.p || 0; fd.c = +c.c || 0;
-      fd.f = +c.f || 0; fd.fib = +c.fib || 0;
-      MICRO[id] = {};
-      Object.keys(c.m || {}).forEach(function(k){ MICRO[id][k] = +c.m[k] || 0; });
-      if(entry){ entry.name = c.name; entry.meta = Math.round(fd.kcal) + " kcal per " + fd.unit; }
-      if(row){
-        var nm = row.querySelector(".nm");
-        if(nm){
-          nm.childNodes[0].nodeValue = c.name;
-          var small = nm.querySelector("small");
-          if(small) small.textContent = Math.round(fd.kcal) + " kcal per " + fd.unit;
-        }
-        var amt = row.querySelector(".val.amt");
-        var inp = document.getElementById("f_" + id);
-        if(amt && inp) amt.innerHTML = "<b>" + (parseFloat(inp.value)||0) + "</b> " + fd.unit;
-      }
+      if(!c){ MICRO[id] = {}; return; }
+      applySupp(id, c);
+    });
+    /* Built-in supplements the user has re-measured: apply the edited unit and
+       amounts. Untouched ones keep their shipped defaults. */
+    Object.keys(all).forEach(function(id){
+      if(SUPP_SLOTS.indexOf(id) >= 0) return;
+      if(!(id in ORIG)) return;
+      applySupp(id, all[id]);
     });
   }
 
@@ -10752,16 +10785,23 @@ body.editing-day{padding-top:38px}
      calories and macros if it has any, then any nutrients off the label. */
   function openSuppSheet(slot){
     var all = loadSupps();
-    openSheet(slot ? "Your supplement" : "Your own supplements", function(body){
+    var isSlot = SUPP_SLOTS.indexOf(slot) >= 0;
+    openSheet(slot ? (isSlot ? "Your supplement" : "Adjust this supplement")
+                   : "Your own supplements", function(body){
       if(!slot){
         body.appendChild(el("p","tiny",
           "Four slots for what is actually on your shelf \u2014 a protein blend, a "
           + "multivitamin nobody else has, a doctor's prescription. Fill one in and it "
           + "behaves like any other entry: log the doses you took and they land in the "
           + "day's calories, macros and micronutrients."));
+        /* Show the ones already set up, then a single "Add" for the next free
+           slot - four identical "Set up a supplement" buttons just looked like a
+           bug. More slots appear as each is filled. */
+        var addedEmpty = false;
         SUPP_SLOTS.forEach(function(id){
           var c = all[id];
-          var b = el("button","btn full line", c ? c.name + " \u2014 edit" : "Set up a supplement");
+          if(!c){ if(addedEmpty) return; addedEmpty = true; }
+          var b = el("button","btn full line", c ? c.name + " \u2014 edit" : "Add a supplement");
           b.type = "button"; b.style.marginTop = "8px";
           b.addEventListener("click", function(){ openSuppSheet(id); });
           body.appendChild(b);
@@ -10772,7 +10812,20 @@ body.editing-day{padding-top:38px}
         return;
       }
 
-      var cur = all[slot] || { name:"", unit:"dose", kcal:0, p:0, c:0, f:0, fib:0, m:{} };
+      var base = ORIG[slot] || ((typeof foodIndex==="object" && foodIndex[slot])
+                  ? { name:foodIndex[slot].name, unit:foodIndex[slot].unit,
+                      kcal:foodIndex[slot].kcal, p:foodIndex[slot].p, c:foodIndex[slot].c,
+                      f:foodIndex[slot].f, fib:foodIndex[slot].fib || 0,
+                      m: Object.assign({}, MICRO[slot] || {}) }
+                  : null);
+      /* Editing a built-in starts from what it currently is - its dose word and
+         amounts - so the user just adjusts the numbers to their own bottle. A
+         blank custom slot still starts empty. */
+      var cur = all[slot] || (!isSlot && base
+                  ? { name:base.name, unit:base.unit, kcal:base.kcal, p:base.p,
+                      c:base.c, f:base.f, fib:base.fib || 0,
+                      m: Object.assign({}, base.m || {}) }
+                  : { name:"", unit:"dose", kcal:0, p:0, c:0, f:0, fib:0, m:{} });
       function field(label, val, hint){
         var wrap = el("div","setrow");
         var lft = el("div");
@@ -10861,7 +10914,7 @@ body.editing-day{padding-top:38px}
         if(!name){ fName.focus(); return; }
         all[slot] = { name:name, unit:(fUnit.value || "dose").trim(),
                       kcal:+fKcal.value || 0, p:+fP.value || 0, c:+fC.value || 0,
-                      f:+fF.value || 0, fib:0, m:m };
+                      f:+fF.value || 0, fib:+cur.fib || 0, m:m };
         saveSupps(all); syncSupps();
         if(typeof update === "function") update();
         closeSheet();
@@ -10869,13 +10922,19 @@ body.editing-day{padding-top:38px}
       body.appendChild(save);
 
       if(all[slot]){
-        var del = el("button","btn sm line full","Clear this slot"); del.type = "button";
+        var del = el("button","btn sm line full", isSlot ? "Clear this slot" : "Reset to default");
+        del.type = "button";
         del.style.marginTop = "8px";
         del.addEventListener("click", function(){
           delete all[slot]; saveSupps(all);
-          var fd = foodIndex[slot];
-          if(fd){ fd.name = "Your supplement " + slot.slice(-1); fd.unit = "dose";
-                  fd.kcal = 0; fd.p = 0; fd.c = 0; fd.f = 0; fd.fib = 0; }
+          if(isSlot){
+            var fd = foodIndex[slot];
+            if(fd){ fd.name = "Your supplement " + slot.slice(-1); fd.unit = "dose";
+                    fd.kcal = 0; fd.p = 0; fd.c = 0; fd.f = 0; fd.fib = 0; }
+            MICRO[slot] = {};
+          } else if(ORIG[slot]){
+            applySupp(slot, ORIG[slot]);     // put the shipped values back
+          }
           syncSupps();
           if(typeof update === "function") update();
           closeSheet();

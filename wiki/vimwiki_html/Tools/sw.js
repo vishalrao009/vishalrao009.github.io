@@ -18,7 +18,7 @@
    network-first and the cached copy is only a fallback.
    --------------------------------------------------------------- */
 
-const CACHE_VERSION = "v40";
+const CACHE_VERSION = "v42";
 const CACHE = `eatnmove-${CACHE_VERSION}`;
 
 const PAGE = "calorie_counter.html";
@@ -79,17 +79,32 @@ self.addEventListener("fetch", event => {
      Network first because the page is edited often and installed
      phones must not be stranded on an old build. */
   if (url === PAGE_URL) {
-    event.respondWith(
-      fetch(req)
-        .then(res => {
-          if (res && res.ok) {
-            const copy = res.clone();
-            caches.open(CACHE).then(c => c.put(PAGE_URL, copy));
-          }
-          return res;
-        })
-        .catch(() => caches.match(PAGE_URL))
-    );
+    /* Network first, but only briefly. On a weak connection a plain fetch can
+       hang for many seconds before it fails, and the app looks frozen the whole
+       time. So we race the network against a short timer: if the network has
+       not answered by then, serve the cached build at once (still updating the
+       cache when the network eventually replies), so a bad signal behaves like
+       being offline instead of stranding the user. */
+    event.respondWith(new Promise(resolve => {
+      let done = false;
+      const finish = r => { if (!done && r) { done = true; resolve(r); } };
+      const timer = setTimeout(() => {
+        caches.match(PAGE_URL).then(hit => finish(hit));
+      }, 2500);
+      fetch(req).then(res => {
+        clearTimeout(timer);
+        if (res && res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then(c => c.put(PAGE_URL, copy));
+          finish(res);
+        } else {
+          caches.match(PAGE_URL).then(hit => finish(hit || res));
+        }
+      }).catch(() => {
+        clearTimeout(timer);
+        caches.match(PAGE_URL).then(hit => finish(hit || Response.error()));
+      });
+    }));
     return;
   }
 
