@@ -3791,16 +3791,17 @@ function update(){
   $("tileProtU").textContent = ready && inK>0 ? Math.round(d.food.p)+" g today" : "";
 
   // ---- carbs, fat, protein under the meter ----
+  /* Each macro as a share of the day's MACRO energy (4/9/4 kcal per gram), so
+     the three add up to ~100%. Dividing by a food's labelled calories left them
+     a few % short, because those include a little fibre energy and rounding that
+     4c+9f+4p does not. */
+  const macroK = MACRO_ORDER.reduce((a,k) => a + d.food[k]*MACROS[k].per, 0);
+  const anyEaten = d.food.kcal > 0 || macroK > 0;
   MACRO_ORDER.forEach(key => {
     const M = MACROS[key], g = d.food[key], fromMac = g*M.per;
-    /* Share of the WHOLE day's intake, not of what has absorbed so far. The
-       grams above are everything eaten, so the denominator has to be the total
-       eaten too - dividing by the absorbed-so-far figure made the three sum
-       past 100%. */
-    const eatenK = d.food.kcal;
-    const share = eatenK > 0 ? fromMac/eatenK : 0;
-    $("mac"+M.tag+"g").textContent = eatenK > 0 ? n1(g)+" g" : (ready ? "0 g" : "\u2014");
-    $("mac"+M.tag+"s").textContent = eatenK > 0
+    const share = macroK > 0 ? fromMac/macroK : 0;
+    $("mac"+M.tag+"g").textContent = anyEaten ? n1(g)+" g" : (ready ? "0 g" : "\u2014");
+    $("mac"+M.tag+"s").textContent = anyEaten
       ? `${kc(fromMac)} kcal \u00b7 ${(share*100).toFixed(0)}% of intake`
       : (ready ? "none eaten yet" : "nothing logged yet");
     $("mac"+M.tag+"b").style.width = Math.min(100, share*100).toFixed(1)+"%";
@@ -8488,7 +8489,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.21ag";
+  var APP_VERSION = "2026.09.21ah";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
