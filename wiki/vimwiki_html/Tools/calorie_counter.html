@@ -692,9 +692,9 @@ input,select{scroll-margin:84px 0 180px}
 .stagetime .stimelab{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
 .stagetime .stimeinp{font-size:20px;min-height:52px;padding:9px 13px;border:1px solid var(--line);
   border-radius:var(--r-sm);background:var(--card2);color:var(--ink);width:100%;max-width:220px}
-.sheet.solo .stagetime{margin-top:22px}
-.sheet.solo .stagetime .stimelab{font-size:15px;margin-bottom:9px}
-.sheet.solo .stagetime .stimeinp{font-size:24px;min-height:60px;max-width:240px}
+.sheet.solo .stagetime{margin-top:24px}
+.sheet.solo .stagetime .stimelab{font-size:16px;margin-bottom:10px}
+.sheet.solo .stagetime .stimeinp{font-size:27px;min-height:66px;max-width:300px;padding:12px 16px}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .chip{border:0;background:var(--card2);border-radius:999px;padding:10px 17px;font-size:14px;
   font-weight:500;color:var(--muted);min-height:42px}
@@ -2532,6 +2532,7 @@ function sheetActions(opts){
   if(!opts){ foot.hidden = true; more.onclick = done.onclick = null; return; }
   foot.hidden = false;
   more.textContent = opts.moreLabel || "Save & add another";
+  done.textContent = opts.doneLabel || "Done";
   more.onclick = opts.onMore;
   done.onclick  = opts.onDone;
 }
@@ -2710,6 +2711,11 @@ function buildPicker(kind, body, placeholder, after, opts){
       addBase = amtOf($(foodCtl)) || 0;
       window.__pickerBusy = true;
       var n0 = $(foodCtl); if(n0) n0.value = "";
+      /* Coming back from "what is in your sabji?" - restore the amount that was
+         already typed so it is not lost to the round-trip. */
+      if(n0 && opts && opts.presetAmount > 0 && opts.autoOpenId && item.rowId === "row_" + opts.autoOpenId){
+        n0.value = String(opts.presetAmount); addBase = 0;
+      }
       window.__pickerCancel = function(){
         var n = $(foodCtl); if(n) n.value = addBase > 0 ? String(addBase) : "";
         window.__pickerBusy = false; window.__pickerCancel = null;
@@ -2765,7 +2771,7 @@ function buildPicker(kind, body, placeholder, after, opts){
        on top of it when there is a sheet to mirror into. */
     const bar  = el("div","commitbar");
     const more = el("button","btn line","Save & add another");
-    const fin  = el("button","btn primary","Done");
+    const fin  = el("button","btn primary","Save");
     more.type = fin.type = "button";
     more.addEventListener("click", finish);
     fin.addEventListener("click", () => {
@@ -2785,6 +2791,7 @@ function buildPicker(kind, body, placeholder, after, opts){
 
     if(sheetOpen) sheetActions({
       moreLabel: "Save & add another",
+      doneLabel: "Save",
       onMore: finish,
       onDone: () => { finish(); closeSheet(); }
     });
@@ -8046,7 +8053,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.21s";
+  var APP_VERSION = "2026.09.21t";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
@@ -11149,6 +11156,19 @@ body.editing-day{padding-top:38px}
   };
 
   function openSabjiSheet(){
+    var shEl0 = document.getElementById("sheet");
+    var fromSolo = !!(shEl0 && shEl0.classList.contains("solo"));
+    var sRow = fromSolo ? shEl0.querySelector(".stage .lrow") : null;
+    var returnId = sRow ? sRow.id.replace(/^row_/,"") : null;
+    var returnAmt = returnId ? (parseFloat((document.getElementById("f_"+returnId)||{}).value)||0) : 0;
+    function backToEntry(){
+      if(fromSolo && returnId && typeof pickerSheet === "function"){
+        window.__pickerCancel = null; window.__pickerBusy = false;
+        closeSheet();
+        setTimeout(function(){ pickerSheet("food","Add what you ate","Search vegetarian foods",
+                                          {autoOpenId:returnId, presetAmount:returnAmt}); }, 70);
+      } else { closeSheet(); }
+    }
     openSheet("What is in your sabji?", function(body){
       body.appendChild(el("p","tiny",
         "Sabji is not one food. Pick what actually went in the pan and every number "
@@ -11205,9 +11225,9 @@ body.editing-day{padding-top:38px}
         + "not well established for a vegetable is left out rather than guessed, so these "
         + "totals lean low rather than high."));
 
-      var done = el("button","btn primary full","Done"); done.type = "button";
+      var done = el("button","btn primary full", fromSolo ? "Save" : "Done"); done.type = "button";
       done.style.marginTop = "12px";
-      done.addEventListener("click", closeSheet);
+      done.addEventListener("click", backToEntry);
       body.appendChild(done);
     });
   }
@@ -11349,6 +11369,19 @@ body.editing-day{padding-top:38px}
   };
 
   function openRotiSheet(){
+    var rEl0 = document.getElementById("sheet");
+    var rFromSolo = !!(rEl0 && rEl0.classList.contains("solo"));
+    var rRow = rFromSolo ? rEl0.querySelector(".stage .lrow") : null;
+    var rReturnId = rRow ? rRow.id.replace(/^row_/,"") : null;
+    var rReturnAmt = rReturnId ? (parseFloat((document.getElementById("f_"+rReturnId)||{}).value)||0) : 0;
+    function rBackToEntry(){
+      if(rFromSolo && rReturnId && typeof pickerSheet === "function"){
+        window.__pickerCancel = null; window.__pickerBusy = false;
+        closeSheet();
+        setTimeout(function(){ pickerSheet("food","Add what you ate","Search vegetarian foods",
+                                          {autoOpenId:rReturnId, presetAmount:rReturnAmt}); }, 70);
+      } else { closeSheet(); }
+    }
     openSheet("Which roti?", function(body){
       body.appendChild(el("p","tiny",
         "Wheat, bajra, jowar, ragi, missi \u2014 they are not the same food. A bajra roti "
@@ -11388,9 +11421,9 @@ body.editing-day{padding-top:38px}
         + "(IFCT 2017, USDA), so wheat reads exactly as it always has and the differences "
         + "between flours are the real ones. A nutrient with no solid figure for a flour "
         + "stands in at wheat's level rather than at zero."));
-      var done = el("button","btn primary full","Done"); done.type = "button";
+      var done = el("button","btn primary full", rFromSolo ? "Save" : "Done"); done.type = "button";
       done.style.marginTop = "12px";
-      done.addEventListener("click", closeSheet);
+      done.addEventListener("click", rBackToEntry);
       body.appendChild(done);
     });
   }
