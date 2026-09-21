@@ -66,7 +66,7 @@
 :root{
   --bg:#EFF1EE; --card:#FAFBF9; --card2:#F2F4F1;
   --ink:#16201C; --muted:#6B7570; --line:#E933E7; --line:#E2E7E1;
-  --in:#A96E15; --out:#1B665E; --fat:#8A3A52; --lean:#66743A;
+  --in:#A96E15; --out:#1B665E; --fat:#8A3A52; --lean:#66743A; --mps:#5B4CA6;
   --spend:#C0453C; --store:#3E9B57;
   --in-bg:rgba(169,110,21,.10); --out-bg:rgba(27,102,94,.10); --fat-bg:rgba(138,58,82,.10);
   --shadow:0 1px 2px rgba(22,32,28,.05), 0 6px 18px rgba(22,32,28,.05);
@@ -82,7 +82,7 @@
   :root:not([data-theme="light"]){
     --bg:#121715; --card:#1B221F; --card2:#232B27;
     --ink:#E7EBE7; --muted:#96A09A; --line:#2B332F;
-    --in:#E0A64A; --out:#4FB3A6; --fat:#D4788F; --lean:#A8B86A;
+    --in:#E0A64A; --out:#4FB3A6; --fat:#D4788F; --lean:#A8B86A; --mps:#A99BE8;
     --spend:#E0736B; --store:#68C486;
     --in-bg:rgba(224,166,74,.13); --out-bg:rgba(79,179,166,.13); --fat-bg:rgba(212,120,143,.13);
     --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.22);
@@ -92,7 +92,7 @@
 :root[data-theme="dark"]{
     --bg:#121715; --card:#1B221F; --card2:#232B27;
     --ink:#E7EBE7; --muted:#96A09A; --line:#2B332F;
-    --in:#E0A64A; --out:#4FB3A6; --fat:#D4788F; --lean:#A8B86A;
+    --in:#E0A64A; --out:#4FB3A6; --fat:#D4788F; --lean:#A8B86A; --mps:#A99BE8;
     --spend:#E0736B; --store:#68C486;
     --in-bg:rgba(224,166,74,.13); --out-bg:rgba(79,179,166,.13); --fat-bg:rgba(212,120,143,.13);
     --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.22);
@@ -508,6 +508,11 @@ body{top:0!important}
 .gichart .gival{font-size:11px;font-weight:700;font-family:var(--sans);paint-order:stroke;stroke:var(--card);stroke-width:3.2px;stroke-linejoin:round}
 .gichart .gival-g{fill:var(--in)}
 .gichart .gival-i{fill:var(--out)}
+.gichart .giline-m{stroke:var(--mps)}
+.gichart .giaxm{fill:var(--mps);font-weight:600}
+.gichart .gidot-m{fill:var(--mps)}
+.gichart .gival-m{fill:var(--mps)}
+.gilegend .gikey-m::before{background:var(--mps)}
 .mwin b{display:block}
 .mwin span{font-size:12px;color:var(--muted)}
 .sfoot{flex:none;display:flex;gap:10px;padding:10px 18px
@@ -948,6 +953,12 @@ input,select{scroll-margin:84px 0 180px}
         <button type="button" data-u="hr">hr</button>
       </div>
       <div id="giBody"></div>
+    </div>
+
+    <div class="card mpscard hidden" id="mpsCard">
+      <div class="cardhead"><h2>Muscle protein synthesis</h2>
+        <span class="sm">modelled &mdash; tap the plot</span></div>
+      <div id="mpsBody"></div>
     </div>
 
     <div class="card" id="quickCard">
@@ -6738,6 +6749,9 @@ window.caloMeals = (function(){
   var LAG = 0.15;                          // h before much leaves the stomach
   var TAU = { c:0.85, p:1.40, f:2.60 };    // h, Weibull scale per macronutrient
   var MPS_PEAK = 2.0, MPS_END = 3.0, MPS_MIN_G = 10;
+  var MPS_LAG = 15;                        // min lag before synthesis lifts
+  var MPS_AMP = 100;                       // % above rest at the peak for a saturating dose
+  var MPS_D50 = 10;                        // g protein; 1-exp(-g/D50) is the dose curve
   var DAY_START = 4*60;                    // meals are not attributed before 4am
   var SETTLE_MS = 5000;                    // quiet time that ends a batch
   /* Modelled post-meal glucose & insulin. Baselines are fasting values; a meal
@@ -6750,7 +6764,7 @@ window.caloMeals = (function(){
   function giPeak(a,b){ var ts = Math.log(a/b)/(1/b - 1/a); return Math.exp(-ts/a) - Math.exp(-ts/b); }
   var GI_pkG = giPeak(GI_aG,GI_bG), GI_pkI = giPeak(GI_aI,GI_bI);
   function giShape(tau,a,b,pk){ var x = tau - GI_LAG; if(x <= 0) return 0; return (Math.exp(-x/a) - Math.exp(-x/b))/pk; }
-  var giUnit = "min", giWired = false;
+  var giUnit = "min", giWired = false, mpsWired = false;
   var SLOTS = [["breakfast","breakfast","10:00"], ["lunch","lunch","15:00"],
                ["snacks","a snack","18:00"],      ["dinner","dinner","22:00"],
                ["supper","supper","23:30"]];
@@ -7277,6 +7291,158 @@ window.caloMeals = (function(){
         + "same food, so read it as the shape of the response, not your actual blood levels."));
     });
   }
+  /* ---------- muscle protein synthesis ---------- */
+  function mpsAmp(g){ return MPS_AMP * (1 - Math.exp(-Math.max(0, g)/MPS_D50)); }
+  function mpsShape(tauMin){
+    var lag = MPS_LAG, pk = MPS_PEAK*60, en = MPS_END*60;
+    if(tauMin <= lag || tauMin >= en) return 0;
+    if(tauMin <= pk) return 0.5 * (1 - Math.cos(Math.PI*(tauMin - lag)/(pk - lag)));
+    return 0.5 * (1 + Math.cos(Math.PI*(tauMin - pk)/(en - pk)));
+  }
+  function mpsFeeds(sittings){
+    return (sittings||[]).filter(function(s){ return !s.whole && (s.p||0) >= MPS_MIN_G; })
+                         .map(function(s){ return { at:s.at, p:s.p||0, names:s.names||[] }; });
+  }
+  function mpsSeries(sittings){
+    var feeds = mpsFeeds(sittings);
+    if(!feeds.length) return null;
+    var atMin = feeds[0].at, atMax = feeds[0].at;
+    feeds.forEach(function(m){ if(m.at < atMin) atMin = m.at; if(m.at > atMax) atMax = m.at; });
+    var t0 = atMin, now = nowMin(), tEnd = Math.max(now, atMax + MPS_END*60);
+    var N = 180, pts = [];
+    for(var i = 0; i <= N; i++){
+      var t = t0 + (tEnd - t0)*i/N, y = 100;
+      feeds.forEach(function(m){ y += mpsAmp(m.p) * mpsShape(t - m.at); });
+      pts.push({ t:t, y:y });
+    }
+    var yNow = 100;
+    feeds.forEach(function(m){
+      m.peak = mpsAmp(m.p);
+      m.now  = m.peak * mpsShape(now - m.at);
+      yNow += m.now;
+    });
+    return { pts:pts, t0:t0, tEnd:tEnd, now:now, feeds:feeds, yNow:yNow };
+  }
+  function mpsSVG(ser){
+    var W = 340, H = 200, ml = 46, mr = 16, mt = 16, mb = 34;
+    var pw = W - ml - mr, ph = H - mt - mb;
+    var span = Math.max(1, ser.tEnd - ser.t0);
+    var maxY = 100;
+    ser.pts.forEach(function(p){ if(p.y > maxY) maxY = p.y; });
+    var yBot = 100, yTop = Math.max(150, Math.ceil(maxY/25)*25);
+    function X(t){ return ml + ((t - ser.t0)/span)*pw; }
+    function Y(v){ return mt + (1 - (v - yBot)/(yTop - yBot))*ph; }
+    var g = "";
+    g += '<rect x="'+ml+'" y="'+mt+'" width="'+pw+'" height="'+ph+'" class="giframe"/>';
+    g += '<line x1="'+ml+'" y1="'+Y(100).toFixed(1)+'" x2="'+(ml+pw)+'" y2="'+Y(100).toFixed(1)+'" class="gibase"/>';
+    (ser.feeds||[]).forEach(function(m){
+      var mx = X(m.at); if(mx < ml - 0.5 || mx > ml + pw + 0.5) return;
+      g += '<line x1="'+mx.toFixed(1)+'" y1="'+mt+'" x2="'+mx.toFixed(1)+'" y2="'+(mt+ph)+'" class="gimeal"/>';
+    });
+    var nx = 4, k;
+    for(k = 0; k <= nx; k++){
+      var elp = span*k/nx, xx = X(ser.t0 + elp);
+      if(k > 0 && k < nx) g += '<line x1="'+xx.toFixed(1)+'" y1="'+mt+'" x2="'+xx.toFixed(1)+'" y2="'+(mt+ph)+'" class="gigrid"/>';
+      g += '<text x="'+xx.toFixed(1)+'" y="'+(mt+ph+16)+'" class="gixlab" text-anchor="middle">'+giFmtLabel(elp)+'</text>';
+    }
+    g += '<text x="'+(ml+pw/2)+'" y="'+(H-4)+'" class="giaxname" text-anchor="middle">'+giUnitName()+' since first meal</text>';
+    [yBot, (yBot+yTop)/2, yTop].forEach(function(v){ g += '<text x="'+(ml-6)+'" y="'+(Y(v)+3).toFixed(1)+'" class="giylab" text-anchor="end">'+Math.round(v)+'</text>'; });
+    g += '<text x="'+(ml-4)+'" y="'+(mt-5)+'" class="giaxname giaxm" text-anchor="end">% of rest</text>';
+    if(ser.now > ser.t0 && ser.now < ser.tEnd){
+      var nX = X(ser.now);
+      g += '<line x1="'+nX.toFixed(1)+'" y1="'+mt+'" x2="'+nX.toFixed(1)+'" y2="'+(mt+ph)+'" class="ginow"/>';
+      g += '<text x="'+nX.toFixed(1)+'" y="'+(mt-5)+'" class="ginowlab" text-anchor="middle">now</text>';
+    }
+    var pth = ser.pts.map(function(p,i){ return (i?"L":"M")+X(p.t).toFixed(1)+" "+Y(p.y).toFixed(1); }).join(" ");
+    g += '<path d="'+pth+'" class="giline giline-m"/>';
+    if(ser.now >= ser.t0 && ser.now <= ser.tEnd){
+      var dX = X(ser.now), side = dX > (ml + pw*0.62) ? -1 : 1;
+      var lx = dX + side*9, anc = side < 0 ? "end" : "start", yy = Y(ser.yNow);
+      function clampY(y){ return Math.max(mt + 9, Math.min(mt + ph - 3, y)); }
+      g += '<circle cx="'+dX.toFixed(1)+'" cy="'+yy.toFixed(1)+'" r="4.2" class="gidot gidot-m"/>';
+      g += '<text x="'+lx.toFixed(1)+'" y="'+clampY(yy-8).toFixed(1)+'" text-anchor="'+anc+'" class="gival gival-m">'+Math.round(ser.yNow)+'%</text>';
+    }
+    (ser.feeds||[]).forEach(function(m){
+      var mx = X(m.at); if(mx < ml - 0.5 || mx > ml + pw + 0.5) return;
+      g += '<path d="M'+(mx-3.6).toFixed(1)+' '+(mt+ph)+' L'+(mx+3.6).toFixed(1)+' '+(mt+ph)+' L'+mx.toFixed(1)+' '+(mt+ph-6.5)+' Z" class="gimealtri"/>';
+    });
+    return '<svg viewBox="0 0 '+W+' '+H+'" class="gichart mpschart" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Modelled muscle protein synthesis after the protein feedings logged today. Tap for the maths and sources.">'+g+'</svg>'
+      + '<div class="gilegend"><span class="gikey gikey-m">Synthesis ' + Math.round(ser.yNow) + '%</span><span class="gimealkey">▲ protein feeds</span><span class="gitap">tap for the maths ></span></div>';
+  }
+  function wireMPS(){
+    if(mpsWired) return;
+    var body = document.getElementById("mpsBody");
+    if(!body) return;
+    mpsWired = true;
+    body.addEventListener("click", function(){ explainMPS(); });
+  }
+  function renderMPS(d){
+    var card = document.getElementById("mpsCard");
+    if(!card) return;
+    wireMPS();
+    var ser = (d && d.mealsOn) ? mpsSeries(d.sittings) : null;
+    var on = !!(ser && ser.pts && ser.pts.length);
+    card.classList.toggle("hidden", !on);
+    if(!on) return;
+    lastMeals = d.sittings;
+    var body = document.getElementById("mpsBody");
+    if(body) body.innerHTML = mpsSVG(ser);
+  }
+  function explainMPS(){
+    var ser = mpsSeries((typeof lastMeals !== "undefined" && lastMeals) ? lastMeals : null);
+    openSheet("Muscle protein synthesis — the model", function(body){
+      body.appendChild(el("p","tiny",
+        "A modelled picture of how fast your muscle is building new protein after the protein feedings you logged today. "
+        + "It is built from the protein in each feeding and the time you ate it — not measured from your muscle."));
+
+      body.appendChild(el("div","ntgrp","The model"));
+      body.appendChild(el("p","tiny",
+        "Eating protein lifts muscle protein synthesis (MPS) above its resting rate. It climbs over the first hour or so as "
+        + "amino acids reach the blood, peaks near " + MPS_PEAK + " hours, and settles back to baseline by about " + MPS_END
+        + " hours even while amino acids are still high — the “muscle-full” effect. Each qualifying feeding adds its "
+        + "own bump, and they add together."));
+      body.appendChild(el("p","formula",
+        "MPS(t) = 100% + Σ  amp(protein)·shape(t)"));
+      body.appendChild(el("p","formula",
+        "amp(g) = " + MPS_AMP + "% · ( 1 − e^(−g / " + MPS_D50 + ") )   — the dose curve"));
+      body.appendChild(el("p","tiny",
+        "amp is how high the peak rises for a feeding of g grams of protein, and it saturates: about " + MPS_MIN_G + " g starts to "
+        + "count, ~20 g reaches most of the response (about +" + Math.round(mpsAmp(20)) + "% above rest), and past ~40 g there is "
+        + "little extra for muscle — the surplus is oxidised or stored. shape(t) is a smooth rise-and-fall: zero until a "
+        + "~" + MPS_LAG + "-minute lag, 1 at the " + MPS_PEAK + "-hour peak, and back to zero by " + MPS_END + " hours. This is dose "
+        + "and timing only — it does not depend on age or body weight here, though in reality older muscle needs a somewhat larger dose."));
+
+      if(ser && ser.feeds && ser.feeds.length){
+        body.appendChild(el("div","ntgrp","Your protein feeds today"));
+        ser.feeds.forEach(function(m){
+          var nm = (m.names && m.names.length) ? m.names.slice(0,2).join(", ") : "meal";
+          body.appendChild(el("p","tiny",
+            "<b>" + nm + "</b> at " + pretty(m.at) + " — protein " + n1(m.p) + " g. Peak lift +" + Math.round(m.peak)
+            + "% above rest; right now it is adding +" + Math.round(m.now) + "%."));
+        });
+        body.appendChild(el("p","tiny",
+          "<b>Modelled rate now:</b> about " + Math.round(ser.yNow) + "% of the resting rate "
+          + "(100% is rest, plus every feed's lift above)."));
+      } else {
+        body.appendChild(el("p","tiny",
+          "Nothing logged yet with about " + MPS_MIN_G + " g of protein or more in one feeding, so there is nothing to plot."));
+      }
+
+      body.appendChild(el("div","ntgrp","Where the numbers come from"));
+      var refs = el("ul","refs");
+      [ "MPS rises with protein dose and is nearly maximised by about 20 g of high-quality protein — <a class='reflink' href='https://pubmed.ncbi.nlm.nih.gov/19056590/' target='_blank' rel='noopener noreferrer'>Moore et al., Am J Clin Nutr 2009</a>.",
+        "Little further rise beyond ~20 g at rest, with 40 g adding only a small extra response — <a class='reflink' href='https://pubmed.ncbi.nlm.nih.gov/24257722/' target='_blank' rel='noopener noreferrer'>Witard et al., Am J Clin Nutr 2014</a>.",
+        "MPS returns to baseline within about two to three hours of a feeding even while amino acids stay high — the “muscle-full” effect — <a class='reflink' href='https://pubmed.ncbi.nlm.nih.gov/20844073/' target='_blank' rel='noopener noreferrer'>Atherton et al., Am J Clin Nutr 2010</a>.",
+        "Spreading protein across several feedings through the day raises the overall synthetic response — <a class='reflink' href='https://pubmed.ncbi.nlm.nih.gov/23459753/' target='_blank' rel='noopener noreferrer'>Areta et al., J Physiol 2013</a>."
+      ].forEach(function(t){ refs.appendChild(el("li", null, t)); });
+      body.appendChild(refs);
+      body.appendChild(el("p","tiny",
+        "A simplified model for a healthy adult. The studies it draws on measured muscle directly, many after resistance exercise, "
+        + "which lifts the response higher and for longer than eating alone. Read it as the shape and timing of the build response, "
+        + "not a measurement of your own muscle."));
+    });
+  }
+
   var lastMeals = null;
 
   /* ---------- the overview card ---------- */
@@ -7532,7 +7698,7 @@ window.caloMeals = (function(){
        them back afterwards. Every one of those looks like food appearing out of
        nowhere, so stay out of the way entirely. */
     if(typeof inDiff !== "undefined" && inDiff) return;
-    try { render(d); paintRows(d); renderGI(d); } catch(e){}
+    try { render(d); paintRows(d); renderGI(d); renderMPS(d); } catch(e){}
     /* The timed diary records every serving even with the absorption setting
        off; "off" only means the live tiles are not put on a digestion curve. */
     if(window.__pickerBusy) return;      // the picker logs its own servings on confirm
@@ -8534,7 +8700,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.21ak";
+  var APP_VERSION = "2026.09.21al";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
