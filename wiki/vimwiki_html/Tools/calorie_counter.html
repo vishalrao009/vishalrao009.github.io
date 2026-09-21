@@ -471,6 +471,9 @@ body{top:0!important}
 .refs li{font-size:12px;color:var(--muted);margin:6px 0;line-height:1.5}
 .mealrow .mdrop{flex:none;border:0;background:transparent;color:var(--muted);
   font-size:18px;line-height:1;padding:4px 6px}
+.mealrow .medit{flex:none;border:1px solid var(--line);background:var(--card2);color:var(--ink);
+  border-radius:999px;font-size:13px;font-weight:500;padding:8px 15px;min-height:38px}
+.mealrow .medit:active{background:var(--line)}
 .mbar{height:6px;border-radius:99px;background:var(--card2);overflow:hidden;margin-top:5px}
 .mbar i{display:block;height:100%;background:var(--store);border-radius:99px}
 .mwin{margin-top:10px;padding:10px 12px;border-radius:var(--r-sm);background:var(--card2)}
@@ -6915,6 +6918,89 @@ window.caloMeals = (function(){
     });
   }
 
+  /* Full edit for one meal in the card - time, amount, or remove - so it works on
+     any device, not only where the inline row picker is handy (desktop especially). */
+  function editSitting(s){
+    var timed = !s.whole && !!s.stamp;
+    openSheet("Edit this meal", function(body){
+      body.appendChild(el("p","tiny", timed
+        ? "Change when you ate it or how much, or remove it."
+        : "Logged without a time. Give it one, change the amount, or remove it."));
+
+      var parts = [];
+      if(timed){
+        entries().forEach(function(e){ if(e.t === s.stamp) parts.push({id:e.f, q:e.q}); });
+      } else {
+        var rec = reconcile(quantities());
+        Object.keys(rec.loose).forEach(function(id){ parts.push({id:id, q:rec.loose[id]}); });
+      }
+
+      var tf = el("div","field");
+      tf.appendChild(el("label", null, "Time you ate"));
+      var tin = el("input"); tin.type = "time"; tin.className = "stimeinp";
+      tin.value = timed ? hm(toMin(s.stamp)) : "";
+      tf.appendChild(tin); body.appendChild(tf);
+
+      var qi = {};
+      parts.forEach(function(pt){
+        var fd = (typeof foodIndex === "object") && foodIndex[pt.id]; if(!fd) return;
+        var fw = el("div","field");
+        fw.appendChild(el("label", null, fd.name + " (" + fd.unit + ")"));
+        var inp = el("input"); inp.type = "number"; inp.min = "0"; inp.step = "any";
+        inp.className = "stimeinp"; inp.value = fracText(pt.q);
+        fw.appendChild(inp); body.appendChild(fw);
+        qi[pt.id] = { inp:inp, old:pt.q };
+      });
+      if(!parts.length) body.appendChild(el("p","tiny","Nothing to edit here."));
+
+      function bump(id, delta){
+        if(Math.abs(delta) < 1e-9) return;
+        var inp = document.getElementById("f_" + id);
+        if(!inp) return;
+        var cur = (typeof amtOf === "function") ? amtOf(inp) : (parseFloat(inp.value)||0);
+        var nx = Math.max(0, cur + delta);
+        inp.value = nx > 1e-4 ? String(nx) : "";
+        inp.dispatchEvent(new Event("input", { bubbles:true }));
+      }
+
+      var save = el("button","btn primary full","Save"); save.type = "button"; save.style.marginTop = "12px";
+      save.addEventListener("click", function(){
+        var newT = (toMin(tin.value) !== null) ? tin.value : (timed ? s.stamp : null);
+        Object.keys(qi).forEach(function(id){
+          bump(id, (Math.max(0, parseFloat(qi[id].inp.value)||0)) - qi[id].old);
+        });
+        if(timed){
+          var out = [];
+          entries().forEach(function(e){
+            if(e.t === s.stamp){
+              if(!(e.f in qi)){ out.push(e); return; }
+              var nq = Math.max(0, parseFloat(qi[e.f].inp.value)||0);
+              if(nq > 1e-6) out.push({ f:e.f, q:nq, t:(newT || e.t) });
+            } else out.push(e);
+          });
+          saveEntries(out);
+        } else if(newT){
+          var l = entries();
+          Object.keys(qi).forEach(function(id){
+            var nq = Math.max(0, parseFloat(qi[id].inp.value)||0);
+            if(nq > 1e-6){ l.push({ f:id, q:nq, t:newT }); clearPend(id, nq); }
+          });
+          saveEntries(l);
+        }
+        update(); closeSheet();
+      });
+      body.appendChild(save);
+
+      var del = el("button","btn sm line full","Remove this meal"); del.type = "button"; del.style.marginTop = "8px";
+      del.addEventListener("click", function(){
+        parts.forEach(function(pt){ bump(pt.id, -pt.q); });
+        if(timed) saveEntries(entries().filter(function(e){ return e.t !== s.stamp; }));
+        update(); closeSheet();
+      });
+      body.appendChild(del);
+    });
+  }
+
   /* ---------- the overview card ---------- */
   function render(d){
     var card = document.getElementById("mealCard");
@@ -6958,6 +7044,11 @@ window.caloMeals = (function(){
       what.setAttribute("role","button"); what.setAttribute("tabindex","0");
       what.addEventListener("click", function(){ explainSitting(s); });
       row.appendChild(what);
+
+      var edb = el("button","medit","Edit"); edb.type = "button";
+      edb.setAttribute("aria-label","edit this meal - time, amount or remove");
+      edb.addEventListener("click", function(){ editSitting(s); });
+      row.appendChild(edb);
       body.appendChild(row);
     });
 
@@ -8152,7 +8243,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.21x";
+  var APP_VERSION = "2026.09.21y";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
