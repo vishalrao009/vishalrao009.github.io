@@ -6699,9 +6699,10 @@ window.caloMeals = (function(){
   var GI_GBASE = 90, GI_IBASE = 8;         // mg/dL, uU/mL fasting
   var GI_KG = 0.8, GI_KIC = 1.0, GI_KIP = 0.4;
   var GI_aG = 90, GI_bG = 18, GI_aI = 110, GI_bI = 22;   // minutes
+  var GI_LAG = 10;   // min before a meal starts to move blood sugar - softens the onset
   function giPeak(a,b){ var ts = Math.log(a/b)/(1/b - 1/a); return Math.exp(-ts/a) - Math.exp(-ts/b); }
   var GI_pkG = giPeak(GI_aG,GI_bG), GI_pkI = giPeak(GI_aI,GI_bI);
-  function giShape(tau,a,b,pk){ if(tau <= 0) return 0; return (Math.exp(-tau/a) - Math.exp(-tau/b))/pk; }
+  function giShape(tau,a,b,pk){ var x = tau - GI_LAG; if(x <= 0) return 0; return (Math.exp(-x/a) - Math.exp(-x/b))/pk; }
   var giUnit = "min", giWired = false;
   var SLOTS = [["breakfast","breakfast","10:00"], ["lunch","lunch","15:00"],
                ["snacks","a snack","18:00"],      ["dinner","dinner","22:00"],
@@ -7184,7 +7185,7 @@ window.caloMeals = (function(){
       body.appendChild(el("p","formula",
         "insulin(t) = " + GI_IBASE + " + Σ  (carbs·" + GI_KIC + " + protein·" + GI_KIP + ")·( e^(−τ/" + GI_aI + ") − e^(−τ/" + GI_bI + ") ) / " + GI_pkI.toFixed(3)));
       body.appendChild(el("p","tiny",
-        "τ is minutes since that meal. The bracket is the fixed rise-and-fall shape (it peaks at 1); the amount in front "
+        "τ is minutes since that meal (less a short ~10-min lag before blood sugar starts to move). The bracket is the fixed rise-and-fall shape (it peaks at 1); the amount in front "
         + "sets the height, and it is divided by the shape's own peak so the height is exactly the peak rise."));
 
       if(ser && ser.meals && ser.meals.length){
@@ -7203,10 +7204,10 @@ window.caloMeals = (function(){
 
       body.appendChild(el("div","ntgrp","Where the numbers come from"));
       var refs = el("ul","refs");
-      [ "The size and timing of the glucose rise track a meal's carbohydrate and its glycaemic index — Jenkins et al., “Glycemic index of foods,” Am J Clin Nutr, 1981.",
-        "Insulin is secreted in response to glucose and amplified by gut incretin hormones after eating — Nauck & Meier, reviews of the incretin effect, Diabetologia / Lancet Diabetes & Endocrinology.",
-        "Dietary protein raises insulin even with little glucose rise — Nuttall & Gannon, Am J Clin Nutr / Diabetes Care.",
-        "Post-meal glucose peaks near 30–60 min and returns toward baseline within 2–3 h in healthy adults — meal-tolerance and continuous-glucose studies."
+      [ "The size and timing of the glucose rise track a meal's carbohydrate and its glycaemic index — <a class='reflink' href='https://pubmed.ncbi.nlm.nih.gov/6259925/' target='_blank' rel='noopener noreferrer'>Jenkins et al., Glycemic index of foods, Am J Clin Nutr 1981</a>.",
+        "Insulin is secreted in response to glucose and amplified by gut incretin hormones after eating — <a class='reflink' href='https://pubmed.ncbi.nlm.nih.gov/?term=Nauck+Meier+incretin+effect' target='_blank' rel='noopener noreferrer'>Nauck & Meier, incretin-effect reviews</a>.",
+        "Dietary protein raises insulin even with little glucose rise — <a class='reflink' href='https://pubmed.ncbi.nlm.nih.gov/?term=Nuttall+Gannon+protein+insulin+secretion' target='_blank' rel='noopener noreferrer'>Nuttall & Gannon</a>.",
+        "Glucose does not rise the instant you eat — gastric emptying sets the short lag before it starts and the timing of the peak — <a class='reflink' href='https://diabetesjournals.org/care/article/36/5/1396/29534/Relationships-Between-Gastric-Emptying' target='_blank' rel='noopener noreferrer'>Gastric emptying, postprandial glycaemia & incretins, Diabetes Care 2013</a>; <a class='reflink' href='https://academic.oup.com/jcem/article/103/6/2269/4966896' target='_blank' rel='noopener noreferrer'>Gastric emptying and the timing of the meal glucose peak, J Clin Endocrinol Metab 2018</a>."
       ].forEach(function(t){ refs.appendChild(el("li", null, t)); });
       body.appendChild(refs);
       body.appendChild(el("p","tiny",
@@ -8461,7 +8462,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.21ac";
+  var APP_VERSION = "2026.09.21ae";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
