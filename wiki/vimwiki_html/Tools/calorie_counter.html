@@ -477,6 +477,27 @@ body{top:0!important}
 .mbar{height:6px;border-radius:99px;background:var(--card2);overflow:hidden;margin-top:5px}
 .mbar i{display:block;height:100%;background:var(--store);border-radius:99px}
 .mwin{margin-top:10px;padding:10px 12px;border-radius:var(--r-sm);background:var(--card2)}
+.gicard .giunits{display:flex;gap:6px;margin:2px 0 10px}
+.gicard .giunits button{border:1px solid var(--line);background:var(--card2);color:var(--muted);
+  border-radius:999px;font-size:12.5px;padding:6px 14px;font-weight:500;min-height:34px}
+.gicard .giunits button.on{background:var(--out);border-color:var(--out);color:#fff}
+.gichart{width:100%;height:auto;display:block;cursor:pointer}
+.gichart .giframe{fill:none;stroke:var(--line);stroke-width:1}
+.gichart .gigrid{stroke:var(--line);stroke-width:1;opacity:.55}
+.gichart .gibase{stroke:var(--muted);stroke-width:1;stroke-dasharray:3 3;opacity:.55}
+.gichart .ginow{stroke:var(--muted);stroke-width:1;stroke-dasharray:2 3}
+.gichart .ginowlab,.gichart .gixlab,.gichart .giylab,.gichart .giaxname{fill:var(--muted);font-size:9px;font-family:var(--sans)}
+.gichart .giaxg{fill:var(--in);font-weight:600}
+.gichart .giaxi{fill:var(--out);font-weight:600}
+.gichart .giline{fill:none;stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round}
+.gichart .giline-g{stroke:var(--in)}
+.gichart .giline-i{stroke:var(--out)}
+.gilegend{display:flex;gap:16px;align-items:center;margin-top:8px;font-size:12.5px;color:var(--muted)}
+.gilegend .gikey{display:inline-flex;align-items:center;gap:7px}
+.gilegend .gikey::before{content:"";width:14px;height:3px;border-radius:2px;display:inline-block}
+.gilegend .gikey-g::before{background:var(--in)}
+.gilegend .gikey-i::before{background:var(--out)}
+.gilegend .gitap{margin-left:auto;color:var(--out);font-weight:500}
 .mwin b{display:block}
 .mwin span{font-size:12px;color:var(--muted)}
 .sfoot{flex:none;display:flex;gap:10px;padding:10px 18px
@@ -906,6 +927,17 @@ input,select{scroll-margin:84px 0 180px}
       <div class="cardhead"><h2>Still going in</h2>
         <span class="sm" id="mealHint"></span></div>
       <div id="mealBody"></div>
+    </div>
+
+    <div class="card gicard hidden" id="giCard">
+      <div class="cardhead"><h2>Glucose &amp; insulin</h2>
+        <span class="sm">modelled &mdash; tap the plot</span></div>
+      <div class="giunits" id="giUnits">
+        <button type="button" data-u="sec">sec</button>
+        <button type="button" data-u="min" class="on">min</button>
+        <button type="button" data-u="hr">hr</button>
+      </div>
+      <div id="giBody"></div>
     </div>
 
     <div class="card" id="quickCard">
@@ -6650,6 +6682,16 @@ window.caloMeals = (function(){
   var MPS_PEAK = 2.0, MPS_END = 3.0, MPS_MIN_G = 10;
   var DAY_START = 4*60;                    // meals are not attributed before 4am
   var SETTLE_MS = 5000;                    // quiet time that ends a batch
+  /* Modelled post-meal glucose & insulin. Baselines are fasting values; a meal
+     adds a rise-and-fall bump (difference of two exponentials) scaled by its
+     carbohydrate (and, for insulin, protein). Heuristic, healthy-adult shapes. */
+  var GI_GBASE = 90, GI_IBASE = 8;         // mg/dL, uU/mL fasting
+  var GI_KG = 0.8, GI_KIC = 1.0, GI_KIP = 0.4;
+  var GI_aG = 90, GI_bG = 18, GI_aI = 110, GI_bI = 22;   // minutes
+  function giPeak(a,b){ var ts = Math.log(a/b)/(1/b - 1/a); return Math.exp(-ts/a) - Math.exp(-ts/b); }
+  var GI_pkG = giPeak(GI_aG,GI_bG), GI_pkI = giPeak(GI_aI,GI_bI);
+  function giShape(tau,a,b,pk){ if(tau <= 0) return 0; return (Math.exp(-tau/a) - Math.exp(-tau/b))/pk; }
+  var giUnit = "min", giWired = false;
   var SLOTS = [["breakfast","breakfast","10:00"], ["lunch","lunch","15:00"],
                ["snacks","a snack","18:00"],      ["dinner","dinner","22:00"],
                ["supper","supper","23:30"]];
@@ -7001,6 +7043,154 @@ window.caloMeals = (function(){
     });
   }
 
+  /* ---------- modelled glucose & insulin ---------- */
+  function giSeries(sittings){
+    var meals = (sittings||[]).filter(function(s){ return !s.whole && ((s.c||0) > 0 || (s.p||0) > 0); })
+                              .map(function(s){ return { at:s.at, c:s.c||0, p:s.p||0, names:s.names||[] }; });
+    if(!meals.length) return null;
+    var atMin = meals[0].at, atMax = meals[0].at;
+    meals.forEach(function(m){ if(m.at < atMin) atMin = m.at; if(m.at > atMax) atMax = m.at; });
+    var t0 = atMin, now = nowMin(), tEnd = Math.max(now, atMax + 180);
+    var N = 180, pts = [];
+    for(var i = 0; i <= N; i++){
+      var t = t0 + (tEnd - t0)*i/N, g = GI_GBASE, ins = GI_IBASE;
+      meals.forEach(function(m){
+        var tau = t - m.at;
+        g   += (m.c*GI_KG)               * giShape(tau, GI_aG, GI_bG, GI_pkG);
+        ins += (m.c*GI_KIC + m.p*GI_KIP) * giShape(tau, GI_aI, GI_bI, GI_pkI);
+      });
+      pts.push({ t:t, g:g, i:ins });
+    }
+    // level right now, for the explainer
+    var gNow = GI_GBASE, iNow = GI_IBASE;
+    meals.forEach(function(m){
+      var tau = now - m.at;
+      m.gPeak = m.c*GI_KG;
+      m.iPeak = m.c*GI_KIC + m.p*GI_KIP;
+      m.gNow  = m.gPeak * giShape(tau, GI_aG, GI_bG, GI_pkG);
+      m.iNow  = m.iPeak * giShape(tau, GI_aI, GI_bI, GI_pkI);
+      gNow += m.gNow; iNow += m.iNow;
+    });
+    return { pts:pts, t0:t0, tEnd:tEnd, now:now, meals:meals, gNow:gNow, iNow:iNow };
+  }
+  function giUnitName(){ return giUnit === "sec" ? "seconds" : giUnit === "hr" ? "hours" : "minutes"; }
+  function giFmtLabel(min){
+    if(giUnit === "sec") return Math.round(min*60);
+    if(giUnit === "hr")  return Math.round(min/6)/10;
+    return Math.round(min);
+  }
+  function giSVG(ser){
+    var W = 340, H = 220, ml = 42, mr = 44, mt = 16, mb = 34;
+    var pw = W - ml - mr, ph = H - mt - mb;
+    var span = Math.max(1, ser.tEnd - ser.t0);
+    var maxG = GI_GBASE, maxI = GI_IBASE;
+    ser.pts.forEach(function(p){ if(p.g > maxG) maxG = p.g; if(p.i > maxI) maxI = p.i; });
+    var gBot = 70, gTop = Math.max(150, Math.ceil(maxG/20)*20);
+    var iBot = 0,  iTop = Math.max(50,  Math.ceil(maxI/20)*20);
+    function X(t){ return ml + ((t - ser.t0)/span)*pw; }
+    function YG(v){ return mt + (1 - (v - gBot)/(gTop - gBot))*ph; }
+    function YI(v){ return mt + (1 - (v - iBot)/(iTop - iBot))*ph; }
+    var g = "";
+    g += '<rect x="'+ml+'" y="'+mt+'" width="'+pw+'" height="'+ph+'" class="giframe"/>';
+    g += '<line x1="'+ml+'" y1="'+YG(GI_GBASE).toFixed(1)+'" x2="'+(ml+pw)+'" y2="'+YG(GI_GBASE).toFixed(1)+'" class="gibase"/>';
+    var nx = 4, k;
+    for(k = 0; k <= nx; k++){
+      var elp = span*k/nx, xx = X(ser.t0 + elp);
+      if(k > 0 && k < nx) g += '<line x1="'+xx.toFixed(1)+'" y1="'+mt+'" x2="'+xx.toFixed(1)+'" y2="'+(mt+ph)+'" class="gigrid"/>';
+      g += '<text x="'+xx.toFixed(1)+'" y="'+(mt+ph+16)+'" class="gixlab" text-anchor="middle">'+giFmtLabel(elp)+'</text>';
+    }
+    g += '<text x="'+(ml+pw/2)+'" y="'+(H-4)+'" class="giaxname" text-anchor="middle">'+giUnitName()+' since first meal</text>';
+    [gBot, (gBot+gTop)/2, gTop].forEach(function(v){ g += '<text x="'+(ml-6)+'" y="'+(YG(v)+3).toFixed(1)+'" class="giylab" text-anchor="end">'+Math.round(v)+'</text>'; });
+    g += '<text x="'+(ml-4)+'" y="'+(mt-5)+'" class="giaxname giaxg" text-anchor="end">mg/dL</text>';
+    [iBot, iTop/2, iTop].forEach(function(v){ g += '<text x="'+(ml+pw+6)+'" y="'+(YI(v)+3).toFixed(1)+'" class="giylab" text-anchor="start">'+Math.round(v)+'</text>'; });
+    g += '<text x="'+(ml+pw+4)+'" y="'+(mt-5)+'" class="giaxname giaxi" text-anchor="start">uU/mL</text>';
+    if(ser.now > ser.t0 && ser.now < ser.tEnd){
+      var nX = X(ser.now);
+      g += '<line x1="'+nX.toFixed(1)+'" y1="'+mt+'" x2="'+nX.toFixed(1)+'" y2="'+(mt+ph)+'" class="ginow"/>';
+      g += '<text x="'+nX.toFixed(1)+'" y="'+(mt-5)+'" class="ginowlab" text-anchor="middle">now</text>';
+    }
+    var gP = ser.pts.map(function(p,i){ return (i?"L":"M")+X(p.t).toFixed(1)+" "+YG(p.g).toFixed(1); }).join(" ");
+    var iP = ser.pts.map(function(p,i){ return (i?"L":"M")+X(p.t).toFixed(1)+" "+YI(p.i).toFixed(1); }).join(" ");
+    g += '<path d="'+iP+'" class="giline giline-i"/>';
+    g += '<path d="'+gP+'" class="giline giline-g"/>';
+    return '<svg viewBox="0 0 '+W+' '+H+'" class="gichart" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Modelled blood glucose and insulin after the meals logged today. Tap for the maths and sources.">'+g+'</svg>'
+      + '<div class="gilegend"><span class="gikey gikey-g">Glucose</span><span class="gikey gikey-i">Insulin</span><span class="gitap">tap for the maths ></span></div>';
+  }
+  function wireGI(){
+    if(giWired) return;
+    var u = document.getElementById("giUnits"), body = document.getElementById("giBody");
+    if(!u || !body) return;
+    giWired = true;
+    u.addEventListener("click", function(e){
+      var b = e.target && e.target.closest ? e.target.closest("button[data-u]") : null;
+      if(!b) return;
+      giUnit = b.getAttribute("data-u");
+      [].forEach.call(u.querySelectorAll("button"), function(x){ x.classList.toggle("on", x === b); });
+      update();
+    });
+    body.addEventListener("click", function(){ explainGI(); });
+  }
+  function renderGI(d){
+    var card = document.getElementById("giCard");
+    if(!card) return;
+    wireGI();
+    var ser = (d && d.mealsOn) ? giSeries(d.sittings) : null;
+    var on = !!(ser && ser.pts && ser.pts.length);
+    card.classList.toggle("hidden", !on);
+    if(!on) return;
+    lastMeals = d.sittings;
+    var body = document.getElementById("giBody");
+    if(body) body.innerHTML = giSVG(ser);
+  }
+  function explainGI(){
+    var ser = giSeries((typeof lastMeals !== "undefined" && lastMeals) ? lastMeals : null);
+    openSheet("Glucose & insulin — the model", function(body){
+      body.appendChild(el("p","tiny",
+        "A modelled picture of how blood sugar and insulin move after the meals you logged today. It is built from the "
+        + "carbohydrate and protein in each meal and the time you ate it — not measured from your blood."));
+
+      body.appendChild(el("div","ntgrp","The model"));
+      body.appendChild(el("p","tiny",
+        "Each meal adds a rise-and-fall bump. Glucose climbs as carbohydrate is absorbed, peaks near 30–40 minutes, "
+        + "and clears back toward a fasting baseline (~" + GI_GBASE + " mg/dL) over two to three hours. Insulin follows with "
+        + "a short lag, peaks a little later, and is lifted by protein as well as carbohydrate. Several meals add together."));
+      body.appendChild(el("p","formula",
+        "glucose(t) = " + GI_GBASE + " + Σ  carbs·" + GI_KG + "·( e^(−τ/" + GI_aG + ") − e^(−τ/" + GI_bG + ") ) / " + GI_pkG.toFixed(3)));
+      body.appendChild(el("p","formula",
+        "insulin(t) = " + GI_IBASE + " + Σ  (carbs·" + GI_KIC + " + protein·" + GI_KIP + ")·( e^(−τ/" + GI_aI + ") − e^(−τ/" + GI_bI + ") ) / " + GI_pkI.toFixed(3)));
+      body.appendChild(el("p","tiny",
+        "τ is minutes since that meal. The bracket is the fixed rise-and-fall shape (it peaks at 1); the amount in front "
+        + "sets the height, and it is divided by the shape's own peak so the height is exactly the peak rise."));
+
+      if(ser && ser.meals && ser.meals.length){
+        body.appendChild(el("div","ntgrp","Your meals today"));
+        ser.meals.forEach(function(m){
+          var nm = (m.names && m.names.length) ? m.names.slice(0,2).join(", ") : "meal";
+          body.appendChild(el("p","tiny",
+            "<b>" + nm + "</b> at " + pretty(m.at) + " — carbs " + n1(m.c) + " g, protein " + n1(m.p) + " g. "
+            + "Peak rise: glucose +" + Math.round(m.gPeak) + " mg/dL, insulin +" + Math.round(m.iPeak) + " µU/mL. "
+            + "Right now it is adding +" + Math.round(m.gNow) + " mg/dL and +" + Math.round(m.iNow) + " µU/mL."));
+        });
+        body.appendChild(el("p","tiny",
+          "<b>Modelled level now:</b> glucose ≈ " + Math.round(ser.gNow) + " mg/dL, insulin ≈ " + Math.round(ser.iNow) + " µU/mL "
+          + "(baselines " + GI_GBASE + " and " + GI_IBASE + ", plus every meal's bump above)."));
+      }
+
+      body.appendChild(el("div","ntgrp","Where the numbers come from"));
+      var refs = el("ul","refs");
+      [ "The size and timing of the glucose rise track a meal's carbohydrate and its glycaemic index — Jenkins et al., “Glycemic index of foods,” Am J Clin Nutr, 1981.",
+        "Insulin is secreted in response to glucose and amplified by gut incretin hormones after eating — Nauck & Meier, reviews of the incretin effect, Diabetologia / Lancet Diabetes & Endocrinology.",
+        "Dietary protein raises insulin even with little glucose rise — Nuttall & Gannon, Am J Clin Nutr / Diabetes Care.",
+        "Post-meal glucose peaks near 30–60 min and returns toward baseline within 2–3 h in healthy adults — meal-tolerance and continuous-glucose studies."
+      ].forEach(function(t){ refs.appendChild(el("li", null, t)); });
+      body.appendChild(refs);
+      body.appendChild(el("p","tiny",
+        "This is a simplified model for a healthy adult. Real responses vary a great deal between people and even for the "
+        + "same food, so read it as the shape of the response, not your actual blood levels."));
+    });
+  }
+  var lastMeals = null;
+
   /* ---------- the overview card ---------- */
   function render(d){
     var card = document.getElementById("mealCard");
@@ -7086,6 +7276,9 @@ window.caloMeals = (function(){
       list.forEach(function(e){ if(e.t === s.stamp) e.t = v; });
       saveEntries(list);
     }
+    /* Let go of the picker so the card is allowed to repaint at once - otherwise
+       the absorption bar only catches up after you click away (desktop). */
+    try { var _a = document.activeElement; if(_a && _a.type === "time" && _a.blur) _a.blur(); } catch(e){}
     update();
   }
   /* Give a time to whatever the log does not yet account for. */
@@ -7241,7 +7434,7 @@ window.caloMeals = (function(){
        them back afterwards. Every one of those looks like food appearing out of
        nowhere, so stay out of the way entirely. */
     if(typeof inDiff !== "undefined" && inDiff) return;
-    try { render(d); paintRows(d); } catch(e){}
+    try { render(d); paintRows(d); renderGI(d); } catch(e){}
     /* The timed diary records every serving even with the absorption setting
        off; "off" only means the live tiles are not put on a digestion curve. */
     if(window.__pickerBusy) return;      // the picker logs its own servings on confirm
@@ -8243,7 +8436,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.21y";
+  var APP_VERSION = "2026.09.21z";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
