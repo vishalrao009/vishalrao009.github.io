@@ -4635,6 +4635,43 @@ function openMacroSheet(which){
       }
       h += `</p>`;
 
+      /* How much of this macronutrient has actually reached the blood so far, and
+         the curve behind it - each macro clears at its own pace. */
+      if(d.mealsOn){
+        const absMap = { c: d.carbIn, f: d.fatIn, p: d.protIn };
+        const absG = absMap[which];
+        if(typeof absG === "number"){
+          const cm = (typeof window!=="undefined" && window.caloMeals) ? window.caloMeals : {};
+          const tau = cm.tau && cm.tau[which];
+          const lag = (typeof cm.lag === "number") ? cm.lag : 0.15;
+          const inG = Math.min(absG, total), pctA = total > 0 ? Math.round(inG/total*100) : 0;
+          h += `<p class="formula"><b>Absorbed so far: ${n1(inG)} g of ${n1(total)} g (${pctA}%).</b> `
+             + `Food does not reach the blood the instant it is eaten \u2014 it empties from the stomach and is absorbed over the next hours, `
+             + `and each macronutrient does it at its own pace: carbohydrate fastest, protein next, fat slowest.`
+             + (tau ? ` For ${M.short}, the time constant is \u03c4 = ${tau} h.` : ``)
+             + `</p>`;
+          if(tau){
+            h += `<p class="formula">absorbed(t) = 1 \u2212 exp[ \u2212( (t \u2212 ${lag} h) / (\u03c4 \u00b7 k) )\u00b2 ] \u2014 `
+               + `t is hours since the meal, \u03c4 = ${tau} h for ${M.short}, and k is a size factor (a bigger meal empties a little slower).</p>`;
+          }
+          const FK = which === "c" ? "Fc" : which === "f" ? "Ff" : "Fp";
+          const sits = (d.sittings || []).filter(s => !s.whole && s[which] > 0.049);
+          if(sits.length){
+            h += tbl(sits.map(s => ({
+              label: s.stamp || "meal",
+              work: `${n1(s[which])} g of ${M.short} &middot; ${Math.round((s[FK]||0)*100)}% absorbed by now`,
+              val: n1(s[which]*(s[FK]||0)) + " g"
+            })), "In so far", n1(inG) + " g");
+          }
+          h += `<div class="ntgrp">Where these come from</div>`
+             + `<ul class="refs">`
+             + `<li>Gastric emptying follows a stretched-exponential time course \u2014 <a class='reflink' href='https://pubmed.ncbi.nlm.nih.gov/?term=Elashoff+analysis+of+gastric+emptying+data' target='_blank' rel='noopener noreferrer'>Elashoff, Reedy & Meyer, Gastroenterology 1982</a>.</li>`
+             + `<li>A meal\u0027s energy paces the emptying, and fat empties slowest while carbohydrate empties fastest \u2014 <a class='reflink' href='https://pubmed.ncbi.nlm.nih.gov/?term=Hunt+Stubbs+energy+content+meals+gastric+emptying' target='_blank' rel='noopener noreferrer'>Hunt & Stubbs, J Physiol 1975</a>; <a class='reflink' href='https://pmc.ncbi.nlm.nih.gov/articles/PMC1159224/' target='_blank' rel='noopener noreferrer'>Calbet & MacLean, J Physiol 1997</a>.</li>`
+             + `</ul>`
+             + `<p class="formula">A simplified healthy-adult model \u2014 it shows the shape and timing of absorption, not your measured blood levels.</p>`;
+        }
+      }
+
       const other = MACRO_ORDER.filter(k => k !== which);
       h += `<p class="formula">The other two: `
          + other.map(k => `${MACROS[k].short} ${n1(d.food[k])} g (${kc(d.food[k]*MACROS[k].per)} kcal)`).join(", ")
@@ -7676,7 +7713,7 @@ window.caloMeals = (function(){
     body.appendChild(wipe);
   }
 
-  return { absorbed:absorbed, afterUpdate:afterUpdate, settings:settings, mode:mode, addServing:addServing, logAt:logAt };
+  return { absorbed:absorbed, afterUpdate:afterUpdate, settings:settings, mode:mode, addServing:addServing, logAt:logAt, tau:TAU, lag:LAG };
 })();
 LOG_IDS.push("mealLog");           // belongs to the day, and is cleared with it
 SETTING_IDS.push("mealTiming");    // belongs to the profile, and outlives the day
@@ -8497,7 +8534,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.21ai";
+  var APP_VERSION = "2026.09.21ak";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
