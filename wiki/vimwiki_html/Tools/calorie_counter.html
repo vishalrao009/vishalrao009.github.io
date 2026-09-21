@@ -498,6 +498,9 @@ body{top:0!important}
 .gilegend .gikey-g::before{background:var(--in)}
 .gilegend .gikey-i::before{background:var(--out)}
 .gilegend .gitap{margin-left:auto;color:var(--out);font-weight:500}
+.gilegend .gimealkey{color:var(--lean);font-weight:600}
+.gichart .gimeal{stroke:var(--lean);stroke-width:1;stroke-dasharray:1 4;opacity:.55}
+.gichart .gimealtri{fill:var(--lean)}
 .gichart .gidot{stroke:var(--card);stroke-width:1.5}
 .gichart .gidot-g{fill:var(--in)}
 .gichart .gidot-i{fill:var(--out)}
@@ -7105,6 +7108,14 @@ window.caloMeals = (function(){
     var g = "";
     g += '<rect x="'+ml+'" y="'+mt+'" width="'+pw+'" height="'+ph+'" class="giframe"/>';
     g += '<line x1="'+ml+'" y1="'+YG(GI_GBASE).toFixed(1)+'" x2="'+(ml+pw)+'" y2="'+YG(GI_GBASE).toFixed(1)+'" class="gibase"/>';
+    /* Mark where each food was logged: a faint guide, and a tick on the axis
+       further down. The rise begins a little to the right of it (the ~10-min
+       onset lag), so the marks show when each meal went in. */
+    (ser.meals||[]).forEach(function(m){
+      var mx = X(m.at);
+      if(mx < ml - 0.5 || mx > ml + pw + 0.5) return;
+      g += '<line x1="'+mx.toFixed(1)+'" y1="'+mt+'" x2="'+mx.toFixed(1)+'" y2="'+(mt+ph)+'" class="gimeal"/>';
+    });
     var nx = 4, k;
     for(k = 0; k <= nx; k++){
       var elp = span*k/nx, xx = X(ser.t0 + elp);
@@ -7139,8 +7150,13 @@ window.caloMeals = (function(){
       g += '<text x="'+lx.toFixed(1)+'" y="'+clampY(gLabY).toFixed(1)+'" text-anchor="'+anc+'" class="gival gival-g">'+Math.round(ser.gNow)+'</text>';
       g += '<text x="'+lx.toFixed(1)+'" y="'+clampY(iLabY).toFixed(1)+'" text-anchor="'+anc+'" class="gival gival-i">'+Math.round(ser.iNow)+'</text>';
     }
+    (ser.meals||[]).forEach(function(m){
+      var mx = X(m.at);
+      if(mx < ml - 0.5 || mx > ml + pw + 0.5) return;
+      g += '<path d="M'+(mx-3.6).toFixed(1)+' '+(mt+ph)+' L'+(mx+3.6).toFixed(1)+' '+(mt+ph)+' L'+mx.toFixed(1)+' '+(mt+ph-6.5)+' Z" class="gimealtri"/>';
+    });
     return '<svg viewBox="0 0 '+W+' '+H+'" class="gichart" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Modelled blood glucose and insulin after the meals logged today. Tap for the maths and sources.">'+g+'</svg>'
-      + '<div class="gilegend"><span class="gikey gikey-g">Glucose ' + Math.round(ser.gNow) + '</span><span class="gikey gikey-i">Insulin ' + Math.round(ser.iNow) + '</span><span class="gitap">tap for the maths ></span></div>';
+      + '<div class="gilegend"><span class="gikey gikey-g">Glucose ' + Math.round(ser.gNow) + '</span><span class="gikey gikey-i">Insulin ' + Math.round(ser.iNow) + '</span><span class="gimealkey">\u25b2 meals</span><span class="gitap">tap for the maths ></span></div>';
   }
   function wireGI(){
     if(giWired) return;
@@ -8462,7 +8478,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.21ae";
+  var APP_VERSION = "2026.09.21af";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
