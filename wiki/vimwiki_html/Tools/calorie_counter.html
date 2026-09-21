@@ -501,7 +501,7 @@ body{top:0!important}
 .gichart .gidot{stroke:var(--card);stroke-width:1.5}
 .gichart .gidot-g{fill:var(--in)}
 .gichart .gidot-i{fill:var(--out)}
-.gichart .gival{font-size:10.5px;font-weight:700;font-family:var(--sans)}
+.gichart .gival{font-size:11px;font-weight:700;font-family:var(--sans);paint-order:stroke;stroke:var(--card);stroke-width:3.2px;stroke-linejoin:round}
 .gichart .gival-g{fill:var(--in)}
 .gichart .gival-i{fill:var(--out)}
 .mwin b{display:block}
@@ -7124,14 +7124,19 @@ window.caloMeals = (function(){
     var iP = ser.pts.map(function(p,i){ return (i?"L":"M")+X(p.t).toFixed(1)+" "+YI(p.i).toFixed(1); }).join(" ");
     g += '<path d="'+iP+'" class="giline giline-i"/>';
     g += '<path d="'+gP+'" class="giline giline-g"/>';
-    /* Where you are right now on each curve. */
+    /* Where you are right now on each curve. Put the higher dot's number above
+       it and the lower dot's below, so the two never sit on top of each other. */
     if(ser.now >= ser.t0 && ser.now <= ser.tEnd){
       var dX = X(ser.now), side = dX > (ml + pw*0.62) ? -1 : 1;
-      var lx = dX + side*8, anc = side < 0 ? "end" : "start";
-      g += '<circle cx="'+dX.toFixed(1)+'" cy="'+YI(ser.iNow).toFixed(1)+'" r="4.2" class="gidot gidot-i"/>';
-      g += '<circle cx="'+dX.toFixed(1)+'" cy="'+YG(ser.gNow).toFixed(1)+'" r="4.2" class="gidot gidot-g"/>';
-      g += '<text x="'+lx.toFixed(1)+'" y="'+(YG(ser.gNow)-6).toFixed(1)+'" text-anchor="'+anc+'" class="gival gival-g">'+Math.round(ser.gNow)+'</text>';
-      g += '<text x="'+lx.toFixed(1)+'" y="'+(YI(ser.iNow)+13).toFixed(1)+'" text-anchor="'+anc+'" class="gival gival-i">'+Math.round(ser.iNow)+'</text>';
+      var lx = dX + side*9, anc = side < 0 ? "end" : "start";
+      var gy = YG(ser.gNow), iy = YI(ser.iNow), gLabY, iLabY;
+      if(gy <= iy){ gLabY = gy - 8; iLabY = iy + 16; }   // glucose dot higher
+      else        { gLabY = gy + 16; iLabY = iy - 8; }
+      function clampY(y){ return Math.max(mt + 9, Math.min(mt + ph - 3, y)); }
+      g += '<circle cx="'+dX.toFixed(1)+'" cy="'+iy.toFixed(1)+'" r="4.2" class="gidot gidot-i"/>';
+      g += '<circle cx="'+dX.toFixed(1)+'" cy="'+gy.toFixed(1)+'" r="4.2" class="gidot gidot-g"/>';
+      g += '<text x="'+lx.toFixed(1)+'" y="'+clampY(gLabY).toFixed(1)+'" text-anchor="'+anc+'" class="gival gival-g">'+Math.round(ser.gNow)+'</text>';
+      g += '<text x="'+lx.toFixed(1)+'" y="'+clampY(iLabY).toFixed(1)+'" text-anchor="'+anc+'" class="gival gival-i">'+Math.round(ser.iNow)+'</text>';
     }
     return '<svg viewBox="0 0 '+W+' '+H+'" class="gichart" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Modelled blood glucose and insulin after the meals logged today. Tap for the maths and sources.">'+g+'</svg>'
       + '<div class="gilegend"><span class="gikey gikey-g">Glucose ' + Math.round(ser.gNow) + '</span><span class="gikey gikey-i">Insulin ' + Math.round(ser.iNow) + '</span><span class="gitap">tap for the maths ></span></div>';
@@ -8456,7 +8461,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.21ab";
+  var APP_VERSION = "2026.09.21ac";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
