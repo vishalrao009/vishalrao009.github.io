@@ -5956,7 +5956,9 @@ function noteDayOnScreen(){ dayOnScreen = dayKey(); }
    and never closed is closed where it stands. */
 const AUTOCLOSE_KEY = "ledger.autoClose";
 function autoCloseOn(){
-  try { return localStorage.getItem(AUTOCLOSE_KEY) !== "0"; } catch(e){ return true; }
+  /* The day now files itself at the "New day starts at" rollover; there is no
+     separate on/off toggle for it any more, so this is always on. */
+  return true;
 }
 function setAutoClose(on){
   try { localStorage.setItem(AUTOCLOSE_KEY, on ? "1" : "0"); } catch(e){}
@@ -8750,7 +8752,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.22am";
+  var APP_VERSION = "2026.09.22an";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
@@ -10561,25 +10563,6 @@ body.editing-day{padding-top:38px}
       })();
 
       grp("Your days");
-      (function(){
-        swrow("Close the day by itself",
-              "At 11:59 pm the day is finished and filed, which fixes the fat and muscle "
-              + "figures at the finished-day numbers instead of leaving them drifting with "
-              + "the clock. If the app is not open then, it is done the next time you open "
-              + "it \u2014 any earlier day you logged and never closed gets filed where it "
-              + "stood. Off means you close each day yourself.",
-              (typeof autoCloseOn === "function") ? autoCloseOn() : true,
-              function(on){
-                if(typeof setAutoClose === "function") setAutoClose(on);
-                if(on && typeof closeStaleDays === "function"){
-                  var n = closeStaleDays();
-                  say(n ? "On \u2014 " + n + " earlier day" + (n === 1 ? "" : "s") + " filed just now."
-                        : "On \u2014 days will be filed at 11:59 pm.");
-                } else {
-                  say("Off \u2014 you close each day yourself.");
-                }
-              });
-      })();
       swrow("Start each day from my usual day",
             "Off by default \u2014 each new day starts empty, since most people eat and train "
             + "differently from one day to the next. Turn this on only if your days are much the "
