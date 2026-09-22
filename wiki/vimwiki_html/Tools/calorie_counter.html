@@ -1032,6 +1032,7 @@ input,select{scroll-margin:84px 0 180px}
       <option value="ask">Ask me the time</option>
       <option value="slot">Assume my meal slot</option>
     </select>
+    <input type="hidden" id="dayRoll" value="04:00">
     <div class="card">
       <div class="cardhead"><h2>What you ate</h2><span class="sm" id="foodTot"></span></div>
       <div id="slotFood"><div class="rowlist" id="foodRows"></div></div>
@@ -3127,10 +3128,16 @@ function metKcal(met, minutes, weight){ return (met-1)*3.5*weight/200*minutes; }
    food is what made a normal morning look like a large deficit. */
 function dayProgress(){
   const now = new Date();
-  const hours = now.getHours() + now.getMinutes()/60;
+  const hours = now.getHours() + now.getMinutes()/60;   // wall clock, for display
+  /* The logging day rolls over at dayStart (4am by default), not midnight, so a
+     late meal and the resting burn through the small hours stay on the same day.
+     Elapsed is measured from that rollover, wrapping past midnight. */
+  const roll = dayStartMin()/60;
+  let elapsed = hours - roll; if(elapsed < 0) elapsed += 24;
   const wake = +($("wake")||{}).value || 7;
   const sleep = +($("sleep")||{}).value || 7;
   const awakeWindow = Math.max(8, 24 - sleep);
+  const wakeOffset = ((wake - roll) % 24 + 24) % 24;
   return {
     hours,
     /* Straight fraction of the 24-hour clock, no floor. An earlier 2% minimum
@@ -3138,8 +3145,8 @@ function dayProgress(){
        full 2% of resting metabolism, roughly 30 phantom kcal "used" before you
        had done anything. Resting burn is real but it accrues at the clock's
        pace, not a made-up minimum. */
-    rest: Math.min(1, hours/24),
-    awake: Math.min(1, Math.max(0, (hours - wake)/awakeWindow)),
+    rest: Math.min(1, elapsed/24),
+    awake: Math.min(1, Math.max(0, (elapsed - wakeOffset)/awakeWindow)),
   };
 }
 
@@ -5920,8 +5927,15 @@ catch(e){ canStore = false; }
    goes through this, so nothing can write yesterday's food into today. */
 let editDay = null;
 function dayKey(){ return editDay || todayKey(); }
+function dayStartMin(){
+  try{ var n = document.getElementById("dayRoll");
+       if(n && n.value){ var p = String(n.value).split(":");
+         var m = (+p[0])*60 + (+(p[1]||0));
+         if(m >= 0 && m < 1440) return m; } }catch(e){}
+  return 240;                               // default: the logging day rolls over at 4am
+}
 function todayKey(){
-  const d = new Date();
+  const d = new Date(Date.now() - dayStartMin()*60000);
   return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 }
 /* ---- midnight, in an app that is never reloaded --------------------
@@ -5977,7 +5991,10 @@ function closeStaleDays(){
 function maybeCloseTonight(){
   if(!autoCloseOn() || editDay) return;
   const now = new Date();
-  if(now.getHours() !== 23 || now.getMinutes() < 59) return;
+  /* File the day in its final minute - the minute before the rollover (03:59 by
+     default), not 23:59, now that the day ends at dayStart. */
+  const endMin = (dayStartMin() + 1439) % 1440;
+  if(now.getHours()*60 + now.getMinutes() !== endMin) return;
   if($("dayDone") && $("dayDone").value === "1") return;
   if(!dayHasAnything(snapshot())) return;
   $("dayDone").value = "1";
@@ -6753,6 +6770,11 @@ window.caloMeals = (function(){
   var MPS_AMP = 100;                       // % above rest at the peak for a saturating dose
   var MPS_D50 = 10;                        // g protein; 1-exp(-g/D50) is the dose curve
   var DAY_START = 4*60;                    // meals are not attributed before 4am
+  /* The logging day rolls over at dayStart (a profile setting, 4am default), not
+     midnight. anchorMin maps a wall-clock minute to minutes-since-rollover, so a
+     meal at 23:30 and "now" at 00:30 read as 1 h apart, not -23 h. */
+  function anchorMin(m){ var r = (typeof dayStartMin === "function") ? dayStartMin() : 240;
+                         return ((m - r) % 1440 + 1440) % 1440; }
   var SETTLE_MS = 5000;                    // quiet time that ends a batch
   /* Modelled post-meal glucose & insulin. Baselines are fasting values; a meal
      adds a rise-and-fall bump (difference of two exponentials) scaled by its
@@ -6925,7 +6947,7 @@ window.caloMeals = (function(){
            past alone: the setting applies to what you log from now on. */
         Fp = 1; Fe = 1;
       } else {
-        var hrs  = Math.max(0, (now - at)/60);
+        var hrs  = Math.max(0, (anchorMin(now) - anchorMin(at))/60);
         var size = Math.min(1.8, 1 + kc/2500);     // a bigger meal empties slower
         Fp = frac(TAU.p, hrs, size);
         var Fc = frac(TAU.c, hrs, size),
@@ -6959,14 +6981,19 @@ window.caloMeals = (function(){
       byTime[e.t][e.f] = (byTime[e.t][e.f] || 0) + q;
     });
     Object.keys(byTime).forEach(function(t){
-      digest(Math.min(toMin(t), now), byTime[t], t, false);
+      /* A meal is only "in the future" if it is later than now within the same
+         logical day; across the midnight rollover a 23:30 meal is in the past of
+         a 00:30 now, so compare in anchored (since-rollover) time before clamping. */
+      var atRaw = toMin(t);
+      var atUse = (anchorMin(atRaw) <= anchorMin(now)) ? atRaw : now;
+      digest(atUse, byTime[t], t, false);
     });
     if(Object.keys(rec.loose).length) digest(now, rec.loose, null, true);
 
     var mps = null;
     if(feeds.length){
       feeds.sort(function(a,b){ return b.at - a.at; });
-      var last = feeds[0], h = Math.max(0, (now - last.at)/60);
+      var last = feeds[0], h = Math.max(0, (anchorMin(now) - anchorMin(last.at))/60);
       mps = { at:last.at, g:last.p, hrs:h,
               state: h < 0.75 ? "rising" : h < MPS_PEAK ? "peaking"
                    : h < MPS_END ? "fading" : "closed",
@@ -6981,7 +7008,7 @@ window.caloMeals = (function(){
   /* Tap a sitting to see exactly how its "% absorbed" was arrived at, with the
      physiology it leans on. Honest about being a heuristic, not a measurement. */
   function explainSitting(s){
-    var now = nowMin(), hrs = Math.max(0, (now - s.at)/60);
+    var now = nowMin(), hrs = Math.max(0, (anchorMin(now) - anchorMin(s.at))/60);
     openSheet("How this is worked out", function(body){
       body.appendChild(el("p","tiny",
         "<b>" + kc(s.kcal) + " kcal</b> "
@@ -7121,11 +7148,11 @@ window.caloMeals = (function(){
   /* ---------- modelled glucose & insulin ---------- */
   function giSeries(sittings){
     var meals = (sittings||[]).filter(function(s){ return !s.whole && ((s.c||0) > 0 || (s.p||0) > 0); })
-                              .map(function(s){ return { at:s.at, c:s.c||0, p:s.p||0, names:s.names||[] }; });
+                              .map(function(s){ return { at:anchorMin(s.at), wall:s.at, c:s.c||0, p:s.p||0, names:s.names||[] }; });
     if(!meals.length) return null;
     var atMin = meals[0].at, atMax = meals[0].at;
     meals.forEach(function(m){ if(m.at < atMin) atMin = m.at; if(m.at > atMax) atMax = m.at; });
-    var t0 = atMin, now = nowMin(), tEnd = Math.max(now, atMax + 180);
+    var t0 = atMin, now = anchorMin(nowMin()), tEnd = Math.max(now, atMax + 180);
     var N = 180, pts = [];
     for(var i = 0; i <= N; i++){
       var t = t0 + (tEnd - t0)*i/N, g = GI_GBASE, ins = GI_IBASE;
@@ -7269,7 +7296,7 @@ window.caloMeals = (function(){
         ser.meals.forEach(function(m){
           var nm = (m.names && m.names.length) ? m.names.slice(0,2).join(", ") : "meal";
           body.appendChild(el("p","tiny",
-            "<b>" + nm + "</b> at " + pretty(m.at) + " — carbs " + n1(m.c) + " g, protein " + n1(m.p) + " g. "
+            "<b>" + nm + "</b> at " + pretty(m.wall) + " — carbs " + n1(m.c) + " g, protein " + n1(m.p) + " g. "
             + "Peak rise: glucose +" + Math.round(m.gPeak) + " mg/dL, insulin +" + Math.round(m.iPeak) + " µU/mL. "
             + "Right now it is adding +" + Math.round(m.gNow) + " mg/dL and +" + Math.round(m.iNow) + " µU/mL."));
         });
@@ -7304,11 +7331,11 @@ window.caloMeals = (function(){
                          .map(function(s){ return { at:s.at, p:s.p||0, names:s.names||[] }; });
   }
   function mpsSeries(sittings){
-    var feeds = mpsFeeds(sittings);
+    var feeds = mpsFeeds(sittings).map(function(m){ return { at:anchorMin(m.at), wall:m.at, p:m.p, names:m.names }; });
     if(!feeds.length) return null;
     var atMin = feeds[0].at, atMax = feeds[0].at;
     feeds.forEach(function(m){ if(m.at < atMin) atMin = m.at; if(m.at > atMax) atMax = m.at; });
-    var t0 = atMin, now = nowMin(), tEnd = Math.max(now, atMax + MPS_END*60);
+    var t0 = atMin, now = anchorMin(nowMin()), tEnd = Math.max(now, atMax + MPS_END*60);
     var N = 180, pts = [];
     for(var i = 0; i <= N; i++){
       var t = t0 + (tEnd - t0)*i/N, y = 100;
@@ -7417,7 +7444,7 @@ window.caloMeals = (function(){
         ser.feeds.forEach(function(m){
           var nm = (m.names && m.names.length) ? m.names.slice(0,2).join(", ") : "meal";
           body.appendChild(el("p","tiny",
-            "<b>" + nm + "</b> at " + pretty(m.at) + " — protein " + n1(m.p) + " g. Peak lift +" + Math.round(m.peak)
+            "<b>" + nm + "</b> at " + pretty(m.wall) + " — protein " + n1(m.p) + " g. Peak lift +" + Math.round(m.peak)
             + "% above rest; right now it is adding +" + Math.round(m.now) + "%."));
         });
         body.appendChild(el("p","tiny",
@@ -7847,7 +7874,7 @@ window.caloMeals = (function(){
     + "hours it takes to absorb rather than the instant you log it, so the fat "
     + "and muscle figures stop jumping mid-meal. Asked once per batch; every "
     + "food then carries its own time on its row, which you can correct. What "
-    + "the day adds up to by midnight does not change \u2014 timing cannot move "
+    + "the day adds up to over the day does not change \u2014 timing cannot move "
     + "that."));
     r.appendChild(lft);
 
@@ -7868,6 +7895,28 @@ window.caloMeals = (function(){
     r.appendChild(sel);
     body.appendChild(r);
 
+    grp("Day rollover");
+    var dr = el("div","setrow");
+    var drl = el("div");
+    drl.appendChild(el("label", null, "New day starts at"));
+    drl.appendChild(el("span","sublbl",
+      "When the day rolls over to a fresh one. The default is 4:00am, so a late "
+    + "meal and whatever it is still digesting stay on the same day instead of a "
+    + "new day opening at midnight with everything back to zero. Set it to when "
+    + "your day really starts — after breakfast, if you like."));
+    dr.appendChild(drl);
+    var drIn = el("input"); drIn.type = "time";
+    var drReal = document.getElementById("dayRoll");
+    drIn.value = (drReal && drReal.value) || "04:00";
+    drIn.addEventListener("change", function(){
+      if(!drIn.value) return;
+      if(drReal) drReal.value = drIn.value;
+      if(typeof rememberLast === "function") rememberLast();
+      update();
+    });
+    dr.appendChild(drIn);
+    body.appendChild(dr);
+
     var wipe = el("button","btn sm line","Forget today's meal times");
     wipe.type = "button";
     wipe.style.marginTop = "8px";
@@ -7883,6 +7932,7 @@ window.caloMeals = (function(){
 })();
 LOG_IDS.push("mealLog");           // belongs to the day, and is cleared with it
 SETTING_IDS.push("mealTiming");    // belongs to the profile, and outlives the day
+SETTING_IDS.push("dayRoll");       // the hour the logging day rolls over - a profile setting
 
 allControls().forEach(n => n.addEventListener("input", rememberLast));
 (function(){ var wn = $("weight"); if(wn) wn.addEventListener("change", stampWeighIn); })();
@@ -8700,7 +8750,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.21al";
+  var APP_VERSION = "2026.09.22am";
   var APP_BUILT   = "18 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
