@@ -2951,7 +2951,11 @@ function buildPicker(kind, body, placeholder, after, opts){
       /* Coming back from "what is in your sabji?" - restore the amount that was
          already typed so it is not lost to the round-trip. */
       if(n0 && opts && opts.presetAmount > 0 && opts.autoOpenId && item.rowId === "row_" + opts.autoOpenId){
-        n0.value = String(opts.presetAmount); addBase = 0;
+        /* The chooser put the day's total back in the box before it opened, so
+           that total is the base here and the typed amount goes on top of it.
+           (Without that, an earlier helping of the same food was lost.) */
+        n0.value = String(opts.presetAmount);
+        if(!opts.presetKeepBase) addBase = 0;
       }
       window.__pickerCancel = function(){
         var n = $(foodCtl); if(n) n.value = addBase > 0 ? String(addBase) : "";
@@ -2971,6 +2975,9 @@ function buildPicker(kind, body, placeholder, after, opts){
       stime = el("input"); stime.type = "time"; stime.className = "stimeinp";
       var dnow = new Date();
       stime.value = String(dnow.getHours()).padStart(2,"0") + ":" + String(dnow.getMinutes()).padStart(2,"0");
+      /* ...and the time typed before a trip to a chooser comes back with it. */
+      if(opts && opts.autoOpenId && item.rowId === "row_" + opts.autoOpenId
+         && /^\d{1,2}:\d{2}$/.test(opts.presetTime || "")) stime.value = opts.presetTime;
       tf.appendChild(stime);
       stage.appendChild(tf);
     }
@@ -7899,13 +7906,28 @@ window.caloMeals = (function(){
     var day = (typeof dayKey === "function") ? dayKey() : "";
     var q = quantities();
     if(seen === null || day !== seenDay){ seen = q; seenDay = day; return; }
-    var grew = false;
+    var grew = false, gone = [];
     Object.keys(q).forEach(function(id){
       var up = q[id] - (seen[id] || 0);
       if(up > 1e-9){ pend.push({f:id, q:up}); grew = true; }
+      else if(up < -1e-9 && !(q[id] > 1e-9)) gone.push(id);
     });
     seen = q;
+    if(gone.length) forget(gone);
     if(grew) arm();
+  }
+  /* A food taken all the way back to nothing - the minus in "edit what you ate
+     and did", or a 0 typed into its box - is cancelled, so its servings leave
+     the diary too. Before, they stayed behind at zero: "still going in" hid
+     them, but the next helping of the same food quietly took over the old
+     time. A partial cut still just scales the servings, as it always has. */
+  function forget(ids){
+    pend = pend.filter(function(sv){ return ids.indexOf(sv.f) < 0; });
+    var list = entries();
+    var keep = list.filter(function(e){ return ids.indexOf(e.f) < 0; });
+    if(keep.length === list.length) return;
+    saveEntries(keep);
+    setTimeout(function(){ try { update(); } catch(e){} }, 0);
   }
 
   function arm(){
@@ -8911,7 +8933,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.23a";
+  var APP_VERSION = "2026.09.23b";
   var APP_BUILT   = "23 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
@@ -11935,8 +11957,8 @@ body.editing-day{padding-top:38px}
   /* One katori of sabji, as this app portions it. Gravy carries less vegetable
      because the onion-tomato base takes the room, and more oil. */
   var SABJI = {
-    sabji_dry:   { input:"sabjiDryVeg",   veg:150, base:0,  oil:5, na:300, label:"Dry sabji" },
-    sabji_gravy: { input:"sabjiGravyVeg", veg:130, base:40, oil:8, na:375, label:"Gravy sabji" }
+    sabji_dry:   { input:"sabjiDryVeg",   veg:150, base:0,  oil:5, na:300, label:"Dry sabji",   short:"Dry" },
+    sabji_gravy: { input:"sabjiGravyVeg", veg:130, base:40, oil:8, na:375, label:"Gravy sabji", short:"Gravy" }
   };
   var OIL_KCAL = 9, BASE_SPLIT = ["pyaz","tamatar"];
 
@@ -12008,85 +12030,143 @@ body.editing-day{padding-top:38px}
     sabji_gravy: { kcal:180, p:4, c:14, f:11, fib:4, m:JSON.parse(JSON.stringify(MICRO.sabji_gravy || {})) }
   };
 
-  function openSabjiSheet(){
-    var shEl0 = document.getElementById("sheet");
-    var fromSolo = !!(shEl0 && shEl0.classList.contains("solo"));
-    var sRow = fromSolo ? shEl0.querySelector(".stage .lrow") : null;
-    var returnId = sRow ? sRow.id.replace(/^row_/,"") : null;
-    var returnAmt = returnId ? (parseFloat((document.getElementById("f_"+returnId)||{}).value)||0) : 0;
-    function backToEntry(){
-      if(fromSolo && returnId && typeof pickerSheet === "function"){
-        window.__pickerCancel = null; window.__pickerBusy = false;
-        closeSheet();
-        setTimeout(function(){ pickerSheet("food","Add what you ate","Search vegetarian foods",
-                                          {autoOpenId:returnId, presetAmount:returnAmt}); }, 70);
-      } else { closeSheet(); }
+  /* Opening a chooser from a food's own entry page (or from "edit what you ate
+     and did") and coming back to it afterwards. The entry page holds only the
+     amount being added; the day's total for that food waits aside until Save.
+     Put that total back before the chooser opens, so however the chooser is
+     left - Save, the X, a tap outside - nothing already eaten is lost. */
+  function chooserReturn(){
+    var sh = document.getElementById("sheet");
+    var solo = !!(sh && sh.classList.contains("solo"));
+    var row = solo ? sh.querySelector(".stage .lrow") : null;
+    var id = row ? row.id.replace(/^row_/,"") : null;
+    var inp = id ? document.getElementById("f_" + id) : null;
+    var amt = inp ? ((typeof amtOf === "function") ? amtOf(inp) : (parseFloat(inp.value)||0)) : 0;
+    var tEl = solo ? sh.querySelector(".stage .stimeinp") : null;
+    var title = document.getElementById("sheetTitle");
+    var review = !solo && !!(sh && sh.classList.contains("on")) && !!title
+                 && title.textContent === "Your day so far" && typeof openDayReview === "function";
+    var keep = false;
+    if(id && window.__pickerCancel){ window.__pickerCancel(); keep = true; }
+    return { solo:!!id, id:id, amt:amt, time:(tEl ? tEl.value : ""), review:review, keep:keep };
+  }
+  function chooserBack(ret, id){
+    if(ret.solo && typeof pickerSheet === "function"){
+      window.__pickerCancel = null; window.__pickerBusy = false;
+      closeSheet();
+      setTimeout(function(){ pickerSheet("food","Add what you ate","Search vegetarian foods",
+        {autoOpenId:id || ret.id, presetAmount:ret.amt, presetTime:ret.time, presetKeepBase:ret.keep}); }, 70);
+    } else {
+      closeSheet();
+      if(ret.review) setTimeout(function(){ openDayReview(); }, 70);
     }
+  }
+
+  /* One chooser for both kinds of sabji: say dry or gravy first, then tap what
+     went in the pan - one thing or several. Opened from a row it starts on that
+     row's kind; from the food's entry page, switching kind moves the serving
+     being added to the other kind. */
+  var sabjiKind = "sabji_dry";
+  function sabjiAmt(kind){
+    var n = document.getElementById("f_" + kind);
+    return n ? ((typeof amtOf === "function") ? amtOf(n) : (parseFloat(n.value)||0)) : 0;
+  }
+  function openSabjiSheet(kindArg){
+    var ret = chooserReturn();
+    var soloKind = (ret.solo && SABJI[ret.id]) ? ret.id : null;
+    var kind = SABJI[kindArg] ? kindArg : soloKind;
+    if(!kind){
+      var hasD = sabjiAmt("sabji_dry") > 0, hasG = sabjiAmt("sabji_gravy") > 0;
+      kind = (hasD !== hasG) ? (hasD ? "sabji_dry" : "sabji_gravy") : sabjiKind;
+    }
+    sabjiKind = kind;
+    function back(){ chooserBack(ret, soloKind ? kind : ret.id); }
+    var qty = (typeof fracText === "function") ? fracText : function(v){ return String(+v.toFixed(2)); };
+
     openSheet("What is in your sabji?", function(body){
       body.appendChild(el("p","tiny",
-        "Sabji is not one food. Pick what actually went in the pan and every number "
-        + "that follows \u2014 calories, protein, carbs, fat, fibre and all the vitamins "
-        + "and minerals \u2014 is rebuilt from those vegetables instead of from an average "
+        "First say whether it was dry or gravy, then tap what went in the pan \u2014 one "
+        + "thing or several together. Calories, protein, carbs, fat, fibre and all the "
+        + "vitamins and minerals are rebuilt from exactly that, instead of from an average "
         + "of everything Indians cook."));
 
-      Object.keys(SABJI).forEach(function(kind){
-        var cfg = SABJI[kind];
-        var chosen = vegIds(kind);
-        body.appendChild(el("div","ntgrp", cfg.label));
-        var out = el("p","formula");
-        var grid = el("div","qgrid");
-
-        function paint(){
-          var b = blend(kind, chosen);
-          out.innerHTML = chosen.length
-            ? "<b>" + Math.round(b.kcal) + " kcal</b> a katori \u00b7 protein " + n1(b.p)
-              + " g, carbs " + n1(b.c) + " g, fat " + n1(b.f) + " g, fibre " + n1(b.fib) + " g."
-              + " Iron " + n1(b.m.fe||0) + " mg, calcium " + Math.round(b.m.ca||0)
-              + " mg, vitamin C " + Math.round(b.m.vc||0) + " mg, folate " + Math.round(b.m.b9||0) + " \u00b5g."
-            : "Nothing picked, so this falls back to a generic Indian sabji \u2014 "
-              + GENERIC[kind].kcal + " kcal a katori. Pick the vegetables for real numbers.";
-        }
-        function save(){
-          var n = document.getElementById(cfg.input);
-          if(!n) return;
-          n.value = chosen.join(",");
-          syncSabji();
-          n.dispatchEvent(new Event("input", { bubbles:true }));
-        }
-        var addGrid = el("div","qgrid");
-        Object.keys(VEG).forEach(function(id){
-          var chip = el("button","qchip" + (chosen.indexOf(id) >= 0 ? " on" : ""), VEG[id].n);
-          chip.type = "button";
-          chip.title = VEG[id].hi;
-          chip.addEventListener("click", function(){
-            var i = chosen.indexOf(id);
-            if(i >= 0) chosen.splice(i,1); else chosen.push(id);
-            chip.classList.toggle("on", i < 0);
-            paint(); save();
-          });
-          (VEG[id].add ? addGrid : grid).appendChild(chip);
+      var seg = el("div","seg"), segBtns = {};
+      Object.keys(SABJI).forEach(function(k){
+        var sb = el("button", null, SABJI[k].short);
+        sb.type = "button";
+        sb.addEventListener("click", function(){
+          if(kind === k) return;
+          kind = k; sabjiKind = k; paint();
         });
-        body.appendChild(grid);
-        body.appendChild(el("p","tiny","Paneer, soya and pulses"));
-        body.appendChild(addGrid);
-        paint();
-        body.appendChild(out);
+        segBtns[k] = sb; seg.appendChild(sb);
       });
+      body.appendChild(seg);
+      var status = el("p","tiny");
+      body.appendChild(status);
+
+      var grid = el("div","qgrid"), addGrid = el("div","qgrid"), chips = {};
+      Object.keys(VEG).forEach(function(id){
+        var chip = el("button","qchip", VEG[id].n);
+        chip.type = "button";
+        chip.title = VEG[id].hi;
+        chip.addEventListener("click", function(){
+          var chosen = vegIds(kind), i = chosen.indexOf(id);
+          if(i >= 0) chosen.splice(i,1); else chosen.push(id);
+          var n = document.getElementById(SABJI[kind].input);
+          if(n){
+            n.value = chosen.join(",");
+            syncSabji();
+            n.dispatchEvent(new Event("input", { bubbles:true }));
+          }
+          paint();
+        });
+        chips[id] = chip;
+        (VEG[id].add ? addGrid : grid).appendChild(chip);
+      });
+      body.appendChild(el("p","tiny","Vegetables and greens"));
+      body.appendChild(grid);
+      body.appendChild(el("p","tiny","Paneer, soya and pulses"));
+      body.appendChild(addGrid);
+      var out = el("p","formula");
+      body.appendChild(out);
+
+      function paint(){
+        var cfg = SABJI[kind], chosen = vegIds(kind), b = blend(kind, chosen);
+        Object.keys(segBtns).forEach(function(k){
+          segBtns[k].classList.toggle("on", k === kind);
+          segBtns[k].setAttribute("aria-pressed", k === kind ? "true" : "false");
+        });
+        Object.keys(chips).forEach(function(id){ chips[id].classList.toggle("on", chosen.indexOf(id) >= 0); });
+        var word = cfg.label.toLowerCase(), have = sabjiAmt(kind);
+        status.textContent = soloKind
+          ? (ret.amt > 0 ? "Adding " + qty(ret.amt) + " katori as " + word + "." : "Saving as " + word + ".")
+          : (have > 0 ? qty(have) + " katori of " + word + " logged today." : "No " + word + " logged today yet.");
+        out.innerHTML = chosen.length
+          ? "<b>" + Math.round(b.kcal) + " kcal</b> a katori of " + word + " \u00b7 protein " + n1(b.p)
+            + " g, carbs " + n1(b.c) + " g, fat " + n1(b.f) + " g, fibre " + n1(b.fib) + " g."
+            + " Iron " + n1(b.m.fe||0) + " mg, calcium " + Math.round(b.m.ca||0)
+            + " mg, vitamin C " + Math.round(b.m.vc||0) + " mg, folate " + Math.round(b.m.b9||0) + " \u00b5g."
+          : "Nothing picked for " + word + ", so it falls back to a generic Indian sabji \u2014 "
+            + GENERIC[kind].kcal + " kcal a katori. Pick what went in for real numbers.";
+      }
+      paint();
 
       body.appendChild(el("p","tiny",
-        "A katori is taken as 150 g of vegetable for a dry sabji, or 130 g plus a 40 g "
-        + "onion-tomato base for a gravy, with 5 ml and 8 ml of oil. Pick several and the "
-        + "weight is split between them \u2014 paneer, soya and pulses included, soya "
-        + "counted soaked and chana and rajma boiled. Composition is per 100 g from IFCT 2017 and "
-        + "USDA FoodData Central; cooking losses are not modelled, and a nutrient that is "
-        + "not well established for a vegetable is left out rather than guessed, so these "
-        + "totals lean low rather than high."));
+        "Dry and gravy each keep their own pick, so a dry aloo gobhi at lunch and a gravy "
+        + "matar paneer at dinner can both be right on the same day. A katori is taken as "
+        + "150 g of vegetable for a dry sabji, or 130 g plus a 40 g onion-tomato base for a "
+        + "gravy, with 5 ml and 8 ml of oil. Pick several and the weight is split between "
+        + "them \u2014 paneer, soya and pulses included, soya counted soaked and chana and "
+        + "rajma boiled. Composition is per 100 g from IFCT 2017 and USDA FoodData Central; "
+        + "cooking losses are not modelled, and a nutrient that is not well established for "
+        + "a vegetable is left out rather than guessed, so these totals lean low rather than high."));
 
-      var done = el("button","btn primary full", fromSolo ? "Save" : "Done"); done.type = "button";
+      var done = el("button","btn primary full", ret.solo ? "Save" : "Done"); done.type = "button";
       done.style.marginTop = "12px";
-      done.addEventListener("click", backToEntry);
+      done.addEventListener("click", back);
       body.appendChild(done);
     });
+    if(ret.solo || ret.review) window.__sheetOnClose = back;
   }
   /* =================== WHICH ROTI =====================================
      "Chapati" is a wheat roti, but a bajra roti carries twice the iron, a ragi
@@ -12211,12 +12291,12 @@ body.editing-day{padding-top:38px}
      actually known.
      ================================================================== */
   var CHOOSERS = {
-    sabji_dry:   { input:"sabjiDryVeg",   open:function(){ openSabjiSheet(); },
+    sabji_dry:   { input:"sabjiDryVeg",   open:function(){ openSabjiSheet("sabji_dry"); },
                    summary:function(){
                      var ids = vegIds("sabji_dry");
                      return ids.length ? ids.map(function(i){ return VEG[i].n.toLowerCase(); }).join(", ")
                                        : "a generic mixed sabji"; } },
-    sabji_gravy: { input:"sabjiGravyVeg", open:function(){ openSabjiSheet(); },
+    sabji_gravy: { input:"sabjiGravyVeg", open:function(){ openSabjiSheet("sabji_gravy"); },
                    summary:function(){
                      var ids = vegIds("sabji_gravy");
                      return ids.length ? ids.map(function(i){ return VEG[i].n.toLowerCase(); }).join(", ")
@@ -12226,19 +12306,9 @@ body.editing-day{padding-top:38px}
   };
 
   function openRotiSheet(){
-    var rEl0 = document.getElementById("sheet");
-    var rFromSolo = !!(rEl0 && rEl0.classList.contains("solo"));
-    var rRow = rFromSolo ? rEl0.querySelector(".stage .lrow") : null;
-    var rReturnId = rRow ? rRow.id.replace(/^row_/,"") : null;
-    var rReturnAmt = rReturnId ? (parseFloat((document.getElementById("f_"+rReturnId)||{}).value)||0) : 0;
-    function rBackToEntry(){
-      if(rFromSolo && rReturnId && typeof pickerSheet === "function"){
-        window.__pickerCancel = null; window.__pickerBusy = false;
-        closeSheet();
-        setTimeout(function(){ pickerSheet("food","Add what you ate","Search vegetarian foods",
-                                          {autoOpenId:rReturnId, presetAmount:rReturnAmt}); }, 70);
-      } else { closeSheet(); }
-    }
+    var rRet = chooserReturn();
+    var rFromSolo = rRet.solo;
+    function rBackToEntry(){ chooserBack(rRet, rRet.id); }
     openSheet("Which roti?", function(body){
       body.appendChild(el("p","tiny",
         "Wheat, bajra, jowar, ragi, missi \u2014 they are not the same food. A bajra roti "
@@ -12283,6 +12353,7 @@ body.editing-day{padding-top:38px}
       done.addEventListener("click", rBackToEntry);
       body.appendChild(done);
     });
+    if(rRet.solo || rRet.review) window.__sheetOnClose = rBackToEntry;
   }
 
   function refreshChooserLines(){
