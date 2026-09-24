@@ -938,29 +938,6 @@ input,select{scroll-margin:84px 0 180px}
       </div>
     </div>
 
-    <div class="card mealcard hidden" id="mealCard">
-      <div class="cardhead"><h2>Still going in</h2>
-        <span class="sm" id="mealHint"></span></div>
-      <div id="mealBody"></div>
-    </div>
-
-    <div class="card gicard hidden" id="giCard">
-      <div class="cardhead"><h2>Glucose &amp; insulin</h2>
-        <span class="sm">modelled &mdash; tap the plot</span></div>
-      <div class="giunits" id="giUnits">
-        <button type="button" data-u="sec">sec</button>
-        <button type="button" data-u="min" class="on">min</button>
-        <button type="button" data-u="hr">hr</button>
-      </div>
-      <div id="giBody"></div>
-    </div>
-
-    <div class="card mpscard hidden" id="mpsCard">
-      <div class="cardhead"><h2>Muscle protein synthesis</h2>
-        <span class="sm">modelled &mdash; tap the plot</span></div>
-      <div id="mpsBody"></div>
-    </div>
-
     <div class="card" id="quickCard">
       <div class="cardhead"><h2 id="quickTitle">Anything else today?</h2>
         <button class="collapsebtn" id="quickCollapse" type="button" aria-label="Collapse"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button></div>
@@ -985,6 +962,29 @@ input,select{scroll-margin:84px 0 180px}
           <span>Sports</span></button>
       </div>
       <p class="tiny" id="quickNote"></p>
+    </div>
+
+    <div class="card mealcard hidden" id="mealCard">
+      <div class="cardhead"><h2>Still going in</h2>
+        <span class="sm" id="mealHint"></span></div>
+      <div id="mealBody"></div>
+    </div>
+
+    <div class="card gicard hidden" id="giCard">
+      <div class="cardhead"><h2>Glucose &amp; insulin</h2>
+        <span class="sm">modelled &mdash; tap the plot</span></div>
+      <div class="giunits" id="giUnits">
+        <button type="button" data-u="sec">sec</button>
+        <button type="button" data-u="min" class="on">min</button>
+        <button type="button" data-u="hr">hr</button>
+      </div>
+      <div id="giBody"></div>
+    </div>
+
+    <div class="card mpscard hidden" id="mpsCard">
+      <div class="cardhead"><h2>Muscle protein synthesis</h2>
+        <span class="sm">modelled &mdash; tap the plot</span></div>
+      <div id="mpsBody"></div>
     </div>
 
     <div class="card" id="diffCard">
@@ -7864,6 +7864,10 @@ window.caloMeals = (function(){
       if(s.whole) t.title = "Logged before meal times were on. Set a time to "
                           + "have it absorbed over the hours instead.";
       t.addEventListener("change", function(){ retime(s, t.value); });
+      /* The card will not rebuild under an open picker, so once the picker lets
+         go, repaint straight away - the % absorbed then moves with the new time
+         as it does from the Edit sheet. */
+      t.addEventListener("blur", function(){ setTimeout(function(){ try { update(); } catch(e){} }, 0); });
       row.appendChild(t);
 
       var what = el("div","mwhat");
@@ -9131,7 +9135,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.24a";
+  var APP_VERSION = "2026.09.24b";
   var APP_BUILT   = "24 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
