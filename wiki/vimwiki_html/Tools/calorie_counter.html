@@ -1058,7 +1058,8 @@ input,select{scroll-margin:84px 0 180px}
 
     <div id="m-strength">
       <div class="card">
-        <div class="cardhead"><h2>Lifting</h2><span class="sm" id="repTot"></span></div>
+        <div class="cardhead"><h2>Lifting</h2><span class="sm tapr" id="repTot" data-calc="lift" role="button" tabindex="0"
+          aria-label="Lifting total, tap for what each set cost"></span></div>
         <div id="slotRep"><div id="strengthGroup"><div class="rowlist" id="repRows"></div>
         <div class="rowlist" id="bandRows"></div></div></div>
         <button class="btn add full" id="addRep"><span>+</span> Add an exercise</button>
@@ -1174,7 +1175,7 @@ input,select{scroll-margin:84px 0 180px}
 
 <div class="strip" id="strip">
   <div><span>Taken</span><b id="sIn">&mdash;</b></div>
-  <div><span>Used</span><b id="sOut">&mdash;</b></div>
+  <div class="tapr" data-calc="out" role="button" tabindex="0" aria-label="Used so far, tap for the breakdown"><span>Used</span><b id="sOut">&mdash;</b></div>
   <div class="sp"></div>
   <div style="text-align:right"><span id="sBalL">Balance</span><b id="sBal">&mdash;</b></div>
 </div>
@@ -1548,22 +1549,129 @@ const REPS = [
   {id:"pushup",  name:"Push-ups",      bw:1, add:40,  max:200, h:A=>Math.max(.15,A.arm-.15)*(D_COM/D_SHOULDER), mb:1.00, lf:D_BACK/D_COM},
   {id:"pullup",  name:"Pull-ups",      bw:1, add:30,  max:150, h:A=>Math.max(.20,A.arm-.06), mb:0.95, lf:1},
   {id:"dip",     name:"Dips",          bw:1, add:30,  max:150, h:A=>A.arm*0.75, mb:0.90, lf:1},
-  {id:"squat",   name:"Squats",        bw:1, add:80,  max:300, h:A=>A.thigh, mb:0.85, lf:1},
-  {id:"lunge",   name:"Lunges",        bw:1, add:60,  max:300, hint:"per leg",  h:A=>A.thigh*0.8, mb:0.85, lf:1},
-  {id:"stepup",  name:"Step-ups",      bw:1, add:60,  max:300, hint:"onto a bench", h:A=>0.25*A.H, mb:0.90, lf:1},
+  {id:"squat",   name:"Squats",        bw:1, add:250,  max:300, h:A=>A.thigh, mb:0.85, lf:1},
+  {id:"lunge",   name:"Lunges",        bw:1, add:120,  max:300, hint:"per leg",  h:A=>A.thigh*0.8, mb:0.85, lf:1},
+  {id:"stepup",  name:"Step-ups",      bw:1, add:100,  max:300, hint:"onto a bench", h:A=>0.25*A.H, mb:0.90, lf:1},
   {id:"jsquat",  name:"Jump squats",   bw:1, add:20,  max:200, h:A=>A.thigh+0.20, mb:0.85, lf:1},
   {id:"burpee",  name:"Burpees",       bw:1, add:0,   max:200, h:A=>A.thigh*1.2+0.20, mb:0.90, lf:1},
-  {id:"glute",   name:"Glute bridges", bw:1, add:100, max:200, hint:"or hip thrusts", h:A=>0.11*A.H, mb:0.45, lf:1},
-  {id:"calf",    name:"Calf raises",   bw:1, add:60,  max:400, h:A=>0.035*A.H, mb:0.90, lf:1},
+  {id:"glute",   name:"Glute bridges", bw:1, add:250, max:200, hint:"or hip thrusts", h:A=>0.11*A.H, mb:0.45, lf:1},
+  {id:"calf",    name:"Calf raises",   bw:1, add:200,  max:400, h:A=>0.035*A.H, mb:0.90, lf:1},
   {id:"situp",   name:"Sit-ups",       bw:1, add:20,  max:300, hint:"or crunches", h:A=>0.12*A.H, mb:0.40, lf:1},
   {id:"legraise",name:"Leg raises",    bw:1, add:15,  max:300, h:A=>0.19*A.H, mb:0.32, lf:1},
-  {id:"deadlift",name:"Deadlifts",     bw:0, add:220, max:200, h:A=>0.25*A.H, mb:0.35, lf:1},
-  {id:"bench",   name:"Bench press",   bw:0, add:150, max:200, h:A=>0.20*A.H, mb:0.05, lf:1},
-  {id:"ohp",     name:"Overhead press",bw:0, add:100, max:200, h:A=>0.28*A.H, mb:0.05, lf:1},
-  {id:"row",     name:"Bent-over rows",bw:0, add:120, max:200, h:A=>0.16*A.H, mb:0.04, lf:1},
-  {id:"pulldown",name:"Lat pulldown",  bw:0, add:120, max:200, h:A=>0.22*A.H, mb:0.03, lf:1},
+  {id:"deadlift",name:"Deadlifts",     bw:0, add:350, max:200, h:A=>0.25*A.H, mb:0.35, lf:1},
+  {id:"bench",   name:"Bench press",   bw:0, add:250, max:200, h:A=>0.20*A.H, mb:0.05, lf:1},
+  {id:"ohp",     name:"Overhead press",bw:0, add:150, max:200, h:A=>0.28*A.H, mb:0.05, lf:1},
+  {id:"row",     name:"Bent-over rows",bw:0, add:200, max:200, h:A=>0.16*A.H, mb:0.04, lf:1},
+  {id:"pulldown",name:"Lat pulldown",  bw:0, add:200, max:200, h:A=>0.22*A.H, mb:0.03, lf:1},
   {id:"curl",    name:"Biceps curls",  bw:0, add:60,  max:300, h:A=>0.22*A.H, mb:0.03, lf:1},
   {id:"tri_ext", name:"Triceps extensions", bw:0, add:60, max:300, h:A=>0.17*A.H, mb:0.03, lf:1},
+  /* ---- the rest of the gym. Same work model; see the note above REPS for
+     h, mb and lf. hb is how far the body rises when that differs from the
+     load (a push press, a swing); wx is 2 when the box holds one of two
+     dumbbells; sides is 2 when reps are entered per side. lz: its set boxes
+     are only built once it is first used, so a hundred rarely-used movements
+     do not add a hundred empty fields to every saved day. ---- */
+  {id:"incline_bench", name:"Incline bench press", bw:0, add:200, max:200, h:A=>0.19*A.H, mb:0.05, lf:1, hint:"barbell", split:"push", ic:"bench", alias:"incline barbell press barbell", lz:1},
+  {id:"decline_bench", name:"Decline bench press", bw:0, add:200, max:200, h:A=>0.17*A.H, mb:0.05, lf:1, hint:"barbell", split:"push", ic:"bench", alias:"barbell", lz:1},
+  {id:"close_bench", name:"Close-grip bench press", bw:0, add:200, max:200, h:A=>0.21*A.H, mb:0.05, lf:1, hint:"barbell", split:"push", ic:"bench", alias:"cgbp narrow grip barbell", lz:1},
+  {id:"smith_bench", name:"Smith machine bench press", bw:0, add:200, max:200, h:A=>0.20*A.H, mb:0.05, lf:1, hint:"machine", split:"push", ic:"bench", alias:"machine", nob:1, lz:1},
+  {id:"db_bench", name:"Dumbbell bench press", bw:0, add:60, max:200, h:A=>0.21*A.H, mb:0.05, lf:1, wx:2, hint:"weight per dumbbell", wl:"Each dumbbell", split:"push", ic:"bench", alias:"db bench flat dumbbell press dumbbell", lz:1},
+  {id:"db_incline", name:"Incline dumbbell press", bw:0, add:60, max:200, h:A=>0.20*A.H, mb:0.05, lf:1, wx:2, hint:"weight per dumbbell", wl:"Each dumbbell", split:"push", ic:"bench", alias:"db incline dumbbell", lz:1},
+  {id:"db_fly", name:"Dumbbell flyes", bw:0, add:40, max:200, h:A=>0.25*A.H, mb:0.05, lf:1, wx:2, hint:"weight per dumbbell", wl:"Each dumbbell", split:"push", ic:"bench", alias:"chest fly flies flat fly db fly dumbbell", lz:1},
+  {id:"pullover", name:"Dumbbell pullover", bw:0, add:60, max:200, h:A=>0.30*A.H, mb:0.03, lf:1, hint:"one dumbbell, both hands", split:"push", ic:"bench", alias:"dumbbell", lz:1},
+  {id:"cable_fly", name:"Cable crossover or fly", bw:0, add:100, max:200, h:A=>0.25*A.H, mb:0.01, lf:1, hint:"cable", split:"push", ic:"other", alias:"cable crossover chest fly flies cable", nob:1, lz:1},
+  {id:"pec_deck", name:"Pec deck or machine fly", bw:0, add:150, max:200, h:A=>0.22*A.H, mb:0.0, lf:1, hint:"machine", split:"push", ic:"other", alias:"butterfly machine machine", nob:1, lz:1},
+  {id:"chest_press", name:"Machine chest press", bw:0, add:200, max:200, h:A=>0.20*A.H, mb:0.0, lf:1, hint:"machine", split:"push", ic:"bench", alias:"machine", nob:1, lz:1},
+  {id:"knee_pushup", name:"Knee push-ups", bw:1, add:0, max:200, h:A=>Math.max(.15,A.arm-.15)*0.647, mb:0.878, lf:1, hint:"body weight", split:"push", ic:"pushup", alias:"kneeling push up half push up body weight", nob:1, lz:1},
+  {id:"incline_pushup", name:"Incline push-ups", bw:1, add:0, max:200, h:A=>Math.max(.15,A.arm-.15)*(D_COM/D_SHOULDER)*0.80, mb:1.0, lf:1, hint:"hands on a bench", split:"push", ic:"pushup", alias:"body weight", nob:1, lz:1},
+  {id:"decline_pushup", name:"Decline push-ups", bw:1, add:20, max:200, h:A=>Math.max(.15,A.arm-.15)*(D_COM/D_SHOULDER)*1.10, mb:1.0, lf:D_BACK/D_COM, hint:"feet on a bench", split:"push", ic:"pushup", alias:"body weight", lz:1},
+  {id:"diamond_pushup", name:"Diamond push-ups", bw:1, add:20, max:200, h:A=>Math.max(.15,A.arm-.15)*(D_COM/D_SHOULDER), mb:1.0, lf:D_BACK/D_COM, hint:"body weight", split:"push", ic:"pushup", alias:"close grip triangle push up body weight", lz:1},
+  {id:"wide_pushup", name:"Wide push-ups", bw:1, add:20, max:200, h:A=>Math.max(.15,A.arm-.15)*(D_COM/D_SHOULDER), mb:1.0, lf:D_BACK/D_COM, hint:"body weight", split:"push", ic:"pushup", alias:"body weight", lz:1},
+  {id:"archer_pushup", name:"Archer push-ups", bw:1, add:0, max:200, h:A=>Math.max(.15,A.arm-.15)*(D_COM/D_SHOULDER), mb:1.0, lf:1, hint:"body weight", split:"push", ic:"pushup", alias:"body weight", nob:1, lz:1},
+  {id:"clap_pushup", name:"Clap push-ups", bw:1, add:0, max:200, h:A=>(Math.max(.15,A.arm-.15)+0.10)*(D_COM/D_SHOULDER), mb:1.0, lf:1, hint:"plyometric", split:"push", ic:"pushup", alias:"explosive plyo push up body weight", nob:1, lz:1},
+  {id:"pike_pushup", name:"Pike push-ups", bw:1, add:0, max:200, h:A=>Math.max(.15,A.arm-.15)*0.8, mb:0.68, lf:1, hint:"body weight", split:"push", ic:"pushup", alias:"body weight", nob:1, lz:1},
+  {id:"hspu", name:"Handstand push-ups", bw:1, add:20, max:200, h:A=>0.6*A.arm, mb:1.0, lf:1, hint:"against a wall", split:"push", ic:"pushup", alias:"hspu body weight", nob:1, lz:1},
+  {id:"bench_dip", name:"Bench dips", bw:1, add:40, max:200, h:A=>0.15*A.H, mb:0.6, lf:1, hint:"body weight", split:"push", ic:"dip", alias:"chair dips triceps dips body weight", lz:1},
+  {id:"assisted_dip", name:"Assisted dip machine", bw:0, add:100, max:200, h:A=>A.arm*0.75, mb:0.9, lf:-1, hint:"enter the assistance", wl:"Assistance for this set", split:"push", ic:"dip", alias:"machine", nob:1, lz:1},
+  {id:"db_shoulder", name:"Dumbbell shoulder press", bw:0, add:50, max:200, h:A=>0.26*A.H, mb:0.05, lf:1, wx:2, hint:"weight per dumbbell", wl:"Each dumbbell", split:"push", ic:"ohp", alias:"seated dumbbell press db press dumbbell", lz:1},
+  {id:"arnold", name:"Arnold press", bw:0, add:40, max:200, h:A=>0.28*A.H, mb:0.05, lf:1, wx:2, hint:"weight per dumbbell", wl:"Each dumbbell", split:"push", ic:"ohp", alias:"dumbbell", lz:1},
+  {id:"machine_shoulder", name:"Machine shoulder press", bw:0, add:150, max:200, h:A=>0.25*A.H, mb:0.0, lf:1, hint:"machine", split:"push", ic:"ohp", alias:"machine", nob:1, lz:1},
+  {id:"push_press", name:"Push press", bw:0, add:150, max:200, h:A=>0.28*A.H, mb:0.85, lf:1, hb:A=>0.06*A.H, hint:"barbell", split:"push", ic:"ohp", alias:"barbell", nob:1, lz:1},
+  {id:"landmine", name:"Landmine press", bw:0, add:100, max:200, h:A=>0.25*A.H, mb:0.03, lf:1, hint:"plates on the end", split:"push", ic:"ohp", alias:"barbell", lz:1},
+  {id:"lat_raise", name:"Lateral raises", bw:0, add:30, max:200, h:A=>0.30*A.H, mb:0.05, lf:1, wx:2, hint:"weight per dumbbell", wl:"Each dumbbell", split:"push", ic:"ohp", alias:"side raises side lateral delt raise dumbbell", lz:1},
+  {id:"cable_lat", name:"Cable lateral raises", bw:0, add:30, max:200, h:A=>0.30*A.H, mb:0.025, lf:1, sides:2, hint:"reps per side", split:"push", ic:"ohp", alias:"cable reps per side each side single", nob:1, lz:1},
+  {id:"front_raise", name:"Front raises", bw:0, add:30, max:200, h:A=>0.30*A.H, mb:0.05, lf:1, wx:2, hint:"weight per dumbbell", wl:"Each dumbbell", split:"push", ic:"ohp", alias:"dumbbell", lz:1},
+  {id:"upright_row", name:"Upright rows", bw:0, add:80, max:200, h:A=>0.22*A.H, mb:0.03, lf:1, hint:"barbell", split:"push", ic:"ohp", alias:"barbell", lz:1},
+  {id:"skullcrusher", name:"Skull crushers", bw:0, add:60, max:200, h:A=>0.15*A.H, mb:0.02, lf:1, hint:"barbell", split:"push", ic:"tri_ext", alias:"lying triceps extension ez bar french press barbell", lz:1},
+  {id:"cable_pushdown", name:"Cable triceps pushdowns", bw:0, add:100, max:200, h:A=>0.17*A.H, mb:0.0, lf:1, hint:"cable", split:"push", ic:"tri_ext", alias:"rope pushdown tricep pushdown cable", nob:1, lz:1},
+  {id:"oh_tri", name:"Overhead triceps extension", bw:0, add:50, max:200, h:A=>0.17*A.H, mb:0.02, lf:1, hint:"one dumbbell or cable", split:"push", ic:"tri_ext", alias:"dumbbell", lz:1},
+  {id:"kickback", name:"Triceps kickbacks", bw:0, add:25, max:200, h:A=>0.14*A.H, mb:0.02, lf:1, wx:2, hint:"weight per dumbbell", wl:"Each dumbbell", split:"push", ic:"tri_ext", alias:"dumbbell", lz:1},
+  {id:"chinup", name:"Chin-ups", bw:1, add:30, max:200, h:A=>Math.max(.20,A.arm-.06), mb:0.95, lf:1, hint:"body weight", split:"pull", ic:"pullup", alias:"chin up underhand pull up body weight", lz:1},
+  {id:"neutral_pullup", name:"Neutral-grip pull-ups", bw:1, add:30, max:200, h:A=>Math.max(.20,A.arm-.06), mb:0.95, lf:1, hint:"body weight", split:"pull", ic:"pullup", alias:"hammer grip parallel grip body weight", lz:1},
+  {id:"wide_pullup", name:"Wide-grip pull-ups", bw:1, add:30, max:200, h:A=>Math.max(.20,A.arm-.10), mb:0.95, lf:1, hint:"body weight", split:"pull", ic:"pullup", alias:"body weight", lz:1},
+  {id:"muscle_up", name:"Muscle-ups", bw:1, add:0, max:200, h:A=>Math.max(.20,A.arm-.06)+A.arm*0.75, mb:0.95, lf:1, hint:"body weight", split:"pull", ic:"pullup", alias:"body weight", nob:1, lz:1},
+  {id:"assisted_pullup", name:"Assisted pull-up machine", bw:0, add:100, max:200, h:A=>Math.max(.20,A.arm-.06), mb:0.95, lf:-1, hint:"enter the assistance", wl:"Assistance for this set", split:"pull", ic:"pullup", alias:"assisted chin up machine", nob:1, lz:1},
+  {id:"inverted_row", name:"Inverted rows", bw:1, add:20, max:200, h:A=>(A.arm-0.10)*(D_COM/D_SHOULDER)*0.70, mb:1.0, lf:1, hint:"body weight", split:"pull", ic:"row", alias:"australian pull up body row ring row body weight", lz:1},
+  {id:"db_row", name:"One-arm dumbbell row", bw:0, add:80, max:200, h:A=>0.18*A.H, mb:0.02, lf:1, sides:2, hint:"reps per side", split:"pull", ic:"row", alias:"single arm row db row dumbbell reps per side each side single", lz:1},
+  {id:"tbar_row", name:"T-bar row", bw:0, add:150, max:200, h:A=>0.16*A.H, mb:0.03, lf:1, hint:"barbell", split:"pull", ic:"row", alias:"barbell", nob:1, lz:1},
+  {id:"cable_row", name:"Seated cable row", bw:0, add:150, max:200, h:A=>0.22*A.H, mb:0.0, lf:1, hint:"cable", split:"pull", ic:"row", alias:"low row cable row cable", nob:1, lz:1},
+  {id:"machine_row", name:"Machine or chest-supported row", bw:0, add:150, max:200, h:A=>0.20*A.H, mb:0.0, lf:1, hint:"machine", split:"pull", ic:"row", alias:"seal row machine", nob:1, lz:1},
+  {id:"straight_pulldown", name:"Straight-arm pulldown", bw:0, add:80, max:200, h:A=>0.28*A.H, mb:0.0, lf:1, hint:"cable", split:"pull", ic:"pulldown", alias:"lat prayer cable", nob:1, lz:1},
+  {id:"face_pull", name:"Face pulls", bw:0, add:80, max:200, h:A=>0.22*A.H, mb:0.0, lf:1, hint:"cable", split:"pull", ic:"row", alias:"cable", lz:1},
+  {id:"rear_fly", name:"Rear delt flyes", bw:0, add:30, max:200, h:A=>0.28*A.H, mb:0.05, lf:1, wx:2, hint:"weight per dumbbell", wl:"Each dumbbell", split:"pull", ic:"row", alias:"reverse fly bent over raise rear delt dumbbell", lz:1},
+  {id:"reverse_pec", name:"Reverse pec deck", bw:0, add:120, max:200, h:A=>0.22*A.H, mb:0.0, lf:1, hint:"machine", split:"pull", ic:"row", alias:"machine", nob:1, lz:1},
+  {id:"sumo_dl", name:"Sumo deadlift", bw:0, add:300, max:200, h:A=>0.20*A.H, mb:0.3, lf:1, hint:"barbell", split:"pull", ic:"deadlift", alias:"barbell", nob:1, lz:1},
+  {id:"rdl", name:"Romanian deadlift", bw:0, add:250, max:200, h:A=>0.21*A.H, mb:0.35, lf:1, hint:"barbell", split:"pull", ic:"deadlift", alias:"rdl barbell", lz:1},
+  {id:"stiff_leg", name:"Stiff-leg deadlift", bw:0, add:250, max:200, h:A=>0.23*A.H, mb:0.35, lf:1, hint:"barbell", split:"pull", ic:"deadlift", alias:"barbell", lz:1},
+  {id:"trap_dl", name:"Trap-bar deadlift", bw:0, add:300, max:200, h:A=>0.23*A.H, mb:0.45, lf:1, hint:"barbell", split:"pull", ic:"deadlift", alias:"hex bar deadlift barbell", nob:1, lz:1},
+  {id:"rack_pull", name:"Rack pulls", bw:0, add:300, max:200, h:A=>0.12*A.H, mb:0.25, lf:1, hint:"barbell", split:"pull", ic:"deadlift", alias:"barbell", nob:1, lz:1},
+  {id:"db_rdl", name:"Dumbbell Romanian deadlift", bw:0, add:60, max:200, h:A=>0.21*A.H, mb:0.35, lf:1, wx:2, hint:"weight per dumbbell", wl:"Each dumbbell", split:"pull", ic:"deadlift", alias:"dumbbell", lz:1},
+  {id:"good_morning", name:"Good mornings", bw:0, add:120, max:200, h:A=>0.25*A.H, mb:0.37, lf:1, hint:"barbell", split:"pull", ic:"deadlift", alias:"barbell", lz:1},
+  {id:"back_ext", name:"Back extensions", bw:1, add:40, max:200, h:A=>0.14*A.H, mb:0.6, lf:1.6, hint:"body weight", split:"pull", ic:"deadlift", alias:"hyperextension 45 degree roman chair body weight", nob:1, lz:1},
+  {id:"shrug_bb", name:"Barbell shrugs", bw:0, add:200, max:200, h:A=>0.045*A.H, mb:0.0, lf:1, hint:"barbell", split:"pull", ic:"other", alias:"barbell", nob:1, lz:1},
+  {id:"shrug_db", name:"Dumbbell shrugs", bw:0, add:60, max:200, h:A=>0.045*A.H, mb:0.0, lf:1, wx:2, hint:"weight per dumbbell", wl:"Each dumbbell", split:"pull", ic:"other", alias:"dumbbell", lz:1},
+  {id:"hammer_curl", name:"Hammer curls", bw:0, add:40, max:200, h:A=>0.22*A.H, mb:0.03, lf:1, wx:2, hint:"weight per dumbbell", wl:"Each dumbbell", split:"pull", ic:"curl", alias:"dumbbell", lz:1},
+  {id:"preacher_curl", name:"Preacher curls", bw:0, add:60, max:200, h:A=>0.18*A.H, mb:0.02, lf:1, hint:"barbell", split:"pull", ic:"curl", alias:"scott curl ez bar barbell", lz:1},
+  {id:"conc_curl", name:"Concentration curls", bw:0, add:30, max:200, h:A=>0.18*A.H, mb:0.015, lf:1, sides:2, hint:"reps per side", split:"pull", ic:"curl", alias:"dumbbell reps per side each side single", lz:1},
+  {id:"cable_curl", name:"Cable curls", bw:0, add:80, max:200, h:A=>0.20*A.H, mb:0.0, lf:1, hint:"cable", split:"pull", ic:"curl", alias:"cable", nob:1, lz:1},
+  {id:"incline_curl", name:"Incline dumbbell curls", bw:0, add:30, max:200, h:A=>0.22*A.H, mb:0.03, lf:1, wx:2, hint:"weight per dumbbell", wl:"Each dumbbell", split:"pull", ic:"curl", alias:"dumbbell", lz:1},
+  {id:"reverse_curl", name:"Reverse curls", bw:0, add:50, max:200, h:A=>0.22*A.H, mb:0.03, lf:1, hint:"barbell", split:"pull", ic:"curl", alias:"barbell", lz:1},
+  {id:"wrist_curl", name:"Wrist curls", bw:0, add:60, max:200, h:A=>0.04*A.H, mb:0.0, lf:1, hint:"barbell", split:"pull", ic:"curl", alias:"barbell", nob:1, lz:1},
+  {id:"back_squat", name:"Barbell back squat", bw:0, add:300, max:200, h:A=>A.thigh, mb:0.85, lf:1, hint:"barbell", split:"legs", ic:"squat", alias:"back squat barbell squat high bar low bar barbell", nob:1, lz:1},
+  {id:"front_squat", name:"Front squat", bw:0, add:250, max:200, h:A=>A.thigh, mb:0.85, lf:1, hint:"barbell", split:"legs", ic:"squat", alias:"barbell", nob:1, lz:1},
+  {id:"goblet_squat", name:"Goblet squat", bw:0, add:60, max:200, h:A=>A.thigh, mb:0.85, lf:1, hint:"one dumbbell or kettlebell", split:"legs", ic:"squat", alias:"dumbbell", nob:1, lz:1},
+  {id:"smith_squat", name:"Smith machine squat", bw:0, add:250, max:200, h:A=>A.thigh, mb:0.85, lf:1, hint:"machine", split:"legs", ic:"squat", alias:"machine", nob:1, lz:1},
+  {id:"hack_squat", name:"Hack squat machine", bw:0, add:300, max:200, h:A=>A.thigh*0.8, mb:0.85, lf:1, hint:"plates only", split:"legs", ic:"squat", alias:"machine", nob:1, lz:1},
+  {id:"leg_press", name:"Leg press", bw:0, add:500, max:200, h:A=>0.19*A.H, mb:0.1, lf:1, hint:"plates only", split:"legs", ic:"squat", alias:"machine", nob:1, lz:1},
+  {id:"bulgarian", name:"Bulgarian split squats", bw:1, add:40, max:200, h:A=>A.thigh*0.8, mb:0.85, lf:1, wx:2, sides:2, hint:"weight per dumbbell", wl:"Each dumbbell", split:"legs", ic:"lunge", alias:"rear foot elevated split squat dumbbell reps per side each side single", nob:1, lz:1},
+  {id:"split_squat", name:"Split squats", bw:1, add:40, max:200, h:A=>A.thigh*0.7, mb:0.85, lf:1, wx:2, sides:2, hint:"weight per dumbbell", wl:"Each dumbbell", split:"legs", ic:"lunge", alias:"dumbbell reps per side each side single", nob:1, lz:1},
+  {id:"pistol", name:"Pistol squats", bw:1, add:20, max:200, h:A=>A.thigh, mb:0.9, lf:1, sides:2, hint:"reps per side", split:"legs", ic:"squat", alias:"single leg squat body weight reps per side each side single", nob:1, lz:1},
+  {id:"leg_ext", name:"Leg extensions", bw:0, add:150, max:200, h:A=>0.20*A.H, mb:0.06, lf:1, hint:"machine", split:"legs", ic:"other", alias:"quad extension machine", nob:1, lz:1},
+  {id:"leg_curl", name:"Leg curls", bw:0, add:150, max:200, h:A=>0.20*A.H, mb:0.03, lf:1, hint:"lying or seated", split:"legs", ic:"other", alias:"hamstring curl machine", nob:1, lz:1},
+  {id:"hip_thrust", name:"Barbell hip thrust", bw:0, add:300, max:200, h:A=>0.13*A.H, mb:0.45, lf:1, hint:"barbell", split:"legs", ic:"glute", alias:"barbell", nob:1, lz:1},
+  {id:"abductor", name:"Hip abduction machine", bw:0, add:150, max:200, h:A=>0.12*A.H, mb:0.0, lf:1, hint:"machine", split:"legs", ic:"glute", alias:"abductor outer thigh machine", nob:1, lz:1},
+  {id:"adductor", name:"Hip adduction machine", bw:0, add:150, max:200, h:A=>0.12*A.H, mb:0.0, lf:1, hint:"machine", split:"legs", ic:"glute", alias:"adductor inner thigh machine", nob:1, lz:1},
+  {id:"cable_kickback", name:"Cable glute kickbacks", bw:0, add:60, max:200, h:A=>0.20*A.H, mb:0.02, lf:1, sides:2, hint:"reps per side", split:"legs", ic:"glute", alias:"cable reps per side each side single", nob:1, lz:1},
+  {id:"seated_calf", name:"Seated calf raises", bw:0, add:150, max:200, h:A=>0.035*A.H, mb:0.03, lf:1, hint:"machine", split:"legs", ic:"calf", alias:"machine", nob:1, lz:1},
+  {id:"box_jump", name:"Box jumps", bw:1, add:0, max:200, h:A=>0.30*A.H, mb:1.0, lf:1, hint:"body weight", split:"legs", ic:"jsquat", alias:"body weight", nob:1, lz:1},
+  {id:"hanging_leg_raise", name:"Hanging leg raises", bw:1, add:10, max:200, h:A=>0.23*A.H, mb:0.32, lf:1, hint:"body weight", split:"core", ic:"legraise", alias:"body weight", nob:1, lz:1},
+  {id:"hanging_knee", name:"Hanging knee raises", bw:1, add:10, max:200, h:A=>0.14*A.H, mb:0.32, lf:1, hint:"body weight", split:"core", ic:"legraise", alias:"body weight", nob:1, lz:1},
+  {id:"toes_to_bar", name:"Toes to bar", bw:1, add:0, max:200, h:A=>0.33*A.H, mb:0.32, lf:1, hint:"body weight", split:"core", ic:"legraise", alias:"body weight", nob:1, lz:1},
+  {id:"cable_crunch", name:"Cable crunches", bw:0, add:100, max:200, h:A=>0.17*A.H, mb:0.0, lf:1, hint:"cable", split:"core", ic:"situp", alias:"cable", nob:1, lz:1},
+  {id:"decline_situp", name:"Decline sit-ups", bw:1, add:20, max:200, h:A=>0.16*A.H, mb:0.45, lf:1, hint:"body weight", split:"core", ic:"situp", alias:"body weight", nob:1, lz:1},
+  {id:"v_up", name:"V-ups", bw:1, add:10, max:200, h:A=>0.15*A.H, mb:0.6, lf:1, hint:"body weight", split:"core", ic:"situp", alias:"body weight", nob:1, lz:1},
+  {id:"bicycle_crunch", name:"Bicycle crunches", bw:1, add:0, max:200, h:A=>0.06*A.H, mb:0.25, lf:1, hint:"body weight", split:"core", ic:"situp", alias:"body weight", nob:1, lz:1},
+  {id:"russian_twist", name:"Russian twists", bw:1, add:20, max:200, h:A=>0.06*A.H, mb:0.05, lf:1, hint:"body weight", split:"core", ic:"situp", alias:"body weight", nob:1, lz:1},
+  {id:"ab_wheel", name:"Ab wheel rollouts", bw:1, add:0, max:200, h:A=>0.10*A.H, mb:0.7, lf:1, hint:"from the knees", split:"core", ic:"hold_plank", alias:"body weight", nob:1, lz:1},
+  {id:"kb_swing", name:"Kettlebell swings", bw:0, add:48, max:200, h:A=>0.45*A.H, mb:0.4, lf:1, hb:A=>0.11*A.H, hint:"kettlebell", split:"full", ic:"deadlift", alias:"kettlebell", nob:1, lz:1},
+  {id:"power_clean", name:"Power clean", bw:0, add:150, max:200, h:A=>0.60*A.H, mb:0.4, lf:1, hb:A=>0.15*A.H, hint:"barbell", split:"full", ic:"deadlift", alias:"barbell", nob:1, lz:1},
+  {id:"hang_clean", name:"Hang clean", bw:0, add:150, max:200, h:A=>0.40*A.H, mb:0.3, lf:1, hb:A=>0.10*A.H, hint:"barbell", split:"full", ic:"deadlift", alias:"barbell", nob:1, lz:1},
+  {id:"clean_jerk", name:"Clean and jerk", bw:0, add:150, max:200, h:A=>1.10*A.H, mb:0.85, lf:1, hb:A=>A.thigh*0.8, hint:"barbell", split:"full", ic:"ohp", alias:"barbell", nob:1, lz:1},
+  {id:"snatch", name:"Snatch", bw:0, add:120, max:200, h:A=>1.00*A.H, mb:0.85, lf:1, hb:A=>A.thigh*0.8, hint:"barbell", split:"full", ic:"ohp", alias:"barbell", nob:1, lz:1},
+  {id:"db_snatch", name:"Dumbbell snatch", bw:0, add:50, max:200, h:A=>1.00*A.H, mb:0.3, lf:1, hb:A=>0.10*A.H, sides:2, hint:"reps per side", split:"full", ic:"ohp", alias:"dumbbell reps per side each side single", nob:1, lz:1},
+  {id:"thruster", name:"Thrusters", bw:0, add:100, max:200, h:A=>A.thigh+0.28*A.H, mb:0.85, lf:1, hb:A=>A.thigh, hint:"barbell", split:"full", ic:"ohp", alias:"barbell", nob:1, lz:1},
+  {id:"wall_ball", name:"Wall balls", bw:0, add:12, max:200, h:A=>Math.max(0.5,3.05-0.45*A.H), mb:0.85, lf:1, hb:A=>A.thigh, hint:"to a 3 m target", split:"full", ic:"squat", alias:"medicine ball", nob:1, lz:1},
+  {id:"tgu", name:"Turkish get-up", bw:0, add:32, max:200, h:A=>0.90*A.H, mb:1.0, lf:1, hb:A=>0.45*A.H, sides:2, hint:"reps per side", split:"full", ic:"other", alias:"kettlebell reps per side each side single", nob:1, lz:1},
   {id:"other",   name:"Anything else", bw:0, add:150, max:300, hint:"dumbbell, machine", h:A=>0.25*A.H, mb:0.03, lf:1},
 ];
 
@@ -1582,6 +1690,7 @@ const HOLDS = [
   ["hold_wall","Wall sit",4.0,30],
   ["hold_hang","Dead hang",3.5,30],
   ["hold_lsit","L-sit or hollow hold",4.5,30],
+  ["hold_side","Side plank",3.3,30],                 // no figure of its own; taken at the plank's
 ];
 const COND = [
   ["c_skip","Skipping rope",11.8,90],
@@ -1590,6 +1699,10 @@ const COND = [
   ["c_jj","Jumping jacks",7.7,60],
   ["c_yoga","Yoga or stretching",2.5,120],
   ["c_sport","Sport or game",7.0,180],
+  ["c_rower","Rowing machine, moderate",7.0,120],    // about 100 W
+  ["c_ellip","Elliptical trainer",5.0,120],
+  ["c_stair","Stair climber machine",9.0,90],
+  ["c_bike","Stationary bike",7.0,180],
 ];
 
 /* Sports: MET by how hard you go (Compendium of Physical Activities). You give
@@ -1976,6 +2089,13 @@ const SPLIT_NAMES = {push:"Push", pull:"Pull", legs:"Legs", core:"Core", full:"F
 /* Movements where a band makes no sense: you cannot band a jump landing, and
    distance work is not a resistance movement at all. */
 const NO_BAND = new Set(["jsquat","burpee","calf"]);
+/* The newer movements carry their split and "no band" flag with them. */
+REPS.forEach(ex => {
+  if(ex.split && !SPLIT[ex.id]) SPLIT[ex.id] = ex.split;
+  if(ex.nob) NO_BAND.add(ex.id);
+});
+/* Search names for the original movements. */
+const EX_ALIAS = {"pushup": "push up pushups press up", "pullup": "pull up pullups", "dip": "parallel bar dips ring dips", "squat": "air squat bodyweight squat", "lunge": "walking lunges reverse lunge forward lunge", "stepup": "step up box step", "jsquat": "squat jumps", "glute": "hip thrust bridge", "calf": "standing calf raise", "situp": "crunches sit up crunch", "legraise": "lying leg raise", "deadlift": "conventional deadlift barbell deadlift", "bench": "flat bench press barbell bench", "ohp": "military press standing press barbell shoulder press", "row": "barbell row pendlay row bent over row", "pulldown": "lat pull down cable pulldown wide grip close grip", "curl": "barbell curl dumbbell curl ez bar curl bicep curl", "tri_ext": "triceps extension tricep", "burpee": "burpee"};
 
 /* Other names people actually type. Searching any of these finds the item. */
 /* What the serving words mean, so a portion is not a guess. A katori of 150 ml
@@ -2074,6 +2194,9 @@ function reg(kind, rowId, ctlIds, name, group, meta, split, alias){
 window.EN_FOOD_ICON = {milk_cow:"🥛",milk_buf:"🥛",milk_toned:"🥛",curd:"🥣",curd_toned:"🥣",paneer:"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' style='height:1em;width:1em;vertical-align:-.15em'><rect x='3.5' y='9' width='9.5' height='9.5' rx='1.4' fill='#fbf6ea' stroke='#d7c9ab' stroke-width='1'/><rect x='11' y='4.5' width='9.5' height='9.5' rx='1.4' fill='#fffdf6' stroke='#d7c9ab' stroke-width='1'/><path d='M11 4.5l1.8-1.3 9 .3-1.8 1.5z' fill='#f3ead5' stroke='#d7c9ab' stroke-width='.8'/></svg>",ghee_cow:"🧈",ghee_buf:"🧈",butter:"🧈",s_omega3_flax:"🌱",s_vitd1000:"💊",s_vitd60k:"💊",s_b12:"💊",s_calcium:"💊",s_iron:"💊",s_zinc:"💊",s_magnesium:"💊",s_vitc:"💊",s_multi:"💊",s_creatine:"💪",s_ors:"💧",s_plantpro:"🥤",s_whey:"🥛",s_casein:"🥛",s_mct:"🥥",s_vita:"💊",s_vite:"💊",s_vitk2:"💊",s_b6:"💊",s_bcomplex:"💊",s_folate:"💊",s_selenium:"💊",s_iodine:"💊",s_potassium:"💊",s_copper:"💊",s_manganese:"💊",s_algaeo3:"🌊",s_c1:"💊",s_c2:"💊",s_c3:"💊",s_c4:"💊",chapati:"🫓",rice:"🍚",poha:"🥣",oats:"🥣",bread:"🍞",paratha:"🫓",dal:"🍲",rajma:"🍛",sprouts:"🌱",soya:"🫘",chana:"🫘",whey:"🥤",sabji_dry:"🥘",sabji_gravy:"🍛",salad:"🥗",potato:"🥔",j_orange:"🍊",j_mosambi:"🍋",j_sugarcane:"🥤",j_coconut:"🥥",j_nimbu:"🍋",j_nimbu_plain:"🍋",j_packaged:"🧃",j_apple:"🍎",j_pomegranate:"🧃",j_watermelon:"🍉",j_carrot:"🥕",j_amla:"🧃",j_banana_shake:"🥤",j_lassi:"🥛",j_chaas:"🥛",sal_green:"🥗",sal_kachumber:"🥗",sal_sprouts:"🥗",sal_chana:"🥗",sal_paneer:"🥗",sal_fruit:"🍓",sal_raita:"🥣",banana:"🍌",apple:"🍎",orange:"🍊",mango:"🥭",papaya:"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' style='height:1em;width:1em;vertical-align:-.15em'><path d='M12 2C8 5 7 9 7 12s1 7 5 10c4-3 5-7 5-10s-1-7-5-10z' fill='#ef9a2e'/><path d='M12 4.5C9 7 8 10 8 12s1 5 4 7.5c3-2.5 4-5.5 4-7.5s-1-5-4-7.5z' fill='#f6bd63'/><g fill='#241408'><circle cx='12' cy='9' r='.85'/><circle cx='10.7' cy='11' r='.85'/><circle cx='13.3' cy='11' r='.85'/><circle cx='12' cy='13' r='.85'/><circle cx='11' cy='15' r='.75'/><circle cx='13' cy='15' r='.75'/></g></svg>",almond:"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' style='height:1em;width:1em;vertical-align:-.15em'><path d='M12 2.5c4 3.2 5.6 8 5.6 12.2 0 4-2.4 6.8-5.6 6.8s-5.6-2.8-5.6-6.8C6.4 10.5 8 5.7 12 2.5z' fill='#e7bd85' stroke='#b3823f' stroke-width='1'/><path d='M12 5.5v13' stroke='#b3823f' stroke-width='.8' fill='none' opacity='.8'/></svg>",cashew:"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' style='height:1em;width:1em;vertical-align:-.15em'><path d='M15 3.5c-4.4 0-7.5 3.4-7.5 8.5s3.1 8.5 7.5 8.5c1.7 0 2.8-1 2.8-2.1 0-1-.9-1.6-2.2-1.9C11.6 15.9 10 14.2 10 12s1.6-3.9 3.6-4.5c1.3-.4 2.2-1 2.2-2C15.8 4.4 14.7 3.5 15 3.5z' fill='#ecc784' stroke='#c69a4c' stroke-width='.9'/></svg>",walnut:"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' style='height:1em;width:1em;vertical-align:-.15em'><ellipse cx='12' cy='12' rx='8' ry='9' fill='#c68a4e' stroke='#8d5c2c' stroke-width='1'/><path d='M12 3.2v17.6' stroke='#8d5c2c' stroke-width='1'/><path d='M9.2 6.5c-1.6 2.3-1.6 8.7 0 11M14.8 6.5c1.6 2.3 1.6 8.7 0 11' stroke='#8d5c2c' stroke-width='.7' fill='none' opacity='.65'/></svg>",peanut:"🥜",raisin:"🍇",date:"🌴",oil:"🫗",sugar:"🍬",jaggery:"🟤",honey:"🍯",chai:"☕",misc:"🍽️"};
 Object.assign(window.EN_FOOD_ICON, MESS_ICON);
 window.EN_EX_ICON = {pushup:"<circle cx='4.5' cy='9' r='1.6'/><path d='M6 10 L18 13.5M9.5 11 V14M15 12.5 V14M4 16 H20'/>",pullup:"<path d='M3 4 H21M8 4 V6.5M16 4 V6.5'/><circle cx='12' cy='8.5' r='1.6'/><path d='M12 10.1 V16M12 12 L9.2 14M12 12 L14.8 14M12 16 L10.5 20M12 16 L13.5 20'/>",dip:"<path d='M3 7 H9M15 7 H21'/><circle cx='12' cy='8' r='1.5'/><path d='M9 7 L11 9.5M15 7 L13 9.5M12 9.5 V15M12 15 L10.3 19M12 15 L13.7 19'/>",squat:"<circle cx='12' cy='4' r='1.8'/><path d='M4 8 H20M4 6.4 V9.6M20 6.4 V9.6M5.6 6.9 V9.1M18.4 6.9 V9.1M12 8 V13M12 13 L8.5 16 V20M12 13 L15.5 16 V20'/>",lunge:"<circle cx='10.5' cy='4.5' r='1.6'/><path d='M10.5 6.1 V12M10.5 12 L6 18 V20M10.5 12 L15.5 15 V20M10.5 8 L13.5 10'/>",stepup:"<path d='M13 15 H21 V20 H13Z'/><circle cx='7' cy='6' r='1.6'/><path d='M7 7.6 V12M7 12 L4.5 18M7 12 L13 15M7 9 L9.8 11'/>",jsquat:"<circle cx='12' cy='5' r='1.6'/><path d='M12 6.6 V12M12 8 L8 5M12 8 L16 5M12 12 L9 16M12 12 L15 16'/><path d='M6 20 H10M14 20 H18'/>",burpee:"<circle cx='8.5' cy='6' r='1.5'/><path d='M8.5 7.5 V12M8.5 9 L5.5 11M8.5 9 L11.5 11M8.5 12 L6.5 16M8.5 12 L10.5 16M4 18 H20'/><path d='M15 5 C19 7.5 19 12.5 15 15M15 5 L13.6 6.4M15 5 L16.8 6'/>",glute:"<path d='M3 17 H6M18 17 H21M6 17 C7.5 10.5 16.5 10.5 18 17M6 17 V19M18 17 V19'/><circle cx='4' cy='15.3' r='1.4'/>",calf:"<path d='M7 17 H13 L15 19 H7Z'/><path d='M9 17 V9'/><path d='M18 15 V7M18 7 L16.5 8.5M18 7 L19.5 8.5'/>",situp:"<path d='M3 19 H8M8 19 L11 14.5 L14 19 H8'/><circle cx='13.5' cy='8.5' r='1.6'/><path d='M13.5 10 L11 14.5M13.5 11 L17 13'/>",legraise:"<path d='M3 18 H8'/><circle cx='4.5' cy='16.5' r='1.4'/><path d='M6 18 L14 18 L18.5 8M18.5 8 L17.3 10M18.5 8 L20.3 9.2'/>",deadlift:"<circle cx='7' cy='5' r='1.6'/><path d='M7 6.6 L9 11 L9 20M9 11 L13 12M13 12 L13 20'/><path d='M4 12 H20M4 10.4 V13.6M20 10.4 V13.6'/>",bench:"<path d='M3 16 H15M5 16 V19M13 16 V19'/><circle cx='6' cy='13.5' r='1.4'/><path d='M7.2 14 L11 14 L11 10M11 12 L9 10M11 12 L13 10'/><path d='M4 8 H18M4 6.4 V9.6M18 6.4 V9.6'/>",ohp:"<circle cx='12' cy='9' r='1.6'/><path d='M12 10.6 V16M12 16 L9.5 20M12 16 L14.5 20M12 12 L9 8M12 12 L15 8'/><path d='M4 6 H20M4 4.4 V7.6M20 4.4 V7.6'/>",row:"<circle cx='4.5' cy='8' r='1.5'/><path d='M6 8.5 H16'/><path d='M9 9 V18M13 9 V18M11 9 V13'/><path d='M7 13 H15M7 11.4 V14.6M15 11.4 V14.6'/>",pulldown:"<path d='M3 3 H21M8 3 L10 8M16 3 L14 8M8 7 H16'/><circle cx='12' cy='9.5' r='1.5'/><path d='M12 11 V16M10 8 L12 11M14 8 L12 11M12 16 L9 20M12 16 L15 20'/>",curl:"<path d='M8 4 V10M8 10 C8 13 10 14.6 12.4 15.1'/><circle cx='14.6' cy='15.6' r='2.1'/>",tri_ext:"<path d='M8 20 V11 L11 7M11 7 L14 10'/><circle cx='15.5' cy='11' r='2.1'/>",other:"<path d='M2.5 10.5v3M5 8.5v7M19 8.5v7M21.5 10.5v3M5 12h14'/>",b_tri:"<circle cx='5' cy='12' r='2'/><circle cx='19' cy='12' r='2'/><path d='M7 12 H17'/><path d='M9 10.2 Q12 14 15 10.2'/>",b_sho:"<circle cx='5' cy='12' r='2'/><circle cx='19' cy='12' r='2'/><path d='M7 12 H17'/><path d='M9 10.2 Q12 14 15 10.2'/>",b_row:"<circle cx='5' cy='12' r='2'/><circle cx='19' cy='12' r='2'/><path d='M7 12 H17'/><path d='M9 10.2 Q12 14 15 10.2'/>",b_curl:"<circle cx='5' cy='12' r='2'/><circle cx='19' cy='12' r='2'/><path d='M7 12 H17'/><path d='M9 10.2 Q12 14 15 10.2'/>",b_leg:"<circle cx='5' cy='12' r='2'/><circle cx='19' cy='12' r='2'/><path d='M7 12 H17'/><path d='M9 10.2 Q12 14 15 10.2'/>",hold_plank:"<circle cx='4.5' cy='9' r='1.6'/><path d='M6 10 H17 L20 14M8 11 V14 H5.5'/>",hold_wall:"<path d='M4 3 V21'/><circle cx='7.5' cy='7' r='1.5'/><path d='M7.5 8.5 V13 H13 V19M4 13 H7.5'/>",hold_hang:"<path d='M3 4 H21M9 4 V6.5M15 4 V6.5'/><circle cx='12' cy='8.5' r='1.6'/><path d='M12 10.1 V20'/>",hold_lsit:"<circle cx='6' cy='6' r='1.6'/><path d='M6 7.6 V13M6 13 H18'/><path d='M3.5 13 V16.5M9 13 V16.5'/>",c_skip:"<circle cx='12' cy='5' r='1.6'/><path d='M12 6.6 V12M9 13 H15M9.5 12.6 L8 17M14.5 12.6 L16 17'/><path d='M6 9 C3.5 14 6 19 12 19 C18 19 20.5 14 18 9'/>",c_hiit:"<circle cx='12' cy='13.5' r='6.5'/><path d='M12 13.5 V9.5M10 4 H14M12 4 V7M17.5 8 L19 6.5'/>",c_mtn:"<circle cx='4.5' cy='8' r='1.6'/><path d='M6 8.6 L17 12 L20 13M9 9.6 V13M13 11 L11 15M4 16 H20'/>",c_jj:"<circle cx='12' cy='4.5' r='1.7'/><path d='M12 6 V13M12 8 L6 6M12 8 L18 6M12 13 L8 19M12 13 L16 19'/>",c_yoga:"<circle cx='12' cy='6' r='1.9'/><path d='M12 8 V13M12 13 L7 16.5 H17Z M8 11 L12 13 L16 11'/>",c_sport:"<circle cx='12' cy='12' r='8'/><path d='M12 8 L15 10.5 L14 14 H10 L9 10.5Z'/><path d='M12 4.2 V8M15 10.5 L18.7 9.4M14 14 L16.4 17M10 14 L7.6 17M9 10.5 L5.3 9.4'/>",walk:"<circle cx='12' cy='4.5' r='1.7'/><path d='M12 6.2 V12M12 12 L9 19M12 12 L15 17 L14 20M12 8 L9 11M12 8 L15 10'/>",run:"<circle cx='14' cy='4.5' r='1.7'/><path d='M13 6.5 L10.5 11 L13.5 13 L13 18M10.5 11 L6.5 12.5M13.5 13 L17.5 11.5M13 18 L9.5 20'/>",cycle:"<circle cx='6' cy='16.5' r='3.3'/><circle cx='18' cy='16.5' r='3.3'/><path d='M6 16.5 L10 10 H15 L12.5 16.5M10 10 L12 16.5M15 10 H17'/>",sp_cricket:"🏏",sp_football:"⚽",sp_hockey:"🏑",sp_tennis:"🎾",sp_basketball:"🏀",sp_volleyball:"🏐",sp_skating:"🛼",sp_badminton:"🏸",sp_tt:"🏓",sp_swim:"🏊",gl_sidestep:"<circle cx='12' cy='4' r='1.5'/><path d='M12 5.5 V10M12 10 L8.5 18M12 10 L15.5 18M12 6.5 L9 9M12 6.5 L15 9'/><path d='M8 15 H16'/><path d='M4.5 15 L6.5 13M4.5 15 L6.5 17'/><path d='M19.5 15 L17.5 13M19.5 15 L17.5 17'/>",gl_monster:"<circle cx='12' cy='4' r='1.5'/><path d='M12 5.5 V10M12 10 L8.5 18M12 10 L15.5 18'/><path d='M8 15 H16'/><path d='M8 20 H10M14 20 H16'/><path d='M12 18 V21'/>",gl_kickback:"<circle cx='5' cy='8' r='1.5'/><path d='M6.4 8.6 L13 10M9 10 V16M13 10 V16'/><path d='M13 10 L20 6.5M20 6.5 L18.2 6M20 6.5 L19.6 8.2'/>",gl_clam:"<path d='M3 18 H9'/><circle cx='4' cy='16' r='1.3'/><path d='M9 18 L14 14M9 18 L14 20'/><path d='M14 14 L14.5 10.5M14.5 10.5 L13 12M14.5 10.5 L16 12'/>"};
+REPS.forEach(ex => { if(ex.ic && !window.EN_EX_ICON[ex.id] && window.EN_EX_ICON[ex.ic]) window.EN_EX_ICON[ex.id] = window.EN_EX_ICON[ex.ic]; });
+Object.entries({c_rower:"row", c_ellip:"walk", c_stair:"stepup", c_bike:"cycle", hold_side:"hold_plank"})
+  .forEach(([id, like]) => { if(!window.EN_EX_ICON[id]) window.EN_EX_ICON[id] = window.EN_EX_ICON[like]; });
 window.foodIcon = function(id){ var e = window.EN_FOOD_ICON[id]; return e ? e + " " : ""; };
 window.exIcon = function(id){ var p = window.EN_EX_ICON[id]; if(!p) return ""; if(p.charAt(0) !== "<") return "<span style='font-size:30px;line-height:1;vertical-align:middle;margin-right:3px;display:inline-block'>"+p+"</span> "; return "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' "+"stroke-linecap='round' stroke-linejoin='round' "+"style='height:38px;width:38px;vertical-align:middle;margin-right:3px;flex:0 0 auto'>"+p+"</svg> "; };
 
@@ -2123,6 +2246,13 @@ function modesFor(ex, bandOnly){
   return m;
 }
 const MODE_LABEL = {bw:"Body weight", wt:"Added weight", band:"Band"};
+/* A barbell or machine movement has no body-weight version, so its load is
+   just "Weight"; an assistance machine's number is help, not load. */
+function modeLabel(ex, mk){
+  if(mk === "wt" && ex && ex.lf < 0) return "Assisted";
+  if(mk === "wt" && ex && !ex.bw) return "Weight";
+  return MODE_LABEL[mk];
+}
 
 function bandPicker(host, id){
   const hidden = el("input"); hidden.type="hidden"; hidden.id=id; hidden.value="";
@@ -2176,8 +2306,9 @@ function buildEntry(exId, ex, i, host, modes, catItem){
   if(modes.length > 1){
     const chips = el("div","chips small");
     modes.forEach(mk => {
-      const c = el("button","chip"+(mk===modes[0]?" on":""), MODE_LABEL[mk]);
+      const c = el("button","chip"+(mk===modes[0]?" on":""), modeLabel(ex, mk));
       c.type = "button";
+      c.setAttribute("data-mode", mk);
       c.addEventListener("click", () => {
         mode.value = mk;
         chips.querySelectorAll(".chip").forEach(x => x.classList.remove("on"));
@@ -2197,7 +2328,7 @@ function buildEntry(exId, ex, i, host, modes, catItem){
     move:true, unit:"reps", aria:ex.name+" set "+i+", reps"}));
   wrap.appendChild(line);
 
-  wtPanel.appendChild(el("span","sl","Weight for this set"));
+  wtPanel.appendChild(el("span","sl", ex.wl || "Weight for this set"));
   wtPanel.appendChild(mkStep({id:"ew_"+exId+"_"+i, min:0, max:ex.add||200, step:1, value:0,
     move:true, unit:"kg", aria:ex.name+" set "+i+", weight in kg"}));
   wrap.appendChild(wtPanel);
@@ -2260,10 +2391,11 @@ function buildExercise(ex, bandOnly){
   const item = {rowId:row.id, ctlIds:[], name:ex.name,
     group:(SPLIT_NAMES[SPLIT[ex.id]] || "Other") + (bandOnly ? ", band" : ""),
     meta:ex.hint || (bandOnly ? "resistance band" : ""),
-    split:SPLIT[ex.id] || "full", alias:""};
+    split:SPLIT[ex.id] || "full", alias:ex.alias || EX_ALIAS[ex.id] || ""};
   CATALOG.rep.push(item);
   EX_MODES[ex.id] = {ex, modes, item};
-  buildEntry(ex.id, ex, 1, entries, modes, item);
+  if(ex.lz) item.lazy = () => ensureEntries(ex.id, 1);   // boxes built on first use
+  else buildEntry(ex.id, ex, 1, entries, modes, item);
   return item;
 }
 
@@ -2719,6 +2851,8 @@ function usualHas(id){
   return parseFloat(u.usual[id] || 0) > 0;
 }
 function refreshVisibility(){
+  const _u = activeUser();
+  if(_u && _u.usual) materialiseEntries(_u.usual);   // a usual-day movement shows even before today's first set
   Object.keys(CATALOG).forEach(kind => CATALOG[kind].forEach(item => {
     const live = item.ctlIds.some(id => {
       const n = $(id);
@@ -2935,6 +3069,7 @@ function buildPicker(kind, body, placeholder, after, opts){
     }
     if(window.__pickerCancel) window.__pickerCancel();   // restore any half-staged food first
     restoreRows();                       // whatever was staged before goes home
+    if(item.lazy) item.lazy();          // a movement used for the first time gets its set boxes now
     item.ctlIds.forEach(id => PINNED.add(id));
     refreshVisibility();
     stage.innerHTML = "";
@@ -3077,7 +3212,14 @@ function buildPicker(kind, body, placeholder, after, opts){
   }
 
   function pool(){
-    return CATALOG[kind].filter(it => !opts.filter || opts.filter(it));
+    const got = CATALOG[kind].filter(it => !opts.filter || opts.filter(it));
+    if(kind !== "rep") return got;
+    const RANK = ["Push","Pull","Legs","Glutes","Core","Full body","Push, band","Pull, band","Legs, band",
+                  "Core, band","Full body, band","Cardio","Sports","Sport"];
+    const rk = g => { const i = RANK.indexOf(g); return i < 0 ? 99 : i; };
+    return got.map((it, i) => [it, i])
+              .sort((a, b) => (rk(a[0].group) - rk(b[0].group)) || (a[1] - b[1]))
+              .map(x => x[0]);
   }
   /* The search box is sticky at the top, but with the on-screen keyboard up the
      browser can leave the results list itself scrolled part-way down - so you
@@ -3104,7 +3246,21 @@ function buildPicker(kind, body, placeholder, after, opts){
     }
     let group = null, shown = 0, matched = 0;
     const CAP = 6;   // while searching, render only the first few - a short list has nothing to auto-scroll
-    avail.forEach(item => {
+    let seq = avail;
+    if(filter && kind === "rep"){
+      const words = t => " " + String(t).toLowerCase().replace(/[-(),\/]/g, " ");
+      const tier = it => {
+        const nm = it.name.toLowerCase();
+        if(nm.indexOf(filter) === 0) return 0;
+        if(words(nm).indexOf(" " + filter) >= 0) return 1;
+        if(nm.indexOf(filter) >= 0) return 2;
+        if(words(it.group + " " + it.meta + " " + (it.alias || "")).indexOf(" " + filter) >= 0) return 3;
+        return 4;
+      };
+      seq = avail.map((it, i) => [it, i, tier(it)])
+                 .sort((a, b) => (a[2] - b[2]) || (a[1] - b[1])).map(x => x[0]);
+    }
+    seq.forEach(item => {
       if(filter && (item.name+" "+item.group+" "+item.meta+" "+(item.alias||""))
           .toLowerCase().indexOf(filter) < 0) return;
       matched++;
@@ -3362,9 +3518,12 @@ function readStrength(weight, heightCm){
   const setInfo = {};              // per rep-entry control -> what that one set was and cost
   const groups = {};               // muscle group -> hard sets, for the growth signal
 
+  const exRec = [];                // per movement, in list order: which sets it had
   function runExercise(ex, bandOnly){
-    const h = ex.h(A);
+    const h = ex.h(A), hb = ex.hb ? ex.hb(A) : h;
+    const wx = ex.wx || 1, sides = ex.sides || 1, each = sides > 1 ? " each side" : "";
     let rowReps = 0, rowJ = 0, parts = [];
+    const keys = [];
     const n = ENTRY_COUNT[ex.id] || 0;
     for(let i = 1; i <= n; i++){
       const r = +($("er_"+ex.id+"_"+i)||{}).value || 0;
@@ -3372,23 +3531,27 @@ function readStrength(weight, heightCm){
       const mode = ((($("em_"+ex.id+"_"+i)||{}).value) || (bandOnly ? "band" : "bw"));
       let J = 0, note = "";
       if(mode === "bw"){
-        J = G*h*ex.mb*weight;
-        note = `${r} at body weight, ${n1(ex.mb*weight)} kg through ${(h*100).toFixed(0)} cm`;
+        J = G*hb*ex.mb*weight*sides;
+        note = `${r}${each} at body weight, ${n1(ex.mb*weight)} kg through ${(hb*100).toFixed(0)} cm`;
       } else if(mode === "wt"){
         const kg = +($("ew_"+ex.id+"_"+i)||{}).value || 0;
-        J = G*h*(ex.mb*weight + ex.lf*kg);
-        note = `${r} with ${kg} kg`;
+        /* body through its own rise, load through the bar's; an assistance
+           machine takes its number off the body instead of adding it */
+        J = Math.max(0, G*(hb*ex.mb*weight + h*ex.lf*wx*kg))*sides;
+        note = ex.lf < 0 ? `${r}${each} with ${kg} kg of assistance`
+             : `${r}${each} with ${wx > 1 ? wx + " \u00d7 " : ""}${kg} kg`;
       } else {
         const F = bandForce("eb_"+ex.id+"_"+i);
         const pre = (+($("ep_"+ex.id+"_"+i)||{}).value || 0)/100;
         const k = F / bandL0;
-        J = k*(pre*h + h*h/2);
-        note = `${r} on bands, ${n1(k*(pre+h/2)/G)} kg average pull`;
+        J = k*(pre*h + h*h/2)*sides;
+        note = `${r}${each} on bands, ${n1(k*(pre+h/2)/G)} kg average pull`;
       }
-      rowJ += J*r; rowReps += r; upJ += J*r; reps += r;
+      rowJ += J*r; rowReps += r*sides; upJ += J*r; reps += r*sides;
       /* Each logged entry is one set, so the count is exact rather than
          estimated from a typical set length. */
-      sets += 1; seconds += r*3 + rest;
+      const sec = r*3*sides + rest;
+      sets += 1; seconds += sec;
       const g = SPLIT[ex.id] || "full";
       groups[g] = (groups[g] || 0) + 1;
       // mechanical cost of this set (up plus the eccentric fraction on the way down)
@@ -3397,15 +3560,15 @@ function readStrength(weight, heightCm){
       setInfo["er_"+ex.id+"_"+i] = {
         name:ex.name, set:i, reps:r, mode, kcal:setKcal, J:J*r,
         load:(mode==="wt" ? (+($("ew_"+ex.id+"_"+i)||{}).value || 0) : 0),
-        note};
+        note, ex:ex.id, sec, sides};
+      keys.push("er_"+ex.id+"_"+i);
       parts.push(note);
       lines.push({label:ex.name+", set "+i,
-        work:`${r} reps &times; ${n1(J/(G*h))} kg-equivalent &times; 9.81 &times; ${h.toFixed(2)} m`,
+        work:`${r}${each} reps &times; ${n1(J/(G*h*sides))} kg-equivalent &times; 9.81 &times; ${h.toFixed(2)} m`
+             + (sides > 1 ? ` &times; ${sides} sides` : ""),
         J:J*r});
     }
-    $("a_"+ex.id).innerHTML = rowReps>0
-      ? `<b>${rowReps}</b> reps<br>${parts.join("<br>")}<br>${n1(rowJ*(1+ecc)/EFFICIENCY/KCAL_J)} kcal`
-      : `<b>0</b> reps`;
+    exRec.push({ex, bandOnly, reps:rowReps, keys});
     const row = $((bandOnly?"row_":"exrow_")+ex.id);
     if(row) row.classList.toggle("zero", rowReps===0);
   }
@@ -3418,8 +3581,30 @@ function readStrength(weight, heightCm){
   const lowerKcal = upJ*ecc/EFFICIENCY/KCAL_J;
   const overhead = minutes>0 ? metKcal(metOh, minutes, weight) : 0;
   const epoc = (liftKcal+lowerKcal+overhead)*0.06;
+
+  /* What each set cost in full: its own lifting (up and down), its share of
+     the time in the session - its reps at ~3 s each plus the rest after it -
+     and 6% afterburn on both. Summed over every set this is exactly the
+     session total, so the per-exercise figures add up to the lifting line. */
+  const byEx = [];
+  exRec.forEach(rec => {
+    let tot = 0; const list = [];
+    rec.keys.forEach(key => {
+      const si = setInfo[key];
+      si.sess  = seconds > 0 ? overhead*si.sec/seconds : 0;
+      si.after = 0.06*(si.kcal + si.sess);
+      si.total = si.kcal + si.sess + si.after;
+      tot += si.total; list.push(si);
+    });
+    if(list.length) byEx.push({id:rec.ex.id, name:rec.ex.name, band:rec.bandOnly,
+                               reps:rec.reps, sets:list, kcal:tot});
+    const a = $("a_"+rec.ex.id);
+    if(a) a.innerHTML = rec.reps > 0
+      ? `<b>${rec.reps}</b> reps<br>${list.map(x => x.note + " \u2014 " + n1(x.total) + " kcal").join("<br>")}<br>${n1(tot)} kcal`
+      : `<b>0</b> reps`;
+  });
   return {sets,reps,minutes,upJ,liftKcal,lowerKcal,overhead,epoc,ecc,metOh,
-          kcal:liftKcal+lowerKcal+overhead+epoc, A, lines, burn, setInfo, groups};
+          kcal:liftKcal+lowerKcal+overhead+epoc, A, lines, burn, setInfo, groups, byEx};
 }
 
 function readGlute(weight, heightCm){
@@ -4038,7 +4223,7 @@ function update(){
   // ---- section totals ----
   $("foodTot").textContent  = inK>0 ? kc(inK)+" kcal" : "";
   $("repTot").textContent   = !ready ? "" : (d.st.reps>0
-    ? `${d.st.reps} reps, ${kc(d.st.kcal)} kcal` : "nothing yet");
+    ? `${d.st.reps} reps, ${kc(d.st.kcal)} kcal \u203a` : "nothing yet");
   $("condTot").textContent  = !ready ? "" : (d.timed.minutes>0
     ? `${d.timed.minutes} min, ${kc(d.timed.kcal)} kcal` : "");
   $("moveTot").textContent  = !ready ? "" : (d.cardio.kcal>0 ? kc(d.cardio.kcal)+" kcal" : "");
@@ -4405,6 +4590,7 @@ function renderFlags(d, empty){
    TODAY: the usual day, and what you changed
    ================================================================== */
 function usingSnapshot(snap, fn){
+  if(snap) materialiseEntries(snap);   // sets that day has and the screen does not, yet
   const cur = snapshot();
   /* A saved day only holds the controls that existed when it was saved. Set 2 of
      an exercise you only added today is absent from it, and leaving such a
@@ -4698,18 +4884,7 @@ function openFlowCalc(which){
         work:`${kc(d.food.kcal)} &times; ${(d.tefRate*100).toFixed(1)}%, the rate rising with protein share`,
         val:kc(d.tef)+" kcal"});
       if(d.cardio.kcal>0) d.cardio.lines.forEach(l => out.push({label:l.label, work:l.work, val:kc(l.kcal)+" kcal"}));
-      if(d.st.kcal>0){
-        out.push({label:"Lifting, the way up",
-          work:`${Math.round(d.st.upJ)} J of work &divide; 0.20 efficiency &divide; 4184 J per kcal`,
-          val:n1(d.st.liftKcal)+" kcal"});
-        out.push({label:"Lifting, the way down",
-          work:`${Math.round(d.st.ecc*100)}% of the lifting cost, paid metabolically`,
-          val:n1(d.st.lowerKcal)+" kcal"});
-        out.push({label:"Being in the session",
-          work:`(${d.st.metOh} &minus; 1) MET &times; 3.5 &times; ${d.weight} / 200 &times; ${Math.round(d.st.minutes)} min`,
-          val:kc(d.st.overhead)+" kcal"});
-        out.push({label:"Afterburn", work:"6% of the three rows above", val:n1(d.st.epoc)+" kcal"});
-      }
+      if(d.st.kcal>0) liftingRows(d).forEach(r => out.push(r));
       d.timed.lines.forEach(l => out.push({label:l.label, work:l.work, val:kc(l.kcal)+" kcal"}));
       d.glute.lines.forEach(l => out.push({label:l.label, work:l.work, val:n1(l.kcal)+" kcal"}));
       d.chores.lines.forEach(l => out.push({label:l.label, work:l.work, val:n1(l.kcal)+" kcal"}));
@@ -4717,6 +4892,7 @@ function openFlowCalc(which){
       if(d.brainSleep) out.push({label:"Brain, asleep", work:`the resting rate charges 20 W of brain for all 24 h; it runs ~17% lower asleep &mdash; 3.4 W &times; ${n1(d.sleep)} h`, val:kc(d.brainSleep)+" kcal"});
   if(d.sleepAdj) out.push({label:"Short sleep", work:"up to 2% off the resting rate, ramped in from 6 h down to 4.5 h", val:kc(d.sleepAdj)+" kcal"});
       h += tbl(out, "Spent so far", kc(d.outSoFar)+" kcal");
+      h += liftingSplit(d);
 
       h += `<h3>Your resting metabolism</h3>`;
       h += `<p class="formula">${d.rr.method === "katch"
@@ -4921,7 +5097,7 @@ function calcUsedSoFar(d){
     work:`${kc(d.food.kcal)} kcal &times; ${(d.tefRate*100).toFixed(1)}% &mdash; 9% base plus 9% `
        + `scaled by protein at ${(d.protShare*100).toFixed(0)}% of calories`,
     val:kc(d.tef)+" kcal"});
-  if(d.st.kcal)     rows.push({label:"Lifting",       work:"work done &divide; 0.20 efficiency", val:kc(d.st.kcal)+" kcal"});
+  if(d.st.kcal)     liftingRows(d).forEach(r => rows.push(r));
   if(d.cardio.kcal) rows.push({label:"Getting around",work:"ACSM equations, distance and pace",  val:kc(d.cardio.kcal)+" kcal"});
   if(d.timed.kcal)  rows.push({label:"Holds and conditioning", work:"MET &times; weight &times; hours", val:kc(d.timed.kcal)+" kcal"});
   if(d.chores.kcal) rows.push({label:"House and chores",       work:"MET &times; weight &times; hours", val:kc(d.chores.kcal)+" kcal"});
@@ -4936,6 +5112,7 @@ function calcUsedSoFar(d){
     ${clockNow()}, not midnight &mdash; charging a whole day's resting metabolism against a
     morning's food would show a deficit on every normal day before lunch. By midnight, with
     nothing further logged, this lands at <b>${kc(d.out)} kcal</b>.</p>`;
+  h += `<div class="calc">${liftingSplit(d)}</div>`;
   return h;
 }
 
@@ -5087,6 +5264,9 @@ const CALC_SHEETS = {
   fat:  {title:"Body fat",        fn:d => calcTissue(d,"fat")},
   lean: {title:"Muscle",          fn:d => calcTissue(d,"lean")},
   prot: {title:"Protein",         fn:calcProtein},
+  lift: {title:"Lifting, set by set", fn:d => (d.st && d.st.kcal > 0)
+          ? `<div class="calc">` + tbl(liftingRows(d), "All lifting", n1(d.st.kcal)+" kcal") + liftingSplit(d) + `</div>`
+          : `<p class="formula">No sets logged yet today. Every set you add shows up here with what it cost.</p>`},
 };
 
 function openCalcSheet(key){
@@ -5198,6 +5378,34 @@ function mkBtn(text, cls, fn){
   return b;
 }
 
+/* Strength on the "spent" sheets: one row per movement, its sets listed
+   under it with what each cost, then the same total split by kind. */
+function liftingRows(d){
+  return ((d.st && d.st.byEx) || []).map(e => ({
+    label: e.name + (e.band ? " (band)" : ""),
+    work: e.sets.map(x => `Set ${x.set}: ${x.note} &mdash; <b>${n1(x.total)}</b> kcal`).join("<br>"),
+    val: n1(e.kcal) + " kcal"}));
+}
+function liftingSplit(d){
+  const T = d.st;
+  if(!T || !(T.kcal > 0)) return "";
+  return `<h3>How the lifting adds up</h3>` + tbl([
+    {label:"Lifting, the way up",
+     work:`${Math.round(T.upJ)} J of work &divide; 0.20 efficiency &divide; 4184 J per kcal`,
+     val:n1(T.liftKcal)+" kcal"},
+    {label:"Lifting, the way down",
+     work:`${Math.round(T.ecc*100)}% of the lifting cost, paid metabolically`,
+     val:n1(T.lowerKcal)+" kcal"},
+    {label:"Being in the session",
+     work:`(${T.metOh} &minus; 1) MET &times; 3.5 &times; ${d.weight} / 200 &times; ${Math.round(T.minutes)} min`,
+     val:n1(T.overhead)+" kcal"},
+    {label:"Afterburn", work:"6% of the three rows above", val:n1(T.epoc)+" kcal"},
+  ], "All lifting", n1(T.kcal)+" kcal")
+  + `<p class="formula">Each set above is its own lifting cost, up and down, plus its share of the
+     time in the session &mdash; its reps at about 3 s each and the rest after it &mdash; plus 6%
+     afterburn. The movements add up to this total; these four rows are the same total split by
+     kind instead of by movement.</p>`;
+}
 function tbl(rows, sumLabel, sumVal, unit){
   let h = '<table class="ctab"><tbody>';
   rows.forEach(r => {
@@ -5245,18 +5453,7 @@ function renderCalcInto(p, d, opts){
     work:`${kc(d.food.kcal)} &times; ${(d.tefRate*100).toFixed(1)}%, the rate rising with protein share`,
     val:kc(d.tef)+" kcal"});
   if(d.cardio.kcal>0) d.cardio.lines.forEach(l => out.push({label:l.label, work:l.work, val:kc(l.kcal)+" kcal"}));
-  if(d.st.kcal>0){
-    out.push({label:"Lifting, the way up",
-      work:`${Math.round(d.st.upJ)} J of work &divide; 0.20 efficiency &divide; 4184 J per kcal`,
-      val:n1(d.st.liftKcal)+" kcal"});
-    out.push({label:"Lifting, the way down",
-      work:`negative work, so no mechanical cost, but ${Math.round(ecc*100)}% of the lifting cost metabolically`,
-      val:n1(d.st.lowerKcal)+" kcal"});
-    out.push({label:"Being in the session",
-      work:`(${d.st.metOh} &minus; 1) MET &times; 3.5 &times; ${d.weight} / 200 &times; ${Math.round(d.st.minutes)} min`,
-      val:kc(d.st.overhead)+" kcal"});
-    out.push({label:"Afterburn", work:"6% of the three rows above", val:n1(d.st.epoc)+" kcal"});
-  }
+  if(d.st.kcal>0) liftingRows(d).forEach(r => out.push(r));
   d.timed.lines.forEach(l => out.push({label:l.label, work:l.work, val:kc(l.kcal)+" kcal"}));
   d.glute.lines.forEach(l => out.push({label:l.label, work:l.work, val:n1(l.kcal)+" kcal"}));
   d.chores.lines.forEach(l => out.push({label:l.label, work:l.work, val:n1(l.kcal)+" kcal"}));
@@ -5266,6 +5463,7 @@ function renderCalcInto(p, d, opts){
   h += wholeDay
       ? tbl(out, "Used, whole day", kc(d.out)+" kcal")
       : tbl(out, "Used so far", kc(d.outSoFar)+" kcal");
+  h += liftingSplit(d);
   h += `<p class="formula">The whole-day figure is <b>${kc(d.out)} kcal</b>. The ledger compares your
     food against the <em>so far</em> number, because measuring a morning's eating against a full
     day's burning would show a deficit on every normal day before lunch. The tissue figures below
@@ -6279,7 +6477,7 @@ function syncEntryChips(){
       if(!wrap) continue;
       const mode = ($("em_"+exId+"_"+i) || {}).value;
       wrap.querySelectorAll(".chips.small .chip").forEach(c =>
-        c.classList.toggle("on", c.innerHTML === MODE_LABEL[mode]));
+        c.classList.toggle("on", (c.getAttribute("data-mode") || "") === mode || c.innerHTML === MODE_LABEL[mode]));
       wrap.querySelectorAll(".subpanel").forEach((p,idx) =>
         p.classList.toggle("hidden", (idx === 0 ? mode !== "wt" : mode !== "band")));
       const picked = String((($("eb_"+exId+"_"+i)||{}).value) || "").split(",").filter(Boolean);
@@ -8933,8 +9131,8 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.23b";
-  var APP_BUILT   = "23 Sep 2026";
+  var APP_VERSION = "2026.09.24a";
+  var APP_BUILT   = "24 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
   /* Automatic updating, on by default and switchable in Settings. "On" means:
@@ -9784,6 +9982,7 @@ body.editing-day{padding-top:38px}
         return it.ctlIds.some(function(c){ return c.indexOf("er_" + id + "_") === 0; });
       })[0];
       if(hit) return hit.name;
+      if(typeof EX_MODES !== "undefined" && EX_MODES[id]) return EX_MODES[id].ex.name;
     } catch(e){}
     return id;
   }
