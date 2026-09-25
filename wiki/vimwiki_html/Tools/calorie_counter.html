@@ -561,6 +561,16 @@ body{top:0!important}
 .ideachip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 11px;
   font-size:12px;color:var(--ink);cursor:pointer}
 .ideachip:active{background:var(--out-bg)}
+.exbtn .extick{margin-left:auto;font-weight:700;color:var(--muted)}
+.exbtn.on{border-color:var(--out);background:var(--out-bg)}
+.exbtn.on .extick{color:var(--out)}
+.bodymap .bmreg.haspick{stroke:var(--out);stroke-width:2.2}
+.srev{border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 12px;margin:8px 0;background:var(--card2)}
+.srevname{font-weight:600;color:var(--ink);margin-bottom:6px;font-size:14px}
+.srevline{display:flex;gap:10px;flex-wrap:wrap}
+.srevfield{flex:1;min-width:120px;display:flex;flex-direction:column;gap:3px}
+.srevfield .sl{font-size:11px;color:var(--muted)}
+.srevfield .num{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:15px}
 .bodyfull{position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;flex-direction:column;
   padding-top:env(safe-area-inset-top,0);padding-bottom:env(safe-area-inset-bottom,0)}
 .bodyfullbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;
@@ -3400,7 +3410,7 @@ function buildPicker(kind, body, placeholder, after, opts){
                               : (window.exIcon?window.exIcon(_bid):"");
       b.innerHTML = `<span>${_ic}${item.name}${item.meta?` <span class="pk">${item.meta}</span>`:""}</span>`
                   + `<span class="plus">${already ? "\u2713" : "+"}</span>`;
-      b.addEventListener("click", () => openItem(item));
+      b.addEventListener("click", () => { if(opts && opts.onPick){ opts.onPick(item); } else { openItem(item); } });
       list.appendChild(b); shown++;
     });
     if(!shown) list.appendChild(el("p","tiny","Nothing matches that."));
@@ -7511,42 +7521,83 @@ if($("qSupp")) $("qSupp").addEventListener("click", openSuppLog);
    ready to fill, exactly like sets and reps do for a lift. */
 $("qTrain").addEventListener("click", () => { openAddExercise(); });
 function openAddExercise(preMuscle){
-  openSheet("Add an exercise", body => {
-    addTimeField(body);
-    body.appendChild(el("p","tiny","Tap a muscle on the body to see its exercises, or search below."));
+  /* Session-wide selection: a Set of exercise ids the user ticks off across
+     muscles, plus one start time for the whole session. */
+  var picked = {};              // id -> true
+  var sessionStart = (function(){ var d=new Date(); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); })();
+
+  openSheet("Build your session", function(body){
+    // ---- session start time, once, up front ----
+    var tf = el("div","field"); tf.style.marginBottom = "10px";
+    var lab = el("label"); lab.setAttribute("for","sessStart"); lab.textContent = "When did this session start?";
+    tf.appendChild(lab);
+    var tin = el("input"); tin.type = "time"; tin.id = "sessStart"; tin.className = "timeinp"; tin.value = sessionStart;
+    tin.addEventListener("change", function(){ sessionStart = tin.value || sessionStart; });
+    tf.appendChild(tin);
+    tf.appendChild(el("p","tiny","Used for how long ago it was. One time is used for everything in this session; you can fine-tune per muscle later on the Recovery tab."));
+    body.appendChild(tf);
+
+    body.appendChild(el("p","tiny","Tap a muscle, tick the exercises you did, then tap another muscle. When you're done, review and enter reps and weight for all of them at once."));
+
     var mapWrap = el("div","bodymapwrap pick");
     var recBy = {};
     try { (window.caloRecovery.all(7)||[]).forEach(function(r){ recBy[r.muscle]=r.rec; }); } catch(e){}
     mapWrap.innerHTML = bodyMapSVG(recBy);
     body.appendChild(mapWrap);
+
     var listWrap = el("div"); body.appendChild(listWrap);
+
+    // running count + review button, pinned under the list
+    var barWrap = el("div"); barWrap.style.marginTop = "10px";
+    var count = el("p","tiny"); barWrap.appendChild(count);
+    var reviewBtn = el("button","btn primary full"); reviewBtn.type = "button"; reviewBtn.textContent = "Review and enter reps";
+    barWrap.appendChild(reviewBtn);
+    body.appendChild(barWrap);
+
+    function nPicked(){ return Object.keys(picked).filter(function(k){ return picked[k]; }).length; }
+    function refreshCount(){
+      var n = nPicked();
+      count.textContent = n ? (n + " exercise" + (n===1?"":"s") + " selected \u2014 tap more muscles, or review.") : "Nothing selected yet.";
+      reviewBtn.disabled = !n;
+      reviewBtn.style.opacity = n ? "1" : ".5";
+    }
+    refreshCount();
+
+    function markMap(){
+      // highlight any muscle that has at least one picked exercise
+      mapWrap.querySelectorAll(".bmreg").forEach(function(reg){
+        var mm = reg.getAttribute("data-m");
+        var any = (window.caloRecovery.exercisesFor(mm)||[]).some(function(e){ return picked[e.id]; });
+        reg.classList.toggle("haspick", any);
+      });
+    }
+
     var q;
     function showMuscle(m){
       listWrap.innerHTML = "";
       mapWrap.querySelectorAll(".bmreg.sel").forEach(function(x){ x.classList.remove("sel"); });
       mapWrap.querySelectorAll(".bmreg[data-m='"+m+"']").forEach(function(x){ x.classList.add("sel"); });
-      listWrap.appendChild(el("div","ntgrp", (window.caloRecovery.MNAME[m]||m) + " \u2014 exercises the app tracks"));
+      listWrap.appendChild(el("div","ntgrp", (window.caloRecovery.MNAME[m]||m) + " \u2014 tick what you did"));
       var exs = (window.caloRecovery.exercisesFor(m)||[]).filter(function(e){ return EX_MODES[e.id]; });
       if(exs.length){
         var grid = el("div","exlist");
         exs.forEach(function(e){
           var it = EX_MODES[e.id]; var nm = it.ex.name;
-          var b = el("button","exbtn"); b.type="button";
+          var b = el("button","exbtn"+(picked[e.id]?" on":"")); b.type="button";
           b.innerHTML = "<span class='exi'>"+window.exIcon(e.id)+"</span><span>"+nm+"</span>"
-            + (e.share>=1?"<small>main</small>":"<small>assists</small>");
+            + "<span class='extick'>"+(picked[e.id]?"\u2713":"+")+"</span>";
           b.addEventListener("click", function(){
-            closeSheet();
-            setTimeout(function(){ openExerciseEntry(e.id); }, 60);
+            picked[e.id] = !picked[e.id];
+            b.classList.toggle("on", !!picked[e.id]);
+            b.querySelector(".extick").textContent = picked[e.id] ? "\u2713" : "+";
+            refreshCount(); markMap();
           });
           grid.appendChild(b);
         });
         listWrap.appendChild(grid);
       } else {
-        listWrap.appendChild(el("p","tiny","No app-tracked exercise maps here yet \u2014 use the search or the ideas below."));
+        listWrap.appendChild(el("p","tiny","No app-tracked exercise maps here yet \u2014 use the search below."));
       }
-      /* More movement ideas for this muscle, from the open exercise dataset
-         (names only). These are not logged directly; tapping one drops its name
-         into the search so you can pick the closest tracked exercise. */
       var ds = (window.EX_DATASET && window.EX_DATASET[m]) || [];
       if(ds.length){
         listWrap.appendChild(el("div","ntgrp","More ideas for " + (window.caloRecovery.MNAME[m]||m)));
@@ -7554,28 +7605,100 @@ function openAddExercise(preMuscle){
         ds.forEach(function(r){
           var c = el("button","ideachip"); c.type="button";
           c.textContent = r.n + (r.e && r.e!=="body weight" ? " \u00b7 " + r.e : "");
-          c.title = "Search for this";
-          c.addEventListener("click", function(){
-            if(q){ q.value = r.n.split(" ").slice(0,2).join(" "); q.dispatchEvent(new Event("input")); q.scrollIntoView && q.scrollIntoView(); }
-          });
+          c.addEventListener("click", function(){ if(q){ q.value = r.n.split(" ").slice(0,2).join(" "); q.dispatchEvent(new Event("input")); } });
           ideas.appendChild(c);
         });
         listWrap.appendChild(ideas);
-        listWrap.appendChild(el("p","tiny","Exercise names from the open-source exercises-dataset (MIT \u00a9 Hasan Y\u0131ld\u0131r\u0131m). Tap one to search for the closest tracked movement."));
+        listWrap.appendChild(el("p","tiny","Names from the open exercises-dataset (MIT \u00a9 Hasan Y\u0131ld\u0131r\u0131m). Tap to search the closest tracked movement."));
       }
+      // search that ADDS to the picks instead of opening one
+      listWrap.appendChild(el("div","ntgrp","Or search to add"));
+      q = buildPicker("rep", listWrap, "Search exercises", null, {
+        onPick: function(it){
+          var id = it.rowId.replace(/^exrow_/,"").replace(/^row_/,"");
+          picked[id] = true; refreshCount(); markMap();
+          if(q){ q.value=""; q.dispatchEvent(new Event("input")); }
+        },
+        hint: "Type a movement to add it to the session."
+      });
     }
     mapWrap.querySelectorAll(".bmreg").forEach(function(reg){
       reg.addEventListener("click", function(){ showMuscle(reg.getAttribute("data-m")); });
     });
-    listWrap.appendChild(el("div","ntgrp","Or search"));
-    let chosen = splitChips(listWrap, () => { if(q && q.redraw) q.redraw(); });
-    q = buildPicker("rep", listWrap, "Search exercises, or walking, running, cycling", null, {
-      filter: it => (!chosen.size || chosen.has(it.split)),
-      hint: "Type the movement \u2014 squats, bench, walking, cycling."
+
+    reviewBtn.addEventListener("click", function(){
+      var ids = Object.keys(picked).filter(function(k){ return picked[k]; });
+      if(ids.length) openSessionReview(ids, sessionStart);
     });
+
     if(preMuscle) showMuscle(preMuscle);
   });
 }
+
+/* One page: every picked exercise with total-reps and (if weighted) a weight.
+   Work against gravity is computed from the exercise's own movement distance and
+   the body/limb geometry derived from height, so no set-by-set data is needed. */
+function openSessionReview(ids, startTime){
+  openSheet("Enter reps and weight", function(body){
+    body.appendChild(el("p","tiny","Total reps for each, and the weight you used (leave weight at 0 for body-weight moves). Calories come from the work done against gravity \u2014 worked out from the movement and your height."));
+    var rows = {};
+    ids.forEach(function(id){
+      var it = EX_MODES[id]; if(!it) return;
+      var modes = it.modes || ["bw"];
+      var weighted = modes.indexOf("wt") >= 0;
+      var card = el("div","srev");
+      card.appendChild(el("div","srevname", window.exIcon(id) + it.ex.name));
+      var line = el("div","srevline");
+      // reps
+      var repWrap = el("label","srevfield"); repWrap.appendChild(el("span","sl","Total reps"));
+      var rep = el("input"); rep.type="number"; rep.min="0"; rep.inputMode="numeric"; rep.className="num"; rep.value="";
+      rep.placeholder = "0"; repWrap.appendChild(rep); line.appendChild(repWrap);
+      // weight (only if the exercise can be weighted)
+      var wt = null;
+      if(weighted){
+        var wtWrap = el("label","srevfield"); wtWrap.appendChild(el("span","sl", it.ex.wl || "Weight (kg)"));
+        wt = el("input"); wt.type="number"; wt.min="0"; wt.inputMode="decimal"; wt.className="num"; wt.value="";
+        wt.placeholder = it.ex.bw ? "0 = body weight" : "0"; wtWrap.appendChild(wt); line.appendChild(wtWrap);
+      }
+      card.appendChild(line);
+      body.appendChild(card);
+      rows[id] = {rep:rep, wt:wt, weighted:weighted, bw:!!it.ex.bw};
+    });
+
+    var save = el("button","btn primary full"); save.type="button"; save.textContent = "Save session";
+    save.style.marginTop = "12px";
+    save.addEventListener("click", function(){
+      // set the session start time (today) so recovery knows when it was
+      var tt = $("trainTime"); if(tt && /^\d{1,2}:\d{2}$/.test(startTime||"")){ tt.value = startTime; }
+      var wrote = 0;
+      ids.forEach(function(id){
+        var r = rows[id]; if(!r) return;
+        var reps = parseInt(r.rep.value,10) || 0;
+        if(reps <= 0) return;                    // skip anything left blank
+        ensureEntries(id, 1);
+        var kg = r.wt ? (parseFloat(r.wt.value)||0) : 0;
+        var mode = (r.weighted && kg > 0) ? "wt" : "bw";
+        var em = $("em_"+id+"_1"); if(em) em.value = mode;
+        var ew = $("ew_"+id+"_1"); if(ew) ew.value = String(kg);
+        var er = $("er_"+id+"_1");
+        if(er){ er.value = String(reps); er.dispatchEvent(new Event("input",{bubbles:true})); }
+        wrote++;
+      });
+      if(tt){ try { tt.dispatchEvent(new Event("change")); } catch(e){} }
+      try { update(); } catch(e){}
+      closeSheet();
+      // brief confirmation and jump to the Move tab so they see the logged work
+      try { showTab("move"); } catch(e){}
+    });
+    body.appendChild(save);
+
+    var back = el("button","btn ghost full"); back.type="button"; back.textContent = "Back to the body";
+    back.style.marginTop = "8px";
+    back.addEventListener("click", function(){ closeSheet(); setTimeout(function(){ openAddExercise(); }, 60); });
+    body.appendChild(back);
+  });
+}
+
 /* Open one exercise straight into its reps/weight entry (the picker's solo view). */
 function openExerciseEntry(id){
   if(typeof pickerSheet === "function"){
@@ -10251,7 +10374,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.26a";
+  var APP_VERSION = "2026.09.26b";
   var APP_BUILT   = "26 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
