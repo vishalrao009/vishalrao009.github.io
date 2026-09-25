@@ -2721,11 +2721,12 @@ fieldSel($("trainSettings"),"intensity","How hard it felt",
    session. */
 (function(){
   const f = el("div","field");
-  const lab = el("label"); lab.setAttribute("for","trainTime"); lab.textContent = "When you trained (optional)";
+  const lab = el("label"); lab.setAttribute("for","trainTime"); lab.textContent = "When you trained";
   f.appendChild(lab);
   const inp = el("input"); inp.type = "time"; inp.id = "trainTime"; inp.className = "timeinp";
   inp.addEventListener("change", function(){ try { update(); } catch(e){} rememberLast && rememberLast(); });
   f.appendChild(inp);
+  f.appendChild(el("p","tiny","Used by the Recovery tab to know how long ago the session was \u2014 set it once you start. Blank means \u201cnow\u201d for today."));
   $("trainSettings").appendChild(f);
   SETTING_IDS.push("trainTime");
 })();
@@ -5433,7 +5434,11 @@ function openRecMethod(){
 
     body.appendChild(el("div","ntgrp","What changed on 25 Sep 2026"));
     var ch = el("ul","refs");
-    [ "Repair time now depends on your training experience (was one fixed rate for everyone).",
+    [ "Recovery now tracks 22 muscles (added rotator cuff, front/side/rear delts, adductors, abductors, hip flexors, neck and more), each with its own drawn icon.",
+      "Sports and cardio now fatigue muscles too: a game or run is scored by its minutes and how hard it was, and feeds into the muscles it works.",
+      "The training time is used everywhere and is editable per session, today or any past day, from inside each muscle; the recovery updates the moment you change it. An untimed session today counts from now.",
+      "Each muscle sheet now shows the recovery maths with your own numbers plugged in.",
+      "Repair time now depends on your training experience (was one fixed rate for everyone).",
       "Per-muscle recovery factors re-set from the muscle-damage literature: arms and low back slower, legs nearer baseline.",
       "Training-driven MPS curve now decays on a status-dependent time constant (~37 h novice, ~24 h intermediate, ~15 h trained) instead of a flat 20 h.",
       "The protein feeding curve now saturates by body mass (~0.24 g/kg young, ~0.40 g/kg older) rather than a fixed 20 g, with the peak at ~1.5 h.",
@@ -5496,97 +5501,101 @@ function setSessionTime(key, val){
 }
 function openMuscleSheet(muscle){
   var R = window.caloRecovery;
-  var r = R.recoveryOf(muscle, R.sessions(7));
   openSheet(R.MNAME[muscle], function(body){
-    if(!r){ body.appendChild(el("p","tiny","Nothing logged for this muscle in the last 7 days.")); return; }
+    var host = el("div"); body.appendChild(host);
+    function draw(){
+      host.innerHTML = "";
+      var r = R.recoveryOf(muscle, R.sessions(7));
+      if(!r){ host.appendChild(el("p","tiny","Nothing logged for this muscle in the last 7 days.")); return; }
 
-    var head = el("div","rechead");
-    var ring = el("div","recring big");
-    ring.style.background = "conic-gradient(" + recColor(r.rec) + " " + (r.rec*3.6) + "deg, var(--card2) 0)";
-    var inner = el("div","recinner");
-    inner.innerHTML = "<span class='recico big'>" + R.MICON[muscle] + "</span><span class='recpct'>" + r.rec + "%</span>";
-    ring.appendChild(inner); head.appendChild(ring);
-    var hi = el("div");
-    hi.appendChild(el("div","recbig", r.rec >= 90 ? "Ready to train hard" : r.rec >= 65 ? "Partly recovered" : "Still recovering"));
-    hi.appendChild(el("div","tiny", "Last worked " + recAgo(r.lastWhen) + " \u00b7 " +
-      Math.round(r.weekSets) + " sets, " + r.weekReps + " reps this week"));
-    head.appendChild(hi);
-    body.appendChild(head);
+      var head = el("div","rechead");
+      var ring = el("div","recring big");
+      ring.style.background = "conic-gradient(" + recColor(r.rec) + " " + (r.rec*3.6) + "deg, var(--card2) 0)";
+      var inner = el("div","recinner");
+      inner.innerHTML = "<span class='recico big'>" + R.MICON[muscle] + "</span><span class='recpct'>" + r.rec + "%</span>";
+      ring.appendChild(inner); head.appendChild(ring);
+      var hi = el("div");
+      hi.appendChild(el("div","recbig", r.rec >= 90 ? "Ready to train hard" : r.rec >= 65 ? "Partly recovered" : "Still recovering"));
+      hi.appendChild(el("div","tiny", "Last worked " + recAgo(r.lastWhen) + " \u00b7 " +
+        Math.round(r.weekSets) + " sets, " + r.weekReps + " reps this week"));
+      head.appendChild(hi);
+      host.appendChild(head);
 
-    // 7-day bar chart of reps
-    body.appendChild(el("div","ntgrp","This week"));
-    body.appendChild(muscleWeekSVG(r));
+      host.appendChild(el("div","ntgrp","This week"));
+      host.appendChild(muscleWeekSVG(r));
 
-    // recovery driver
-    if(r.driver){
-      var d = r.driver;
-      body.appendChild(el("div","ntgrp","Why it is at " + r.rec + "%"));
-      body.appendChild(el("p","tiny",
-        "The session " + recAgo(d.when) + " left the biggest deficit: " + Math.round(d.sets) + " hard sets"
-        + " (" + Math.round(d.reps) + " reps), felt <b>" + d.intensity + "</b>"
-        + (d.hasTime ? "" : " \u2014 no time was given, so a late-afternoon session is assumed")
-        + ". With " + n1(d.sleep) + " h sleep and protein at " + n1(d.ppk) + " g/kg, full repair takes about "
-        + Math.round(d.baseHours) + " h. " + (r.rec >= 90
-          ? "It has essentially caught up."
-          : "It is " + r.rec + "% of the way back.")));
-    }
+      // ---- the recovery math, with this muscle's numbers plugged in ----
+      if(r.driver){
+        var d = r.driver;
+        host.appendChild(el("div","ntgrp","The maths for " + r.rec + "%"));
+        var tH = Math.max(0, (Date.now() - d.when)/3600000);
+        var Draw = d.damage, T = d.baseHours;
+        host.appendChild(el("p","formula",
+          "damage D = 1 \u2212 e^(\u2212 " + n1(d.sets) + " sets \u00d7 " + n1(intenNum(d.intensity)) + " / 8) = <b>" + n1(Draw) + "</b>"));
+        host.appendChild(el("p","formula",
+          "repair time T = base " + Math.round(d.baseRaw) + " h \u00d7 muscle " + n1(R.REC_F[muscle]||1)
+          + " \u00f7 (sleep " + n1(d.sleepF) + " \u00d7 protein " + n1(d.protF) + ") = <b>" + Math.round(T) + " h</b>"));
+        host.appendChild(el("p","formula",
+          "recovered = 100 \u00d7 ( 1 \u2212 " + n1(Draw) + " \u00d7 e^(\u2212 " + n1(tH) + " h / " + Math.round(T) + " h) ) = <b>" + r.rec + "%</b>"));
+        host.appendChild(el("p","tiny",
+          "The driving session was " + recAgo(d.when) + (d.sport ? " (a game or cardio, scored by minutes and how hard)" : "")
+          + ", felt <b>" + d.intensity + "</b>, with " + n1(d.sleep) + " h sleep and protein at " + n1(d.ppk) + " g/kg. "
+          + (r.hist.length > 1 ? "Other sessions this week heal on their own clocks; the figure above is the least recovered of them. " : "")
+          + "Base repair time comes from your training experience (novices slower). Tap \u201chow it works\u201d on the Recovery tab for the sources."));
+      }
 
-    // progress: reps per session over the week, oldest to newest
-    var withHist = r.hist.slice().reverse();
-    if(withHist.length >= 2){
-      var first = withHist[0].reps, last = withHist[withHist.length-1].reps;
-      var dir = last > first*1.05 ? "up" : last < first*0.95 ? "down" : "steady";
-      body.appendChild(el("div","ntgrp","Progress"));
-      body.appendChild(el("p","tiny",
-        "Reps per session have gone " + (dir === "up" ? "<b>up</b>" : dir === "down" ? "<b>down</b>" : "roughly steady")
-        + " across the week, from " + Math.round(first) + " to " + Math.round(last) + "."
-        + " Rising reps or load over weeks, with recovery kept high, is progressive overload \u2014 the driver of growth."));
-    }
+      var withHist = r.hist.slice().reverse();
+      if(withHist.length >= 2){
+        var first = withHist[0].reps, last = withHist[withHist.length-1].reps;
+        var dir = last > first*1.05 ? "up" : last < first*0.95 ? "down" : "steady";
+        host.appendChild(el("div","ntgrp","Progress"));
+        host.appendChild(el("p","tiny",
+          "Reps per session have gone " + (dir === "up" ? "<b>up</b>" : dir === "down" ? "<b>down</b>" : "roughly steady")
+          + " across the week, from " + Math.round(first) + " to " + Math.round(last) + "."
+          + " Rising reps or load over weeks, with recovery kept high, is progressive overload \u2014 the driver of growth."));
+      }
 
-    // the sessions, each with an editable training time (today or any past day)
-    body.appendChild(el("div","ntgrp","Sessions"));
-    body.appendChild(el("p","tiny","Set when each session was trained \u2014 it changes how long ago it was, "
-      + "and so the recovery above. Works for past days too."));
-    r.hist.forEach(function(h){
-      var names = Object.keys(h.exs).slice(0,4).join(", ");
-      var row = el("div","recsess");
-      var txt = el("div","tiny");
-      txt.innerHTML = "<b>" + recDayLabel(h.key) + "</b> \u00b7 "
-        + Math.round(h.sets) + " sets, " + Math.round(h.reps) + " reps"
-        + (names ? " \u2014 " + names : "");
-      row.appendChild(txt);
-      var t = el("input"); t.type = "time"; t.className = "timeinp recsesstime";
-      var cur = recSessionTime(h.key);
-      if(cur) t.value = cur;
-      t.addEventListener("change", function(){
-        setSessionTime(h.key, t.value);
-        openMuscleSheet(muscle);          // reopen so every figure refreshes
+      host.appendChild(el("div","ntgrp","Sessions \u2014 set the time each was trained"));
+      host.appendChild(el("p","tiny","Changing a time changes how long ago it was, so the recovery above updates at once. Works for today and past days."));
+      r.hist.forEach(function(h){
+        var names = Object.keys(h.exs).slice(0,4).join(", ");
+        var row = el("div","recsess");
+        var txt = el("div","tiny");
+        txt.innerHTML = "<b>" + recDayLabel(h.key) + "</b> \u00b7 "
+          + (h.sport && !h.reps ? Math.round(h.sets) + " load units" : Math.round(h.sets) + " sets, " + Math.round(h.reps) + " reps")
+          + (names ? " \u2014 " + names : "");
+        row.appendChild(txt);
+        var t = el("input"); t.type = "time"; t.className = "timeinp recsesstime";
+        var cur = recSessionTime(h.key); if(cur) t.value = cur;
+        t.addEventListener("change", function(){
+          setSessionTime(h.key, t.value);
+          draw();                                  // rebuild this sheet in place
+          try { if(activeTab === "recovery") renderRecovery(); } catch(e){}
+        });
+        row.appendChild(t);
+        host.appendChild(row);
       });
-      row.appendChild(t);
-      body.appendChild(row);
-    });
 
-    body.appendChild(el("p","tiny",
-      "A muscle is counted for an exercise by how much that lift loads it \u2014 a bench press is mostly chest, "
-      + "with some shoulders and triceps. This muscle is set to recover "
-      + ((R.REC_F[muscle]||1) < 0.95 ? "faster than average" : (R.REC_F[muscle]||1) > 1.05 ? "slower than average" : "at an average pace")
-      + " (a \u00d7" + n1(R.REC_F[muscle]||1) + " factor on repair time). Recovery is a heuristic from rest, "
-      + "protein and sleep, not a measurement."));
-
-    body.appendChild(el("div","ntgrp","Papers and resources"));
-    var refs = el("ul","refs");
-    var refList = (R.REF_MUSCLE[muscle] ? [R.REF_MUSCLE[muscle]] : []).concat(R.REF);
-    refList.forEach(function(rf){
-      var li = el("li");
-      li.innerHTML = rf[0] + " \u2014 <a class='reflink' href='" + rf[1] + "' target='_blank' rel='noopener noreferrer'>open</a>";
-      refs.appendChild(li);
-    });
-    body.appendChild(refs);
-    body.appendChild(el("p","tiny",
-      "These links open a search of the research literature for the topic behind each part of the calculation. "
-      + "They are starting points to read further, not a claim that any single study proves the exact numbers used here."));
+      host.appendChild(el("div","ntgrp","Papers and resources"));
+      var refs = el("ul","refs");
+      var refList = (R.REF_MUSCLE[muscle] ? [R.REF_MUSCLE[muscle]] : []).concat(R.REF);
+      refList.forEach(function(rf){
+        var li = el("li");
+        li.innerHTML = rf[0] + " \u2014 <a class='reflink' href='" + rf[1] + "' target='_blank' rel='noopener noreferrer'>open</a>";
+        refs.appendChild(li);
+      });
+      host.appendChild(refs);
+      host.appendChild(el("p","tiny",
+        "A muscle is counted for an exercise by how much that lift loads it \u2014 a bench press is mostly chest, with some "
+        + "shoulders and triceps. Sports and cardio are scored by minutes and how hard, not sets. This muscle recovers "
+        + ((R.REC_F[muscle]||1) < 0.95 ? "faster than average" : (R.REC_F[muscle]||1) > 1.05 ? "slower than average" : "at an average pace")
+        + " (\u00d7" + n1(R.REC_F[muscle]||1) + " on repair time). Recovery is a heuristic from rest, protein and sleep, not a measurement."));
+    }
+    draw();
   });
 }
+function intenNum(name){ return name === "hard" ? 1.4 : name === "light" ? 0.7 : 1.0; }
+
 function muscleWeekSVG(r){
   var W = 320, H = 120, ml = 8, mr = 8, mt = 10, mb = 22;
   var days = [], today = new Date();
@@ -7484,162 +7493,187 @@ window.caloRecovery = (function(){
     return "<svg viewBox='0 0 24 24' class='micon' aria-hidden='true'>" + (MI[id] || "") + "</svg>";
   }
 
+  // ---- Muscle set. Each has a cleaner hand-drawn SVG icon (24x24, stroke =
+  // currentColor). Icons aim to read as the muscle/limb at a glance.
+  var MI = {
+    // Chest: two curved pec plates with a sternum line
+    chest:"<path d='M12 6v10' stroke-width='1.2'/><path d='M11 6.4c-2.2-1.7-6.2-1.3-7.4.8-1 1.7-.5 4.2 1.4 5.3 2.4 1.4 5.6.4 6-2.1.2-1.3.2-2.9 0-4z'/><path d='M13 6.4c2.2-1.7 6.2-1.3 7.4.8 1 1.7.5 4.2-1.4 5.3-2.4 1.4-5.6.4-6-2.1'/>",
+    // Lats: V-taper torso with wings
+    lats:"<path d='M12 3.5v16' stroke-width='1.2'/><path d='M12 5.2c-2.1 2.8-5.1 4.1-8.1 4.6 1 4.7 3.9 8.3 8.1 11.2 4.2-2.9 7.1-6.5 8.1-11.2-3-.5-6-1.8-8.1-4.6z'/>",
+    // Traps: kite from neck to shoulders
+    traps:"<path d='M12 3.4c-.9 0-1.6.7-1.7 1.6-.1 1-3.4 1.6-5.6 3.4 3 1 4.3 2.9 4.5 5.1h5.6c.2-2.2 1.5-4.1 4.5-5.1-2.2-1.8-5.5-2.4-5.6-3.4-.1-.9-.8-1.6-1.7-1.6z'/><path d='M9.2 13.5c.6 2.7 1.4 5 2.8 7.1 1.4-2.1 2.2-4.4 2.8-7.1'/>",
+    // Lower back: spine with erector columns
+    lower_back:"<path d='M12 3.5v16' stroke-width='1.3'/><path d='M9 5.5c-1.1 4.5-1.1 9.5 0 14M15 5.5c1.1 4.5 1.1 9.5 0 14'/><path d='M10.4 8h3.2M10.2 11h3.6M10.2 14h3.6M10.6 17h2.8'/>",
+    // Shoulders: rounded deltoid cap over an arm
+    shoulders:"<path d='M4.5 12.5c0-4.4 3.4-7.5 7.5-7.5s7.5 3.1 7.5 7.5'/><path d='M4.5 12.5c-.2 3.1.5 6 2.6 8.3M19.5 12.5c.2 3.1-.5 6-2.6 8.3'/><path d='M8 12.5h8'/>",
+    // Front delt (a single cap)
+    front_delt:"<path d='M5 13c0-3.9 3.1-7 7-7s7 3.1 7 7'/><path d='M8.5 13c-.6 2.4-.4 4.9.6 7.2M15.5 13c.6 2.4.4 4.9-.6 7.2'/>",
+    rear_delt:"<path d='M5 13c0-3.9 3.1-7 7-7s7 3.1 7 7'/><path d='M12 6v10' stroke-width='1.1'/><path d='M8.5 20l1.4-6M15.5 20l-1.4-6'/>",
+    rotator:"<circle cx='12' cy='11' r='6'/><path d='M12 5v3M12 14v3M6 11h3M15 11h3M8 7l2 2M16 7l-2 2'/>",
+    // Biceps: flexed arm bump
+    biceps:"<path d='M6.5 4.5v6.4c0 2.6 1.7 4.4 4.2 5l.6 4.1'/><path d='M6.5 10.6c1.5-2.9 4.8-3.3 6.5-1.3 1.4 1.7 1 4.4-1.5 5.3'/>",
+    // Triceps: back of upper arm
+    triceps:"<path d='M9 4v9.5l2.9 6.2'/><path d='M9 7.6c2.5.6 4.5 2.5 5 5 .4 2.1-1 3.9-3 4.3'/>",
+    forearms:"<path d='M5 5.6l7.4 5'/><path d='M12.4 10.6l4.3 1.9c1.9.9 2.9 2.3 2.9 4.2l-3.6.5c-2 .3-4-.4-5.6-1.7L5 5.6'/><path d='M17 12.4l1.5-1.2M18.8 14l1.4-1'/>",
+    // Quads: thigh front, teardrop with center line
+    quads:"<path d='M12 3.5c-3 0-5 2-5 6 0 4.2 1 8.3 2 12.1h6c1-3.8 2-7.9 2-12.1 0-4-2-6-5-6z'/><path d='M12 8v11.2'/><path d='M9.4 9.5c1 4 1 7.6.6 10.8M14.6 9.5c-1 4-1 7.6-.6 10.8'/>",
+    hamstrings:"<path d='M8.6 3.5c-1 5.3-1 11.4 0 17M15.4 3.5c1 5.3 1 11.4 0 17'/><path d='M8.6 4.7c2.3-1 4.5-1 6.8 0'/><path d='M9.4 12c1.7.7 3.5.7 5.2 0'/>",
+    glutes:"<path d='M12 5.2c-4 0-7 2.8-7 6.5 0 3 2 5.1 4.1 5.1 1.5 0 2.6-1.1 2.9-2.7.3 1.6 1.4 2.7 2.9 2.7 2.1 0 4.1-2.1 4.1-5.1 0-3.7-3-6.5-7-6.5z'/><path d='M12 8.2v6'/>",
+    hip_flexor:"<path d='M6 4v7l6 3'/><path d='M12 14l6-2'/><circle cx='12' cy='14' r='1.4'/><path d='M6 11c2 .5 4 1.5 6 3'/>",
+    adductors:"<path d='M8 3.5c-1 5-1 11 0 17M16 3.5c1 5 1 11 0 17'/><path d='M8 5c2.6 3 5.4 3 8 0'/><path d='M9 11c2 1.5 4 1.5 6 0'/>",
+    abductors:"<path d='M9 4c-1 5-1 11 0 16M15 4c1 5 1 11 0 16'/><path d='M4.5 12l2-1.4M4.5 12l2 1.4M19.5 12l-2-1.4M19.5 12l-2 1.4'/>",
+    calves:"<path d='M9.6 3.5c-1.8 3-1.8 7-.9 10.3l-1.1 6.7M14.4 3.5c1.8 3 1.8 7 .9 10.3l1.1 6.7'/><path d='M8.4 6.5c2.4-1.1 4.8-1.1 7.2 0'/><path d='M8.2 10.3c2.5.9 5.1.9 7.6 0'/>",
+    shins:"<path d='M13.6 3.5c-2 4.1-3 9.2-3 14.2l-1 3.3'/><path d='M13.6 3.5l1.4 8.3'/><path d='M11 7.5c1.4-.6 2.9-.6 4.3 0M11 11.6c1.3.7 2.7.7 4 0'/>",
+    abs:"<path d='M6 4.2c0 6.1 1.2 11.9 6 16.3 4.8-4.4 6-10.2 6-16.3'/><path d='M12 5.2v14.7'/><path d='M8 8.2h8M8 11.9h8M8.6 15.5h6.8'/>",
+    obliques:"<path d='M7 4.2c-1.1 5.3-1.1 11.3 1.1 16.3M17 4.2c1.1 5.3 1.1 11.3-1.1 16.3'/><path d='M8 8.4c2.4 1 5.6 1 8 0M8 12c2.4 1 5.6 1 8 0M9 15.4c1.7.8 4.3.8 6 0'/>",
+    neck:"<path d='M9 3.5v4c0 1.6-1 2.4-2.5 3M15 3.5v4c0 1.6 1 2.4 2.5 3'/><path d='M7 10.5c1.5 1.4 2 3.4 2 5.5v4.5M17 10.5c-1.5 1.4-2 3.4-2 5.5v4.5'/><path d='M9 13h6'/>",
+  };
+  function micon(id){
+    return "<svg viewBox='0 0 24 24' class='micon' aria-hidden='true'>" + (MI[id] || MI.chest) + "</svg>";
+  }
+
   var MUSCLES = [
     ["chest",      "Chest"],
-    ["lats",       "Lats (upper back)"],
+    ["lats",       "Lats"],
     ["traps",      "Traps"],
-    ["lower_back", "Lower back"],
-    ["shoulders",  "Shoulders (delts)"],
+    ["rotator",    "Rotator cuff"],
+    ["front_delt", "Front delts"],
+    ["shoulders",  "Side delts"],
+    ["rear_delt",  "Rear delts"],
     ["biceps",     "Biceps"],
     ["triceps",    "Triceps"],
     ["forearms",   "Forearms"],
-    ["quads",      "Quads"],
-    ["hamstrings", "Hamstrings"],
-    ["glutes",     "Glutes"],
-    ["calves",     "Calves"],
-    ["shins",      "Shins (tibialis)"],
     ["abs",        "Abs"],
     ["obliques",   "Obliques"],
+    ["lower_back", "Lower back"],
+    ["glutes",     "Glutes"],
+    ["quads",      "Quads"],
+    ["hamstrings", "Hamstrings"],
+    ["adductors",  "Adductors"],
+    ["abductors",  "Abductors / hips"],
+    ["hip_flexor", "Hip flexors"],
+    ["calves",     "Calves"],
+    ["shins",      "Shins"],
+    ["neck",       "Neck"],
   ];
   var MNAME = {}, MICON = {};
   MUSCLES.forEach(function(m){ MNAME[m[0]] = m[1]; MICON[m[0]] = micon(m[0]); });
 
-  /* How fast a muscle comes back, relative to the baseline. Smaller muscles and
-     those built for endurance (calves, forearms, abs) recover fast; large,
-     eccentric-loaded muscles (hamstrings, lower back, quads) recover slow. A
-     multiplier on the repair time, so <1 is faster, >1 slower. These are rough
-     figures from the damage-and-recovery literature, not exact for any one
-     person. */
-  /* Recovery-time multiplier per muscle. Grounded where direct human data
-     exist and flagged as extrapolation where they do not:
-       - Chen TC et al. 2011 (Eur J Appl Physiol): elbow flexors/extensors take
-         larger force loss and slower recovery than knee flexors/extensors, so
-         arms sit high (~1.3-1.4x).
-       - Soares 2015 (J Strength Cond Res): single-joint work recovers slower
-         than multi-joint, so isolation-heavy groups (biceps, triceps) are >1.
-       - Paulsen 2012 (Exerc Immunol Rev): heavy eccentric / long-length work is
-         slower -> hamstrings and lower back high; the low-back value is low
-         confidence (no controlled human recovery data).
-       - Legs are pre-conditioned by daily walking (repeated-bout effect), so
-         calves/quads are nearer baseline; small high-use muscles (abs) a touch
-         faster. These leg/trunk values are the app's best estimate, not measured. */
+  /* Per-muscle repair-time multiplier. See notes in the previous version: arms and
+     low back slow (Chen 2011, Paulsen 2012), legs nearer baseline (daily use),
+     small stabilisers fast. Values for muscles with no direct data are estimates. */
   var REC_F = {
-    chest:1.0, lats:1.05, traps:0.95, lower_back:1.3, shoulders:0.95,
-    biceps:1.35, triceps:1.3, forearms:1.15, quads:1.1, hamstrings:1.3,
-    glutes:1.05, calves:0.95, shins:0.9, abs:0.85, obliques:0.85,
+    chest:1.0, lats:1.05, traps:0.95, rotator:0.9, front_delt:0.95, shoulders:0.9,
+    rear_delt:0.9, biceps:1.35, triceps:1.3, forearms:1.15, abs:0.85, obliques:0.85,
+    lower_back:1.3, glutes:1.05, quads:1.1, hamstrings:1.3, adductors:1.15,
+    abductors:1.0, hip_flexor:1.0, calves:0.95, shins:0.9, neck:0.85,
   };
 
-  /* exercise id -> { muscle: share }. Prime mover 1, helpers less. Back is split
-     into lats / traps / lower_back; core into abs / obliques; forearms and shins
-     are their own groups. */
+  /* exercise id -> { muscle: share }. "shoulders" now means the side delt; front
+     and rear delts are their own groups. */
   var MAP = {
-    // chest press family
-    bench:{chest:1,triceps:.4,shoulders:.3}, incline_bench:{chest:1,shoulders:.4,triceps:.3},
+    bench:{chest:1,triceps:.4,front_delt:.3}, incline_bench:{chest:1,front_delt:.4,triceps:.3},
     decline_bench:{chest:1,triceps:.4}, close_bench:{triceps:1,chest:.6},
-    smith_bench:{chest:1,triceps:.4,shoulders:.3}, db_bench:{chest:1,triceps:.4,shoulders:.3},
-    db_incline:{chest:1,shoulders:.4,triceps:.3}, db_fly:{chest:1}, pullover:{chest:.7,lats:.5},
-    cable_fly:{chest:1}, pec_deck:{chest:1}, chest_press:{chest:1,triceps:.4,shoulders:.3},
-    pushup:{chest:1,triceps:.5,shoulders:.4,abs:.3}, knee_pushup:{chest:1,triceps:.4,shoulders:.3},
-    incline_pushup:{chest:1,triceps:.4,shoulders:.3}, decline_pushup:{chest:1,shoulders:.5,triceps:.4},
-    diamond_pushup:{triceps:1,chest:.7}, wide_pushup:{chest:1,shoulders:.4}, archer_pushup:{chest:1,triceps:.4},
-    clap_pushup:{chest:1,triceps:.5,shoulders:.4}, dip:{chest:.8,triceps:1,shoulders:.4},
-    bench_dip:{triceps:1,chest:.4}, assisted_dip:{triceps:1,chest:.7,shoulders:.3},
-    // shoulders
-    ohp:{shoulders:1,triceps:.5}, db_shoulder:{shoulders:1,triceps:.4}, arnold:{shoulders:1,triceps:.4},
-    machine_shoulder:{shoulders:1,triceps:.4}, push_press:{shoulders:1,triceps:.4,quads:.3},
-    landmine:{shoulders:1,triceps:.3,abs:.3}, lat_raise:{shoulders:1}, cable_lat:{shoulders:1},
-    front_raise:{shoulders:1}, upright_row:{shoulders:1,traps:.5,biceps:.3}, pike_pushup:{shoulders:1,triceps:.5},
-    hspu:{shoulders:1,triceps:.6}, face_pull:{shoulders:.8,traps:.6}, rear_fly:{shoulders:.8,traps:.4},
-    reverse_pec:{shoulders:.8,traps:.4},
-    // triceps
+    smith_bench:{chest:1,triceps:.4,front_delt:.3}, db_bench:{chest:1,triceps:.4,front_delt:.3},
+    db_incline:{chest:1,front_delt:.4,triceps:.3}, db_fly:{chest:1}, pullover:{chest:.7,lats:.5},
+    cable_fly:{chest:1}, pec_deck:{chest:1}, chest_press:{chest:1,triceps:.4,front_delt:.3},
+    pushup:{chest:1,triceps:.5,front_delt:.4,abs:.3}, knee_pushup:{chest:1,triceps:.4,front_delt:.3},
+    incline_pushup:{chest:1,triceps:.4,front_delt:.3}, decline_pushup:{chest:1,front_delt:.5,triceps:.4},
+    diamond_pushup:{triceps:1,chest:.7}, wide_pushup:{chest:1,front_delt:.4}, archer_pushup:{chest:1,triceps:.4},
+    clap_pushup:{chest:1,triceps:.5,front_delt:.4}, dip:{chest:.8,triceps:1,front_delt:.4},
+    bench_dip:{triceps:1,chest:.4}, assisted_dip:{triceps:1,chest:.7,front_delt:.3},
+    ohp:{front_delt:1,shoulders:.5,triceps:.5}, db_shoulder:{front_delt:1,shoulders:.5,triceps:.4},
+    arnold:{front_delt:1,shoulders:.4,triceps:.4}, machine_shoulder:{front_delt:1,shoulders:.4,triceps:.4},
+    push_press:{front_delt:1,shoulders:.4,triceps:.4,quads:.3}, landmine:{front_delt:1,triceps:.3,abs:.3},
+    lat_raise:{shoulders:1}, cable_lat:{shoulders:1}, front_raise:{front_delt:1},
+    upright_row:{shoulders:1,traps:.5,biceps:.3}, pike_pushup:{front_delt:1,shoulders:.4,triceps:.5},
+    hspu:{front_delt:1,shoulders:.5,triceps:.6}, face_pull:{rear_delt:1,traps:.5,rotator:.4},
+    rear_fly:{rear_delt:1,traps:.4}, reverse_pec:{rear_delt:1,traps:.4},
     tri_ext:{triceps:1}, skullcrusher:{triceps:1}, cable_pushdown:{triceps:1}, oh_tri:{triceps:1},
     kickback:{triceps:1}, b_tri:{triceps:1},
-    // vertical pulls -> lats
-    pullup:{lats:1,biceps:.5,forearms:.3}, chinup:{lats:1,biceps:.6,forearms:.3}, neutral_pullup:{lats:1,biceps:.5,forearms:.3},
-    wide_pullup:{lats:1,biceps:.4}, muscle_up:{lats:1,biceps:.5,triceps:.4,chest:.3},
-    assisted_pullup:{lats:1,biceps:.5}, pulldown:{lats:1,biceps:.4}, straight_pulldown:{lats:1},
-    // horizontal pulls -> lats + traps
-    row:{lats:1,traps:.5,biceps:.4}, inverted_row:{lats:1,traps:.4,biceps:.4}, db_row:{lats:1,traps:.4,biceps:.4},
-    tbar_row:{lats:1,traps:.5,biceps:.4}, cable_row:{lats:1,traps:.4,biceps:.4}, machine_row:{lats:1,traps:.4,biceps:.4},
-    b_row:{lats:1,traps:.4,biceps:.4},
-    // traps
-    shrug_bb:{traps:1,forearms:.3}, shrug_db:{traps:1,forearms:.3},
-    // biceps and forearms
+    pullup:{lats:1,biceps:.5,forearms:.3,rear_delt:.3}, chinup:{lats:1,biceps:.6,forearms:.3},
+    neutral_pullup:{lats:1,biceps:.5,forearms:.3}, wide_pullup:{lats:1,biceps:.4,rear_delt:.3},
+    muscle_up:{lats:1,biceps:.5,triceps:.4,chest:.3}, assisted_pullup:{lats:1,biceps:.5},
+    pulldown:{lats:1,biceps:.4}, straight_pulldown:{lats:1},
+    row:{lats:1,traps:.5,rear_delt:.4,biceps:.4}, inverted_row:{lats:1,traps:.4,biceps:.4},
+    db_row:{lats:1,traps:.4,biceps:.4,rear_delt:.3}, tbar_row:{lats:1,traps:.5,biceps:.4},
+    cable_row:{lats:1,traps:.4,biceps:.4}, machine_row:{lats:1,traps:.4,biceps:.4},
+    b_row:{lats:1,traps:.4,biceps:.4}, shrug_bb:{traps:1,forearms:.3}, shrug_db:{traps:1,forearms:.3},
     curl:{biceps:1,forearms:.3}, hammer_curl:{biceps:1,forearms:.5}, preacher_curl:{biceps:1},
     conc_curl:{biceps:1}, cable_curl:{biceps:1,forearms:.3}, incline_curl:{biceps:1},
     reverse_curl:{forearms:1,biceps:.5}, wrist_curl:{forearms:1}, b_curl:{biceps:1,forearms:.3},
-    // hip hinge -> hamstrings + glutes + lower back (+traps at lockout for deadlifts)
     deadlift:{hamstrings:1,glutes:.8,lower_back:.8,traps:.4,forearms:.4},
-    sumo_dl:{glutes:1,hamstrings:.7,quads:.4,lower_back:.6},
+    sumo_dl:{glutes:1,hamstrings:.7,quads:.4,lower_back:.6,adductors:.4},
     rdl:{hamstrings:1,glutes:.7,lower_back:.6}, stiff_leg:{hamstrings:1,glutes:.6,lower_back:.6},
     trap_dl:{quads:.7,glutes:.8,lower_back:.7,traps:.4}, rack_pull:{lower_back:.8,traps:.6,glutes:.6},
     db_rdl:{hamstrings:1,glutes:.7,lower_back:.5}, good_morning:{hamstrings:1,glutes:.6,lower_back:.7},
     back_ext:{lower_back:1,glutes:.5,hamstrings:.5},
-    // knee-dominant -> quads
     squat:{quads:1,glutes:.7,lower_back:.3,abs:.3}, back_squat:{quads:1,glutes:.7,lower_back:.4,abs:.3},
-    front_squat:{quads:1,glutes:.6,abs:.4,lower_back:.3}, goblet_squat:{quads:1,glutes:.6}, smith_squat:{quads:1,glutes:.6},
-    hack_squat:{quads:1,glutes:.5}, leg_press:{quads:1,glutes:.6}, lunge:{quads:1,glutes:.7},
-    bulgarian:{quads:1,glutes:.8}, split_squat:{quads:1,glutes:.7}, pistol:{quads:1,glutes:.6},
-    stepup:{quads:1,glutes:.6}, leg_ext:{quads:1}, jsquat:{quads:1,glutes:.6,calves:.4,shins:.3},
-    box_jump:{quads:1,glutes:.6,calves:.5,shins:.4}, wall_ball:{quads:.8,shoulders:.6,glutes:.4},
-    thruster:{quads:.9,shoulders:.7,glutes:.4},
-    // hamstrings / glutes isolation
+    front_squat:{quads:1,glutes:.6,abs:.4,lower_back:.3}, goblet_squat:{quads:1,glutes:.6},
+    smith_squat:{quads:1,glutes:.6}, hack_squat:{quads:1,glutes:.5}, leg_press:{quads:1,glutes:.6},
+    lunge:{quads:1,glutes:.7,adductors:.3}, bulgarian:{quads:1,glutes:.8,adductors:.3},
+    split_squat:{quads:1,glutes:.7}, pistol:{quads:1,glutes:.6}, stepup:{quads:1,glutes:.6},
+    leg_ext:{quads:1}, jsquat:{quads:1,glutes:.6,calves:.4,shins:.3},
+    box_jump:{quads:1,glutes:.6,calves:.5,shins:.4}, wall_ball:{quads:.8,front_delt:.6,glutes:.4},
+    thruster:{quads:.9,front_delt:.7,glutes:.4},
     leg_curl:{hamstrings:1}, glute:{glutes:1,hamstrings:.4}, hip_thrust:{glutes:1,hamstrings:.4},
-    cable_kickback:{glutes:1}, abductor:{glutes:.8}, adductor:{quads:.4,glutes:.4},
-    // calves
+    cable_kickback:{glutes:1,hip_flexor:.2}, abductor:{abductors:1,glutes:.5}, adductor:{adductors:1},
     calf:{calves:1}, seated_calf:{calves:1},
-    // core -> abs / obliques
-    situp:{abs:1,obliques:.3}, legraise:{abs:1}, hanging_leg_raise:{abs:1,forearms:.3}, hanging_knee:{abs:1},
-    toes_to_bar:{abs:1,lats:.4,forearms:.3}, cable_crunch:{abs:1}, decline_situp:{abs:1,obliques:.3}, v_up:{abs:1},
+    situp:{abs:1,hip_flexor:.4,obliques:.3}, legraise:{abs:1,hip_flexor:.5}, hanging_leg_raise:{abs:1,hip_flexor:.5,forearms:.3},
+    hanging_knee:{abs:1,hip_flexor:.4}, toes_to_bar:{abs:1,hip_flexor:.4,lats:.4,forearms:.3},
+    cable_crunch:{abs:1}, decline_situp:{abs:1,hip_flexor:.4,obliques:.3}, v_up:{abs:1,hip_flexor:.4},
     bicycle_crunch:{abs:.8,obliques:.8}, russian_twist:{obliques:1,abs:.5}, ab_wheel:{abs:1,lats:.3},
-    // full body / olympic
-    burpee:{quads:.6,chest:.5,abs:.4,shoulders:.4}, kb_swing:{glutes:.9,hamstrings:.7,lower_back:.5,shoulders:.3,forearms:.3},
-    power_clean:{quads:.7,glutes:.7,traps:.6,lower_back:.6,shoulders:.5}, hang_clean:{quads:.6,traps:.6,lower_back:.5,shoulders:.5},
-    clean_jerk:{quads:.7,shoulders:.8,glutes:.6,traps:.5,lower_back:.5}, snatch:{shoulders:.8,quads:.6,traps:.6,lower_back:.5,glutes:.5},
-    db_snatch:{shoulders:.8,quads:.5,traps:.4}, tgu:{shoulders:.8,abs:.8,obliques:.5},
-    b_sho:{shoulders:1}, b_leg:{glutes:.8,hamstrings:.5},
+    burpee:{quads:.6,chest:.5,abs:.4,front_delt:.4}, kb_swing:{glutes:.9,hamstrings:.7,lower_back:.5,front_delt:.3,forearms:.3},
+    power_clean:{quads:.7,glutes:.7,traps:.6,lower_back:.6,front_delt:.5}, hang_clean:{quads:.6,traps:.6,lower_back:.5,front_delt:.5},
+    clean_jerk:{quads:.7,front_delt:.8,glutes:.6,traps:.5,lower_back:.5}, snatch:{front_delt:.8,quads:.6,traps:.6,lower_back:.5,glutes:.5},
+    db_snatch:{front_delt:.8,quads:.5,traps:.4}, tgu:{front_delt:.8,abs:.8,obliques:.5,rotator:.3},
+    b_sho:{shoulders:1,front_delt:.5}, b_leg:{glutes:.8,hamstrings:.5},
   };
-  /* Fallback by split, so a movement with no fine map still lands somewhere. */
   var SPLIT_FALL = {
-    push:{chest:.7,shoulders:.5,triceps:.5}, pull:{lats:.8,biceps:.5},
+    push:{chest:.7,front_delt:.5,triceps:.5}, pull:{lats:.8,biceps:.5,rear_delt:.3},
     legs:{quads:.7,glutes:.6,hamstrings:.4}, core:{abs:.9,obliques:.4}, full:{abs:.4,quads:.4,lats:.4},
   };
 
-  /* References behind the recovery figures. I cannot verify these live, so each
-     is a resource link (a PubMed search or a stable page) rather than a claim of
-     an exact paper — follow it and check. */
-  /* The papers whose findings the numbers here are built from. Links are to
-     PubMed by ID / to the DOI. I compiled these without a live database, so the
-     figures come from the record as I hold it - worth checking each ID. */
-  var REF = [
-    ["Paulsen G et al. 2012 — how damage severity sets recovery time (mild <48 h, moderate 2-7 d)",
-     "https://pubmed.ncbi.nlm.nih.gov/22876722/"],
-    ["Phillips SM et al. 1997 — muscle protein synthesis time course after resistance exercise",
-     "https://pubmed.ncbi.nlm.nih.gov/9252485/"],
-    ["Morán-Navarro R et al. 2017 — training to failure delays recovery 24-48 h",
-     "https://doi.org/10.1007/s00421-017-3725-7"],
-    ["Schoenfeld BJ et al. 2017 — weekly set volume dose-response for growth",
-     "https://pubmed.ncbi.nlm.nih.gov/27433992/"],
-    ["Lamon S et al. 2021 — one night of sleep loss cut muscle protein synthesis ~18%",
-     "https://doi.org/10.14814/phy2.14660"],
-    ["Morton RW et al. 2018 — protein benefit for training plateaus ~1.62 g/kg/day",
-     "https://pubmed.ncbi.nlm.nih.gov/28698222/"],
-  ];
-  /* A muscle-specific paper, where a direct one exists. */
-  var REF_MUSCLE = {
-    biceps:     ["Chen TC et al. 2011 — elbow flexors take the most damage and slowest recovery of four limb muscles", "https://doi.org/10.1007/s00421-010-1648-7"],
-    triceps:    ["Soares S et al. 2015 — single-joint arm work recovers slower than multi-joint", "https://pubmed.ncbi.nlm.nih.gov/25932981/"],
-    forearms:   ["Chen TC et al. 2011 — arm muscles are slower to recover than leg muscles", "https://doi.org/10.1007/s00421-010-1648-7"],
-    hamstrings: ["Jamurtas AZ et al. 2005 — arm vs leg eccentric damage at matched intensity", "https://doi.org/10.1007/s00421-005-1345-0"],
-    quads:      ["Chen TC et al. 2011 — knee extensors recover faster than arm muscles", "https://doi.org/10.1007/s00421-010-1648-7"],
-    lower_back: ["Paulsen G et al. 2012 — heavy/eccentric load is slow to recover (low-back estimate is uncertain)", "https://pubmed.ncbi.nlm.nih.gov/22876722/"],
+  /* Sports and conditioning fatigue the muscles too. A game is not sets and reps,
+     so it is scored by minutes and how hard it was: fatigue points ~ minutes/30 x
+     intensity, spread over the muscles that sport leans on. These are broad-brush
+     maps, not measurements. Cardio movements (running, cycling) are here too. */
+  var SPORT_MUSCLE = {
+    sp_cricket:{shoulders:.4,forearms:.4,quads:.4,obliques:.3,calves:.3},
+    sp_football:{quads:.9,hamstrings:.8,glutes:.7,calves:.7,adductors:.5,hip_flexor:.5},
+    sp_hockey:{quads:.8,hamstrings:.7,glutes:.6,lower_back:.5,forearms:.4,calves:.5},
+    sp_tennis:{shoulders:.6,forearms:.6,quads:.6,calves:.5,obliques:.4,rotator:.3},
+    sp_basketball:{quads:.9,calves:.8,hamstrings:.6,glutes:.6,shins:.4,shoulders:.3},
+    sp_volleyball:{quads:.7,calves:.7,front_delt:.6,shoulders:.5,abs:.4},
+    sp_skating:{quads:.9,glutes:.7,adductors:.7,calves:.6,hamstrings:.5},
+    sp_badminton:{quads:.6,calves:.6,forearms:.5,shoulders:.5,shins:.3},
+    sp_tt:{forearms:.5,shoulders:.4,obliques:.3,quads:.3},
+    sp_swim:{lats:.8,shoulders:.7,rear_delt:.5,triceps:.5,core:.4,glutes:.4},
+    c_skip:{calves:.9,shins:.5,quads:.4,forearms:.3},
+    c_hiit:{quads:.7,glutes:.6,hamstrings:.5,abs:.4,calves:.4},
+    c_mtn:{abs:.7,hip_flexor:.6,front_delt:.4,quads:.4},
+    c_jj:{calves:.7,shoulders:.5,quads:.4},
+    c_rower:{lats:.7,quads:.7,glutes:.5,biceps:.4,lower_back:.4},
+    c_ellip:{quads:.6,glutes:.5,hamstrings:.4,calves:.4},
+    c_stair:{quads:.8,glutes:.7,calves:.6,hamstrings:.4},
+    c_bike:{quads:.8,glutes:.5,hamstrings:.4,calves:.4},
+    run:{quads:.7,hamstrings:.7,calves:.8,glutes:.6,shins:.5,hip_flexor:.4},
+    walk:{calves:.4,quads:.3,glutes:.3,shins:.2},
+    cycle:{quads:.8,glutes:.5,hamstrings:.4,calves:.4},
   };
+  /* A sport's "hard sets equivalent" for the damage model: 30 min of moderate
+     play ~= a couple of hard sets' worth of local fatigue at share 1. */
+  function sportSetsEquiv(minutes, level){
+    var lvl = level === "hard" ? 1.4 : level === "easy" ? 0.6 : 1.0;
+    return Math.max(0, (minutes/30) * 1.6 * lvl);   // per unit share
+  }
 
   function musclesFor(exId){
     if(MAP[exId]) return MAP[exId];
     var sp = (typeof SPLIT === "object" && SPLIT[exId]) || "full";
     return SPLIT_FALL[sp] || SPLIT_FALL.full;
   }
+
 
   /* Model constants.
      REC_BASE is the repair time for a moderate session's muscle, and it depends
@@ -7648,6 +7682,28 @@ window.caloRecovery = (function(){
      up at 48 h), while trained lifters are largely back by ~24-36 h (Kim PL et
      al. 2005; Tang JE et al. 2008; MacDougall JD et al. 1995). Paulsen G et al.
      2012 puts mild damage recovery within ~48 h and moderate at ~2-7 days. */
+  var REF = [
+    ["Paulsen G et al. 2012 \u2014 how damage severity sets recovery time (mild <48 h, moderate 2-7 d)",
+     "https://pubmed.ncbi.nlm.nih.gov/22876722/"],
+    ["Phillips SM et al. 1997 \u2014 muscle protein synthesis time course after resistance exercise",
+     "https://pubmed.ncbi.nlm.nih.gov/9252485/"],
+    ["Mor\u00e1n-Navarro R et al. 2017 \u2014 training to failure delays recovery 24-48 h",
+     "https://doi.org/10.1007/s00421-017-3725-7"],
+    ["Schoenfeld BJ et al. 2017 \u2014 weekly set volume dose-response for growth",
+     "https://pubmed.ncbi.nlm.nih.gov/27433992/"],
+    ["Lamon S et al. 2021 \u2014 one night of sleep loss cut muscle protein synthesis ~18%",
+     "https://doi.org/10.14814/phy2.14660"],
+    ["Morton RW et al. 2018 \u2014 protein benefit for training plateaus ~1.62 g/kg/day",
+     "https://pubmed.ncbi.nlm.nih.gov/28698222/"],
+  ];
+  var REF_MUSCLE = {
+    biceps:     ["Chen TC et al. 2011 \u2014 elbow flexors take the most damage and slowest recovery of four limb muscles", "https://doi.org/10.1007/s00421-010-1648-7"],
+    triceps:    ["Soares S et al. 2015 \u2014 single-joint arm work recovers slower than multi-joint", "https://pubmed.ncbi.nlm.nih.gov/25932981/"],
+    forearms:   ["Chen TC et al. 2011 \u2014 arm muscles are slower to recover than leg muscles", "https://doi.org/10.1007/s00421-010-1648-7"],
+    hamstrings: ["Jamurtas AZ et al. 2005 \u2014 arm vs leg eccentric damage at matched intensity", "https://doi.org/10.1007/s00421-005-1345-0"],
+    quads:      ["Chen TC et al. 2011 \u2014 knee extensors recover faster than arm muscles", "https://doi.org/10.1007/s00421-010-1648-7"],
+    lower_back: ["Paulsen G et al. 2012 \u2014 heavy/eccentric load is slow to recover (low-back estimate is uncertain)", "https://pubmed.ncbi.nlm.nih.gov/22876722/"],
+  };
   var REC_BASE_BY_LEVEL = { beginner:60, intermediate:44, advanced:34 };
   function recBase(){
     var lv = "intermediate";
@@ -7693,15 +7749,25 @@ window.caloRecovery = (function(){
       var d;
       try { d = isToday ? (lastD || compute()) : (snap ? usingSnapshot(snap, compute) : null); }
       catch(e){ d = null; }
-      if(!d || !d.st || !d.st.byEx || !d.st.byEx.length) return;
+      if(!d || !d.st) return;
+      var hasStrength = d.st.byEx && d.st.byEx.length;
+      var hasSport = Object.keys(SPORT_MUSCLE).some(function(id){
+        return (isToday ? (+($("t_"+id)||{}).value || 0) : (+(snap && snap["t_"+id]) || 0)) > 0;
+      });
+      if(!hasStrength && !hasSport) return;
 
       var parts = String(k).split("-");
       var tstr = (isToday ? ((document.getElementById("trainTime")||{}).value)
                           : (snap && snap.trainTime)) || "";
-      var hh = 18, mm = 0;
       var tm = /^(\d{1,2}):(\d{2})$/.exec(tstr);
-      if(tm){ hh = +tm[1]; mm = +tm[2]; }
-      var when = new Date(+parts[0], +parts[1]-1, +parts[2], hh, mm).getTime();
+      var when;
+      if(tm){
+        when = new Date(+parts[0], +parts[1]-1, +parts[2], +tm[1], +tm[2]).getTime();
+      } else if(isToday){
+        when = Date.now();                       // logged today, no time yet -> just now
+      } else {
+        when = new Date(+parts[0], +parts[1]-1, +parts[2], 18, 0).getTime();  // past day: assume 6pm
+      }
       if(when < cutoff) return;
 
       var byMuscle = {};
@@ -7715,6 +7781,35 @@ window.caloRecovery = (function(){
           b.exs[e.name] = (b.exs[e.name]||0) + e.reps;
         });
       });
+      /* Sports, conditioning and cardio also fatigue muscles. Read their minutes
+         and how-hard directly off the controls (live for today, snapshot for a
+         past day) and convert to a "sets-equivalent" of local fatigue. */
+      function minsOf(id){ return isToday ? (+($("t_"+id)||{}).value || 0) : (+(snap && snap["t_"+id]) || 0); }
+      function lvlOf(id){
+        var v = isToday ? (($("spl_"+id)||{}).value) : (snap && snap["spl_"+id]);
+        return v || "med";
+      }
+      Object.keys(SPORT_MUSCLE).forEach(function(id){
+        var mins = minsOf(id); if(!(mins > 0)) return;
+        var lvl = lvlOf(id);
+        var lvlWord = lvl === "hard" ? "hard" : lvl === "easy" ? "light" : "moderate";
+        var equiv = sportSetsEquiv(mins, lvl);
+        var nm = id;
+        try { for(var _i=0;_i<SPORTS.length;_i++){ if(SPORTS[_i][0]===id){ nm=SPORTS[_i][1]; break; } }
+              if(nm===id){ [].concat(typeof COND!=="undefined"?COND:[], typeof CARDIO!=="undefined"?CARDIO:[]).forEach(function(a){ if(a[0]===id) nm=a[1]; }); }
+        } catch(e){}
+        var shares = SPORT_MUSCLE[id];
+        Object.keys(shares).forEach(function(m){
+          if(!MNAME[m]) return;              // skip "core" alias etc.
+          var sh = shares[m];
+          var b = byMuscle[m] || (byMuscle[m] = {sets:0, reps:0, exs:{}});
+          b.sets += equiv * sh;              // fatigue in set-equivalents
+          b.mins = (b.mins||0) + mins*sh;
+          b.exs[nm] = (b.exs[nm]||0);        // named, reps unknown for a game
+          b.sport = true;
+        });
+      });
+      if(!Object.keys(byMuscle).length) return;
 
       var sleep = isToday ? (+($("sleep")||{}).value || 7) : (+(snap && snap.sleep) || 7);
       var unbroken = isToday ? (+($("sleepUnbroken")||{}).value || 0) : (+(snap && snap.sleepUnbroken) || 0);
@@ -7755,12 +7850,15 @@ window.caloRecovery = (function(){
       weekSets += b.sets; weekReps += b.reps;
       if(s.when > lastWhen) lastWhen = s.when;
       var D = 1 - Math.exp(-(b.sets * intenScale(s.intensity)) / SET_K);
-      var BH = recBase() * (0.6 + 0.8*D) * (REC_F[muscle] || 1);
-      var M = sleepFactor(s.sleep, s.unbroken) * proteinFactor(s.ppk);
+      var baseRaw = recBase();
+      var sleepF = sleepFactor(s.sleep, s.unbroken), protF = proteinFactor(s.ppk);
+      var BH = baseRaw * (0.6 + 0.8*D) * (REC_F[muscle] || 1);
+      var M = sleepF * protF;
       var tHours = Math.max(0, (now - s.when)/3600000);
       var rec = 100 * (1 - D * Math.exp(-tHours / (BH / M)));
       hist.push({ key:s.key, when:s.when, sets:b.sets, reps:b.reps, exs:b.exs,
-                  damage:D, baseHours:BH/M, rec:rec, sleep:s.sleep, ppk:s.ppk,
+                  damage:D, baseHours:BH/M, baseRaw:baseRaw, sleepF:sleepF, protF:protF,
+                  rec:rec, sleep:s.sleep, ppk:s.ppk, sport:!!b.sport,
                   intensity:s.intensity, today:s.today, hasTime:s.hasTime });
       if(rec < worst){ worst = rec; driver = hist[hist.length-1]; }
     });
@@ -8413,7 +8511,8 @@ window.caloMeals = (function(){
     if(!st || !(st.sets > 0)) return null;
     var tstr = (document.getElementById("trainTime")||{}).value || "";
     var tm = /^(\d{1,2}):(\d{2})$/.exec(tstr);
-    var atMin = tm ? (+tm[1])*60 + (+tm[2]) : 17*60;   // default 5pm
+    var nowM = (new Date().getHours())*60 + new Date().getMinutes();
+    var atMin = tm ? (+tm[1])*60 + (+tm[2]) : nowM;   // no time given -> treat as now
     return { at:anchorMin(atMin), wall:atMin, sets:st.sets, amp:R.trainingMPSAmp(st.sets), hasTime:!!tm };
   }
   function mpsSeries(sittings){
@@ -9889,7 +9988,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.25c";
+  var APP_VERSION = "2026.09.25d";
   var APP_BUILT   = "25 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
