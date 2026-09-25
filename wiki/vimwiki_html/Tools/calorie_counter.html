@@ -545,7 +545,25 @@ body{top:0!important}
 .bodymap .bmreg{cursor:pointer;transition:opacity .12s}
 .bodymap .bmreg:hover{opacity:.82}
 .bodymap .bmreg.sel{stroke:var(--ink);stroke-width:1.8}
-.bodymap .bmlab{fill:var(--muted);font-size:8px;font-family:var(--sans);text-transform:uppercase;letter-spacing:.06em}
+.bodymap .bmlab{fill:var(--muted);font-size:9px;font-family:var(--sans);text-transform:uppercase;letter-spacing:.06em}
+.bodymapwrap.pick .bodymap{max-width:340px}
+.recwarn{background:var(--out-bg,rgba(200,120,0,.12));border:1px solid var(--out);border-radius:var(--r-sm);
+  padding:10px 12px;font-size:13px;color:var(--ink);margin:2px 0 10px;line-height:1.45}
+.exlist{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:4px 0 10px}
+@media(max-width:380px){ .exlist{grid-template-columns:1fr} }
+.exbtn{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--card2);
+  border-radius:var(--r-sm);padding:9px 11px;cursor:pointer;text-align:left;font-size:13.5px;color:var(--ink)}
+.exbtn:active{background:var(--out-bg)}
+.exbtn .exi{flex:none;width:20px;height:20px}
+.exbtn .exi svg{width:20px;height:20px;stroke:var(--ink);fill:none;stroke-width:1.6}
+.exbtn small{margin-left:auto;color:var(--muted);font-size:10.5px}
+.bodyfull{position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;flex-direction:column;
+  padding-top:env(safe-area-inset-top,0);padding-bottom:env(safe-area-inset-bottom,0)}
+.bodyfullbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;
+  font-family:var(--serif);font-size:16px;color:var(--ink);border-bottom:1px solid var(--line)}
+.bodyfullx{border:0;background:none;font-size:28px;line-height:1;color:var(--muted);cursor:pointer;padding:0 4px}
+.bodyfullmap{flex:1;display:flex;align-items:center;justify-content:center;padding:10px;overflow:auto}
+.bodyfullmap .bodymap{width:100%;height:100%;max-width:none;max-height:100%}
 .recsess{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:4px 0}
 .recsess .timeinp{flex:none;width:112px}
 .mwin b{display:block}
@@ -3369,7 +3387,9 @@ function buildPicker(kind, body, placeholder, after, opts){
      exercises to pick from first. The search box stays above for the rarer case
      of a run or ride. */
   if(opts.autoOpenId){
-    const it = CATALOG[kind].find(x => x.rowId === "row_" + opts.autoOpenId);
+    /* Exercise rows use the "exrow_" prefix, food/others use "row_". Match either. */
+    const it = CATALOG[kind].find(x => x.rowId === "row_" + opts.autoOpenId
+                                     || x.rowId === "exrow_" + opts.autoOpenId);
     if(it) openItem(it);
   }
   return q;
@@ -5468,92 +5488,90 @@ function openRecMethod(){
    stock art — simple geometric regions on a schematic body.
    ================================================================== */
 function bodyMapSVG(recByMuscle){
-  function fill(m){
-    var r = recByMuscle[m];
-    return (r == null) ? "var(--card2)" : recColor(r);
-  }
+  function fill(m){ var r = recByMuscle[m]; return (r == null) ? "var(--card2)" : recColor(r); }
   function P(m, d){
+    var r = recByMuscle[m];
     return "<path class='bmreg' data-m='" + m + "' d='" + d + "' fill='" + fill(m)
-         + "' stroke='var(--card)' stroke-width='0.8'><title>" + (window.caloRecovery.MNAME[m] || m)
-         + (recByMuscle[m]!=null ? " — " + recByMuscle[m] + "%" : "") + "</title></path>";
+      + "' stroke='var(--card)' stroke-width='1'><title>" + (window.caloRecovery.MNAME[m] || m)
+      + (r!=null ? " \u2014 " + r + "%" : " \u2014 not trained") + "</title></path>";
   }
-  /* ---- FRONT view (viewBox 0 0 120 240) ---- */
+  function base(d){ return "<path d='" + d + "' fill='var(--card2)' stroke='var(--line)' stroke-width='1'/>"; }
+  /* FRONT figure, viewBox 0 0 120 300 */
   var front = ""
-    // head + neck outline (not a muscle region for the neck front; neck is drawn)
-    + "<circle cx='60' cy='18' r='10' fill='var(--card2)' stroke='var(--line)' stroke-width='0.8'/>"
-    + P("neck", "M53 27 h14 v6 q-7 4 -14 0 z")
-    // torso silhouette base
-    + "<path d='M40 34 q20 -6 40 0 l4 40 q-24 8 -48 0 z' fill='var(--card2)' stroke='var(--line)' stroke-width='0.8'/>"
-    // shoulders (side delts) + front delts
-    + P("front_delt", "M40 34 q-8 2 -10 12 q6 3 12 1 q1 -8 8 -11 z")
-    + P("front_delt", "M80 34 q8 2 10 12 q-6 3 -12 1 q-1 -8 -8 -11 z")
-    + P("shoulders", "M30 46 q-4 4 -3 10 q5 1 8 -2 q0 -5 2 -8 z")
-    + P("shoulders", "M90 46 q4 4 3 10 q-5 1 -8 -2 q0 -5 -2 -8 z")
-    // chest
-    + P("chest", "M46 40 q14 -4 28 0 q1 10 -2 16 q-12 4 -24 0 q-3 -6 -2 -16 z")
-    // biceps (front upper arm)
-    + P("biceps", "M28 56 q-3 10 -1 20 q5 1 8 -2 q0 -10 1 -18 z")
-    + P("biceps", "M92 56 q3 10 1 20 q-5 1 -8 -2 q0 -10 -1 -18 z")
-    // forearms
-    + P("forearms", "M27 76 q-3 12 -2 22 q4 1 7 0 q1 -12 3 -22 z")
-    + P("forearms", "M93 76 q3 12 2 22 q-4 1 -7 0 q-1 -12 -3 -22 z")
-    // abs
-    + P("abs", "M50 58 q10 3 20 0 l-2 26 q-8 3 -16 0 z")
-    // obliques (flanks)
-    + P("obliques", "M46 58 q-3 12 -1 24 q3 1 5 0 l1 -24 z")
-    + P("obliques", "M74 58 q3 12 1 24 q-3 1 -5 0 l-1 -24 z")
-    // hip flexors / lower belly
-    + P("hip_flexor", "M50 84 q10 3 20 0 l-2 8 q-8 2 -16 0 z")
-    // quads
-    + P("quads", "M48 94 q7 3 12 0 q1 22 -3 40 q-6 2 -9 0 q-2 -20 0 -40 z")
-    + P("quads", "M72 94 q-7 3 -12 0 q-1 22 3 40 q6 2 9 0 q2 -20 0 -40 z")
-    // adductors (inner thigh)
-    + P("adductors", "M58 96 h4 q1 18 -1 34 q-2 1 -3 0 q-1 -17 0 -34 z")
-    // shins (front lower leg)
-    + P("shins", "M49 138 q6 2 10 0 q1 20 -1 40 q-4 1 -7 0 q-2 -20 -2 -40 z")
-    + P("shins", "M71 138 q-6 2 -10 0 q-1 20 1 40 q4 1 7 0 q2 -20 2 -40 z");
-
-  /* ---- BACK view (offset x by 130; total width 260) ---- */
-  function Pb(m, d){ return P(m, d); }   // same helper, coordinates already offset
+    + "<circle cx='60' cy='24' r='13' fill='var(--card2)' stroke='var(--line)'/>"
+    + base("M44 40 q16 -5 32 0 l6 52 q-6 30 -8 70 q-3 60 -6 110 h-16 q-3 -50 -6 -110 q-2 -40 -8 -70 z")
+    + P("neck","M52 36 h16 v8 q-8 5 -16 0 z")
+    + P("front_delt","M44 42 q-11 2 -14 16 q8 4 16 1 q1 -10 10 -14 z")
+    + P("front_delt","M76 42 q11 2 14 16 q-8 4 -16 1 q-1 -10 -10 -14 z")
+    + P("shoulders","M30 58 q-5 6 -4 14 q7 2 11 -3 q0 -7 3 -11 z")
+    + P("shoulders","M90 58 q5 6 4 14 q-7 2 -11 -3 q0 -7 -3 -11 z")
+    + P("chest","M45 48 q15 -5 30 0 q2 13 -3 22 q-12 5 -24 0 q-5 -9 -3 -22 z")
+    + P("biceps","M28 74 q-4 13 -2 26 q7 2 11 -2 q0 -13 2 -24 z")
+    + P("biceps","M92 74 q4 13 2 26 q-7 2 -11 -2 q0 -13 -2 -24 z")
+    + P("forearms","M26 100 q-4 16 -3 30 q6 2 10 0 q1 -16 4 -30 z")
+    + P("forearms","M94 100 q4 16 3 30 q-6 2 -10 0 q-1 -16 -4 -30 z")
+    + P("abs","M50 72 q10 4 20 0 l-2 34 q-8 4 -16 0 z")
+    + P("obliques","M45 72 q-4 16 -2 32 q4 1 6 0 l1 -32 z")
+    + P("obliques","M75 72 q4 16 2 32 q-4 1 -6 0 l-1 -32 z")
+    + P("hip_flexor","M50 106 q10 4 20 0 l-2 12 q-8 3 -16 0 z")
+    + P("pelvic","M52 118 q8 4 16 0 q-2 9 -8 12 q-6 -3 -8 -12 z")
+    + P("quads","M46 120 q8 4 13 0 q2 30 -3 54 q-7 3 -11 0 q-3 -27 1 -54 z")
+    + P("quads","M74 120 q-8 4 -13 0 q-2 30 3 54 q7 3 11 0 q3 -27 -1 -54 z")
+    + P("adductors","M57 122 h6 q1 24 -2 46 q-3 1 -4 0 q-2 -23 0 -46 z")
+    + P("shins","M47 176 q7 3 12 0 q1 28 -1 54 q-5 2 -9 0 q-3 -27 -2 -54 z")
+    + P("shins","M73 176 q-7 3 -12 0 q-1 28 1 54 q5 2 9 0 q3 -27 2 -54 z");
+  /* BACK figure, offset x+140 (viewBox width 280) */
   var back = ""
-    + "<circle cx='190' cy='18' r='10' fill='var(--card2)' stroke='var(--line)' stroke-width='0.8'/>"
-    + P("neck", "M183 27 h14 v6 q-7 4 -14 0 z")
-    + "<path d='M170 34 q20 -6 40 0 l4 40 q-24 8 -48 0 z' fill='var(--card2)' stroke='var(--line)' stroke-width='0.8'/>"
-    // traps (upper back diamond)
-    + P("traps", "M176 34 q14 -4 28 0 q-2 8 -14 12 q-12 -4 -14 -12 z")
-    // rear delts
-    + P("rear_delt", "M170 34 q-8 2 -10 12 q6 3 12 1 q1 -8 8 -11 z")
-    + P("rear_delt", "M210 34 q8 2 10 12 q-6 3 -12 1 q-1 -8 -8 -11 z")
-    // rotator cuff (small, under rear delt)
-    + P("rotator", "M162 47 q-2 3 -1 7 q4 1 6 -1 l-1 -6 z")
-    + P("rotator", "M218 47 q2 3 1 7 q-4 1 -6 -1 l1 -6 z")
-    // lats (mid back wings)
-    + P("lats", "M176 48 q14 -3 28 0 q0 14 -6 24 q-16 4 -22 -2 q-2 -12 0 -22 z")
-    // triceps (back upper arm)
-    + P("triceps", "M158 56 q-3 10 -1 20 q5 1 8 -2 q0 -10 1 -18 z")
-    + P("triceps", "M222 56 q3 10 1 20 q-5 1 -8 -2 q0 -10 -1 -18 z")
-    + P("forearms", "M157 76 q-3 12 -2 22 q4 1 7 0 q1 -12 3 -22 z")
-    + P("forearms", "M223 76 q3 12 2 22 q-4 1 -7 0 q-1 -12 -3 -22 z")
-    // lower back (erectors)
-    + P("lower_back", "M182 72 q8 3 16 0 l-2 14 q-6 2 -12 0 z")
-    // glutes
-    + P("glutes", "M178 88 q12 -4 24 0 q2 10 -4 16 q-8 4 -16 0 q-6 -6 -4 -16 z")
-    // hamstrings
-    + P("hamstrings", "M178 106 q7 3 12 0 q1 20 -3 34 q-6 2 -9 0 q-2 -18 0 -34 z")
-    + P("hamstrings", "M202 106 q-7 3 -12 0 q-1 20 3 34 q6 2 9 0 q2 -18 0 -34 z")
-    // abductors (outer hip)
-    + P("abductors", "M172 90 q-3 8 -2 16 q3 1 5 0 l1 -16 z")
-    + P("abductors", "M208 90 q3 8 2 16 q-3 1 -5 0 l-1 -16 z")
-    // calves
-    + P("calves", "M179 144 q6 2 10 0 q1 18 -1 34 q-4 1 -7 0 q-2 -18 -2 -34 z")
-    + P("calves", "M201 144 q-6 2 -10 0 q-1 18 1 34 q4 1 7 0 q2 -18 2 -34 z");
-
-  return "<svg viewBox='0 0 250 190' class='bodymap' role='group' aria-label='Body map: tap a muscle'>"
-    + "<text x='60' y='188' text-anchor='middle' class='bmlab'>front</text>"
-    + "<text x='190' y='188' text-anchor='middle' class='bmlab'>back</text>"
+    + "<circle cx='200' cy='24' r='13' fill='var(--card2)' stroke='var(--line)'/>"
+    + base("M184 40 q16 -5 32 0 l6 52 q-6 30 -8 70 q-3 60 -6 110 h-16 q-3 -50 -6 -110 q-2 -40 -8 -70 z")
+    + P("neck","M192 36 h16 v8 q-8 5 -16 0 z")
+    + P("traps","M186 42 q14 -4 28 0 q-3 12 -14 17 q-11 -5 -14 -17 z")
+    + P("rear_delt","M184 44 q-11 2 -14 16 q8 4 16 1 q1 -10 10 -14 z")
+    + P("rear_delt","M216 44 q11 2 14 16 q-8 4 -16 1 q-1 -10 -10 -14 z")
+    + P("rotator","M170 60 q-3 4 -2 9 q5 1 8 -1 l-1 -8 z")
+    + P("rotator","M230 60 q3 4 2 9 q-5 1 -8 -1 l1 -8 z")
+    + P("lats","M186 60 q14 -3 28 0 q0 18 -7 30 q-14 5 -21 -2 q-2 -15 0 -28 z")
+    + P("triceps","M168 74 q-4 13 -2 26 q7 2 11 -2 q0 -13 2 -24 z")
+    + P("triceps","M232 74 q4 13 2 26 q-7 2 -11 -2 q0 -13 -2 -24 z")
+    + P("forearms","M166 100 q-4 16 -3 30 q6 2 10 0 q1 -16 4 -30 z")
+    + P("forearms","M234 100 q4 16 3 30 q-6 2 -10 0 q-1 -16 -4 -30 z")
+    + P("lower_back","M190 92 q10 4 20 0 l-2 18 q-8 3 -16 0 z")
+    + P("glutes","M186 112 q14 -4 28 0 q3 13 -5 20 q-9 5 -18 0 q-8 -7 -5 -20 z")
+    + P("abductors","M180 112 q-4 10 -3 20 q4 1 6 0 l1 -20 z")
+    + P("abductors","M220 112 q4 10 3 20 q-4 1 -6 0 l-1 -20 z")
+    + P("hamstrings","M188 134 q8 4 13 0 q2 26 -3 46 q-7 3 -11 0 q-3 -23 1 -46 z")
+    + P("hamstrings","M212 134 q-8 4 -13 0 q-2 26 3 46 q7 3 11 0 q3 -23 -1 -46 z")
+    + P("calves","M189 182 q7 3 12 0 q1 26 -1 50 q-5 2 -9 0 q-3 -25 -2 -50 z")
+    + P("calves","M215 182 q-7 3 -12 0 q-1 26 1 50 q5 2 9 0 q3 -25 2 -50 z");
+  return "<svg viewBox='0 0 280 246' class='bodymap' preserveAspectRatio='xMidYMid meet' role='group' aria-label='Body map: tap a muscle'>"
+    + "<text x='60' y='244' text-anchor='middle' class='bmlab'>front</text>"
+    + "<text x='200' y='244' text-anchor='middle' class='bmlab'>back</text>"
     + front + back + "</svg>";
 }
 
+function openBodyFull(recBy){
+  var ov = document.getElementById("bodyFull");
+  if(ov) ov.remove();
+  ov = el("div"); ov.id = "bodyFull"; ov.className = "bodyfull";
+  var bar = el("div","bodyfullbar");
+  bar.innerHTML = "<span>Tap a muscle</span>";
+  var x = el("button","bodyfullx"); x.type="button"; x.setAttribute("aria-label","Close"); x.innerHTML = "&times;";
+  x.addEventListener("click", function(){ ov.remove(); });
+  bar.appendChild(x);
+  ov.appendChild(bar);
+  var wrap = el("div","bodyfullmap");
+  wrap.innerHTML = bodyMapSVG(recBy || {});
+  ov.appendChild(wrap);
+  wrap.querySelectorAll(".bmreg").forEach(function(reg){
+    var m = reg.getAttribute("data-m");
+    reg.addEventListener("click", function(){
+      wrap.querySelectorAll(".bmreg.sel").forEach(function(z){ z.classList.remove("sel"); });
+      wrap.querySelectorAll(".bmreg[data-m='"+m+"']").forEach(function(z){ z.classList.add("sel"); });
+      openMuscleSheet(m);
+    });
+  });
+  document.body.appendChild(ov);
+}
 function addTimeField(body){
   var f = el("div","field"); f.style.marginBottom = "10px";
   var lab = el("label"); lab.setAttribute("for","addTimeProxy"); lab.textContent = "Time you trained";
@@ -5584,16 +5602,43 @@ function renderRecovery(){
   var mapWrap = el("div","bodymapwrap");
   mapWrap.innerHTML = bodyMapSVG(recBy);
   host.appendChild(mapWrap);
-  mapWrap.querySelectorAll(".bmreg").forEach(function(reg){
-    var m = reg.getAttribute("data-m");
-    reg.addEventListener("click", function(){
-      mapWrap.querySelectorAll(".bmreg.sel").forEach(function(x){ x.classList.remove("sel"); });
-      // highlight every region of that muscle (left+right, front+back)
-      mapWrap.querySelectorAll(".bmreg[data-m='" + m + "']").forEach(function(x){ x.classList.add("sel"); });
-      openMuscleSheet(m);
+  function wireMap(wrap, onTap){
+    wrap.querySelectorAll(".bmreg").forEach(function(reg){
+      var m = reg.getAttribute("data-m");
+      reg.addEventListener("click", function(){
+        wrap.querySelectorAll(".bmreg.sel").forEach(function(x){ x.classList.remove("sel"); });
+        wrap.querySelectorAll(".bmreg[data-m='" + m + "']").forEach(function(x){ x.classList.add("sel"); });
+        onTap(m);
+      });
     });
-  });
-  host.appendChild(el("p","tiny","Tap a muscle on the body, or a tile below. Grey means not trained in the last 7 days."));
+  }
+  wireMap(mapWrap, openMuscleSheet);
+  var fsBtn = el("button","btn ghost full"); fsBtn.type="button"; fsBtn.textContent = "Open body full-screen";
+  fsBtn.style.margin = "2px 0 6px";
+  fsBtn.addEventListener("click", function(){ openBodyFull(recBy); });
+  host.appendChild(fsBtn);
+  host.appendChild(el("p","tiny","Tap a muscle on the body, or a tile below, to see its recovery and log work. Grey means not trained in the last 7 days."));
+
+  /* Twice-a-week target: count sessions per muscle over the last 7 days and
+     flag the ones under two. Stabiliser/─support groups are excluded from the
+     nag so it stays about the muscles people actually program. */
+  var SKIP_NAG = {rotator:1, pelvic:1, neck:1, shins:1, forearms:1, hip_flexor:1, adductors:1, abductors:1};
+  var sess7 = R.sessions(7);
+  var freq = {};
+  R.MUSCLES.forEach(function(m){ freq[m[0]] = 0; });
+  sess7.forEach(function(s){ Object.keys(s.byMuscle).forEach(function(m){ if(freq[m]!=null) freq[m]++; }); });
+  var under = R.MUSCLES.map(function(m){ return m[0]; })
+    .filter(function(m){ return !SKIP_NAG[m] && freq[m] < 2; });
+  if(under.length){
+    var warn = el("div","recwarn");
+    var untrained = under.filter(function(m){ return freq[m] === 0; });
+    var once = under.filter(function(m){ return freq[m] === 1; });
+    var parts = [];
+    if(untrained.length) parts.push("<b>not trained this week:</b> " + untrained.map(function(m){ return R.MNAME[m]; }).join(", "));
+    if(once.length) parts.push("<b>only once:</b> " + once.map(function(m){ return R.MNAME[m]; }).join(", "));
+    warn.innerHTML = "\uD83D\uDCA1 Aim to train each muscle about twice a week. " + parts.join(". ") + ".";
+    host.appendChild(warn);
+  }
   var grid = el("div","recgrid");
   list.forEach(function(r){
     var cell = el("button","reccell"); cell.type = "button";
@@ -7458,18 +7503,57 @@ if($("qSupp")) $("qSupp").addEventListener("click", openSuppLog);
    wheels. Walking, running and cycling live in the same list as lifting now, so
    there is no separate button - pick "Walking" and its distance and pace drop in
    ready to fill, exactly like sets and reps do for a lift. */
-$("qTrain").addEventListener("click", () => {
+$("qTrain").addEventListener("click", () => { openAddExercise(); });
+function openAddExercise(preMuscle){
   openSheet("Add an exercise", body => {
     addTimeField(body);
-    let q;
-    const chosen = splitChips(body, () => { if(q && q.redraw) q.redraw(); });  // includes Cardio
-    q = buildPicker("rep", body, "Search exercises, or walking, running, cycling", null, {
-      filter: it => (!chosen.size || chosen.has(it.split)),
-      hint: "Pick a split above, or type the movement — squats, bench, walking, cycling."
+    body.appendChild(el("p","tiny","Tap a muscle on the body to see its exercises, or search below."));
+    var mapWrap = el("div","bodymapwrap pick");
+    var recBy = {};
+    try { (window.caloRecovery.all(7)||[]).forEach(function(r){ recBy[r.muscle]=r.rec; }); } catch(e){}
+    mapWrap.innerHTML = bodyMapSVG(recBy);
+    body.appendChild(mapWrap);
+    var listWrap = el("div"); body.appendChild(listWrap);
+    var q;
+    function showMuscle(m){
+      listWrap.innerHTML = "";
+      mapWrap.querySelectorAll(".bmreg.sel").forEach(function(x){ x.classList.remove("sel"); });
+      mapWrap.querySelectorAll(".bmreg[data-m='"+m+"']").forEach(function(x){ x.classList.add("sel"); });
+      listWrap.appendChild(el("div","ntgrp", (window.caloRecovery.MNAME[m]||m) + " exercises"));
+      var exs = (window.caloRecovery.exercisesFor(m)||[]).filter(function(e){ return EX_MODES[e.id]; });
+      if(!exs.length){ listWrap.appendChild(el("p","tiny","No specific exercise mapped \u2014 use the search below.")); return; }
+      var grid = el("div","exlist");
+      exs.forEach(function(e){
+        var it = EX_MODES[e.id]; var nm = it.ex.name;
+        var b = el("button","exbtn"); b.type="button";
+        b.innerHTML = "<span class='exi'>"+window.exIcon(e.id)+"</span><span>"+nm+"</span>"
+          + (e.share>=1?"<small>main</small>":"<small>assists</small>");
+        b.addEventListener("click", function(){
+          closeSheet();
+          setTimeout(function(){ openExerciseEntry(e.id); }, 60);
+        });
+        grid.appendChild(b);
+      });
+      listWrap.appendChild(grid);
+    }
+    mapWrap.querySelectorAll(".bmreg").forEach(function(reg){
+      reg.addEventListener("click", function(){ showMuscle(reg.getAttribute("data-m")); });
     });
-    focusNow(q);
+    listWrap.appendChild(el("div","ntgrp","Or search"));
+    let chosen = splitChips(listWrap, () => { if(q && q.redraw) q.redraw(); });
+    q = buildPicker("rep", listWrap, "Search exercises, or walking, running, cycling", null, {
+      filter: it => (!chosen.size || chosen.has(it.split)),
+      hint: "Type the movement \u2014 squats, bench, walking, cycling."
+    });
+    if(preMuscle) showMuscle(preMuscle);
   });
-});
+}
+/* Open one exercise straight into its reps/weight entry (the picker's solo view). */
+function openExerciseEntry(id){
+  if(typeof pickerSheet === "function"){
+    pickerSheet("rep","Add an exercise","Search exercises",{autoOpenId:id});
+  }
+}
 
 $("qSport").addEventListener("click", () => {
   openSheet("Add a sport", body => {
@@ -7662,6 +7746,7 @@ window.caloRecovery = (function(){
     abs:"<path d='M6 4.2c0 6.1 1.2 11.9 6 16.3 4.8-4.4 6-10.2 6-16.3'/><path d='M12 5.2v14.7'/><path d='M8 8.2h8M8 11.9h8M8.6 15.5h6.8'/>",
     obliques:"<path d='M7 4.2c-1.1 5.3-1.1 11.3 1.1 16.3M17 4.2c1.1 5.3 1.1 11.3-1.1 16.3'/><path d='M8 8.4c2.4 1 5.6 1 8 0M8 12c2.4 1 5.6 1 8 0M9 15.4c1.7.8 4.3.8 6 0'/>",
     neck:"<path d='M9 3.5v4c0 1.6-1 2.4-2.5 3M15 3.5v4c0 1.6 1 2.4 2.5 3'/><path d='M7 10.5c1.5 1.4 2 3.4 2 5.5v4.5M17 10.5c-1.5 1.4-2 3.4-2 5.5v4.5'/><path d='M9 13h6'/>",
+  pelvic:"<path d='M5 7h14M6 7c0 5 2.5 9 6 11 3.5-2 6-6 6-11'/><path d='M9 7v2.5M15 7v2.5M12 18v3'/>",
   };
   function micon(id){
     return "<svg viewBox='0 0 24 24' class='micon' aria-hidden='true'>" + (MI[id] || MI.chest) + "</svg>";
@@ -7687,6 +7772,7 @@ window.caloRecovery = (function(){
     ["adductors",  "Adductors"],
     ["abductors",  "Abductors / hips"],
     ["hip_flexor", "Hip flexors"],
+    ["pelvic",     "Pelvic floor"],
     ["calves",     "Calves"],
     ["shins",      "Shins"],
     ["neck",       "Neck"],
@@ -7701,7 +7787,7 @@ window.caloRecovery = (function(){
     chest:1.0, lats:1.05, traps:0.95, rotator:0.9, front_delt:0.95, shoulders:0.9,
     rear_delt:0.9, biceps:1.35, triceps:1.3, forearms:1.15, abs:0.85, obliques:0.85,
     lower_back:1.3, glutes:1.05, quads:1.1, hamstrings:1.3, adductors:1.15,
-    abductors:1.0, hip_flexor:1.0, calves:0.95, shins:0.9, neck:0.85,
+    abductors:1.0, hip_flexor:1.0, pelvic:0.85, calves:0.95, shins:0.9, neck:0.85,
   };
 
   /* exercise id -> { muscle: share }. "shoulders" now means the side delt; front
@@ -7763,6 +7849,8 @@ window.caloRecovery = (function(){
     clean_jerk:{quads:.7,front_delt:.8,glutes:.6,traps:.5,lower_back:.5}, snatch:{front_delt:.8,quads:.6,traps:.6,lower_back:.5,glutes:.5},
     db_snatch:{front_delt:.8,quads:.5,traps:.4}, tgu:{front_delt:.8,abs:.8,obliques:.5,rotator:.3},
     b_sho:{shoulders:1,front_delt:.5}, b_leg:{glutes:.8,hamstrings:.5},
+    hold_plank:{abs:.8,pelvic:.4,obliques:.3}, hold_lsit:{abs:.9,hip_flexor:.5,pelvic:.4},
+    kegel:{pelvic:1},
   };
   var SPLIT_FALL = {
     push:{chest:.7,front_delt:.5,triceps:.5}, pull:{lats:.8,biceps:.5,rear_delt:.3},
@@ -7803,6 +7891,17 @@ window.caloRecovery = (function(){
     return Math.max(0, (minutes/30) * 1.6 * lvl);   // per unit share
   }
 
+  /* Which exercises train a muscle, strongest first. Built from MAP so it stays
+     in sync. Only real logged exercises (in EX_MODES) are offered. */
+  function exercisesFor(muscle){
+    var out = [];
+    Object.keys(MAP).forEach(function(id){
+      var sh = MAP[id][muscle];
+      if(sh){ out.push({id:id, share:sh}); }
+    });
+    out.sort(function(a,b){ return b.share - a.share; });
+    return out;
+  }
   function musclesFor(exId){
     if(MAP[exId]) return MAP[exId];
     var sp = (typeof SPLIT === "object" && SPLIT[exId]) || "full";
@@ -8048,6 +8147,7 @@ window.caloRecovery = (function(){
 
   return {
     MUSCLES:MUSCLES, MNAME:MNAME, MICON:MICON, micon:micon, musclesFor:musclesFor,
+    MAP:MAP, exercisesFor:exercisesFor,
     REF:REF, REF_MUSCLE:REF_MUSCLE, REC_F:REC_F,
     sessions:sessions, all:all, recoveryOf:recoveryOf,
     sleepFactor:sleepFactor, proteinFactor:proteinFactor,
@@ -10123,7 +10223,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.25e";
+  var APP_VERSION = "2026.09.25f";
   var APP_BUILT   = "25 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
