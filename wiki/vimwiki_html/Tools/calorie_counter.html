@@ -513,6 +513,30 @@ body{top:0!important}
 .gichart .gidot-m{fill:var(--mps)}
 .gichart .gival-m{fill:var(--mps)}
 .gilegend .gikey-m::before{background:var(--mps)}
+.gichart .giline-mf{stroke:var(--mps);stroke-width:1.4;opacity:.5;stroke-dasharray:4 3}
+.gichart .giline-mt{stroke:var(--lean);stroke-width:1.4;opacity:.7;stroke-dasharray:4 3}
+.gilegend .gikey-mf::before{background:var(--mps);opacity:.6}
+.gilegend .gikey-mt::before{background:var(--lean)}
+.gichart .gitrainmk{stroke:var(--lean);stroke-width:1;stroke-dasharray:1 3;opacity:.7}
+.gilegend .gitrainkey{color:var(--lean);font-weight:600}
+.recgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:4px}
+@media(max-width:380px){ .recgrid{grid-template-columns:repeat(2,1fr)} }
+.reccell{border:0;background:var(--card2);border-radius:var(--r-sm);padding:14px 6px 11px;
+  display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
+.reccell:active{background:var(--out-bg)}
+.recring{width:66px;height:66px;border-radius:50%;display:grid;place-items:center}
+.recring.big{width:78px;height:78px}
+.recinner{width:52px;height:52px;border-radius:50%;background:var(--card);display:flex;
+  flex-direction:column;align-items:center;justify-content:center;gap:0}
+.recring.big .recinner{width:62px;height:62px}
+.recico{font-size:17px;line-height:1}
+.recpct{font-family:var(--serif);font-weight:600;font-size:14px;color:var(--ink)}
+.recring.big .recpct{font-size:19px}
+.recname{font-size:13px;font-weight:600;color:var(--ink)}
+.recsub{font-size:10.5px;color:var(--muted)}
+.rechead{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+.recbig{font-family:var(--serif);font-size:16px;font-weight:600;color:var(--ink)}
+.recweek{width:100%;height:auto;display:block;margin:2px 0 6px}
 .mwin b{display:block}
 .mwin span{font-size:12px;color:var(--muted)}
 .sfoot{flex:none;display:flex;gap:10px;padding:10px 18px
@@ -1107,6 +1131,26 @@ input,select{scroll-margin:84px 0 180px}
     </div>
   </section>
 
+  <!-- ============ RECOVERY ============ -->
+  <section class="tabpane" id="pane-recovery">
+    <div class="card">
+      <div class="cardhead"><h2>Muscle recovery</h2><span class="sm" id="recSummary"></span></div>
+      <div id="recGrid"></div>
+      <p class="note" id="recEmpty" style="display:none">Log some lifting on the Move tab and tell the app
+        when you trained, and each muscle you worked will appear here with how recovered it is.</p>
+      <p class="note">Tap a muscle to see its week: the sessions that hit it, the reps, how much is
+        rebuilt, and which way it is trending. This is a simple model of repair from rest, protein and
+        sleep &mdash; a guide to what is ready to train hard again, not a measurement of your muscle.</p>
+    </div>
+    <div class="card">
+      <div class="cardhead"><h2>What drives it</h2></div>
+      <p class="note">Recovery climbs back to 100% over a day or three after a session. A muscle comes back
+        <b>slower</b> the more hard sets it took and the harder they were, and <b>faster</b> with enough
+        protein (aim ~1.6 g per kg) and enough sleep (7&ndash;9 h). The "how hard it felt" and "when you
+        trained" settings on the Move tab feed straight into this.</p>
+    </div>
+  </section>
+
   <!-- ============ YOU ============ -->
   <section class="tabpane" id="pane-you">
     <div class="card">
@@ -1184,6 +1228,7 @@ input,select{scroll-margin:84px 0 180px}
   <button data-t="today" class="tabbtn on"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 11h18"/></svg><span>Today</span></button>
   <button data-t="food" class="tabbtn"><svg viewBox="0 0 24 24"><path d="M4 12h16a8 8 0 0 1-16 0Z"/><path d="M6 8c0-2 1.5-3 3-3s2 .8 3 .8S13.5 5 15 5s3 1 3 3"/><path d="M3 20h18"/></svg><span>Food</span></button>
   <button data-t="move" class="tabbtn"><svg viewBox="0 0 24 24"><path d="M6.5 8v8M17.5 8v8M3.5 10v4M20.5 10v4M6.5 12h11"/></svg><span>Move</span></button>
+  <button data-t="recovery" class="tabbtn"><svg viewBox="0 0 24 24"><path d="M12 21C7 17.5 4 14 4 9.8 4 7 6 5 8.5 5c1.6 0 2.9.8 3.5 2 .6-1.2 1.9-2 3.5-2C18 5 20 7 20 9.8c0 1.2-.25 2.3-.75 3.3"/><path d="M13 12l-2 4 3 1-2 4"/></svg><span>Recovery</span></button>
   <button data-t="you" class="tabbtn"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.7"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg><span>You</span></button>
 </nav>
 
@@ -1887,7 +1932,7 @@ const gfmt = n => {
 const LOG_IDS = [];
 const LABELS  = {};
 const SETTING_IDS = ["weight","height","age","sex","job","train",
-                     "rest","intensity","bandColor","bandLen","lower","water","sleep",
+                     "rest","intensity","bandColor","bandLen","lower","water","sleep","sleepUnbroken",
                      "dayDone",
                      /* Which vegetables went into today's sabji, as comma-separated
                         ids. Hidden inputs so a saved day carries them like any
@@ -2661,7 +2706,22 @@ fieldSel($("trainSettings"),"rest","Rest between sets",
 fieldSel($("trainSettings"),"lower","How you lower the weight",
   [["slow","Slowly, under control"],["normal","Normal tempo",1],["drop","Dropped or kipped"]],1);
 fieldSel($("trainSettings"),"intensity","How hard it felt",
-  [["light","Easy, long rests"],["moderate","Moderate",1],["hard","Hard, barely resting"]],1);
+  [["light","Easy \u2014 3+ reps left in the tank, long rests"],
+   ["moderate","Moderate \u2014 1\u20132 reps left, steady work",1],
+   ["hard","Hard \u2014 near failure, minimal rest"]],1);
+/* An optional clock time for the session, so recovery and the training MPS
+   curve know how long ago it was. Left blank, they assume a late-afternoon
+   session. */
+(function(){
+  const f = el("div","field");
+  const lab = el("label"); lab.setAttribute("for","trainTime"); lab.textContent = "When you trained (optional)";
+  f.appendChild(lab);
+  const inp = el("input"); inp.type = "time"; inp.id = "trainTime"; inp.className = "timeinp";
+  inp.addEventListener("change", function(){ try { update(); } catch(e){} rememberLast && rememberLast(); });
+  f.appendChild(inp);
+  $("trainSettings").appendChild(f);
+  SETTING_IDS.push("trainTime");
+})();
 (function(){   // colours now live on each exercise; only the loop length is global
   const f = el("div","field wide");
   const hidden = el("input"); hidden.type="hidden"; hidden.id="bandColor"; hidden.value="";
@@ -2686,6 +2746,7 @@ function simpleRow(host,id,name,unit,min,max,step,val){
 $("bandLen").value = 120;    // resting length of one loop
 
 simpleRow($("recovRows"),"sleep","Sleep last night","hours",3,11,0.5,7);
+simpleRow($("recovRows"),"sleepUnbroken","Longest unbroken stretch","hours",0,11,0.5,0);
 simpleRow($("recovRows"),"water","Water drunk","ml",0,6000,100,3000);
 
 /* ==================================================================
@@ -3422,8 +3483,9 @@ function showTab(t){
   document.querySelectorAll(".tabbtn").forEach(b => b.classList.toggle("on", b.dataset.t === t));
   $("strip").classList.toggle("hidden", t === "today");
   window.scrollTo({top:0});
-  const titles = {today:"EatNmove", food:"What you ate", move:"What you did", you:"You"};
+  const titles = {today:"EatNmove", food:"What you ate", move:"What you did", recovery:"Recovery", you:"You"};
   $("barTitle").textContent = titles[t];
+  if(t === "recovery") try { renderRecovery(); } catch(e){}
 }
 document.querySelectorAll(".tabbtn").forEach(b =>
   b.addEventListener("click", () => showTab(b.dataset.t)));
@@ -5306,6 +5368,140 @@ function openCalcSheet(key){
   });
 })();
 
+function recDayLabel(key){
+  try {
+    var p = String(key).split("-");
+    var d = new Date(+p[0], +p[1]-1, +p[2]);
+    var lab = d.toLocaleDateString(undefined, { weekday:"short", day:"numeric", month:"short" });
+    return (typeof todayKey === "function" && key === todayKey()) ? lab + " \u00b7 today" : lab;
+  } catch(e){ return key; }
+}
+function recColor(pct){
+  // red (low) -> amber -> green (high), via HSL hue 0..120
+  var h = Math.max(0, Math.min(120, pct*1.2));
+  return "hsl(" + Math.round(h) + " 62% 45%)";
+}
+function recAgo(ms){
+  var h = (Date.now() - ms)/3600000;
+  if(h < 1) return Math.round(h*60) + " min ago";
+  if(h < 48) return Math.round(h) + " h ago";
+  return Math.round(h/24) + " days ago";
+}
+function renderRecovery(){
+  var host = document.getElementById("recGrid"); if(!host) return;
+  var R = window.caloRecovery;
+  var list = (R && R.all(7)) || [];
+  document.getElementById("recEmpty").style.display = list.length ? "none" : "block";
+  document.getElementById("recSummary").textContent = list.length
+    ? list.length + " muscle" + (list.length===1?"":"s") + " worked this week" : "";
+  host.innerHTML = "";
+  var grid = el("div","recgrid");
+  list.forEach(function(r){
+    var cell = el("button","reccell"); cell.type = "button";
+    cell.setAttribute("aria-label", R.MNAME[r.muscle] + ", " + r.rec + "% recovered, tap for the week");
+    var ring = el("div","recring");
+    ring.style.background = "conic-gradient(" + recColor(r.rec) + " " + (r.rec*3.6) + "deg, var(--card2) 0)";
+    var inner = el("div","recinner");
+    inner.innerHTML = "<span class='recico'>" + R.MICON[r.muscle] + "</span><span class='recpct'>" + r.rec + "%</span>";
+    ring.appendChild(inner); cell.appendChild(ring);
+    cell.appendChild(el("div","recname", R.MNAME[r.muscle]));
+    cell.appendChild(el("div","recsub", r.rec >= 90 ? "ready" : r.rec >= 65 ? "coming back" : "needs rest"));
+    cell.addEventListener("click", function(){ openMuscleSheet(r.muscle); });
+    grid.appendChild(cell);
+  });
+  host.appendChild(grid);
+}
+function openMuscleSheet(muscle){
+  var R = window.caloRecovery;
+  var r = R.recoveryOf(muscle, R.sessions(7));
+  openSheet(R.MICON[muscle] + " " + R.MNAME[muscle], function(body){
+    if(!r){ body.appendChild(el("p","tiny","Nothing logged for this muscle in the last 7 days.")); return; }
+
+    var head = el("div","rechead");
+    var ring = el("div","recring big");
+    ring.style.background = "conic-gradient(" + recColor(r.rec) + " " + (r.rec*3.6) + "deg, var(--card2) 0)";
+    var inner = el("div","recinner"); inner.innerHTML = "<span class='recpct'>" + r.rec + "%</span>";
+    ring.appendChild(inner); head.appendChild(ring);
+    var hi = el("div");
+    hi.appendChild(el("div","recbig", r.rec >= 90 ? "Ready to train hard" : r.rec >= 65 ? "Partly recovered" : "Still recovering"));
+    hi.appendChild(el("div","tiny", "Last worked " + recAgo(r.lastWhen) + " \u00b7 " +
+      Math.round(r.weekSets) + " sets, " + r.weekReps + " reps this week"));
+    head.appendChild(hi);
+    body.appendChild(head);
+
+    // 7-day bar chart of reps
+    body.appendChild(el("div","ntgrp","This week"));
+    body.appendChild(muscleWeekSVG(r));
+
+    // recovery driver
+    if(r.driver){
+      var d = r.driver;
+      body.appendChild(el("div","ntgrp","Why it is at " + r.rec + "%"));
+      body.appendChild(el("p","tiny",
+        "The session " + recAgo(d.when) + " left the biggest deficit: " + Math.round(d.sets) + " hard sets"
+        + " (" + Math.round(d.reps) + " reps), felt <b>" + d.intensity + "</b>"
+        + (d.hasTime ? "" : " \u2014 no time was given, so a late-afternoon session is assumed")
+        + ". With " + n1(d.sleep) + " h sleep and protein at " + n1(d.ppk) + " g/kg, full repair takes about "
+        + Math.round(d.baseHours) + " h. " + (r.rec >= 90
+          ? "It has essentially caught up."
+          : "It is " + r.rec + "% of the way back.")));
+    }
+
+    // progress: reps per session over the week, oldest to newest
+    var withHist = r.hist.slice().reverse();
+    if(withHist.length >= 2){
+      var first = withHist[0].reps, last = withHist[withHist.length-1].reps;
+      var dir = last > first*1.05 ? "up" : last < first*0.95 ? "down" : "steady";
+      body.appendChild(el("div","ntgrp","Progress"));
+      body.appendChild(el("p","tiny",
+        "Reps per session have gone " + (dir === "up" ? "<b>up</b>" : dir === "down" ? "<b>down</b>" : "roughly steady")
+        + " across the week, from " + Math.round(first) + " to " + Math.round(last) + "."
+        + " Rising reps or load over weeks, with recovery kept high, is progressive overload \u2014 the driver of growth."));
+    }
+
+    // the sessions
+    body.appendChild(el("div","ntgrp","Sessions"));
+    r.hist.forEach(function(h){
+      var names = Object.keys(h.exs).slice(0,4).join(", ");
+      var line = el("p","tiny");
+      line.innerHTML = "<b>" + recDayLabel(h.key) + "</b> \u00b7 "
+        + Math.round(h.sets) + " sets, " + Math.round(h.reps) + " reps"
+        + (names ? " \u2014 " + names : "");
+      body.appendChild(line);
+    });
+
+    body.appendChild(el("p","tiny",
+      "A muscle is counted for an exercise by how much that lift loads it \u2014 a bench press is mostly chest, "
+      + "with some shoulders and triceps. Recovery is a heuristic from rest, protein and sleep, not a measurement."));
+  });
+}
+function muscleWeekSVG(r){
+  var W = 320, H = 120, ml = 8, mr = 8, mt = 10, mb = 22;
+  var days = [], today = new Date();
+  for(var i = 6; i >= 0; i--){
+    var dd = new Date(today.getFullYear(), today.getMonth(), today.getDate()-i);
+    var key = dd.getFullYear() + "-" + String(dd.getMonth()+1).padStart(2,"0") + "-" + String(dd.getDate()).padStart(2,"0");
+    var reps = 0;
+    r.hist.forEach(function(h){ if(h.key === key) reps += h.reps; });
+    days.push({ key:key, reps:reps, lab:["Su","Mo","Tu","We","Th","Fr","Sa"][dd.getDay()] });
+  }
+  var maxR = Math.max(1, Math.max.apply(null, days.map(function(d){ return d.reps; })));
+  var pw = W - ml - mr, ph = H - mt - mb, bw = pw/7*0.6;
+  var g = "";
+  days.forEach(function(d, i){
+    var cx = ml + pw*(i+0.5)/7;
+    var bh = d.reps > 0 ? Math.max(3, ph*d.reps/maxR) : 0;
+    if(bh > 0){
+      g += '<rect x="' + (cx-bw/2).toFixed(1) + '" y="' + (mt+ph-bh).toFixed(1) + '" width="' + bw.toFixed(1)
+        + '" height="' + bh.toFixed(1) + '" rx="2" fill="var(--out)"/>';
+      g += '<text x="' + cx.toFixed(1) + '" y="' + (mt+ph-bh-3).toFixed(1) + '" text-anchor="middle" class="gixlab">' + Math.round(d.reps) + '</text>';
+    }
+    g += '<text x="' + cx.toFixed(1) + '" y="' + (mt+ph+14) + '" text-anchor="middle" class="gixlab">' + d.lab + '</text>';
+  });
+  var wrap = el("div");
+  wrap.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="recweek" role="img" aria-label="Reps for this muscle each day this week">' + g + '</svg>';
+  return wrap;
+}
 function renderToday(){
   const u = activeUser(), body = $("diffBody"), acts = $("diffActs");
   $("diffDate").textContent = prettyDate();
@@ -7126,6 +7322,273 @@ $("openCalc").addEventListener("click", () => {
    These are textbook averages, not measurements of you. Real emptying
    varies with the meal, the person and the day.
    ================================================================== */
+/* =====================================================================
+   RECOVERY  — which muscles were trained, and how recovered each is.
+
+   A muscle is torn down a little by hard sets, then rebuilt over the next
+   day or three. How fast it comes back depends on how much it took (volume
+   and how hard the sets were), and on whether the raw materials and the
+   hormonal conditions for repair were there: protein and sleep. The model
+   is deliberately simple and clearly a heuristic, not a measurement.
+
+   Recovery of a muscle at time t after a session:
+     damage D   = 1 - exp(-hardSets / SET_K)      (0..1, saturating)
+     base hours BH = REC_BASE * (0.6 + 0.8*D)      bigger sessions take longer
+     modifier  M  = sleep factor * protein factor  (0.7 .. 1.15)
+     recovered % = 100 * (1 - D * exp(-tHours / (BH / M)))
+   so a fully rested muscle reads 100, and a freshly hammered one climbs back
+   toward 100 over BH/M hours. Several sessions stack: each leaves its own
+   deficit and each heals on its own clock; the muscle shows the lowest
+   (worst) recovery implied by any still-open session.
+   ===================================================================== */
+window.caloRecovery = (function(){
+  "use strict";
+
+  /* Fine muscle groups, and which exercises load them. An exercise can hit
+     several: a bench press is chest first, shoulders and triceps as helpers,
+     so it counts fully for chest and partly (0.4) for the others. */
+  var MUSCLES = [
+    ["chest",     "Chest",      "\uD83E\uDDBE"],
+    ["back",      "Back",       "\uD83E\uDDCD"],
+    ["shoulders", "Shoulders",  "\uD83D\uDC50"],
+    ["biceps",    "Biceps",     "\uD83D\uDCAA"],
+    ["triceps",   "Triceps",    "\uD83E\uDD1C"],
+    ["quads",     "Quads",      "\uD83E\uDDB5"],
+    ["hamstrings","Hamstrings", "\uD83E\uDDB5"],
+    ["glutes",    "Glutes",     "\uD83C\uDF51"],
+    ["calves",    "Calves",     "\uD83E\uDDB6"],
+    ["core",      "Core",       "\uD83C\uDFAF"],
+  ];
+  var MNAME = {}, MICON = {};
+  MUSCLES.forEach(function(m){ MNAME[m[0]] = m[1]; MICON[m[0]] = m[2]; });
+
+  /* exercise id -> { muscle: share }. A share of 1 is a prime mover; helpers
+     get less. Anything not listed falls back to its split (push/pull/legs/
+     core/full) below, so a movement is never silently ignored. */
+  var MAP = {
+    // chest press family
+    bench:{chest:1,triceps:.4,shoulders:.3}, incline_bench:{chest:1,shoulders:.4,triceps:.3},
+    decline_bench:{chest:1,triceps:.4}, close_bench:{triceps:1,chest:.6},
+    smith_bench:{chest:1,triceps:.4,shoulders:.3}, db_bench:{chest:1,triceps:.4,shoulders:.3},
+    db_incline:{chest:1,shoulders:.4,triceps:.3}, db_fly:{chest:1}, pullover:{chest:.7,back:.5},
+    cable_fly:{chest:1}, pec_deck:{chest:1}, chest_press:{chest:1,triceps:.4,shoulders:.3},
+    pushup:{chest:1,triceps:.5,shoulders:.4,core:.3}, knee_pushup:{chest:1,triceps:.4,shoulders:.3},
+    incline_pushup:{chest:1,triceps:.4,shoulders:.3}, decline_pushup:{chest:1,shoulders:.5,triceps:.4},
+    diamond_pushup:{triceps:1,chest:.7}, wide_pushup:{chest:1,shoulders:.4}, archer_pushup:{chest:1,triceps:.4},
+    clap_pushup:{chest:1,triceps:.5,shoulders:.4}, dip:{chest:.8,triceps:1,shoulders:.4},
+    bench_dip:{triceps:1,chest:.4}, assisted_dip:{triceps:1,chest:.7,shoulders:.3},
+    // shoulders
+    ohp:{shoulders:1,triceps:.5}, db_shoulder:{shoulders:1,triceps:.4}, arnold:{shoulders:1,triceps:.4},
+    machine_shoulder:{shoulders:1,triceps:.4}, push_press:{shoulders:1,triceps:.4,quads:.3},
+    landmine:{shoulders:1,triceps:.3,core:.3}, lat_raise:{shoulders:1}, cable_lat:{shoulders:1},
+    front_raise:{shoulders:1}, upright_row:{shoulders:1,biceps:.4}, pike_pushup:{shoulders:1,triceps:.5},
+    hspu:{shoulders:1,triceps:.6}, face_pull:{shoulders:.8,back:.5}, rear_fly:{shoulders:.8,back:.4},
+    reverse_pec:{shoulders:.8,back:.4},
+    // triceps
+    tri_ext:{triceps:1}, skullcrusher:{triceps:1}, cable_pushdown:{triceps:1}, oh_tri:{triceps:1},
+    kickback:{triceps:1}, b_tri:{triceps:1},
+    // back
+    pullup:{back:1,biceps:.5}, chinup:{back:1,biceps:.6}, neutral_pullup:{back:1,biceps:.5},
+    wide_pullup:{back:1,biceps:.4}, muscle_up:{back:1,biceps:.5,triceps:.4,chest:.3},
+    assisted_pullup:{back:1,biceps:.5}, pulldown:{back:1,biceps:.4}, straight_pulldown:{back:1},
+    row:{back:1,biceps:.4}, inverted_row:{back:1,biceps:.4}, db_row:{back:1,biceps:.4},
+    tbar_row:{back:1,biceps:.4}, cable_row:{back:1,biceps:.4}, machine_row:{back:1,biceps:.4},
+    shrug_bb:{back:1}, shrug_db:{back:1}, b_row:{back:1,biceps:.4},
+    // biceps and forearms
+    curl:{biceps:1}, hammer_curl:{biceps:1}, preacher_curl:{biceps:1}, conc_curl:{biceps:1},
+    cable_curl:{biceps:1}, incline_curl:{biceps:1}, reverse_curl:{biceps:1}, wrist_curl:{biceps:.5},
+    b_curl:{biceps:1},
+    // posterior chain (hip hinge) -> hamstrings + glutes + back
+    deadlift:{hamstrings:1,glutes:.8,back:.7}, sumo_dl:{glutes:1,hamstrings:.7,quads:.4},
+    rdl:{hamstrings:1,glutes:.7}, stiff_leg:{hamstrings:1,glutes:.6}, trap_dl:{quads:.7,glutes:.8,back:.6},
+    rack_pull:{back:1,glutes:.6,hamstrings:.5}, db_rdl:{hamstrings:1,glutes:.7},
+    good_morning:{hamstrings:1,glutes:.6,back:.4}, back_ext:{hamstrings:.6,glutes:.6,back:.6},
+    // quads (knee-dominant)
+    squat:{quads:1,glutes:.7,core:.3}, back_squat:{quads:1,glutes:.7,core:.3},
+    front_squat:{quads:1,glutes:.6,core:.4}, goblet_squat:{quads:1,glutes:.6}, smith_squat:{quads:1,glutes:.6},
+    hack_squat:{quads:1,glutes:.5}, leg_press:{quads:1,glutes:.6}, lunge:{quads:1,glutes:.7},
+    bulgarian:{quads:1,glutes:.8}, split_squat:{quads:1,glutes:.7}, pistol:{quads:1,glutes:.6},
+    stepup:{quads:1,glutes:.6}, leg_ext:{quads:1}, jsquat:{quads:1,glutes:.6}, box_jump:{quads:1,glutes:.6},
+    wall_ball:{quads:.8,shoulders:.6,glutes:.4}, thruster:{quads:.9,shoulders:.7,glutes:.4},
+    // hamstrings / glutes isolation
+    leg_curl:{hamstrings:1}, glute:{glutes:1,hamstrings:.4}, hip_thrust:{glutes:1,hamstrings:.4},
+    cable_kickback:{glutes:1}, abductor:{glutes:.8}, adductor:{quads:.4,glutes:.4},
+    // calves
+    calf:{calves:1}, seated_calf:{calves:1},
+    // core
+    situp:{core:1}, legraise:{core:1}, hanging_leg_raise:{core:1}, hanging_knee:{core:1},
+    toes_to_bar:{core:1}, cable_crunch:{core:1}, decline_situp:{core:1}, v_up:{core:1},
+    bicycle_crunch:{core:1}, russian_twist:{core:1}, ab_wheel:{core:1},
+    // full body / olympic
+    burpee:{quads:.6,chest:.5,core:.4,shoulders:.4}, kb_swing:{glutes:.9,hamstrings:.7,back:.5,shoulders:.3},
+    power_clean:{quads:.7,glutes:.7,back:.7,shoulders:.5}, hang_clean:{quads:.6,back:.7,shoulders:.5},
+    clean_jerk:{quads:.7,shoulders:.8,glutes:.6,back:.6}, snatch:{shoulders:.8,quads:.6,back:.7,glutes:.5},
+    db_snatch:{shoulders:.8,quads:.5,back:.5}, tgu:{shoulders:.8,core:.8},
+    b_sho:{shoulders:1}, b_leg:{glutes:.8,hamstrings:.5},
+  };
+  /* Fallback by split, so a movement with no fine map still lands somewhere. */
+  var SPLIT_FALL = {
+    push:{chest:.7,shoulders:.5,triceps:.5}, pull:{back:.8,biceps:.5},
+    legs:{quads:.7,glutes:.6,hamstrings:.4}, core:{core:1}, full:{core:.4,quads:.4,back:.4},
+  };
+  function musclesFor(exId){
+    if(MAP[exId]) return MAP[exId];
+    var sp = (typeof SPLIT === "object" && SPLIT[exId]) || "full";
+    return SPLIT_FALL[sp] || SPLIT_FALL.full;
+  }
+
+  /* Model constants. */
+  var SET_K = 8;          // hard sets that give a "big" stimulus (damage saturates)
+  var REC_BASE = 40;      // hours a moderate session's muscle takes to come back
+  var INTENSITY = { light:0.75, moderate:1.0, hard:1.3 };   // scales the damage
+  var HALF_LIFE_DEFAULT = 24;   // h; used only for the training-MPS curve
+
+  function intensityMult(){
+    var v = "moderate";
+    try { v = (document.getElementById("intensity")||{}).value || "moderate"; } catch(e){}
+    return INTENSITY[v] || 1.0;
+  }
+
+  /* Pull the last `days` days of logged training out of history, newest first,
+     as a flat list of sessions: { key, when(ms), byMuscle:{m:{sets,reps,vol}},
+     sleep, ppk, intensity }. `whenMs` uses the training time if given, else a
+     default hour, so "hours since" is meaningful. */
+  function sessions(days){
+    days = days || 7;
+    var out = [];
+    var u = null;
+    try { u = (typeof activeUser === "function") ? activeUser() : null; } catch(e){}
+    var saved = (u && u.days) ? Object.keys(u.days) : [];
+    var todayK = (typeof todayKey === "function") ? todayKey() : null;
+    /* Today may not be written to days yet (it is saved as you go, but the very
+       first sets of the morning can precede a save), so always consider it live
+       on top of whatever is saved. */
+    var keys = saved.slice();
+    if(todayK && keys.indexOf(todayK) < 0) keys.push(todayK);
+    var cutoff = Date.now() - days*24*3600*1000;
+
+    keys.forEach(function(k){
+      var snap = null;
+      try { var u = activeUser(); snap = u && u.days && u.days[k]; } catch(e){}
+      /* Today is read live so a set logged a minute ago counts, and so the
+         training time typed for today is picked up before it is saved. */
+      var isToday = (k === todayK);
+      var d;
+      try { d = isToday ? (lastD || compute()) : (snap ? usingSnapshot(snap, compute) : null); }
+      catch(e){ d = null; }
+      if(!d || !d.st || !d.st.byEx || !d.st.byEx.length) return;
+
+      var parts = String(k).split("-");
+      var tstr = (isToday ? ((document.getElementById("trainTime")||{}).value)
+                          : (snap && snap.trainTime)) || "";
+      var hh = 18, mm = 0;
+      var tm = /^(\d{1,2}):(\d{2})$/.exec(tstr);
+      if(tm){ hh = +tm[1]; mm = +tm[2]; }
+      var when = new Date(+parts[0], +parts[1]-1, +parts[2], hh, mm).getTime();
+      if(when < cutoff) return;
+
+      var byMuscle = {};
+      d.st.byEx.forEach(function(e){
+        var shares = musclesFor(e.id);
+        Object.keys(shares).forEach(function(m){
+          var sh = shares[m];
+          var b = byMuscle[m] || (byMuscle[m] = {sets:0, reps:0, exs:{}});
+          b.sets += e.sets.length * sh;
+          b.reps += e.reps * sh;
+          b.exs[e.name] = (b.exs[e.name]||0) + e.reps;
+        });
+      });
+
+      var sleep = isToday ? (+($("sleep")||{}).value || 7) : (+(snap && snap.sleep) || 7);
+      var unbroken = isToday ? (+($("sleepUnbroken")||{}).value || 0) : (+(snap && snap.sleepUnbroken) || 0);
+      var ppk = d.ppk || 0;
+      var inten = isToday ? ((document.getElementById("intensity")||{}).value || "moderate")
+                          : ((snap && snap.intensity) || "moderate");
+      out.push({ key:k, when:when, today:isToday, byMuscle:byMuscle,
+                 sleep:sleep, unbroken:unbroken, ppk:ppk, intensity:inten, hasTime:!!tm });
+    });
+    return out;
+  }
+
+  function sleepFactor(sleep, unbroken){
+    // 8 h -> 1.0 ; poor sleep slows repair, extra sleep helps a little
+    var base = Math.max(0.7, Math.min(1.15, 0.55 + 0.056*sleep));
+    /* Broken sleep repairs worse than the same hours in one block. If an
+       unbroken stretch is given and it is shorter than total sleep, dock up to
+       10% for the fragmentation. */
+    if(unbroken > 0 && sleep > 0 && unbroken < sleep){
+      base *= Math.max(0.9, unbroken/sleep);
+    }
+    return base;
+  }
+  function proteinFactor(ppk){
+    // 1.6 g/kg -> ~1.0 ; short on protein slows rebuilding
+    return Math.max(0.75, Math.min(1.1, 0.6 + 0.25*ppk));
+  }
+  function intenScale(name){ return INTENSITY[name] || 1.0; }
+
+  /* Recovery of one muscle right now, folding in every session in the window
+     that still has an open deficit. Returns 0..100 and the driving session. */
+  function recoveryOf(muscle, sess){
+    var now = Date.now(), worst = 100, driver = null, lastWhen = 0, weekSets = 0, weekReps = 0, hist = [];
+    sess.forEach(function(s){
+      var b = s.byMuscle[muscle]; if(!b) return;
+      weekSets += b.sets; weekReps += b.reps;
+      if(s.when > lastWhen) lastWhen = s.when;
+      var D = 1 - Math.exp(-(b.sets * intenScale(s.intensity)) / SET_K);
+      var BH = REC_BASE * (0.6 + 0.8*D);
+      var M = sleepFactor(s.sleep, s.unbroken) * proteinFactor(s.ppk);
+      var tHours = Math.max(0, (now - s.when)/3600000);
+      var rec = 100 * (1 - D * Math.exp(-tHours / (BH / M)));
+      hist.push({ key:s.key, when:s.when, sets:b.sets, reps:b.reps, exs:b.exs,
+                  damage:D, baseHours:BH/M, rec:rec, sleep:s.sleep, ppk:s.ppk,
+                  intensity:s.intensity, today:s.today, hasTime:s.hasTime });
+      if(rec < worst){ worst = rec; driver = hist[hist.length-1]; }
+    });
+    if(!hist.length) return null;
+    hist.sort(function(a,b){ return b.when - a.when; });
+    return { muscle:muscle, rec:Math.round(worst), driver:driver, lastWhen:lastWhen,
+             weekSets:weekSets, weekReps:Math.round(weekReps), hist:hist };
+  }
+
+  function all(days){
+    var sess = sessions(days || 7), out = [];
+    MUSCLES.forEach(function(m){
+      var r = recoveryOf(m[0], sess);
+      if(r) out.push(r);
+    });
+    // least recovered first — that is what needs rest
+    out.sort(function(a,b){ return a.rec - b.rec; });
+    return out;
+  }
+
+  /* Training-driven MPS: a hard session lifts synthesis for ~24-48 h, peaking
+     within the first day and decaying after. Amplitude scales with the total
+     hard sets of the session (saturating), sharpened a little by protein and
+     sleep. Returns, for a given wall-clock "hours since rollover" grid point,
+     the % above rest contributed by every training session today. */
+  function trainingMPSAmp(totalSets){
+    return 80 * (1 - Math.exp(-totalSets / 10));   // up to +80% above rest at the peak
+  }
+  function trainingMPSShape(hrs){
+    // 0 before the session, quick rise over ~3 h to the peak, exp decay, gone by ~48 h
+    if(hrs <= 0) return 0;
+    var rise = 1 - Math.exp(-hrs / 1.5);
+    var decay = Math.exp(-hrs / 20);               // ~20 h time constant
+    var s = rise * decay / 0.63;                   // normalise so the peak is ~1
+    return Math.max(0, s);
+  }
+
+  return {
+    MUSCLES:MUSCLES, MNAME:MNAME, MICON:MICON, musclesFor:musclesFor,
+    sessions:sessions, all:all, recoveryOf:recoveryOf,
+    sleepFactor:sleepFactor, proteinFactor:proteinFactor,
+    trainingMPSAmp:trainingMPSAmp, trainingMPSShape:trainingMPSShape,
+    SET_K:SET_K, REC_BASE:REC_BASE,
+  };
+})();
+
+
 window.caloMeals = (function(){
   "use strict";
 
@@ -7696,25 +8159,42 @@ window.caloMeals = (function(){
     return (sittings||[]).filter(function(s){ return !s.whole && (s.p||0) >= MPS_MIN_G; })
                          .map(function(s){ return { at:s.at, p:s.p||0, names:s.names||[] }; });
   }
+  /* Today's training session, if any, as a rise-and-fall MPS lift on the same
+     axis as feeding. Amplitude from the total hard sets, timing from the
+     training clock (or a late-afternoon default). */
+  function trainToday(){
+    var R = window.caloRecovery; if(!R) return null;
+    var st = (typeof lastD !== "undefined" && lastD && lastD.st) ? lastD.st : null;
+    if(!st || !(st.sets > 0)) return null;
+    var tstr = (document.getElementById("trainTime")||{}).value || "";
+    var tm = /^(\d{1,2}):(\d{2})$/.exec(tstr);
+    var atMin = tm ? (+tm[1])*60 + (+tm[2]) : 17*60;   // default 5pm
+    return { at:anchorMin(atMin), wall:atMin, sets:st.sets, amp:R.trainingMPSAmp(st.sets), hasTime:!!tm };
+  }
   function mpsSeries(sittings){
     var feeds = mpsFeeds(sittings).map(function(m){ return { at:anchorMin(m.at), wall:m.at, p:m.p, names:m.names }; });
-    if(!feeds.length) return null;
-    var atMin = feeds[0].at, atMax = feeds[0].at;
+    var train = trainToday();
+    if(!feeds.length && !train) return null;
+    var now = anchorMin(nowMin());
+    var atMin = now, atMax = now;
     feeds.forEach(function(m){ if(m.at < atMin) atMin = m.at; if(m.at > atMax) atMax = m.at; });
-    var t0 = atMin, now = anchorMin(nowMin()), tEnd = Math.max(now, atMax + MPS_END*60);
+    if(train){ if(train.at < atMin) atMin = train.at; if(train.at + 60 > atMax) atMax = train.at + 60; }
+    var R = window.caloRecovery;
+    var t0 = atMin, tEnd = Math.max(now, atMax + MPS_END*60);
+    if(train) tEnd = Math.max(tEnd, train.at + 30*60);   // training tail runs long
     var N = 180, pts = [];
     for(var i = 0; i <= N; i++){
-      var t = t0 + (tEnd - t0)*i/N, y = 100;
-      feeds.forEach(function(m){ y += mpsAmp(m.p) * mpsShape(t - m.at); });
-      pts.push({ t:t, y:y });
+      var t = t0 + (tEnd - t0)*i/N;
+      var yF = 100; feeds.forEach(function(m){ yF += mpsAmp(m.p) * mpsShape(t - m.at); });
+      var yT = train ? train.amp * R.trainingMPSShape((t - train.at)/60) : 0;
+      pts.push({ t:t, yF:yF, yT:100 + yT, y:yF + yT });
     }
-    var yNow = 100;
-    feeds.forEach(function(m){
-      m.peak = mpsAmp(m.p);
-      m.now  = m.peak * mpsShape(now - m.at);
-      yNow += m.now;
-    });
-    return { pts:pts, t0:t0, tEnd:tEnd, now:now, feeds:feeds, yNow:yNow };
+    var yNowF = 100;
+    feeds.forEach(function(m){ m.peak = mpsAmp(m.p); m.now = m.peak * mpsShape(now - m.at); yNowF += m.now; });
+    var yNowT = train ? train.amp * R.trainingMPSShape((now - train.at)/60) : 0;
+    if(train){ train.now = yNowT; }
+    return { pts:pts, t0:t0, tEnd:tEnd, now:now, feeds:feeds, train:train,
+             yNow:yNowF + yNowT, yNowF:yNowF, yNowT:100 + yNowT, hasTrain:!!train, hasFeed:!!feeds.length };
   }
   function mpsSVG(ser){
     var W = 340, H = 200, ml = 46, mr = 16, mt = 16, mb = 34;
@@ -7746,6 +8226,20 @@ window.caloMeals = (function(){
       g += '<line x1="'+nX.toFixed(1)+'" y1="'+mt+'" x2="'+nX.toFixed(1)+'" y2="'+(mt+ph)+'" class="ginow"/>';
       g += '<text x="'+nX.toFixed(1)+'" y="'+(mt-5)+'" class="ginowlab" text-anchor="middle">now</text>';
     }
+    if(ser.train){
+      var tx = X(ser.train.at);
+      if(tx >= ml - 0.5 && tx <= ml + pw + 0.5){
+        g += '<line x1="'+tx.toFixed(1)+'" y1="'+mt+'" x2="'+tx.toFixed(1)+'" y2="'+(mt+ph)+'" class="gitrainmk"/>';
+      }
+    }
+    /* When both a feed curve and a training curve exist, show each thin plus the
+       combined bold; with only one, show just the combined. */
+    if(ser.hasTrain && ser.hasFeed){
+      var pF = ser.pts.map(function(p,i){ return (i?"L":"M")+X(p.t).toFixed(1)+" "+Y(p.yF).toFixed(1); }).join(" ");
+      var pT = ser.pts.map(function(p,i){ return (i?"L":"M")+X(p.t).toFixed(1)+" "+Y(p.yT).toFixed(1); }).join(" ");
+      g += '<path d="'+pF+'" class="giline giline-mf"/>';
+      g += '<path d="'+pT+'" class="giline giline-mt"/>';
+    }
     var pth = ser.pts.map(function(p,i){ return (i?"L":"M")+X(p.t).toFixed(1)+" "+Y(p.y).toFixed(1); }).join(" ");
     g += '<path d="'+pth+'" class="giline giline-m"/>';
     if(ser.now >= ser.t0 && ser.now <= ser.tEnd){
@@ -7760,7 +8254,10 @@ window.caloMeals = (function(){
       g += '<path d="M'+(mx-3.6).toFixed(1)+' '+(mt+ph)+' L'+(mx+3.6).toFixed(1)+' '+(mt+ph)+' L'+mx.toFixed(1)+' '+(mt+ph-6.5)+' Z" class="gimealtri"/>';
     });
     return '<svg viewBox="0 0 '+W+' '+H+'" class="gichart mpschart" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Modelled muscle protein synthesis after the protein feedings logged today. Tap for the maths and sources.">'+g+'</svg>'
-      + '<div class="gilegend"><span class="gikey gikey-m">Synthesis ' + Math.round(ser.yNow) + '%</span><span class="gimealkey">▲ protein feeds</span><span class="gitap">tap for the maths ></span></div>';
+      + '<div class="gilegend"><span class="gikey gikey-m">Synthesis ' + Math.round(ser.yNow) + '%</span>'
+      + (ser.hasTrain && ser.hasFeed ? '<span class="gikey gikey-mf">feeding</span><span class="gikey gikey-mt">training</span>' : '')
+      + (ser.hasTrain ? '<span class="gitrainkey">◆ trained</span>' : '<span class="gimealkey">▲ protein feeds</span>')
+      + '<span class="gitap">tap for the maths ></span></div>';
   }
   function wireMPS(){
     if(mpsWired) return;
@@ -7773,7 +8270,7 @@ window.caloMeals = (function(){
     var card = document.getElementById("mpsCard");
     if(!card) return;
     wireMPS();
-    var ser = (d && d.mealsOn) ? mpsSeries(d.sittings) : null;
+    var ser = mpsSeries((d && d.mealsOn) ? d.sittings : null);
     var on = !!(ser && ser.pts && ser.pts.length);
     card.classList.toggle("hidden", !on);
     if(!on) return;
@@ -7805,6 +8302,16 @@ window.caloMeals = (function(){
         + "~" + MPS_LAG + "-minute lag, 1 at the " + MPS_PEAK + "-hour peak, and back to zero by " + MPS_END + " hours. This is dose "
         + "and timing only — it does not depend on age or body weight here, though in reality older muscle needs a somewhat larger dose."));
 
+      if(ser && ser.train){
+        body.appendChild(el("div","ntgrp","Today's training"));
+        body.appendChild(el("p","tiny",
+          "Resistance training lifts muscle protein synthesis on its own, and it stacks with feeding. "
+          + "The rise is large and long \u2014 climbing within hours and taking 24\u201348 h to settle, longer than the "
+          + "food response. From " + ser.train.sets + " hard sets"
+          + (ser.train.hasTime ? " at " + pretty(ser.train.wall) : " (time not given, so 5pm is assumed)")
+          + ", the peak lift is about +" + Math.round(ser.train.amp) + "% above rest; right now it is adding +"
+          + Math.round(ser.train.now || 0) + "%. Set the training time on the Move tab to place it correctly."));
+      }
       if(ser && ser.feeds && ser.feeds.length){
         body.appendChild(el("div","ntgrp","Your protein feeds today"));
         ser.feeds.forEach(function(m){
@@ -7826,13 +8333,14 @@ window.caloMeals = (function(){
       [ "MPS rises with protein dose and is nearly maximised by about 20 g of high-quality protein — <a class='reflink' href='https://pubmed.ncbi.nlm.nih.gov/19056590/' target='_blank' rel='noopener noreferrer'>Moore et al., Am J Clin Nutr 2009</a>.",
         "Little further rise beyond ~20 g at rest, with 40 g adding only a small extra response — <a class='reflink' href='https://pubmed.ncbi.nlm.nih.gov/24257722/' target='_blank' rel='noopener noreferrer'>Witard et al., Am J Clin Nutr 2014</a>.",
         "MPS returns to baseline within about two to three hours of a feeding even while amino acids stay high — the “muscle-full” effect — <a class='reflink' href='https://pubmed.ncbi.nlm.nih.gov/20844073/' target='_blank' rel='noopener noreferrer'>Atherton et al., Am J Clin Nutr 2010</a>.",
-        "Spreading protein across several feedings through the day raises the overall synthetic response — <a class='reflink' href='https://pubmed.ncbi.nlm.nih.gov/23459753/' target='_blank' rel='noopener noreferrer'>Areta et al., J Physiol 2013</a>."
+        "Spreading protein across several feedings through the day raises the overall synthetic response — <a class='reflink' href='https://pubmed.ncbi.nlm.nih.gov/23459753/' target='_blank' rel='noopener noreferrer'>Areta et al., J Physiol 2013</a>.",
+        "Resistance exercise raises muscle protein synthesis for 24–48 h, and feeding after training amplifies it — <a class='reflink' href='https://pubmed.ncbi.nlm.nih.gov/9139182/' target='_blank' rel='noopener noreferrer'>Phillips et al., Am J Physiol 1997</a>."
       ].forEach(function(t){ refs.appendChild(el("li", null, t)); });
       body.appendChild(refs);
       body.appendChild(el("p","tiny",
-        "A simplified model for a healthy adult. The studies it draws on measured muscle directly, many after resistance exercise, "
-        + "which lifts the response higher and for longer than eating alone. Read it as the shape and timing of the build response, "
-        + "not a measurement of your own muscle."));
+        "A simplified model for a healthy adult. The training curve is a rough decaying elevation from your logged sets; the "
+        + "feeding curve is dose-and-timing only. Read it as the shape and timing of the build response, not a measurement of "
+        + "your own muscle."));
     });
   }
 
@@ -8096,6 +8604,7 @@ window.caloMeals = (function(){
        nowhere, so stay out of the way entirely. */
     if(typeof inDiff !== "undefined" && inDiff) return;
     try { render(d); paintRows(d); renderGI(d); renderMPS(d); } catch(e){}
+    try { if(activeTab === "recovery") renderRecovery(); } catch(e){}
     /* The timed diary records every serving even with the absorption setting
        off; "off" only means the live tiles are not put on a digestion curve. */
     if(window.__pickerBusy) return;      // the picker logs its own servings on confirm
@@ -9135,8 +9644,8 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.24b";
-  var APP_BUILT   = "24 Sep 2026";
+  var APP_VERSION = "2026.09.25a";
+  var APP_BUILT   = "25 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
   /* Automatic updating, on by default and switchable in Settings. "On" means:
