@@ -540,6 +540,12 @@ body{top:0!important}
 .rechead{display:flex;align-items:center;gap:14px;margin-bottom:6px}
 .recbig{font-family:var(--serif);font-size:16px;font-weight:600;color:var(--ink)}
 .recweek{width:100%;height:auto;display:block;margin:2px 0 6px}
+.bodymapwrap{margin:4px 0 10px}
+.bodymap{width:100%;height:auto;display:block;max-width:420px;margin:0 auto}
+.bodymap .bmreg{cursor:pointer;transition:opacity .12s}
+.bodymap .bmreg:hover{opacity:.82}
+.bodymap .bmreg.sel{stroke:var(--ink);stroke-width:1.8}
+.bodymap .bmlab{fill:var(--muted);font-size:8px;font-family:var(--sans);text-transform:uppercase;letter-spacing:.06em}
 .recsess{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:4px 0}
 .recsess .timeinp{flex:none;width:112px}
 .mwin b{display:block}
@@ -5407,7 +5413,9 @@ function openRecMethod(){
   openSheet("How recovery is worked out", function(body){
     body.appendChild(el("p","tiny",
       "Each muscle starts at 100%. A session knocks it down by an amount that grows with the hard sets it took "
-      + "and how hard they felt, then it climbs back on an exponential curve. In symbols, for a session t hours ago:"));
+      + "and how hard they felt, then it climbs back on an exponential curve \u2014 quick at first, slow near the top. "
+      + "A hard session is only part-way back at 24 h and near-full around 48\u201372 h; a light one clears within a day. "
+      + "In symbols, for a session t hours ago:"));
     body.appendChild(el("p","formula","damage D = 1 \u2212 e^(\u2212 sets\u00b7intensity / 8)"));
     body.appendChild(el("p","formula","recovered % = 100 \u00b7 ( 1 \u2212 D \u00b7 e^(\u2212 t / T) )"));
     body.appendChild(el("p","formula","T = base \u00d7 (0.6 + 0.8\u00b7D) \u00d7 muscle factor \u00f7 (sleep \u00b7 protein)"));
@@ -5453,6 +5461,116 @@ function openRecMethod(){
       + "database, so identifiers are worth checking."));
   });
 }
+/* ==================================================================
+   BODY MAP — an original, stylised front/back figure drawn in SVG. Each
+   muscle is a <path> tagged data-m with the muscle id, filled by recovery
+   colour, tappable and highlightable. Not traced from any photograph or
+   stock art — simple geometric regions on a schematic body.
+   ================================================================== */
+function bodyMapSVG(recByMuscle){
+  function fill(m){
+    var r = recByMuscle[m];
+    return (r == null) ? "var(--card2)" : recColor(r);
+  }
+  function P(m, d){
+    return "<path class='bmreg' data-m='" + m + "' d='" + d + "' fill='" + fill(m)
+         + "' stroke='var(--card)' stroke-width='0.8'><title>" + (window.caloRecovery.MNAME[m] || m)
+         + (recByMuscle[m]!=null ? " — " + recByMuscle[m] + "%" : "") + "</title></path>";
+  }
+  /* ---- FRONT view (viewBox 0 0 120 240) ---- */
+  var front = ""
+    // head + neck outline (not a muscle region for the neck front; neck is drawn)
+    + "<circle cx='60' cy='18' r='10' fill='var(--card2)' stroke='var(--line)' stroke-width='0.8'/>"
+    + P("neck", "M53 27 h14 v6 q-7 4 -14 0 z")
+    // torso silhouette base
+    + "<path d='M40 34 q20 -6 40 0 l4 40 q-24 8 -48 0 z' fill='var(--card2)' stroke='var(--line)' stroke-width='0.8'/>"
+    // shoulders (side delts) + front delts
+    + P("front_delt", "M40 34 q-8 2 -10 12 q6 3 12 1 q1 -8 8 -11 z")
+    + P("front_delt", "M80 34 q8 2 10 12 q-6 3 -12 1 q-1 -8 -8 -11 z")
+    + P("shoulders", "M30 46 q-4 4 -3 10 q5 1 8 -2 q0 -5 2 -8 z")
+    + P("shoulders", "M90 46 q4 4 3 10 q-5 1 -8 -2 q0 -5 -2 -8 z")
+    // chest
+    + P("chest", "M46 40 q14 -4 28 0 q1 10 -2 16 q-12 4 -24 0 q-3 -6 -2 -16 z")
+    // biceps (front upper arm)
+    + P("biceps", "M28 56 q-3 10 -1 20 q5 1 8 -2 q0 -10 1 -18 z")
+    + P("biceps", "M92 56 q3 10 1 20 q-5 1 -8 -2 q0 -10 -1 -18 z")
+    // forearms
+    + P("forearms", "M27 76 q-3 12 -2 22 q4 1 7 0 q1 -12 3 -22 z")
+    + P("forearms", "M93 76 q3 12 2 22 q-4 1 -7 0 q-1 -12 -3 -22 z")
+    // abs
+    + P("abs", "M50 58 q10 3 20 0 l-2 26 q-8 3 -16 0 z")
+    // obliques (flanks)
+    + P("obliques", "M46 58 q-3 12 -1 24 q3 1 5 0 l1 -24 z")
+    + P("obliques", "M74 58 q3 12 1 24 q-3 1 -5 0 l-1 -24 z")
+    // hip flexors / lower belly
+    + P("hip_flexor", "M50 84 q10 3 20 0 l-2 8 q-8 2 -16 0 z")
+    // quads
+    + P("quads", "M48 94 q7 3 12 0 q1 22 -3 40 q-6 2 -9 0 q-2 -20 0 -40 z")
+    + P("quads", "M72 94 q-7 3 -12 0 q-1 22 3 40 q6 2 9 0 q2 -20 0 -40 z")
+    // adductors (inner thigh)
+    + P("adductors", "M58 96 h4 q1 18 -1 34 q-2 1 -3 0 q-1 -17 0 -34 z")
+    // shins (front lower leg)
+    + P("shins", "M49 138 q6 2 10 0 q1 20 -1 40 q-4 1 -7 0 q-2 -20 -2 -40 z")
+    + P("shins", "M71 138 q-6 2 -10 0 q-1 20 1 40 q4 1 7 0 q2 -20 2 -40 z");
+
+  /* ---- BACK view (offset x by 130; total width 260) ---- */
+  function Pb(m, d){ return P(m, d); }   // same helper, coordinates already offset
+  var back = ""
+    + "<circle cx='190' cy='18' r='10' fill='var(--card2)' stroke='var(--line)' stroke-width='0.8'/>"
+    + P("neck", "M183 27 h14 v6 q-7 4 -14 0 z")
+    + "<path d='M170 34 q20 -6 40 0 l4 40 q-24 8 -48 0 z' fill='var(--card2)' stroke='var(--line)' stroke-width='0.8'/>"
+    // traps (upper back diamond)
+    + P("traps", "M176 34 q14 -4 28 0 q-2 8 -14 12 q-12 -4 -14 -12 z")
+    // rear delts
+    + P("rear_delt", "M170 34 q-8 2 -10 12 q6 3 12 1 q1 -8 8 -11 z")
+    + P("rear_delt", "M210 34 q8 2 10 12 q-6 3 -12 1 q-1 -8 -8 -11 z")
+    // rotator cuff (small, under rear delt)
+    + P("rotator", "M162 47 q-2 3 -1 7 q4 1 6 -1 l-1 -6 z")
+    + P("rotator", "M218 47 q2 3 1 7 q-4 1 -6 -1 l1 -6 z")
+    // lats (mid back wings)
+    + P("lats", "M176 48 q14 -3 28 0 q0 14 -6 24 q-16 4 -22 -2 q-2 -12 0 -22 z")
+    // triceps (back upper arm)
+    + P("triceps", "M158 56 q-3 10 -1 20 q5 1 8 -2 q0 -10 1 -18 z")
+    + P("triceps", "M222 56 q3 10 1 20 q-5 1 -8 -2 q0 -10 -1 -18 z")
+    + P("forearms", "M157 76 q-3 12 -2 22 q4 1 7 0 q1 -12 3 -22 z")
+    + P("forearms", "M223 76 q3 12 2 22 q-4 1 -7 0 q-1 -12 -3 -22 z")
+    // lower back (erectors)
+    + P("lower_back", "M182 72 q8 3 16 0 l-2 14 q-6 2 -12 0 z")
+    // glutes
+    + P("glutes", "M178 88 q12 -4 24 0 q2 10 -4 16 q-8 4 -16 0 q-6 -6 -4 -16 z")
+    // hamstrings
+    + P("hamstrings", "M178 106 q7 3 12 0 q1 20 -3 34 q-6 2 -9 0 q-2 -18 0 -34 z")
+    + P("hamstrings", "M202 106 q-7 3 -12 0 q-1 20 3 34 q6 2 9 0 q2 -18 0 -34 z")
+    // abductors (outer hip)
+    + P("abductors", "M172 90 q-3 8 -2 16 q3 1 5 0 l1 -16 z")
+    + P("abductors", "M208 90 q3 8 2 16 q-3 1 -5 0 l-1 -16 z")
+    // calves
+    + P("calves", "M179 144 q6 2 10 0 q1 18 -1 34 q-4 1 -7 0 q-2 -18 -2 -34 z")
+    + P("calves", "M201 144 q-6 2 -10 0 q-1 18 1 34 q4 1 7 0 q2 -18 2 -34 z");
+
+  return "<svg viewBox='0 0 250 190' class='bodymap' role='group' aria-label='Body map: tap a muscle'>"
+    + "<text x='60' y='188' text-anchor='middle' class='bmlab'>front</text>"
+    + "<text x='190' y='188' text-anchor='middle' class='bmlab'>back</text>"
+    + front + back + "</svg>";
+}
+
+function addTimeField(body){
+  var f = el("div","field"); f.style.marginBottom = "10px";
+  var lab = el("label"); lab.setAttribute("for","addTimeProxy"); lab.textContent = "Time you trained";
+  f.appendChild(lab);
+  var inp = el("input"); inp.type = "time"; inp.id = "addTimeProxy"; inp.className = "timeinp";
+  var cur = ($("trainTime")||{}).value;
+  if(!cur){ var d=new Date(); cur = String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
+  inp.value = cur;
+  inp.addEventListener("change", function(){
+    var t = $("trainTime"); if(t){ t.value = inp.value; t.dispatchEvent(new Event("change")); }
+  });
+  // seed trainTime now so an untimed add still records this time
+  (function(){ var t=$("trainTime"); if(t && !t.value){ t.value = inp.value; try{ t.dispatchEvent(new Event("change")); }catch(e){} } })();
+  f.appendChild(inp);
+  f.appendChild(el("p","tiny","Recovery uses this to know how long ago it was. You can change it later per session on the Recovery tab."));
+  body.appendChild(f);
+}
 function renderRecovery(){
   var host = document.getElementById("recGrid"); if(!host) return;
   var R = window.caloRecovery;
@@ -5461,6 +5579,21 @@ function renderRecovery(){
   document.getElementById("recSummary").textContent = list.length
     ? list.length + " muscle" + (list.length===1?"":"s") + " worked this week" : "";
   host.innerHTML = "";
+  // recovery % keyed by muscle, for the body map
+  var recBy = {}; list.forEach(function(r){ recBy[r.muscle] = r.rec; });
+  var mapWrap = el("div","bodymapwrap");
+  mapWrap.innerHTML = bodyMapSVG(recBy);
+  host.appendChild(mapWrap);
+  mapWrap.querySelectorAll(".bmreg").forEach(function(reg){
+    var m = reg.getAttribute("data-m");
+    reg.addEventListener("click", function(){
+      mapWrap.querySelectorAll(".bmreg.sel").forEach(function(x){ x.classList.remove("sel"); });
+      // highlight every region of that muscle (left+right, front+back)
+      mapWrap.querySelectorAll(".bmreg[data-m='" + m + "']").forEach(function(x){ x.classList.add("sel"); });
+      openMuscleSheet(m);
+    });
+  });
+  host.appendChild(el("p","tiny","Tap a muscle on the body, or a tile below. Grey means not trained in the last 7 days."));
   var grid = el("div","recgrid");
   list.forEach(function(r){
     var cell = el("button","reccell"); cell.type = "button";
@@ -7327,6 +7460,7 @@ if($("qSupp")) $("qSupp").addEventListener("click", openSuppLog);
    ready to fill, exactly like sets and reps do for a lift. */
 $("qTrain").addEventListener("click", () => {
   openSheet("Add an exercise", body => {
+    addTimeField(body);
     let q;
     const chosen = splitChips(body, () => { if(q && q.redraw) q.redraw(); });  // includes Cardio
     q = buildPicker("rep", body, "Search exercises, or walking, running, cycling", null, {
@@ -7339,6 +7473,7 @@ $("qTrain").addEventListener("click", () => {
 
 $("qSport").addEventListener("click", () => {
   openSheet("Add a sport", body => {
+    addTimeField(body);
     const q = buildPicker("rep", body, "Search sports: cricket, football, badminton", null, {
       filter: it => it.split === "sport",
       hint: "Pick your sport, choose easy / medium / hard, then set the minutes."
@@ -9988,7 +10123,7 @@ body.editing-day{padding-top:38px}
      string means a fresh cache; version.json is what a running copy reads to
      find out a newer build exists even when the worker is slow to notice.
      ------------------------------------------------------------------- */
-  var APP_VERSION = "2026.09.25d";
+  var APP_VERSION = "2026.09.25e";
   var APP_BUILT   = "25 Sep 2026";
 
   var swReg = null, waiting = null, applying = false, reloaded = false, silent = false, lastCheck = 0;
