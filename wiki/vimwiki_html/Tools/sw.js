@@ -18,7 +18,7 @@
    network-first and the cached copy is only a fallback.
    --------------------------------------------------------------- */
 
-const CACHE_VERSION = "v83";
+const CACHE_VERSION = "v85";
 const CACHE = `eatnmove-${CACHE_VERSION}`;
 
 const PAGE = "calorie_counter.html";
