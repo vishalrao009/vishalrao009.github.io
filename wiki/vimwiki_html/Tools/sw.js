@@ -18,7 +18,7 @@
    network-first and the cached copy is only a fallback.
    --------------------------------------------------------------- */
 
-const CACHE_VERSION = "v94";
+const CACHE_VERSION = "v95";
 const CACHE = `eatnmove-${CACHE_VERSION}`;
 
 const PAGE = "calorie_counter.html";
@@ -32,7 +32,8 @@ const ASSETS = [
   "ledger/icons/icon-192.png",
   "ledger/icons/icon-512.png",
   "ledger/icons/icon-maskable-512.png",
-  "ledger/icons/apple-touch-icon.png"
+  "ledger/icons/apple-touch-icon.png",
+  "ledger/gym/gym-icons.webp"
 ];
 
 // Absolute URLs, resolved against wherever this worker is actually served
