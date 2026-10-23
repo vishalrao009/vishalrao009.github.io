@@ -22,6 +22,7 @@ it is emitted as the bare "/" to match.
 """
 
 import os
+import subprocess
 import sys
 from datetime import datetime, timezone
 from xml.sax.saxutils import escape
@@ -35,9 +36,45 @@ SKIP_DIRS = {".git", ".github", "assets", "node_modules", "__pycache__"}
 # Individual files to leave out (404 pages, templates, partials).
 SKIP_FILES = {"404.html", "template.html", "default_colored.html"}
 
+# Paths relative to the site root to leave out: old copies of the homepage
+# (duplicates of "/") and the staticrypt password page (nothing to index).
+# An entry ending in "/" skips that whole folder.
+SKIP_PATHS = {
+    "index (9).html",
+    "index_0721.html",
+    "index_unecrypted.html",
+    "old_index.html",
+    "encrypted/",
+}
+
+
+def git_ignored(root):
+    """Return root-relative paths that .gitignore excludes (tracked or not).
+
+    Those files are not meant to be published, so they must not be listed.
+    If root is not a git repo or git is missing, return an empty set and warn.
+    """
+    try:
+        out = subprocess.run(
+            ["git", "-C", root, "ls-files", "-z", "--cached", "--others",
+             "--ignored", "--exclude-standard"],
+            capture_output=True, check=True).stdout
+    except (OSError, subprocess.CalledProcessError):
+        print("Warning: could not ask git for ignored files; "
+              ".gitignore is NOT applied.", file=sys.stderr)
+        return set()
+    return {p for p in out.decode("utf-8").split("\0") if p}
+
+
+def skipped(rel, ignored):
+    if rel in ignored or rel in SKIP_PATHS:
+        return True
+    return any(p.endswith("/") and rel.startswith(p) for p in SKIP_PATHS)
+
 
 def collect(root):
     """Yield (url_path, mtime) for every publishable .html file under root."""
+    ignored = git_ignored(root)
     for dirpath, dirnames, filenames in os.walk(root):
         dirnames[:] = [d for d in sorted(dirnames)
                        if d not in SKIP_DIRS and not d.startswith(".")]
@@ -46,6 +83,8 @@ def collect(root):
                 continue
             full = os.path.join(dirpath, name)
             rel = os.path.relpath(full, root).replace(os.sep, "/")
+            if skipped(rel, ignored):
+                continue
             # Root index.html is served as "/" and declares that canonical.
             # Nested index.html files are left as-is, because the wiki
             # template's JS canonical uses the literal served pathname.
